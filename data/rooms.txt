@@ -1,0 +1,7 @@
+room_id|room_name|seat_rows|seat_cols|total_seats
+PHONG_001|Phòng Chiếu 1|9|9|81
+PHONG_002|Phòng Chiếu 2|9|9|81
+PHONG_003|Phòng Chiếu 3|9|9|81
+PHONG_004|Phòng Chiếu 4|9|9|81
+PHONG_005|Phòng Chiếu 5|9|9|81
+PHONG_006|Phòng Chiếu 6|9|9|81

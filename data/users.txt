@@ -1,0 +1,18 @@
+email|passwordHash|fullName|birthDate|phone|registeredAt|role
+vnkhoa@gmail.com|828b089f383f8554|Võ Như Khoa|05/05/2006|0912345677|1759042500|customer
+ndklinh@gmail.com|2a2643e0f57d27fc|Nguyễn Đỗ Khánh Linh|09/09/2006|0912345676|1763473500|customer
+thdung@gmail.com|876047a2c958ad2f|Trần Hữu Dũng|28/02/2005|0912345680|1765327800|customer
+vnny@gmail.com|fb1c18e3a3a59bf2|Văn Ngọc Như Ý|21/10/2006|0912345671|1756869120|customer
+admin@cinema.com|875ac6e8ba98644b|Quản Trị Viên|01/01/2000|0900000000|1756692000|admin
+nvvu@gmail.com|8bf171e729b2987d|Nguyễn Văn Vũ|14/03/2006|0912345672|1757937900|customer
+pvlong@gmail.com|edbd90aecf94c63c|Phan Vũ Long|30/01/2004|0912345675|1762309500|customer
+admin@cinexine.vn|875ac6e8ba98644b|ADMIN|12/02/2006|0898234406|1756692000|admin
+vvhieu@gmail.com|94c8468f6d234f0d|Võ Văn Hiếu|11/06/2006|0912345681|1762931100|customer
+plman@gmail.com|224b730bc9ada6c|Phạm Lê Minh An|17/12/2005|0912345678|1764133200|customer
+ntctuyen@gmail.com|17120e13a8b2a45|Nguyễn Thị Cẩm Tuyền|09/07/2006|0898234406|1760232600|customer
+tthnhu@gmail.com|60408af37b3983ab|Trần Thị Hoài Như|26/09/2006|0912345683|1761794400|customer
+ltdhoa@gmail.com|fbf811f4a28e3571|Lê Thị Diệu Hòa|23/07/2004|0912345679|1764674100|customer
+htluc@gmail.com|5e7a5678d2ae27f5|Huỳnh Tấn Lực|19/08/2005|0912345674|1760951400|customer
+ttttrinh@gmail.com|9899d5d92adf32d3|Trần Thị Tuyết Trinh|02/11/2005|0912345673|1759380000|customer
+vanvu41ht1@gmail.com|24f1eba07df13783|Nguyễn Văn Vũ|07/06/2006|0335912027|1757229600|customer
+dtkhoi@gmail.com|2e35975bd669e42|Dương Tấn Khôi|08/04/2005|0912345682|1766068200|customer

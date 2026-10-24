@@ -1,0 +1,11 @@
+combo_id|combo_name|price
+CB01|CocaCola|30000
+CB02|Bắp Caramel|70000
+CB03|Bắp Phô Mai|75000
+CB04|1 CocaCola + 1 Bắp Caramel|95000
+CB05|1 CocaCola + 1 Bắp Phô Mai|100000
+CB06|2 CocaCola + 1 Bắp Caramel|120000
+CB07|2 CocaCola + 1 Bắp Phô Mai|125000
+CB08|2 CocaCola + 2 Bắp Caramel|185000
+CB09|2 CocaCola + 2 Bắp Phô Mai|190000
+CB10|4 CocaCola + 2 Bắp Phô Mai|240000

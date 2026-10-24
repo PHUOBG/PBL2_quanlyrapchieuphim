@@ -1,0 +1,1 @@
+showtime_id|movie_id|room_id|date|time|price

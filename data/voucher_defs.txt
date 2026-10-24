@@ -1,0 +1,4 @@
+code|type|value|min_bill|description
+WELCOME|2|20|0|Voucher chào mừng thành viên mới
+METIZ|1|30000|50000|Giảm 30.000đ cho đơn hàng từ 50.000đ
+NGUYENVU|2|50|100000|Voucher khuyến mãi
