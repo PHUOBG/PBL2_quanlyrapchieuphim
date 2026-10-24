@@ -38,7 +38,6 @@ private:
     bool linkCreateHovered = false;
     bool linkForgotHovered = false;
     bool posBtnHovered = false;
-    bool googleBtnHovered = false;
     bool eyeHovered = false;
     bool checkHovered = false;
 
@@ -61,11 +60,14 @@ private:
     wstring bullets(size_t n);
     void drawVectorEye(RenderTarget& target, Vector2f pos, bool open, bool hovered);
     void drawVectorLock(RenderTarget& target, Vector2f pos, Color color);
-    void drawVectorAt(RenderTarget& target, Vector2f pos, Color color);
-    void drawVectorCinema(RenderTarget& target, Vector2f pos, Color color);
-    void drawVectorChart(RenderTarget& target, Vector2f pos, Color color);
-    void drawVectorShield(RenderTarget& target, Vector2f pos, Color color);
     void drawVectorUser(RenderTarget& target, Vector2f pos, Color color);
-    void drawVectorGoogle(RenderTarget& target, Vector2f pos);
-    void drawVectorScreen(RenderTarget& target, Vector2f pos, Color color);
+    void drawVectorClapper(RenderTarget& target, Vector2f pos, Color color);
+    void drawVectorFilm(RenderTarget& target, Vector2f pos, Color color);
+    void drawVectorCalendar(RenderTarget& target, Vector2f pos, Color color);
+    void drawVectorTicket(RenderTarget& target, Vector2f pos, Color color);
+    void drawVectorCup(RenderTarget& target, Vector2f pos, Color color);
+    void drawVectorChart(RenderTarget& target, Vector2f pos, Color color);
+    void drawVectorPos(RenderTarget& target, Vector2f pos, Color color);
+    void drawVectorHeaderScreen(RenderTarget& target, Vector2f pos, Color color);
+    void drawDotGrid(RenderTarget& target, float W, float H);
 };
