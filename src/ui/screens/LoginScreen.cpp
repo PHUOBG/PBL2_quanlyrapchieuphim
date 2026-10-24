@@ -21,7 +21,6 @@ wstring LoginScreen::bullets(size_t n) {
 }
 
 void LoginScreen::drawDotGrid(RenderTarget& target, float W, float H) {
-    // Subtle modern dot grid pattern for light theme canvas
     const float step = 28.f;
     CircleShape dot(1.2f, 8);
     dot.setFillColor(Color(203, 213, 225, 120)); // Soft slate dot
@@ -79,7 +78,6 @@ void LoginScreen::drawVectorLock(RenderTarget& target, Vector2f pos, Color color
 }
 
 void LoginScreen::drawVectorUser(RenderTarget& target, Vector2f pos, Color color) {
-    // Head circle
     CircleShape head(4.f, 16);
     head.setFillColor(Color::Transparent);
     head.setOutlineThickness(1.6f);
@@ -87,15 +85,12 @@ void LoginScreen::drawVectorUser(RenderTarget& target, Vector2f pos, Color color
     head.setPosition({pos.x + 4.f, pos.y - 1.f});
     target.draw(head);
 
-    // Shoulders arc/box
     RoundedRectRenderer::draw(target, {pos.x, pos.y + 9.f}, {16.f, 7.f}, 3.5f, Color::Transparent, 1.6f, color);
 }
 
 void LoginScreen::drawVectorClapper(RenderTarget& target, Vector2f pos, Color color) {
-    // Film clapper board
     RoundedRectRenderer::draw(target, pos, {24.f, 20.f}, 3.f, color);
 
-    // Cutout lines on top
     RectangleShape cut1({3.f, 6.f});
     cut1.setFillColor(Color(0, 119, 182));
     cut1.setPosition({pos.x + 4.f, pos.y});
@@ -113,7 +108,6 @@ void LoginScreen::drawVectorClapper(RenderTarget& target, Vector2f pos, Color co
 }
 
 void LoginScreen::drawVectorFilm(RenderTarget& target, Vector2f pos, Color color) {
-    // Film reel / screen icon
     RoundedRectRenderer::draw(target, pos, {18.f, 14.f}, 2.5f, Color::Transparent, 1.5f, color);
     RectangleShape line1({3.f, 8.f});
     line1.setFillColor(color);
@@ -132,16 +126,13 @@ void LoginScreen::drawVectorFilm(RenderTarget& target, Vector2f pos, Color color
 }
 
 void LoginScreen::drawVectorCalendar(RenderTarget& target, Vector2f pos, Color color) {
-    // Calendar box
     RoundedRectRenderer::draw(target, pos, {18.f, 15.f}, 2.5f, Color::Transparent, 1.5f, color);
     
-    // Top bar
     RectangleShape bar({18.f, 3.5f});
     bar.setFillColor(color);
     bar.setPosition(pos);
     target.draw(bar);
 
-    // 2 small binding pins on top
     RectangleShape pin1({2.f, 2.5f});
     pin1.setFillColor(color);
     pin1.setPosition({pos.x + 4.f, pos.y - 2.f});
@@ -154,7 +145,6 @@ void LoginScreen::drawVectorCalendar(RenderTarget& target, Vector2f pos, Color c
 }
 
 void LoginScreen::drawVectorTicket(RenderTarget& target, Vector2f pos, Color color) {
-    // Ticket coupon icon
     RoundedRectRenderer::draw(target, pos, {18.f, 13.f}, 2.5f, Color::Transparent, 1.5f, color);
 
     CircleShape dot1(1.5f, 8);
@@ -169,7 +159,6 @@ void LoginScreen::drawVectorTicket(RenderTarget& target, Vector2f pos, Color col
 }
 
 void LoginScreen::drawVectorCup(RenderTarget& target, Vector2f pos, Color color) {
-    // Popcorn / Drink cup icon
     ConvexShape cup(4);
     cup.setPoint(0, {pos.x + 2.f, pos.y + 3.f});
     cup.setPoint(1, {pos.x + 16.f, pos.y + 3.f});
@@ -180,7 +169,6 @@ void LoginScreen::drawVectorCup(RenderTarget& target, Vector2f pos, Color color)
     cup.setOutlineColor(color);
     target.draw(cup);
 
-    // Straw / Popcorn top
     CircleShape top1(3.f, 10);
     top1.setFillColor(color);
     top1.setPosition({pos.x + 3.f, pos.y - 1.f});
@@ -198,7 +186,6 @@ void LoginScreen::drawVectorCup(RenderTarget& target, Vector2f pos, Color color)
 }
 
 void LoginScreen::drawVectorChart(RenderTarget& target, Vector2f pos, Color color) {
-    // Analytics bar chart
     RoundedRectRenderer::draw(target, pos, {18.f, 15.f}, 2.5f, Color::Transparent, 1.5f, color);
 
     RectangleShape b1({2.5f, 5.f});
@@ -218,7 +205,6 @@ void LoginScreen::drawVectorChart(RenderTarget& target, Vector2f pos, Color colo
 }
 
 void LoginScreen::drawVectorPos(RenderTarget& target, Vector2f pos, Color color) {
-    // POS terminal / ID card
     RoundedRectRenderer::draw(target, pos, {18.f, 14.f}, 2.5f, Color::Transparent, 1.6f, color);
 
     CircleShape head(2.f, 10);
@@ -238,8 +224,7 @@ void LoginScreen::drawVectorPos(RenderTarget& target, Vector2f pos, Color color)
 }
 
 void LoginScreen::drawVectorHeaderScreen(RenderTarget& target, Vector2f pos, Color color) {
-    // Monitor screen icon
-    RoundedRectRenderer::draw(target, pos, {18.f, 13.f}, 2.5f, Color::Transparent, 1.8f, color);
+    RoundedRectRenderer::draw(target, pos, {18.f, 13.f}, 2.5f, Color::Transparent, 1.6f, color);
 
     RectangleShape stand({3.f, 4.f});
     stand.setFillColor(color);
@@ -250,6 +235,22 @@ void LoginScreen::drawVectorHeaderScreen(RenderTarget& target, Vector2f pos, Col
     base.setFillColor(color);
     base.setPosition({pos.x + 3.5f, pos.y + 16.f});
     target.draw(base);
+}
+
+void LoginScreen::drawVectorArrow(RenderTarget& target, Vector2f pos, Color color) {
+    // Arrow shaft
+    RectangleShape line({13.f, 2.2f});
+    line.setFillColor(color);
+    line.setPosition({pos.x, pos.y + 1.f});
+    target.draw(line);
+
+    // Arrow tip
+    ConvexShape tip(3);
+    tip.setPoint(0, {pos.x + 13.f, pos.y - 4.f});
+    tip.setPoint(1, {pos.x + 18.5f, pos.y + 2.1f});
+    tip.setPoint(2, {pos.x + 13.f, pos.y + 8.2f});
+    tip.setFillColor(color);
+    target.draw(tip);
 }
 
 void LoginScreen::handleEvent(const Event& event, AppState& state, string& user, string& email, bool& successFlag) {
@@ -365,23 +366,25 @@ void LoginScreen::handleEvent(const Event& event, AppState& state, string& user,
 }
 
 bool LoginScreen::update(Vector2f mouse, bool mousePressed, string& currentUser, string& currentUserEmail, AppState& state) {
-    const float cardW = 1140.f;
-    const float cardH = 630.f;
-    const float cardX = (1728.f - cardW) / 2.f; // 294.f
-    const float cardY = (972.f - cardH) / 2.f;  // 171.f
-    const float leftW = 380.f;
-    const float rightX = cardX + leftW;         // 674.f
-    const float formW = 460.f;
-    const float formX = rightX + (cardW - leftW - formW) / 2.f; // 824.f
+    // ENLARGED DIMENSIONS (Phóng to tràn viền, hiện đại & thoáng đãng)
+    const float cardW = 1520.f;
+    const float cardH = 820.f;
+    const float cardX = (1728.f - cardW) / 2.f; // 104.f
+    const float cardY = (972.f - cardH) / 2.f;  // 76.f
+    const float leftW = 490.f;
+    const float rightX = cardX + leftW;         // 594.f
+    const float rightW = cardW - leftW;         // 1030.f
+    const float formW = 550.f;
+    const float formX = rightX + (rightW - formW) / 2.f; // 834.f
 
-    FloatRect emailBoxBounds({formX, cardY + 160.f}, {formW, 46.f});
-    FloatRect passBoxBounds({formX, cardY + 238.f}, {formW, 46.f});
-    FloatRect eyeBounds({formX + formW - 42.f, cardY + 238.f}, {40.f, 46.f});
-    FloatRect checkBounds({formX, cardY + 296.f}, {150.f, 22.f});
-    FloatRect forgotBounds({formX + formW - 120.f, cardY + 296.f}, {120.f, 22.f});
-    FloatRect btnBounds({formX, cardY + 328.f}, {formW, 48.f});
-    FloatRect posBtnBounds({formX, cardY + 424.f}, {formW, 44.f});
-    FloatRect linkRegBounds({formX + 60.f, cardY + 482.f}, {340.f, 24.f});
+    FloatRect emailBoxBounds({formX, cardY + 224.f}, {formW, 52.f});
+    FloatRect passBoxBounds({formX, cardY + 324.f}, {formW, 52.f});
+    FloatRect eyeBounds({formX + formW - 46.f, cardY + 324.f}, {44.f, 52.f});
+    FloatRect checkBounds({formX, cardY + 394.f}, {180.f, 26.f});
+    FloatRect forgotBounds({formX + formW - 140.f, cardY + 394.f}, {140.f, 26.f});
+    FloatRect btnBounds({formX, cardY + 438.f}, {formW, 54.f});
+    FloatRect posBtnBounds({formX, cardY + 570.f}, {formW, 50.f});
+    FloatRect linkRegBounds({formX + 40.f, cardY + 648.f}, {470.f, 28.f});
 
     // Hover states
     eyeHovered = eyeBounds.contains(mouse);
@@ -392,11 +395,11 @@ bool LoginScreen::update(Vector2f mouse, bool mousePressed, string& currentUser,
     linkCreateHovered = linkRegBounds.contains(mouse);
 
     if (isForgotMode) {
-        FloatRect forgotCardBounds({(1728.f - 520.f) / 2.f, (972.f - 380.f) / 2.f}, {520.f, 380.f});
-        FloatRect fEmailBox({forgotCardBounds.position.x + 40.f, forgotCardBounds.position.y + 110.f}, {440.f, 44.f});
-        FloatRect fPassBox({forgotCardBounds.position.x + 40.f, forgotCardBounds.position.y + 180.f}, {440.f, 44.f});
-        FloatRect fCloseBtn({forgotCardBounds.position.x + 40.f, forgotCardBounds.position.y + 270.f}, {210.f, 44.f});
-        FloatRect fSubmitBtn({forgotCardBounds.position.x + 270.f, forgotCardBounds.position.y + 270.f}, {210.f, 44.f});
+        FloatRect forgotCardBounds({(1728.f - 580.f) / 2.f, (972.f - 420.f) / 2.f}, {580.f, 420.f});
+        FloatRect fEmailBox({forgotCardBounds.position.x + 40.f, forgotCardBounds.position.y + 118.f}, {500.f, 48.f});
+        FloatRect fPassBox({forgotCardBounds.position.x + 40.f, forgotCardBounds.position.y + 196.f}, {500.f, 48.f});
+        FloatRect fCloseBtn({forgotCardBounds.position.x + 40.f, forgotCardBounds.position.y + 304.f}, {240.f, 48.f});
+        FloatRect fSubmitBtn({forgotCardBounds.position.x + 300.f, forgotCardBounds.position.y + 304.f}, {240.f, 48.f});
 
         forgotCloseHovered = fCloseBtn.contains(mouse);
         forgotBtnHovered = fSubmitBtn.contains(mouse);
@@ -525,7 +528,7 @@ void LoginScreen::draw(RenderWindow& window) {
     bgCanvas.setFillColor(Color(244, 246, 249));
     window.draw(bgCanvas);
 
-    // Subtle modern dot grid
+    // Modern subtle dot grid
     drawDotGrid(window, W, H);
 
     // 2. Top Header Bar
@@ -535,7 +538,7 @@ void LoginScreen::draw(RenderWindow& window) {
     headerTitle.setString(L"PBL2 \u2013 H\u1ec6 TH\u1ed0NG QU\u1ea2N L\u00dd R\u1ea0P CHI\u1ebeU PHIM & TH\u1ed0NG K\u00ca DOANH THU");
     headerTitle.setCharacterSize(13);
     headerTitle.setStyle(Text::Bold);
-    headerTitle.setFillColor(Color(30, 41, 59)); // Dark Slate
+    headerTitle.setFillColor(Color(30, 41, 59));
     headerTitle.setPosition({52.f, 19.f});
     window.draw(headerTitle);
 
@@ -557,251 +560,254 @@ void LoginScreen::draw(RenderWindow& window) {
     CircleShape dotYellow(4.5f, 12);
     dotYellow.setFillColor(Color(245, 158, 11));
     dotYellow.setPosition({W - 40.f, 24.f});
-    window.draw(dotYellow);
-
     CircleShape dotGreen(4.5f, 12);
     dotGreen.setFillColor(Color(16, 185, 129));
     dotGreen.setPosition({W - 25.f, 24.f});
     window.draw(dotGreen);
 
-    // 3. Central Login Modal Card
-    const float cardW = 1140.f;
-    const float cardH = 630.f;
-    const float cardX = (W - cardW) / 2.f; // 294.f
-    const float cardY = (H - cardH) / 2.f; // 171.f
-    const float leftW = 380.f;
+    // 3. Central Login Modal Card (ENLARGED & EXPANDED BORDER-TO-BORDER)
+    const float cardW = 1520.f;
+    const float cardH = 820.f;
+    const float cardX = (W - cardW) / 2.f; // 104.f
+    const float cardY = (H - cardH) / 2.f; // 76.f
+    const float leftW = 490.f;
+    const float rightX = cardX + leftW;
+    const float rightW = cardW - leftW; // 1030.f
 
     // Soft drop shadow under the card
-    RoundedRectRenderer::draw(window, {cardX - 4.f, cardY + 4.f}, {cardW + 8.f, cardH + 6.f}, 24.f, Color(0, 0, 0, 12));
-    RoundedRectRenderer::draw(window, {cardX - 2.f, cardY + 2.f}, {cardW + 4.f, cardH + 3.f}, 22.f, Color(0, 0, 0, 16));
+    RoundedRectRenderer::draw(window, {cardX - 5.f, cardY + 5.f}, {cardW + 10.f, cardH + 8.f}, 24.f, Color(0, 0, 0, 10));
+    RoundedRectRenderer::draw(window, {cardX - 2.f, cardY + 2.f}, {cardW + 4.f, cardH + 4.f}, 22.f, Color(0, 0, 0, 15));
 
     // Right card body: Pure White (#FFFFFF)
-    RoundedRectRenderer::draw(window, {cardX, cardY}, {cardW, cardH}, 20.f, Color::White, 1.f, Color(226, 232, 240));
+    RoundedRectRenderer::draw(window, {cardX, cardY}, {cardW, cardH}, 22.f, Color::White, 1.f, Color(226, 232, 240));
 
     // Left Section: Ocean Blue Panel (#0077B6 / #0084C7)
-    // Draw rounded background for left section
-    RoundedRectRenderer::draw(window, {cardX, cardY}, {leftW, cardH}, 20.f, Color(0, 119, 182)); // #0077B6
-    // Clean square filler on right edge of left section so it blends flush with the right section
-    RectangleShape leftFiller({20.f, cardH});
+    RoundedRectRenderer::draw(window, {cardX, cardY}, {leftW, cardH}, 22.f, Color(0, 119, 182));
+    RectangleShape leftFiller({22.f, cardH});
     leftFiller.setFillColor(Color(0, 119, 182));
-    leftFiller.setPosition({cardX + leftW - 20.f, cardY});
+    leftFiller.setPosition({cardX + leftW - 22.f, cardY});
     window.draw(leftFiller);
 
     // ==========================================
     // 4. LEFT SECTION (Ocean Blue Brand Panel)
     // ==========================================
-    const float leftPadX = cardX + 28.f;
+    const float leftPadX = cardX + 36.f; // 140.f
+    const float featW = 418.f;
+    const float featH = 58.f;
 
     // Top brand icon container
-    RoundedRectRenderer::draw(window, {leftPadX, cardY + 30.f}, {44.f, 44.f}, 10.f, Color(255, 255, 255, 36));
-    drawVectorClapper(window, {leftPadX + 10.f, cardY + 42.f}, Color::White);
+    RoundedRectRenderer::draw(window, {leftPadX, cardY + 42.f}, {50.f, 50.f}, 12.f, Color(255, 255, 255, 38));
+    drawVectorClapper(window, {leftPadX + 13.f, cardY + 57.f}, Color::White);
 
-    Text brandTop(font, L"CINEADMIN ENTERPRISE", 10);
+    Text brandTop(font, L"CINEADMIN ENTERPRISE", 11);
     brandTop.setStyle(Text::Bold);
     brandTop.setFillColor(Color(255, 255, 255, 230));
-    brandTop.setPosition({leftPadX + 54.f, cardY + 33.f});
+    brandTop.setPosition({leftPadX + 64.f, cardY + 44.f});
     window.draw(brandTop);
 
-    Text brandMain(font, L"PBL2 Portal", 20);
+    Text brandMain(font, L"PBL2 Portal", 24);
     brandMain.setStyle(Text::Bold);
     brandMain.setFillColor(Color::White);
-    brandMain.setPosition({leftPadX + 54.f, cardY + 47.f});
+    brandMain.setPosition({leftPadX + 64.f, cardY + 60.f});
     window.draw(brandMain);
 
     // Thin white divider
-    RectangleShape brandLine({324.f, 1.f});
+    RectangleShape brandLine({featW, 1.f});
     brandLine.setFillColor(Color(255, 255, 255, 50));
-    brandLine.setPosition({leftPadX, cardY + 88.f});
+    brandLine.setPosition({leftPadX, cardY + 110.f});
     window.draw(brandLine);
 
     // Section title
-    Text modelTitle(font, L"M\u00d4 H\u00ccNH V\u1eacN H\u00c0NH C\u1ed0T L\u00d5I", 10);
+    Text modelTitle(font, L"M\u00d4 H\u00ccNH V\u1eacN H\u00c0NH C\u1ed0T L\u00d5I", 11);
     modelTitle.setStyle(Text::Bold);
     modelTitle.setFillColor(Color(255, 255, 255, 220));
-    modelTitle.setPosition({leftPadX, cardY + 102.f});
+    modelTitle.setPosition({leftPadX, cardY + 126.f});
     window.draw(modelTitle);
 
-    // 5 Feature Highlight Items (Translucent rounded pills)
-    const float featW = 324.f;
-    const float featH = 46.f;
-    const float fY0 = cardY + 124.f;
+    // 5 Feature Highlight Items (Translucent rounded pills with centered icons)
+    const float fY0 = cardY + 154.f;
+    const float fSpacing = 68.f;
 
     // Item 1: Phim & 12 Phòng Chiếu
-    RoundedRectRenderer::draw(window, {leftPadX, fY0}, {featW, featH}, 9.f, Color(255, 255, 255, 26), 1.f, Color(255, 255, 255, 36));
-    drawVectorFilm(window, {leftPadX + 14.f, fY0 + 16.f}, Color::White);
-    Text itm1Title(font, L"Qu\u1ea3n l\u00fd Phim & 12 Ph\u00f2ng Chi\u1ebfu", 12);
+    RoundedRectRenderer::draw(window, {leftPadX, fY0}, {featW, featH}, 12.f, Color(255, 255, 255, 28), 1.f, Color(255, 255, 255, 42));
+    RoundedRectRenderer::draw(window, {leftPadX + 12.f, fY0 + 11.f}, {36.f, 36.f}, 8.f, Color(255, 255, 255, 36));
+    drawVectorFilm(window, {leftPadX + 21.f, fY0 + 22.f}, Color::White);
+    Text itm1Title(font, L"Qu\u1ea3n l\u00fd Phim & 12 Ph\u00f2ng Chi\u1ebfu", 13);
     itm1Title.setStyle(Text::Bold);
     itm1Title.setFillColor(Color::White);
-    itm1Title.setPosition({leftPadX + 42.f, fY0 + 7.f});
+    itm1Title.setPosition({leftPadX + 58.f, fY0 + 10.f});
     window.draw(itm1Title);
-    Text itm1Sub(font, L"\u0110i\u1ec1u ph\u1ed1i \u0111\u1ecbnh d\u1ea1ng chu\u1ea9n IMAX, 2D & 3D", 10);
-    itm1Sub.setFillColor(Color(255, 255, 255, 200));
-    itm1Sub.setPosition({leftPadX + 42.f, fY0 + 25.f});
+    Text itm1Sub(font, L"\u0110i\u1ec1u ph\u1ed1i \u0111\u1ecbnh d\u1ea1ng chu\u1ea9n IMAX, 2D & 3D", 11);
+    itm1Sub.setFillColor(Color(255, 255, 255, 215));
+    itm1Sub.setPosition({leftPadX + 58.f, fY0 + 31.f});
     window.draw(itm1Sub);
 
     // Item 2: Suất Chiếu & Lịch Trình
-    const float fY1 = fY0 + 54.f;
-    RoundedRectRenderer::draw(window, {leftPadX, fY1}, {featW, featH}, 9.f, Color(255, 255, 255, 26), 1.f, Color(255, 255, 255, 36));
-    drawVectorCalendar(window, {leftPadX + 14.f, fY1 + 16.f}, Color::White);
-    Text itm2Title(font, L"Qu\u1ea3n l\u00fd Su\u1ea5t Chi\u1ebfu & L\u1ecbch Tr\u00ecnh", 12);
+    const float fY1 = fY0 + fSpacing;
+    RoundedRectRenderer::draw(window, {leftPadX, fY1}, {featW, featH}, 12.f, Color(255, 255, 255, 28), 1.f, Color(255, 255, 255, 42));
+    RoundedRectRenderer::draw(window, {leftPadX + 12.f, fY1 + 11.f}, {36.f, 36.f}, 8.f, Color(255, 255, 255, 36));
+    drawVectorCalendar(window, {leftPadX + 21.f, fY1 + 21.5f}, Color::White);
+    Text itm2Title(font, L"Qu\u1ea3n l\u00fd Su\u1ea5t Chi\u1ebfu & L\u1ecbch Tr\u00ecnh", 13);
     itm2Title.setStyle(Text::Bold);
     itm2Title.setFillColor(Color::White);
-    itm2Title.setPosition({leftPadX + 42.f, fY1 + 7.f});
+    itm2Title.setPosition({leftPadX + 58.f, fY1 + 10.f});
     window.draw(itm2Title);
-    Text itm2Sub(font, L"Ph\u00e2n b\u1ed5 khung gi\u1edd v\u00e0ng & l\u1ecbch v\u1eadn h\u00e0nh t\u1ef1 \u0111\u1ed9ng", 10);
-    itm2Sub.setFillColor(Color(255, 255, 255, 200));
-    itm2Sub.setPosition({leftPadX + 42.f, fY1 + 25.f});
+    Text itm2Sub(font, L"Ph\u00e2n b\u1ed5 khung gi\u1edd v\u00e0ng & l\u1ecbch v\u1eadn h\u00e0nh t\u1ef1 \u0111\u1ed9ng", 11);
+    itm2Sub.setFillColor(Color(255, 255, 255, 215));
+    itm2Sub.setPosition({leftPadX + 58.f, fY1 + 31.f});
     window.draw(itm2Sub);
 
     // Item 3: Vé & Thông tin Khách Hàng
-    const float fY2 = fY1 + 54.f;
-    RoundedRectRenderer::draw(window, {leftPadX, fY2}, {featW, featH}, 9.f, Color(255, 255, 255, 26), 1.f, Color(255, 255, 255, 36));
-    drawVectorTicket(window, {leftPadX + 14.f, fY2 + 16.f}, Color::White);
-    Text itm3Title(font, L"Qu\u1ea3n l\u00fd V\u00e9 & Th\u00f4ng tin Kh\u00e1ch H\u00e0ng", 12);
+    const float fY2 = fY1 + fSpacing;
+    RoundedRectRenderer::draw(window, {leftPadX, fY2}, {featW, featH}, 12.f, Color(255, 255, 255, 28), 1.f, Color(255, 255, 255, 42));
+    RoundedRectRenderer::draw(window, {leftPadX + 12.f, fY2 + 11.f}, {36.f, 36.f}, 8.f, Color(255, 255, 255, 36));
+    drawVectorTicket(window, {leftPadX + 21.f, fY2 + 22.5f}, Color::White);
+    Text itm3Title(font, L"Qu\u1ea3n l\u00fd V\u00e9 & Th\u00f4ng tin Kh\u00e1ch H\u00e0ng", 13);
     itm3Title.setStyle(Text::Bold);
     itm3Title.setFillColor(Color::White);
-    itm3Title.setPosition({leftPadX + 42.f, fY2 + 7.f});
+    itm3Title.setPosition({leftPadX + 58.f, fY2 + 10.f});
     window.draw(itm3Title);
-    Text itm3Sub(font, L"Qu\u1ea3n tr\u1ecb h\u1ed9i vi\u00ean, t\u00edch l\u0169y \u0111i\u1ec3m v\u00e0 h\u1ea1ng th\u1ebb VIP", 10);
-    itm3Sub.setFillColor(Color(255, 255, 255, 200));
-    itm3Sub.setPosition({leftPadX + 42.f, fY2 + 25.f});
+    Text itm3Sub(font, L"Qu\u1ea3n tr\u1ecb h\u1ed9i vi\u00ean, t\u00edch l\u0169y \u0111i\u1ec3m v\u00e0 h\u1ea1ng th\u1ebb VIP", 11);
+    itm3Sub.setFillColor(Color(255, 255, 255, 215));
+    itm3Sub.setPosition({leftPadX + 58.f, fY2 + 31.f});
     window.draw(itm3Sub);
 
     // Item 4: Combo Bắp Nước & Khuyến Mãi
-    const float fY3 = fY2 + 54.f;
-    RoundedRectRenderer::draw(window, {leftPadX, fY3}, {featW, featH}, 9.f, Color(255, 255, 255, 26), 1.f, Color(255, 255, 255, 36));
-    drawVectorCup(window, {leftPadX + 14.f, fY3 + 15.f}, Color::White);
-    Text itm4Title(font, L"Qu\u1ea3n l\u00fd Combo B\u1eafp N\u01b0\u1edbc & Khuy\u1ebfn M\u00e3i", 12);
+    const float fY3 = fY2 + fSpacing;
+    RoundedRectRenderer::draw(window, {leftPadX, fY3}, {featW, featH}, 12.f, Color(255, 255, 255, 28), 1.f, Color(255, 255, 255, 42));
+    RoundedRectRenderer::draw(window, {leftPadX + 12.f, fY3 + 11.f}, {36.f, 36.f}, 8.f, Color(255, 255, 255, 36));
+    drawVectorCup(window, {leftPadX + 21.f, fY3 + 20.f}, Color::White);
+    Text itm4Title(font, L"Qu\u1ea3n l\u00fd Combo B\u1eafp N\u01b0\u1edbc & Khuy\u1ebfn M\u00e3i", 13);
     itm4Title.setStyle(Text::Bold);
     itm4Title.setFillColor(Color::White);
-    itm4Title.setPosition({leftPadX + 42.f, fY3 + 7.f});
+    itm4Title.setPosition({leftPadX + 58.f, fY3 + 10.f});
     window.draw(itm4Title);
-    Text itm4Sub(font, L"\u0110\u1ecbnh l\u01b0\u1ee3ng t\u1ed3n kho b\u1eafp n\u01b0\u1edbc v\u00e0 m\u00e3 voucher gi\u1ea3m gi\u00e1", 10);
-    itm4Sub.setFillColor(Color(255, 255, 255, 200));
-    itm4Sub.setPosition({leftPadX + 42.f, fY3 + 25.f});
+    Text itm4Sub(font, L"\u0110\u1ecbnh l\u01b0\u1ee3ng t\u1ed3n kho b\u1ebfp n\u01b0\u1edbc v\u00e0 m\u00e3 voucher gi\u1ea3m gi\u00e1", 11);
+    itm4Sub.setFillColor(Color(255, 255, 255, 215));
+    itm4Sub.setPosition({leftPadX + 58.f, fY3 + 31.f});
     window.draw(itm4Sub);
 
     // Item 5: Thống Kê Doanh Thu
-    const float fY4 = fY3 + 54.f;
-    RoundedRectRenderer::draw(window, {leftPadX, fY4}, {featW, featH}, 9.f, Color(255, 255, 255, 26), 1.f, Color(255, 255, 255, 36));
-    drawVectorChart(window, {leftPadX + 14.f, fY4 + 16.f}, Color::White);
-    Text itm5Title(font, L"Th\u1ed1ng k\u00ea Doanh Thu", 12);
+    const float fY4 = fY3 + fSpacing;
+    RoundedRectRenderer::draw(window, {leftPadX, fY4}, {featW, featH}, 12.f, Color(255, 255, 255, 28), 1.f, Color(255, 255, 255, 42));
+    RoundedRectRenderer::draw(window, {leftPadX + 12.f, fY4 + 11.f}, {36.f, 36.f}, 8.f, Color(255, 255, 255, 36));
+    drawVectorChart(window, {leftPadX + 21.f, fY4 + 21.5f}, Color::White);
+    Text itm5Title(font, L"Th\u1ed1ng k\u00ea Doanh Thu", 13);
     itm5Title.setStyle(Text::Bold);
     itm5Title.setFillColor(Color::White);
-    itm5Title.setPosition({leftPadX + 42.f, fY4 + 7.f});
+    itm5Title.setPosition({leftPadX + 58.f, fY4 + 10.f});
     window.draw(itm5Title);
-    Text itm5Sub(font, L"B\u00e1o c\u00e1o \u0111a chi\u1ec1u theo Ng\u00e0y / Th\u00e1ng / T\u1eebng phim", 10);
-    itm5Sub.setFillColor(Color(255, 255, 255, 200));
-    itm5Sub.setPosition({leftPadX + 42.f, fY4 + 25.f});
+    Text itm5Sub(font, L"B\u00e1o c\u00e1o \u0111a chi\u1ec1u theo Ng\u00e0y / Th\u00e1ng / T\u1eebng phim", 11);
+    itm5Sub.setFillColor(Color(255, 255, 255, 215));
+    itm5Sub.setPosition({leftPadX + 58.f, fY4 + 31.f});
     window.draw(itm5Sub);
 
     // Bottom Status Container (Dark Ocean Blue #004B78)
-    const float btmBoxY = cardY + cardH - 84.f;
-    RoundedRectRenderer::draw(window, {leftPadX, btmBoxY}, {featW, 56.f}, 10.f, Color(0, 75, 120));
+    const float btmBoxY = cardY + cardH - 88.f;
+    RoundedRectRenderer::draw(window, {leftPadX, btmBoxY}, {featW, 60.f}, 10.f, Color(0, 75, 120));
 
     // Green dot + Terminal Node Online
-    CircleShape tNodeDot(3.5f, 10);
+    CircleShape tNodeDot(4.f, 12);
     tNodeDot.setFillColor(Color(52, 211, 153));
-    tNodeDot.setPosition({leftPadX + 14.f, btmBoxY + 15.f});
+    tNodeDot.setPosition({leftPadX + 16.f, btmBoxY + 16.f});
     window.draw(tNodeDot);
 
     Text tNodeText(font, L"Terminal Node Online", 11);
     tNodeText.setFillColor(Color(241, 245, 249));
-    tNodeText.setPosition({leftPadX + 26.f, btmBoxY + 10.f});
+    tNodeText.setPosition({leftPadX + 30.f, btmBoxY + 12.f});
     window.draw(tNodeText);
 
     // Cyan dot + DB: Connected
-    CircleShape dbDot(3.5f, 10);
+    CircleShape dbDot(4.f, 12);
     dbDot.setFillColor(Color(56, 189, 248));
-    dbDot.setPosition({leftPadX + 14.f, btmBoxY + 34.f});
+    dbDot.setPosition({leftPadX + 16.f, btmBoxY + 36.f});
     window.draw(dbDot);
 
     Text dbConnText(font, L"DB: Connected", 11);
     dbConnText.setFillColor(Color(241, 245, 249));
-    dbConnText.setPosition({leftPadX + 26.f, btmBoxY + 29.f});
+    dbConnText.setPosition({leftPadX + 30.f, btmBoxY + 32.f});
     window.draw(dbConnText);
 
     // Right tags in status box
-    Text portText(font, L"PORT : 8088", 10);
+    Text portText(font, L"PORT : 8088", 11);
     portText.setStyle(Text::Bold);
-    portText.setFillColor(Color(56, 189, 248)); // Cyan
-    portText.setPosition({leftPadX + featW - portText.getLocalBounds().size.x - 14.f, btmBoxY + 11.f});
+    portText.setFillColor(Color(56, 189, 248));
+    portText.setPosition({leftPadX + featW - portText.getLocalBounds().size.x - 16.f, btmBoxY + 12.f});
     window.draw(portText);
 
-    Text sqlText(font, L"MS-SQL Server", 10);
+    Text sqlText(font, L"MS-SQL Server", 11);
     sqlText.setFillColor(Color(203, 213, 225));
-    sqlText.setPosition({leftPadX + featW - sqlText.getLocalBounds().size.x - 14.f, btmBoxY + 29.f});
+    sqlText.setPosition({leftPadX + featW - sqlText.getLocalBounds().size.x - 16.f, btmBoxY + 32.f});
     window.draw(sqlText);
 
     // ==========================================
-    // 5. RIGHT SECTION (Pure White Form)
+    // 5. RIGHT SECTION (Pure White Form - ENLARGED)
     // ==========================================
-    const float rightX = cardX + leftW;
-    const float rightPadX = rightX + (cardW - leftW - 460.f) / 2.f; // 824.f
-    const float formW = 460.f;
+    const float formW = 550.f;
+    const float formX = rightX + (rightW - formW) / 2.f; // 834.f
 
-    // Top Badge: "✓ CỔNG QUẢN TRỊ NỘI BỘ"
-    RoundedRectRenderer::draw(window, {rightPadX, cardY + 38.f}, {165.f, 28.f}, 14.f, Color(239, 246, 255), 1.f, Color(186, 230, 253));
+    // Top Badge: "CỔNG QUẢN TRỊ NỘI BỘ"
+    RoundedRectRenderer::draw(window, {formX, cardY + 52.f}, {180.f, 32.f}, 16.f, Color(239, 246, 255), 1.f, Color(186, 230, 253));
     
     // Checkmark icon
-    RectangleShape ck1({3.5f, 1.6f});
+    RectangleShape ck1({4.5f, 2.f});
     ck1.setFillColor(Color(2, 132, 199));
     ck1.setRotation(degrees(45.f));
-    ck1.setPosition({rightPadX + 14.f, cardY + 52.f});
+    ck1.setPosition({formX + 16.f, cardY + 68.f});
     window.draw(ck1);
 
-    RectangleShape ck2({7.f, 1.6f});
+    RectangleShape ck2({9.f, 2.f});
     ck2.setFillColor(Color(2, 132, 199));
     ck2.setRotation(degrees(-55.f));
-    ck2.setPosition({rightPadX + 16.5f, cardY + 55.f});
+    ck2.setPosition({formX + 19.5f, cardY + 71.f});
     window.draw(ck2);
 
-    Text topBadgeText(font, L"C\u1ed4NG QU\u1ea2N TR\u1eca N\u1ed8I B\u1ed8", 10);
+    Text topBadgeText(font, L"C\u1ed4NG QU\u1ea2N TR\u1eca N\u1ed8I B\u1ed8", 11);
     topBadgeText.setStyle(Text::Bold);
-    topBadgeText.setFillColor(Color(2, 132, 199)); // Ocean Blue
-    topBadgeText.setPosition({rightPadX + 27.f, cardY + 44.f});
+    topBadgeText.setFillColor(Color(2, 132, 199));
+    topBadgeText.setPosition({formX + 33.f, cardY + 59.f});
     window.draw(topBadgeText);
 
     // Heading: ĐĂNG NHẬP QUẢN TRỊ VIÊN
-    Text formHeading(font, L"\u0110\u0102NG NH\u1eacP QU\u1ea2N TR\u1eca VI\u00caN", 26);
+    Text formHeading(font, L"\u0110\u0102NG NH\u1eacP QU\u1ea2N TR\u1eca VI\u00caN", 28);
     formHeading.setStyle(Text::Bold);
     formHeading.setFillColor(Color(15, 23, 42)); // Dark Navy #0F172A
-    formHeading.setPosition({rightPadX, cardY + 76.f});
+    formHeading.setPosition({formX, cardY + 102.f});
     window.draw(formHeading);
 
     // Subtitle
-    Text formSub(font, L"Vui l\u00f2ng x\u00e1c th\u1ef1c t\u00e0i kho\u1ea3n \u0111\u1ec3 truy c\u1eadp b\u1ea3ng \u0111i\u1ec1u khi\u1ec3n r\u1ea1p chi\u1ebfu phim", 12);
-    formSub.setFillColor(Color(100, 116, 139)); // Slate 500
-    formSub.setPosition({rightPadX, cardY + 114.f});
+    Text formSub(font, L"Vui l\u00f2ng x\u00e1c th\u1ef1c t\u00e0i kho\u1ea3n \u0111\u1ec3 truy c\u1eadp b\u1ea3ng \u0111i\u1ec1u khi\u1ec3n r\u1ea1p chi\u1ebfu phim", 13);
+    formSub.setFillColor(Color(100, 116, 139));
+    formSub.setPosition({formX, cardY + 148.f});
     window.draw(formSub);
 
     // Field 1: TÀI KHOẢN QUẢN TRỊ VIÊN / MÃ ĐỊNH DANH
     Text lblEmail(font, L"T\u00c0I KHO\u1ea2N QU\u1ea2N TR\u1eca VI\u00caN / M\u00c3 \u0110\u1ecaNH DANH", 11);
     lblEmail.setStyle(Text::Bold);
-    lblEmail.setFillColor(Color(51, 65, 85)); // Slate 700
-    lblEmail.setPosition({rightPadX, cardY + 140.f});
+    lblEmail.setFillColor(Color(51, 65, 85));
+    lblEmail.setPosition({formX, cardY + 196.f});
     window.draw(lblEmail);
 
     Color eBorder = emailActive ? Color(2, 132, 199) : Color(226, 232, 240);
-    RoundedRectRenderer::draw(window, {rightPadX, cardY + 160.f}, {formW, 46.f}, 10.f, Color(248, 250, 252), 1.2f, eBorder);
-    drawVectorUser(window, {rightPadX + 14.f, cardY + 174.f}, Color(148, 163, 184));
+    RoundedRectRenderer::draw(window, {formX, cardY + 224.f}, {formW, 52.f}, 10.f, Color(248, 250, 252), 1.2f, eBorder);
+    drawVectorUser(window, {formX + 18.f, cardY + 242.f}, Color(148, 163, 184));
 
     if (emailInput.empty() && !emailActive) {
         Text phEmail(font, L"VD: admin_danang01 ho\u1eb7c ADM-9842", 13);
         phEmail.setFillColor(Color(148, 163, 184));
-        phEmail.setPosition({rightPadX + 42.f, cardY + 172.f});
+        phEmail.setPosition({formX + 48.f, cardY + 239.f});
         window.draw(phEmail);
     } else {
-        Text valEmail(font, emailInput, 13);
+        Text valEmail(font, emailInput, 14);
         valEmail.setFillColor(Color(15, 23, 42));
-        valEmail.setPosition({rightPadX + 42.f, cardY + 172.f});
+        valEmail.setPosition({formX + 48.f, cardY + 238.f});
         window.draw(valEmail);
 
         if (emailActive && caretVisible) {
             FloatRect eb = valEmail.getLocalBounds();
-            RectangleShape caretLine({1.8f, 18.f});
+            RectangleShape caretLine({1.8f, 20.f});
             caretLine.setFillColor(Color(2, 132, 199));
-            caretLine.setPosition({rightPadX + 44.f + (emailInput.empty() ? 0.f : eb.size.x), cardY + 174.f});
+            caretLine.setPosition({formX + 50.f + (emailInput.empty() ? 0.f : eb.size.x), cardY + 240.f});
             window.draw(caretLine);
         }
     }
@@ -810,75 +816,80 @@ void LoginScreen::draw(RenderWindow& window) {
     Text lblPass(font, L"M\u1eacT KH\u1ea8U TRUY C\u1eacP", 11);
     lblPass.setStyle(Text::Bold);
     lblPass.setFillColor(Color(51, 65, 85));
-    lblPass.setPosition({rightPadX, cardY + 218.f});
+    lblPass.setPosition({formX, cardY + 296.f});
     window.draw(lblPass);
 
     Color pBorder = passActive ? Color(2, 132, 199) : Color(226, 232, 240);
-    RoundedRectRenderer::draw(window, {rightPadX, cardY + 238.f}, {formW, 46.f}, 10.f, Color(248, 250, 252), 1.2f, pBorder);
-    drawVectorLock(window, {rightPadX + 15.f, cardY + 255.f}, Color(148, 163, 184));
+    RoundedRectRenderer::draw(window, {formX, cardY + 324.f}, {formW, 52.f}, 10.f, Color(248, 250, 252), 1.2f, pBorder);
+    drawVectorLock(window, {formX + 19.f, cardY + 345.f}, Color(148, 163, 184));
 
     if (passInput.empty() && !passActive) {
         Text phPass(font, L"Nh\u1eadp m\u1eadt kh\u1ea9u an to\u00e0n", 13);
         phPass.setFillColor(Color(148, 163, 184));
-        phPass.setPosition({rightPadX + 42.f, cardY + 250.f});
+        phPass.setPosition({formX + 48.f, cardY + 339.f});
         window.draw(phPass);
     } else {
         wstring dispPass = showPassword ? passInput : bullets(passInput.size());
-        Text valPass(font, dispPass, 13);
+        Text valPass(font, dispPass, 14);
         valPass.setFillColor(Color(15, 23, 42));
-        valPass.setPosition({rightPadX + 42.f, cardY + 250.f});
+        valPass.setPosition({formX + 48.f, cardY + 338.f});
         window.draw(valPass);
 
         if (passActive && caretVisible) {
             FloatRect pb = valPass.getLocalBounds();
-            RectangleShape caretLine({1.8f, 18.f});
+            RectangleShape caretLine({1.8f, 20.f});
             caretLine.setFillColor(Color(2, 132, 199));
-            caretLine.setPosition({rightPadX + 44.f + (passInput.empty() ? 0.f : pb.size.x), cardY + 252.f});
+            caretLine.setPosition({formX + 50.f + (passInput.empty() ? 0.f : pb.size.x), cardY + 340.f});
             window.draw(caretLine);
         }
     }
 
     // Eye toggle button
-    drawVectorEye(window, {rightPadX + formW - 22.f, cardY + 261.f}, showPassword, eyeHovered);
+    drawVectorEye(window, {formX + formW - 24.f, cardY + 350.f}, showPassword, eyeHovered);
 
     // Options Row: Checkbox "Ghi nhớ đăng nhập" & Link "Quên mật khẩu?"
     Color cbBorder = checkHovered ? Color(2, 132, 199) : Color(203, 213, 225);
-    RoundedRectRenderer::draw(window, {rightPadX + 1.f, cardY + 298.f}, {16.f, 16.f}, 4.f, Color(248, 250, 252), 1.2f, cbBorder);
+    RoundedRectRenderer::draw(window, {formX + 1.f, cardY + 397.f}, {18.f, 18.f}, 4.f, Color(248, 250, 252), 1.2f, cbBorder);
     if (rememberMe) {
-        RectangleShape c1({4.f, 1.8f});
+        RectangleShape c1({4.5f, 2.f});
         c1.setFillColor(Color(2, 132, 199));
         c1.setRotation(degrees(45.f));
-        c1.setPosition({rightPadX + 4.f, cardY + 306.f});
+        c1.setPosition({formX + 4.f, cardY + 406.f});
         window.draw(c1);
 
-        RectangleShape c2({8.f, 1.8f});
+        RectangleShape c2({9.f, 2.f});
         c2.setFillColor(Color(2, 132, 199));
         c2.setRotation(degrees(-55.f));
-        c2.setPosition({rightPadX + 7.f, cardY + 309.f});
+        c2.setPosition({formX + 7.5f, cardY + 409.f});
         window.draw(c2);
     }
 
     Text remText(font, L"Ghi nh\u1edb \u0111\u0103ng nh\u1eadp", 12);
     remText.setFillColor(Color(71, 85, 105));
-    remText.setPosition({rightPadX + 24.f, cardY + 297.f});
+    remText.setPosition({formX + 28.f, cardY + 396.f});
     window.draw(remText);
 
     Text forgotText(font, L"Qu\u00ean m\u1eadt kh\u1ea9u?", 12);
     forgotText.setStyle(Text::Bold | (linkForgotHovered ? Text::Underlined : Text::Regular));
-    forgotText.setFillColor(Color(2, 132, 199)); // Blue link as in image
-    forgotText.setPosition({rightPadX + formW - forgotText.getLocalBounds().size.x, cardY + 297.f});
+    forgotText.setFillColor(Color(2, 132, 199));
+    forgotText.setPosition({formX + formW - forgotText.getLocalBounds().size.x, cardY + 396.f});
     window.draw(forgotText);
 
-    // Main Submit Button: ĐĂNG NHẬP QUẢN TRỊ ➔
-    Color btnCol = btnHovered ? Color(3, 105, 161) : Color(0, 119, 182); // Ocean Blue
-    RoundedRectRenderer::draw(window, {rightPadX, cardY + 328.f}, {formW, 48.f}, 10.f, btnCol);
+    // Main Submit Button: ĐĂNG NHẬP QUẢN TRỊ ->
+    Color btnCol = btnHovered ? Color(3, 105, 161) : Color(0, 119, 182);
+    RoundedRectRenderer::draw(window, {formX, cardY + 438.f}, {formW, 54.f}, 10.f, btnCol);
 
-    Text submitText(font, L"\u0110\u0102NG NH\u1eacP QU\u1ea2N TR\u1eca  \u2794", 14);
+    Text submitText(font, L"\u0110\u0102NG NH\u1eacP QU\u1ea2N TR\u1eca", 15);
     submitText.setStyle(Text::Bold);
     submitText.setFillColor(Color::White);
     FloatRect stb = submitText.getLocalBounds();
-    submitText.setPosition({rightPadX + (formW - stb.size.x) / 2.f, cardY + 342.f});
+    float totalBtnContentW = stb.size.x + 28.f;
+    float btnContentStartX = formX + (formW - totalBtnContentW) / 2.f;
+    submitText.setPosition({btnContentStartX, cardY + 454.f});
     window.draw(submitText);
+
+    // Draw crisp vector arrow right after the button text (No missing font glyphs!)
+    drawVectorArrow(window, {btnContentStartX + stb.size.x + 12.f, cardY + 465.f}, Color::White);
 
     // Status Message
     if (!statusMessage.empty()) {
@@ -886,55 +897,54 @@ void LoginScreen::draw(RenderWindow& window) {
         msgText.setStyle(Text::Bold);
         msgText.setFillColor(statusColor);
         FloatRect mb = msgText.getLocalBounds();
-        msgText.setPosition({rightPadX + (formW - mb.size.x) / 2.f, cardY + 382.f});
+        msgText.setPosition({formX + (formW - mb.size.x) / 2.f, cardY + 504.f});
         window.draw(msgText);
     }
 
     // Divider line with "XÁC THỰC NỘI BỘ"
-    const float divY = cardY + 406.f;
+    const float divY = cardY + 538.f;
     RectangleShape hLine({formW, 1.f});
     hLine.setFillColor(Color(226, 232, 240));
-    hLine.setPosition({rightPadX, divY});
+    hLine.setPosition({formX, divY});
     window.draw(hLine);
 
-    Text orText(font, L"X\u00c1C TH\u1ef0C N\u1ed8I B\u1ed8", 10);
+    Text orText(font, L"X\u00c1C TH\u1ef0C N\u1ed8I B\u1ed8", 11);
     orText.setStyle(Text::Bold);
     orText.setFillColor(Color(148, 163, 184));
     FloatRect otb = orText.getLocalBounds();
-    float otX = rightPadX + (formW - otb.size.x) / 2.f;
+    float otX = formX + (formW - otb.size.x) / 2.f;
 
-    // White mask under text
-    RectangleShape orMask({otb.size.x + 16.f, 16.f});
+    RectangleShape orMask({otb.size.x + 18.f, 18.f});
     orMask.setFillColor(Color::White);
-    orMask.setPosition({otX - 8.f, divY - 8.f});
+    orMask.setPosition({otX - 9.f, divY - 9.f});
     window.draw(orMask);
 
-    orText.setPosition({otX, divY - 6.f});
+    orText.setPosition({otX, divY - 7.f});
     window.draw(orText);
 
     // POS / Terminal Key Button
     Color posBg = posBtnHovered ? Color(241, 245, 249) : Color(248, 250, 252);
-    RoundedRectRenderer::draw(window, {rightPadX, cardY + 424.f}, {formW, 44.f}, 10.f, posBg, 1.2f, Color(226, 232, 240));
-    drawVectorPos(window, {rightPadX + 50.f, cardY + 438.f}, Color(2, 132, 199));
+    RoundedRectRenderer::draw(window, {formX, cardY + 570.f}, {formW, 50.f}, 10.f, posBg, 1.2f, Color(226, 232, 240));
+    drawVectorPos(window, {formX + 76.f, cardY + 587.f}, Color(2, 132, 199));
 
-    Text posText(font, L"\u0110\u0103ng nh\u1eadp b\u1eb1ng M\u00e3 Nh\u00e2n Vi\u00ean POS / Terminal Key", 12);
+    Text posText(font, L"\u0110\u0103ng nh\u1eadp b\u1eb1ng M\u00e3 Nh\u00e2n Vi\u00ean POS / Terminal Key", 13);
     posText.setStyle(Text::Bold);
     posText.setFillColor(Color(51, 65, 85));
-    posText.setPosition({rightPadX + 76.f, cardY + 437.f});
+    posText.setPosition({formX + 104.f, cardY + 585.f});
     window.draw(posText);
 
-    // Register Link Row: Chưa có tài khoản quản trị? Đăng ký Admin mới ↗
-    Text regPrefix(font, L"Ch\u01b0a c\u00f3 t\u00e0i kho\u1ea3n qu\u1ea3n tr\u1ecb? ", 12);
+    // Register Link Row: Chưa có tài khoản quản trị? Đăng ký Admin mới  →
+    Text regPrefix(font, L"Ch\u01b0a c\u00f3 t\u00e0i kho\u1ea3n qu\u1ea3n tr\u1ecb? ", 13);
     regPrefix.setFillColor(Color(100, 116, 139));
 
-    Text regLink(font, L"\u0110\u0103ng k\u00fd Admin m\u1edbi \u2197", 12);
+    Text regLink(font, L"\u0110\u0103ng k\u00fd Admin m\u1edbi \u2192", 13);
     regLink.setStyle(Text::Bold | (linkCreateHovered ? Text::Underlined : Text::Regular));
     regLink.setFillColor(Color(2, 132, 199));
 
     float fullRegW = regPrefix.getLocalBounds().size.x + regLink.getLocalBounds().size.x;
-    float regStartX = rightPadX + (formW - fullRegW) / 2.f;
-    regPrefix.setPosition({regStartX, cardY + 482.f});
-    regLink.setPosition({regStartX + regPrefix.getLocalBounds().size.x, cardY + 482.f});
+    float regStartX = formX + (formW - fullRegW) / 2.f;
+    regPrefix.setPosition({regStartX, cardY + 648.f});
+    regLink.setPosition({regStartX + regPrefix.getLocalBounds().size.x, cardY + 648.f});
     window.draw(regPrefix);
     window.draw(regLink);
 
@@ -954,45 +964,43 @@ void LoginScreen::draw(RenderWindow& window) {
     // 7. FORGOT PASSWORD MODAL (if open)
     // ==========================================
     if (isForgotMode) {
-        // Translucent overlay
         RectangleShape fOverlay({W, H});
         fOverlay.setFillColor(Color(15, 23, 42, 140));
         window.draw(fOverlay);
 
-        const float fCardW = 520.f;
-        const float fCardH = 380.f;
+        const float fCardW = 560.f;
+        const float fCardH = 400.f;
         const float fCardX = (W - fCardW) / 2.f;
         const float fCardY = (H - fCardH) / 2.f;
 
-        // Modal Card in clean white theme
         RoundedRectRenderer::draw(window, {fCardX - 3.f, fCardY + 3.f}, {fCardW + 6.f, fCardH + 6.f}, 18.f, Color(0, 0, 0, 30));
         RoundedRectRenderer::draw(window, {fCardX, fCardY}, {fCardW, fCardH}, 16.f, Color::White, 1.f, Color(226, 232, 240));
 
-        Text fTitle(font, L"QU\u00caN M\u1eacT KH\u1ea8U ADMIN", 20);
+        Text fTitle(font, L"QU\u00caN M\u1eacT KH\u1ea8U ADMIN", 21);
         fTitle.setStyle(Text::Bold);
         fTitle.setFillColor(Color(15, 23, 42));
-        fTitle.setPosition({fCardX + 36.f, fCardY + 30.f});
+        fTitle.setPosition({fCardX + 40.f, fCardY + 32.f});
         window.draw(fTitle);
 
-        Text fSub(font, L"Nh\u1eadp email qu\u1ea3n tr\u1ecb v\u00e0 m\u1eadt kh\u1ea9u m\u1edbi \u0111\u1ec3 \u0111\u1eb7t l\u1ea1i m\u1eadt kh\u1ea9u.", 12);
+        Text fSub(font, L"Nh\u1eadp email qu\u1ea3n tr\u1ecb v\u00e0 m\u1eadt kh\u1ea9u m\u1edbi \u0111\u1ec3 \u0111\u1eb7t l\u1ea1i m\u1eadt kh\u1ea9u.", 13);
         fSub.setFillColor(Color(100, 116, 139));
-        fSub.setPosition({fCardX + 36.f, fCardY + 62.f});
+        fSub.setPosition({fCardX + 40.f, fCardY + 66.f});
         window.draw(fSub);
 
         // Email input
         Color fEBorder = forgotEmailActive ? Color(2, 132, 199) : Color(203, 213, 225);
-        RoundedRectRenderer::draw(window, {fCardX + 36.f, fCardY + 104.f}, {448.f, 44.f}, 8.f, Color(248, 250, 252), 1.2f, fEBorder);
+        RoundedRectRenderer::draw(window, {fCardX + 40.f, fCardY + 112.f}, {480.f, 46.f}, 8.f, Color(248, 250, 252), 1.2f, fEBorder);
         Text fEmailText(font, forgotEmailInput.empty() ? L"Nh\u1eadp email qu\u1ea3n tr\u1ecb vi\u00ean" : forgotEmailInput, 13);
         fEmailText.setFillColor(forgotEmailInput.empty() ? Color(148, 163, 184) : Color(15, 23, 42));
-        fEmailText.setPosition({fCardX + 50.f, fCardY + 117.f});
+        fEmailText.setPosition({fCardX + 54.f, fCardY + 126.f});
         window.draw(fEmailText);
 
         // New password input
         Color fPBorder = forgotPassActive ? Color(2, 132, 199) : Color(203, 213, 225);
-        RoundedRectRenderer::draw(window, {fCardX + 36.f, fCardY + 168.f}, {448.f, 44.f}, 8.f, Color(248, 250, 252), 1.2f, fPBorder);
+        RoundedRectRenderer::draw(window, {fCardX + 40.f, fCardY + 180.f}, {480.f, 46.f}, 8.f, Color(248, 250, 252), 1.2f, fPBorder);
         Text fPassText(font, forgotPassInput.empty() ? L"Nh\u1eadp m\u1eadt kh\u1ea9u m\u1edbi" : bullets(forgotPassInput.size()), 13);
         fPassText.setFillColor(forgotPassInput.empty() ? Color(148, 163, 184) : Color(15, 23, 42));
-        fPassText.setPosition({fCardX + 50.f, fCardY + 181.f});
+        fPassText.setPosition({fCardX + 54.f, fCardY + 194.f});
         window.draw(fPassText);
 
         // Status message
@@ -1000,27 +1008,27 @@ void LoginScreen::draw(RenderWindow& window) {
             Text fMsgDisplay(font, forgotMsg, 12);
             fMsgDisplay.setStyle(Text::Bold);
             fMsgDisplay.setFillColor(forgotMsgColor);
-            fMsgDisplay.setPosition({fCardX + 36.f, fCardY + 228.f});
+            fMsgDisplay.setPosition({fCardX + 40.f, fCardY + 246.f});
             window.draw(fMsgDisplay);
         }
 
         // Buttons
         Color fCloseBg = forgotCloseHovered ? Color(203, 213, 225) : Color(226, 232, 240);
-        RoundedRectRenderer::draw(window, {fCardX + 36.f, fCardY + 268.f}, {214.f, 44.f}, 8.f, fCloseBg);
+        RoundedRectRenderer::draw(window, {fCardX + 40.f, fCardY + 290.f}, {230.f, 46.f}, 8.f, fCloseBg);
         Text fCloseText(font, L"\u0110\u00f3ng", 14);
         fCloseText.setStyle(Text::Bold);
         fCloseText.setFillColor(Color(51, 65, 85));
         FloatRect ctb = fCloseText.getLocalBounds();
-        fCloseText.setPosition({fCardX + 36.f + (214.f - ctb.size.x) / 2.f, fCardY + 280.f});
+        fCloseText.setPosition({fCardX + 40.f + (230.f - ctb.size.x) / 2.f, fCardY + 303.f});
         window.draw(fCloseText);
 
         Color fSubBg = forgotBtnHovered ? Color(3, 105, 161) : Color(0, 119, 182);
-        RoundedRectRenderer::draw(window, {fCardX + 270.f, fCardY + 268.f}, {214.f, 44.f}, 8.f, fSubBg);
+        RoundedRectRenderer::draw(window, {fCardX + 290.f, fCardY + 290.f}, {230.f, 46.f}, 8.f, fSubBg);
         Text fSubText(font, L"\u0110\u1eb7t l\u1ea1i MK", 14);
         fSubText.setStyle(Text::Bold);
         fSubText.setFillColor(Color::White);
         FloatRect stb2 = fSubText.getLocalBounds();
-        fSubText.setPosition({fCardX + 270.f + (214.f - stb2.size.x) / 2.f, fCardY + 280.f});
+        fSubText.setPosition({fCardX + 290.f + (230.f - stb2.size.x) / 2.f, fCardY + 303.f});
         window.draw(fSubText);
     }
 }

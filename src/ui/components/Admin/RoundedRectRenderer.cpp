@@ -1,77 +1,67 @@
 #include "UI/components/Admin/RoundedRectRenderer.h"
-
 #include <algorithm>
+#include <cmath>
 
-namespace {
-    void drawCore(sf::RenderTarget& target,
-                  const sf::Vector2f& position,
-                  const sf::Vector2f& size,
-                  float radius,
-                  const sf::Color& color,
-                  std::size_t cornerPointCount) {
-        if (size.x <= 0.f || size.y <= 0.f) {
-            return;
-        }
-
-        const float clampedRadius = std::max(0.f, std::min(radius, std::min(size.x, size.y) * 0.5f));
-        const float innerWidth = std::max(size.x - 2.f * clampedRadius, 0.f);
-        const float innerHeight = std::max(size.y - 2.f * clampedRadius, 0.f);
-
-        static sf::RectangleShape rect;
-        rect.setFillColor(color);
-
-        // Horizontal core
-        rect.setSize({innerWidth, size.y});
-        rect.setPosition({position.x + clampedRadius, position.y});
-        target.draw(rect);
-
-        // Vertical core
-        rect.setSize({size.x, innerHeight});
-        rect.setPosition({position.x, position.y + clampedRadius});
-        target.draw(rect);
-
-        static sf::CircleShape corner;
-        corner.setFillColor(color);
-        corner.setPointCount(std::max<std::size_t>(cornerPointCount, 8u));
-        corner.setRadius(clampedRadius);
-
-        if (clampedRadius == 0.f) {
-            return;
-        }
-
-        corner.setPosition(position);
-        target.draw(corner);
-
-        corner.setPosition({position.x + size.x - clampedRadius * 2.f, position.y});
-        target.draw(corner);
-
-        corner.setPosition({position.x, position.y + size.y - clampedRadius * 2.f});
-        target.draw(corner);
-
-        corner.setPosition({position.x + size.x - clampedRadius * 2.f, position.y + size.y - clampedRadius * 2.f});
-        target.draw(corner);
+void RoundedRectRenderer::draw(
+    sf::RenderTarget& target,
+    const sf::Vector2f& position,
+    const sf::Vector2f& size,
+    float radius,
+    const sf::Color& fillColor,
+    float outlineThickness,
+    const sf::Color& outlineColor,
+    std::size_t cornerPointCount) {
+    if (size.x <= 0.f || size.y <= 0.f) {
+        return;
     }
-}
 
-void RoundedRectRenderer::draw(sf::RenderTarget& target,
-                               const sf::Vector2f& position,
-                               const sf::Vector2f& size,
-                               float radius,
-                               const sf::Color& fillColor,
-                               float outlineThickness,
-                               const sf::Color& outlineColor,
-                               std::size_t cornerPointCount) {
+    const float r = std::max(0.f, std::min(radius, std::min(size.x, size.y) * 0.5f));
+    if (r <= 0.f) {
+        sf::RectangleShape rect(size);
+        rect.setPosition(position);
+        rect.setFillColor(fillColor);
+        if (outlineThickness > 0.f && outlineColor.a > 0) {
+            rect.setOutlineThickness(outlineThickness);
+            rect.setOutlineColor(outlineColor);
+        }
+        target.draw(rect);
+        return;
+    }
+
+    const std::size_t pointsPerCorner = std::max<std::size_t>(cornerPointCount, 6u);
+    const std::size_t totalPoints = pointsPerCorner * 4;
+
+    sf::ConvexShape shape(totalPoints);
+    shape.setFillColor(fillColor);
     if (outlineThickness > 0.f && outlineColor.a > 0) {
-        const sf::Vector2f outlinePos{
-            position.x - outlineThickness,
-            position.y - outlineThickness
-        };
-        const sf::Vector2f outlineSize{
-            size.x + outlineThickness * 2.f,
-            size.y + outlineThickness * 2.f
-        };
-        drawCore(target, outlinePos, outlineSize, radius + outlineThickness, outlineColor, cornerPointCount);
+        shape.setOutlineThickness(outlineThickness);
+        shape.setOutlineColor(outlineColor);
     }
+    shape.setPosition(position);
 
-    drawCore(target, position, size, radius, fillColor, cornerPointCount);
+    const float pi = 3.14159265358979323846f;
+    std::size_t index = 0;
+
+    auto addArc = [&](float cx, float cy, float startAngle, float endAngle) {
+        for (std::size_t i = 0; i < pointsPerCorner; ++i) {
+            float t = static_cast<float>(i) / static_cast<float>(pointsPerCorner - 1);
+            float angle = startAngle + t * (endAngle - startAngle);
+            float rad = angle * pi / 180.f;
+            shape.setPoint(index++, {cx + r * std::cos(rad), cy + r * std::sin(rad)});
+        }
+    };
+
+    // 1. Top-Right Corner (270 -> 360 deg)
+    addArc(size.x - r, r, 270.f, 360.f);
+
+    // 2. Bottom-Right Corner (0 -> 90 deg)
+    addArc(size.x - r, size.y - r, 0.f, 90.f);
+
+    // 3. Bottom-Left Corner (90 -> 180 deg)
+    addArc(r, size.y - r, 90.f, 180.f);
+
+    // 4. Top-Left Corner (180 -> 270 deg)
+    addArc(r, r, 180.f, 270.f);
+
+    target.draw(shape);
 }
