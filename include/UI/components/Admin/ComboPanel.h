@@ -3,101 +3,75 @@
 #include <memory>
 #include <vector>
 #include <string>
-#include "repositories/admin/AdminComboRepository.h"
-#include "UI/components/Admin/TextBox.h"
-#include "UI/components/Button.h"
 
 using namespace sf;
 using namespace std;
 
+struct ComboItem {
+    string id;              // "CB01"
+    wstring name;           // L"CocaCola"
+    wstring subtitle;       // L"1x Ly CocaCola tươi 22oz nhiều đá mát lạnh"
+    wstring category;       // L"Đồ uống", L"Bắp ngọt", L"Bắp mặn", L"Combo Đơn", L"Combo Nhóm"
+    int price = 30000;
+    bool isHot = false;
+    bool isAvailable = true;
+    bool isChecked = false;
+};
+
 class ComboPanel {
 private:
     Font& font;
+    Font boldFont;
     float width;
     float height;
     Vector2f position;
 
-    unique_ptr<AdminComboRepository> repository;
+    vector<ComboItem> allCombos;
+    vector<ComboItem> filteredCombos;
 
-    RectangleShape background;
-    RectangleShape tableHeaderBg;
-    unique_ptr<Text> titleText;
+    // Filters & Search
+    string searchQuery;
+    bool searchActive = false;
+    int activeFilterIndex = 0; // 0: Tất cả, 1: Nước lẻ, 2: Bắp đơn, 3: Combo 1 Người, 4: Combo Nhóm
 
-    RectangleShape btnAddBg;
-    RectangleShape btnEditBg;
-    RectangleShape btnDeleteBg;
-    RectangleShape reloadButtonBg;
-    unique_ptr<Text> btnAddText;
-    unique_ptr<Text> btnEditText;
-    unique_ptr<Text> btnDeleteText;
+    // Table state
+    int selectedRow = -1;
+    int hoveredRow = -1;
+    int scrollOffset = 0;
+    const int maxVisibleRows = 6; // Chiều cao mỗi dòng 72px
 
-    Texture reloadTexture;
-    Sprite reloadSprite;
-
+    // Buttons hover states
     bool btnAddHover = false;
     bool btnEditHover = false;
     bool btnDeleteHover = false;
     bool btnReloadHover = false;
-    bool btnAddPressed = false;
-    bool btnEditPressed = false;
-    bool btnDeletePressed = false;
-    bool btnReloadPressed = false;
+    bool btnExportHover = false;
+    bool btnSyncHover = false;
 
-    enum PopupType { NONE, ADD, EDIT, DELETE_CONFIRM };
-    PopupType currentPopup = NONE;
-
-    int selectedRow = -1;
-    int hoveredRow = -1;
-
-    RectangleShape popupOverlay;
-    RectangleShape popupBackground;
-    unique_ptr<Text> popupTitle;
-    vector<unique_ptr<TextBox>> inputBoxes;
-    unique_ptr<Button> btnPopupSave;
-    unique_ptr<Button> btnPopupCancel;
-
-    string notificationText;
+    // Toast notification
+    string notificationMessage;
     Clock notificationClock;
-    RectangleShape notificationBg;
-    unique_ptr<Text> notificationTextObj;
+    bool notificationVisible = false;
 
-    static constexpr float TABLE_X = 40.f;
-    static constexpr float TABLE_Y = 120.f;
-    static constexpr float TABLE_WIDTH = 900.f;
-    static constexpr float ROW_HEIGHT = 44.f;
-    static constexpr float HEADER_HEIGHT = 48.f;
-    static constexpr float COL_ID_X = 60.f;
-    static constexpr float COL_NAME_X = 180.f;
-    static constexpr float COL_PRICE_X = 720.f;
+    // Popup Add / Edit
+    bool showPopup = false;
+    int editingIndex = -1;
+    string popupId;
+    wstring popupName;
+    wstring popupSub;
+    wstring popupCat;
+    string popupPrice;
+    int popupActiveField = 0;
 
-    Color bgColor = Color(244, 246, 250);
-    Color headerColor = Color(20, 118, 172);
-    Color rowColor = Color::White;
-    Color hoverColor = Color(229, 241, 251);
-    Color selectedColor = Color(204, 228, 247);
-    Color borderColor = Color(201, 206, 214);
-    Color textColor = Color(34, 34, 34);
+    void initDefaultCombos();
+    void loadCombosFromFile();
+    void saveCombosToFile();
+    void applyFilter();
 
-    void setupUI();
-    void renderTable(RenderWindow& window);
-    void renderPopup(RenderWindow& window);
-    void renderNotification(RenderWindow& window);
-
-    void openAddPopup();
-    void openEditPopup();
-    void openDeletePopup();
-    void closePopup();
-
-    void handleAdd();
-    void handleEdit();
-    void handleDelete();
-    void handleReload();
-
-    void showNotification(const string& message);
-    static bool isDigits(const string& value);
+    void drawRoundedCard(RenderWindow& win, Vector2f pos, Vector2f sz, float r, Color fill, float outline = 0.f, Color outCol = Color::Transparent);
 
 public:
-    ComboPanel(Font& font, float width, float height);
+    ComboPanel(Font& fontRef, float w, float h);
 
     void setPosition(Vector2f pos);
     void handleEvent(const Event& event, const RenderWindow& window);

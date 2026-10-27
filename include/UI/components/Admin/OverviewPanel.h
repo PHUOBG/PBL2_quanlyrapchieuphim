@@ -1,15 +1,12 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
-#include <memory>
 #include <string>
-#include <unordered_map>
 #include <vector>
-
-#include "data-structures/BTree.h"
+#include <unordered_map>
+#include <memory>
 #include "data-structures/DLL.h"
-#include "repositories/admin/AdminTicketRepository.h"
-#include "UI/components/Admin/StatCard.h"
+#include "repositories/booking/TicketRepository.h"
 
 struct MonthlyRevenuePoint {
     int month;
@@ -20,12 +17,31 @@ struct MonthlyRevenuePoint {
 struct MovieTicketCount {
     std::string title;
     int tickets;
-    long long revenue;  // Thêm doanh thu
+    long long revenue;
+};
+
+struct MovieStatItem {
+    std::string title;
+    std::wstring displayTitle;
+    std::wstring shortTitle;
+    int tickets;
+    long long revenue;
+};
+
+struct MonthStatItem {
+    std::string month;
+    std::wstring displayMonth;
+    long long revenue;
+    std::wstring changeBadge;
+    sf::Color badgeBg;
+    sf::Color badgeText;
+    bool isRecord = false;
 };
 
 class OverviewPanel {
 private:
     sf::Font& font;
+    sf::Font boldFont;
     float width;
     float height;
     sf::Vector2f position;
@@ -36,76 +52,68 @@ private:
     std::string showtimesFilePath;
     std::string combosFilePath;
 
-    // Hang muc ho tro tinh doanh thu
+    // Cache gia ve va combo
     std::unordered_map<std::string, int> showtimeSeatPrices;
     std::unordered_map<std::string, int> comboPrices;
-
-    // Bo dem du lieu
     std::unordered_map<std::string, long long> registrationTimes;
     DLL<Ticket> ticketsCache;
-    bool dataLoaded = false;  // Đánh dấu đã load dữ liệu chưa
+    bool dataLoaded = false;
 
-    long long dailyRevenue = 0;
-    int newCustomersThisMonth = 0;
-    int totalTicketsThisMonth = 0;
-    long long totalRevenueThisMonth = 0;
+    // Chi so KPI
+    long long dailyRevenue = 1890000;
+    int newCustomersThisMonth = 148;
+    int totalTicketsThisMonth = 101;
+    int standardTicketsCount = 68;
+    int vipTicketsCount = 33;
+    long long totalRevenueThisMonth = 12192500;
+    long long movieRevenueThisMonth = 8535000;
+    long long comboRevenueThisMonth = 3657500;
+    long long totalAccumulatedRevenue = 11842500;
 
-    DLL<MovieTicketCount> topMovies;
-    DLL<MonthlyRevenuePoint> monthlyTrend;
+    // Danh sach thong ke
+    std::vector<MovieStatItem> topMoviesList;
+    std::vector<MonthStatItem> monthlyStatsList;
 
-    // Thanh phan giao dien
-    sf::RectangleShape background;
-    StatCard revenueTodayCard;
-    StatCard newCustomersCard;
-    StatCard ticketsCard;
-    StatCard totalRevenueCard;
-    StatCard movieRevenueCard;
-    StatCard comboRevenueCard;
+    // UI state
+    int hoveredMovieRow = -1;
+    int hoveredMonthRow = -1;
+    bool exportHovered = false;
+    bool reloadHovered = false;
+    bool toastActive = false;
+    float toastTimer = 0.f;
+    std::wstring toastMessage;
 
-    sf::RectangleShape ticketChartCard;
-    sf::RectangleShape revenueChartCard;
-    sf::RectangleShape movieTableCard;    // Bảng phim bên phải biểu đồ cột
-    sf::RectangleShape revenueTableCard;  // Bảng doanh thu bên phải biểu đồ đường
-
-    sf::Color cardOutlineCyan = sf::Color(13, 148, 136);
-    sf::Color cardOutlineGreen = sf::Color(34, 197, 94);
-    sf::Color cardOutlineYellow = sf::Color(221, 180, 67);
-    sf::Color cardOutlineRed = sf::Color(239, 68, 68);
-
-    // Cac ham xu ly bo tro
     std::string resolveDataPath(const std::string& relative) const;
-    void initializeUI();
     void loadData();
     void loadTickets();
     void loadRegistrations();
     void loadShowtimePrices();
     void loadComboPrices();
-
-    void calculateDailyRevenue();
-    void calculateMonthlyStats();
-    void calculateTopMovies();
-    void calculateMonthlyTrend();
+    void calculateStats();
 
     int countSeats(const std::string& seatList) const;
     std::string trim(const std::string& text) const;
     long long computeComboRevenue(const std::string& comboList) const;
     long long computeTicketRevenue(const Ticket& ticket, int seatCount, long long comboRevenue) const;
     std::string toCurrency(long long amount) const;
-    long long roundUpNice(long long value) const;
     sf::String toSfString(const std::string& text) const;
-    std::string ellipsize(const std::string& text, std::size_t maxChars) const;
-    void sortTopMovies();
-    void sortMonthlyTrend();
 
-    void drawTicketChart(sf::RenderTarget& target) const;
-    void drawRevenueChart(sf::RenderTarget& target) const;
-    void drawMovieTable(sf::RenderTarget& target) const;
-    void drawRevenueTable(sf::RenderTarget& target) const;
+    // Ve giao dien chi tiet theo thiet ke
+    void drawHeader(sf::RenderTarget& target) const;
+    void drawKpiCards(sf::RenderTarget& target) const;
+    void drawTopLeftChart(sf::RenderTarget& target) const;
+    void drawTopRightTable(sf::RenderTarget& target) const;
+    void drawBottomLeftChart(sf::RenderTarget& target) const;
+    void drawBottomRightTable(sf::RenderTarget& target) const;
+    void drawBottomBar(sf::RenderTarget& target) const;
+    void drawToast(sf::RenderTarget& target) const;
 
 public:
-    OverviewPanel(sf::Font& font, float width, float height);
+    OverviewPanel(sf::Font& fontRef, float w, float h);
 
     void setPosition(const sf::Vector2f& pos);
+    void handleEvent(const sf::Event& event, const sf::RenderWindow& window);
+    void update(const sf::Vector2f& mousePos, bool mouseDown);
     void render(sf::RenderTarget& target) const;
     void refresh();
 };

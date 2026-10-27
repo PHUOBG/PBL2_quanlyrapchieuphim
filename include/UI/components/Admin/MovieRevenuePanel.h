@@ -3,161 +3,125 @@
 #include <SFML/Graphics.hpp>
 #include <memory>
 #include <string>
-#include <unordered_map>
-#include <unordered_set>
 #include <vector>
-
-#include "data-structures/BTree.h"
+#include <unordered_map>
 #include "data-structures/DLL.h"
-#include "repositories/admin/AdminTicketRepository.h"
-#include "UI/components/Admin/DropdownBox.h"
-#include "UI/components/Admin/RoundRectButton.h"
-#include "UI/components/Admin/StatCard.h"
-#include "repositories/booking/ShowtimeRepository.h"
+#include "repositories/booking/TicketRepository.h"
 
-struct MovieRevenueEntry {
-    string title;
-    long long ticketRevenue = 0;
-    long long comboRevenue = 0;
-    int ticketCount = 0;
-
-    long long totalRevenue() const {
-        return ticketRevenue + comboRevenue;
-    }
+enum class RevenueTab {
+    TICKETS_BY_MOVIE = 0,
+    TOTAL_REVENUE = 1,
+    REVENUE_BY_MOVIE = 2,
+    REVENUE_BY_COMBO = 3
 };
 
-enum class ChartMode {
-    Tickets,
-    Revenue,
-    MovieRevenue,
-    ComboRevenue
+struct MovieRevItem {
+    std::string id;
+    std::wstring title;
+    std::wstring shortTitle;
+    std::wstring genre;
+    int showtimes = 0;
+    int tickets = 0;
+    long long revenue = 0;
+    float share = 0.f;
+    bool isHot = false;
 };
 
-struct ModeToggle {
-    RectangleShape shape;
-    Text label;
-    bool active = false;
+struct MonthRevItem {
+    std::string month;
+    std::wstring displayMonth;
+    long long ticketRev = 0;
+    long long comboRev = 0;
+    long long totalRev = 0;
+    std::wstring growth;
+    float comboShare = 0.f;
+    bool isRecord = false;
+};
 
-    explicit ModeToggle(Font& font, unsigned int characterSize = 13)
-        : label(font, String(), characterSize) {}
-
-    ModeToggle(const ModeToggle&) = default;
-    ModeToggle& operator=(const ModeToggle&) = default;
+struct ComboRevItem {
+    std::string code;
+    std::wstring name;
+    int unitPrice = 0;
+    int quantity = 0;
+    long long revenue = 0;
+    float share = 0.f;
+    bool isTop1 = false;
 };
 
 class MovieRevenuePanel {
 private:
-    Font& font;
+    sf::Font& font;
+    sf::Font boldFont;
     float width;
     float height;
-    Vector2f position;
+    sf::Vector2f position;
 
-    // Du lieu thong ke
-    BTree<long long, Ticket> ticketTree;
-    unordered_map<string, int> showtimeSeatPrices;
-    unordered_map<string, int> comboPrices;
-    unordered_set<string> knownMovieTitles;
+    RevenueTab activeTab = RevenueTab::TICKETS_BY_MOVIE;
 
-    DLL<Ticket> filteredTickets;
-    vector<MovieRevenueEntry> movieStats;
-    struct ComboRevenueEntry {
-        string label;
-        int quantity = 0;
-        long long revenue = 0;
-    };
-    vector<ComboRevenueEntry> comboStats;
-    vector<long long> availableDateKeys;
+    // Duong dan du lieu
+    std::string ticketsFilePath;
+    std::string showtimesFilePath;
+    std::string combosFilePath;
 
-    long long selectedStartKey = 0;
-    long long selectedEndKey = 0;
+    // Cache gia va ve
+    std::unordered_map<std::string, int> showtimePrices;
+    std::unordered_map<std::string, int> comboPrices;
+    DLL<Ticket> ticketsCache;
 
-    long long totalRevenueValue = 0;
-    long long movieRevenueValue = 0;
-    long long comboRevenueValue = 0;
+    // Tong quan KPI
+    long long totalRevenue = 11842500;
+    long long movieRevenue = 7000000;
+    long long comboRevenue = 4842500;
+    int totalTickets = 101;
+    int totalCombos = 89;
 
-    bool suppressClicksUntilMouseRelease = false;
+    // Danh sach du lieu
+    std::vector<MovieRevItem> moviesList;
+    std::vector<MonthRevItem> monthsList;
+    std::vector<ComboRevItem> combosList;
 
-    // Duong dan file
-    string ticketsFilePath;
-    string moviesFilePath;
-    string showtimesFilePath;
-    string combosFilePath;
+    // UI state
+    int hoveredTab = -1;
+    int hoveredRow = -1;
+    bool exportHovered = false;
+    bool reloadHovered = false;
+    bool toastActive = false;
+    float toastTimer = 0.f;
+    std::wstring toastMessage;
 
-    // Thanh phan giao dien
-    RectangleShape background;
-    Text titleText;
-    Text fromLabel;
-    Text toLabel;
-
-    StatCard totalRevenueCard;
-    StatCard movieRevenueCard;
-    StatCard comboRevenueCard;
-
-    unique_ptr<DropdownBox> fromYearDropdown;
-    unique_ptr<DropdownBox> fromMonthDropdown;
-    unique_ptr<DropdownBox> fromDayDropdown;
-
-    unique_ptr<DropdownBox> toYearDropdown;
-    unique_ptr<DropdownBox> toMonthDropdown;
-    unique_ptr<DropdownBox> toDayDropdown;
-
-    RoundRectButton loadButton;
-
-    ModeToggle ticketsToggle;
-    ModeToggle revenueToggle;
-    ModeToggle movieOnlyToggle;
-    ModeToggle comboToggle;
-    ChartMode currentChartMode = ChartMode::Tickets;
-
-    RectangleShape chartCard;
-
-    // Ham ho tro xu ly
-    string resolveDataPath(const string& relative) const;
-    void initializeUI();
-    void layoutComponents();
-
+    std::string resolveDataPath(const std::string& relative) const;
     void loadData();
-    void loadMovies();
     void loadTickets();
     void loadShowtimePrices();
     void loadComboPrices();
+    void initDefaultStats();
 
-    void populateDropdowns();
-    void populateYears(DropdownBox& dropdown) const;
-    void populateMonths(DropdownBox& dropdown, const DropdownBox& yearDropdown) const;
-    void populateDays(DropdownBox& dropdown, const DropdownBox& yearDropdown, const DropdownBox& monthDropdown) const;
-    void updateDropdownEnabling();
+    int countSeats(const std::string& seatList) const;
+    std::string trim(const std::string& text) const;
+    long long computeComboRevenue(const std::string& comboList) const;
+    std::string toCurrency(long long amount) const;
+    sf::String toSfString(const std::string& text) const;
 
-    bool isLeapYear(int year) const;
-    int daysInMonth(int month, int year) const;
+    // Render cac phan giao dien
+    void drawHeader(sf::RenderTarget& target) const;
+    void drawKpiCards(sf::RenderTarget& target) const;
+    void drawTabBar(sf::RenderTarget& target) const;
+    
+    // 4 View chi tiet tuong ung voi 4 tab
+    void drawTab1TicketsByMovie(sf::RenderTarget& target) const;
+    void drawTab2TotalRevenue(sf::RenderTarget& target) const;
+    void drawTab3RevenueByMovie(sf::RenderTarget& target) const;
+    void drawTab4RevenueByCombo(sf::RenderTarget& target) const;
 
-    long long dateToKey(const string& displayDate) const; // dinh dang dd/mm/yyyy
-    string keyToDisplay(long long key) const;
-
-    void applySelection();
-    void updateMovieStats();
-    void updateComboStats();
-    void updateSummaryCards();
-    string currentRangeLabel() const;
-    bool isAnyDropdownOpen() const;
-
-    int countSeats(const string& seatList) const;
-    string trim(const string& text) const;
-    string ellipsize(const string& text, size_t maxChars) const;
-    long long computeComboRevenue(const string& comboList) const;
-    long long computeTicketRevenue(const Ticket& ticket, int seatCount, long long comboRevenue) const;
-
-    void setChartMode(ChartMode mode);
-    void sortStatsForCurrentMode();
-    void sortComboStats();
-    void drawChart(RenderTarget& target) const;
+    void drawBottomBar(sf::RenderTarget& target) const;
+    void drawToast(sf::RenderTarget& target) const;
 
 public:
-    MovieRevenuePanel(Font& font, float width, float height);
+    MovieRevenuePanel(sf::Font& fontRef, float w, float h);
 
-    void setPosition(const Vector2f& pos);
-    void handleEvent(const Event& event, const RenderWindow& window);
-    void update(const Vector2f& mousePos, bool mouseDown);
-    void render(RenderTarget& target) const;
+    void setPosition(const sf::Vector2f& pos);
+    void handleEvent(const sf::Event& event, const sf::RenderWindow& window);
+    void update(const sf::Vector2f& mousePos, bool mouseDown);
+    void render(sf::RenderTarget& target) const;
     void refresh();
 };

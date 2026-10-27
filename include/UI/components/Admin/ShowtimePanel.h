@@ -1,133 +1,87 @@
 #pragma once
-
 #include <SFML/Graphics.hpp>
-#include <array>
-#include <chrono>
-#include <memory>
-#include <optional>
 #include <string>
-#include <unordered_map>
-#include <unordered_set>
 #include <vector>
+#include <memory>
+#include <chrono>
+#include <optional>
 
-#include "UI/components/Admin/DropdownBox.h"
+using namespace sf;
+using namespace std;
+
+struct ShowtimeItem {
+    string id;
+    string movieId;
+    wstring movieTitle;
+    string roomId;
+    wstring roomName;
+    string date;        // yyyy-mm-dd
+    string startTime;   // hh:mm
+    string endTime;     // hh:mm
+    int price = 65000;
+    int bookedSeats = 28;
+    int totalSeats = 36;
+};
 
 class ShowtimePanel {
 private:
-    struct MovieInfo {
-        std::string title;
-        int durationMinutes = 0;
-    };
-
-    struct TimelineItem {
-        std::string showtimeId;
-        std::string movieId;
-        std::string roomId;
-        std::string date;
-        std::string timeStr;
-        int price = 0;
-        int durationMinutes = 0;
-        std::chrono::system_clock::time_point start;
-        std::chrono::system_clock::time_point end;
-    };
-
-    using TimePoint = std::chrono::system_clock::time_point;
-
-    sf::Font& font;
+    Font& font;
+    Font boldFont;
     float width;
     float height;
-    sf::Vector2f position;
+    Vector2f position;
 
-    sf::RectangleShape background;
-    sf::RectangleShape tableHeaderBg;
-    sf::RectangleShape summaryCard;
-    sf::RectangleShape tableBorder;
-    std::unique_ptr<sf::Text> titleText;
-    std::unique_ptr<sf::Text> summaryPrimaryText;
-    std::unique_ptr<sf::Text> summaryTitleText;
-    std::unique_ptr<sf::Text> summaryMetaDateText;
-    std::unique_ptr<sf::Text> summaryMetaRoomText;
+    // Data
+    vector<ShowtimeItem> allShowtimes;
+    vector<ShowtimeItem> filteredShowtimes;
 
-    std::unique_ptr<DropdownBox> dateDropdown;
-    std::unique_ptr<DropdownBox> roomDropdown;
+    // Filters
+    string selectedDate = "2026-10-27";
+    wstring selectedRoom = L"T\u1ea5t c\u1ea3 ph\u00f2ng";
+    wstring selectedStatus = L"T\u1ea5t c\u1ea3 tr\u1ea1ng th\u00e1i";
 
-    sf::Texture reloadTexture;
-    std::unique_ptr<sf::Sprite> reloadSprite;
-    sf::RectangleShape reloadButtonBg;
-    bool reloadHovered = false;
-    bool reloadPressed = false;
+    // Dropdowns
+    bool roomDropdownOpen = false;
+    bool statusDropdownOpen = false;
+    vector<wstring> roomList;
+    vector<wstring> statusList;
 
-    sf::RectangleShape notificationBg;
-    std::unique_ptr<sf::Text> notificationText;
-    std::string notificationMessage;
-    bool notificationVisible = false;
-    sf::Clock notificationClock;
+    // Pagination
+    int currentPage = 1;
+    const int pageSize = 10;
+    int totalPages = 1;
 
-    std::vector<TimelineItem> allShowtimes;
-    std::vector<TimelineItem> filteredShowtimes;
-    std::unordered_set<std::string> archivedIds;
-    std::unordered_set<std::string> loadedShowtimeIds;
-    std::unordered_map<std::string, MovieInfo> movieCatalog;
-    std::unordered_map<std::string, std::string> roomNames;
-
-    std::vector<std::string> dateOptions;
-    std::vector<std::string> roomOptionLabels;
-    std::unordered_map<std::string, std::string> roomLabelToId;
-    std::string activeDateFilter;
-    std::string activeRoomFilterLabel;
-
+    // Hover states
     int hoveredRow = -1;
-    int topRowIndex = 0;
+    int hoveredAction = -1; // 0: Edit, 1: Seats, 2: Delete
 
-    static constexpr float TABLE_X = 40.f;
-    static constexpr float TABLE_Y = 200.f;
-    static constexpr float TABLE_WIDTH = 1100.f;
-    static constexpr float TABLE_HEIGHT = 600.f;
-    static constexpr float HEADER_HEIGHT = 50.f;
-    static constexpr float ROW_HEIGHT = 52.f;
-    static constexpr int MAX_VISIBLE_ROWS = 10;
+    // Toast notification
+    string notificationMessage;
+    Clock notificationClock;
+    bool notificationVisible = false;
 
-    const std::string showtimeFile = "../data/showtimes.txt";
-    const std::string historyFile = "../data/showtimes_history.txt";
-    const std::string roomsFile = "../data/rooms.txt";
-    const std::string moviesFile = "../data/movies.txt";
+    // Popup Add/Edit
+    bool showAddPopup = false;
+    int editingIndex = -1;
+    wstring popupMovieTitle;
+    wstring popupRoomName;
+    string popupStartTime;
+    string popupPrice;
+    int popupActiveField = 0;
 
-    void setupUI();
-    void loadData();
-    void loadMovies();
-    void loadRooms();
-    void loadShowtimes();
-    void loadHistory();
-    void appendHistory(const std::vector<TimelineItem>& entries);
-    void refreshDropdowns();
-    void applyFilters();
-    void updateSummaryText();
-    void updateHoveredRow(sf::Vector2f mousePos);
-    void clampScroll();
+    void initSampleShowtimes();
+    void loadShowtimesFromFile();
+    void saveShowtimesToFile();
+    void applyFilter();
+    void autoScheduleShowtimes();
 
-    void handleScroll(float delta, const sf::RenderWindow& window);
-    void renderTable(sf::RenderWindow& window);
-    void renderEmptyState(sf::RenderWindow& window);
-
-    void showNotification(const std::string& message);
-    void renderNotification(sf::RenderWindow& window);
-
-    static std::vector<std::string> splitLine(const std::string& line, char delimiter);
-    static std::string trim(const std::string& text);
-    static std::optional<TimePoint> parseDateTime(const std::string& dateStr, const std::string& timeStr);
-    static std::string formatTime(const TimePoint& tp);
-    static std::string formatTimeRange(const TimelineItem& item);
-    static std::string formatPrice(int price);
-    static std::string getTodayDateString();
-    static bool isDateOnOrBeforeToday(const std::string& dateStr);
-    static std::string serializeShowtime(const TimelineItem& item);
-    std::optional<TimelineItem> buildShowtime(const std::vector<std::string>& parts);
+    void drawRoundedCard(RenderWindow& win, Vector2f pos, Vector2f sz, float r, Color fill, float outline = 0.f, Color outCol = Color::Transparent);
 
 public:
-    ShowtimePanel(sf::Font& font, float width, float height);
+    ShowtimePanel(Font& fontRef, float w, float h);
 
-    void setPosition(sf::Vector2f pos);
-    void handleEvent(const sf::Event& event, const sf::RenderWindow& window);
-    void update(sf::Vector2f mousePos, bool mousePressed);
-    void render(sf::RenderWindow& window);
+    void setPosition(Vector2f pos);
+    void handleEvent(const Event& event, const RenderWindow& window);
+    void update(Vector2f mousePos, bool mousePressed);
+    void render(RenderWindow& window);
 };

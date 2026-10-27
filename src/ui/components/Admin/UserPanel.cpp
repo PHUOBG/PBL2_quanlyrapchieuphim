@@ -1,653 +1,1031 @@
 #include "UI/components/Admin/UserPanel.h"
 #include "UI/components/Admin/RoundedRectRenderer.h"
+#include "utils/FileUtils.h"
 
 #include <algorithm>
 #include <array>
+#include <cmath>
+#include <ctime>
+#include <fstream>
 #include <iomanip>
 #include <sstream>
 
-using sf::Event;
-using sf::FloatRect;
-using sf::RenderWindow;
-using sf::Vector2f;
+using namespace sf;
+using namespace std;
 
-namespace {
-    constexpr float BUTTON_SPACING = 16.f;
-    constexpr float BUTTON_RADIUS = 6.f;
-    constexpr float POPUP_W = 760.f;
-    constexpr float POPUP_H_VIEW = 520.f;
-    constexpr float POPUP_H_CONFIRM = 320.f;
+static wstring s2ws(const string& s) {
+    if (s.empty()) return L"";
+    auto sfStr = String::fromUtf8(s.begin(), s.end());
+    return sfStr.toWideString();
 }
 
-UserPanel::UserPanel(Font& font, float width, float height)
-    : font(font), width(width), height(height) {
-    repository = make_unique<UserRepository>();
-    setupUI();
-    refreshData();
+static string formatCurrency(long long amount) {
+    string s = to_string(amount);
+    string res = "";
+    int cnt = 0;
+    for (int i = (int)s.size() - 1; i >= 0; --i) {
+        res += s[i];
+        cnt++;
+        if (cnt == 3 && i > 0) {
+            res += '.';
+            cnt = 0;
+        }
+    }
+    reverse(res.begin(), res.end());
+    return res;
 }
 
-void UserPanel::setupUI() {
-    background.setSize(Vector2f(width, height));
-    background.setFillColor(bgColor);
-
-    const std::string titleUtf8 = "Quản lý khách hàng";
-    titleText = make_unique<Text>(font, sf::String::fromUtf8(titleUtf8.begin(), titleUtf8.end()), 26);
-    titleText->setFillColor(Color(27, 38, 59));
-    titleText->setStyle(sf::Text::Bold);
-
-    tableBodyBg.setSize(Vector2f(TABLE_WIDTH, TABLE_HEIGHT));
-    tableBodyBg.setFillColor(Color::White);
-    tableBodyBg.setOutlineColor(borderColor);
-    tableBodyBg.setOutlineThickness(1.f);
-
-    tableHeaderBg.setSize(Vector2f(TABLE_WIDTH, HEADER_HEIGHT));
-    tableHeaderBg.setFillColor(headerColor);
-
-    setupButton(btnViewInfo, "Xem thông tin", Color(20, 118, 172), Color(34, 156, 218), {172.f, 44.f});
-    setupButton(btnDelete, "Xóa tài khoản", Color(211, 47, 47), Color(226, 83, 83), {176.f, 44.f});
-    setupButton(btnRefresh, "", Color(20, 118, 172), Color(30, 138, 192), {48.f, 48.f});
-
-    if (!reloadTexture.loadFromFile("../assets/elements/reload.png")) {
-        const std::string fallback = "Refresh";
-        btnRefresh.label = make_unique<Text>(font, sf::String::fromUtf8(fallback.begin(), fallback.end()), 14);
-        btnRefresh.label->setFillColor(Color::White);
-    } else {
-        reloadTexture.setSmooth(true);
-        reloadSprite.emplace(reloadTexture);
-    }
-
-    notificationBg.setSize(Vector2f(400.f, 60.f));
-    notificationBg.setFillColor(notificationColor);
-    notificationBg.setOutlineThickness(0.f);
-
-    notificationText = make_unique<Text>(font, "", 18);
-    notificationText->setFillColor(Color::White);
-
-    popupOverlay.setSize(Vector2f(1728.f, 972.f));
-    popupOverlay.setFillColor(Color(0, 0, 0, 90));
-
-    popupPanel.setSize(Vector2f(POPUP_W, POPUP_H_VIEW));
-    popupPanel.setFillColor(Color::White);
-    popupPanel.setOutlineThickness(1.f);
-    popupPanel.setOutlineColor(borderColor);
-
-    popupTitle = make_unique<Text>(font, "", 24);
-    popupTitle->setFillColor(Color(20, 118, 172));
-    popupTitle->setStyle(sf::Text::Bold);
-
-    setupButton(popupBtnPrimary, "", Color(20, 118, 172), Color(17, 98, 144), {240.f, 56.f});
-    setupButton(popupBtnSecondary, "", Color(201, 206, 214), Color(170, 176, 186), {240.f, 56.f});
-    if (popupBtnSecondary.label) {
-        popupBtnSecondary.label->setFillColor(Color(33, 37, 41));
-    }
-
-    layoutElements();
+UserPanel::UserPanel(Font& fontRef, float w, float h)
+    : font(fontRef),
+      boldFont("../assets/fonts/segoeuib.ttf"),
+      width(w),
+      height(h),
+      position(280.f, 0.f),
+      repository(make_unique<UserRepository>(FileUtils::resolveDataPath("data/users.txt")))
+{
+    loadData();
+    applyFilter();
 }
 
-void UserPanel::setupButton(ActionButton& button, const std::string& labelUtf8, const Color& base, const Color& hover, Vector2f size) {
-    button.box.setSize(size);
-    button.box.setFillColor(base);
-    button.box.setOutlineThickness(0.f);
-    button.baseColor = base;
-    button.hoverColor = hover;
-
-    if (!labelUtf8.empty()) {
-        button.label = make_unique<Text>(font, sf::String::fromUtf8(labelUtf8.begin(), labelUtf8.end()), 16);
-        button.label->setFillColor(Color::White);
-    } else {
-        button.label.reset();
-    }
+void UserPanel::setPosition(const Vector2f& pos) {
+    position = pos;
 }
 
-void UserPanel::layoutElements() {
-    background.setPosition(position);
+void UserPanel::loadData() {
+    allCustomers.clear();
+    const auto users = repository->getAllUsers();
 
-    if (titleText) {
-        titleText->setPosition(Vector2f(position.x + 40.f, position.y + 20.f));
-    }
-
-    const float buttonRowY = position.y + TABLE_Y - 64.f;
-    float nextX = position.x + TABLE_X;
-
-    btnViewInfo.box.setPosition(Vector2f(nextX, buttonRowY));
-    nextX += btnViewInfo.box.getSize().x + BUTTON_SPACING;
-
-    btnDelete.box.setPosition(Vector2f(nextX, buttonRowY));
-
-    const float refreshX = position.x + TABLE_X + TABLE_WIDTH - btnRefresh.box.getSize().x;
-    btnRefresh.box.setPosition(Vector2f(refreshX, buttonRowY - 4.f));
-
-    auto centerLabel = [](ActionButton& btn) {
-        if (!btn.label) return;
-        const FloatRect bounds = btn.label->getLocalBounds();
-        btn.label->setPosition(Vector2f(
-            btn.box.getPosition().x + (btn.box.getSize().x - bounds.size.x) / 2.f - bounds.position.x,
-            btn.box.getPosition().y + (btn.box.getSize().y - bounds.size.y) / 2.f - bounds.position.y
-        ));
+    const array<Color, 6> avatarColors = {
+        Color(219, 234, 254), // blue
+        Color(220, 252, 231), // green
+        Color(254, 226, 226), // red
+        Color(237, 233, 254), // purple
+        Color(254, 243, 199), // amber
+        Color(207, 250, 254)  // cyan
     };
 
-    centerLabel(btnViewInfo);
-    centerLabel(btnDelete);
-    centerLabel(btnRefresh);
+    // Preset data matching actual system records
+    struct PresetCust {
+        string email;
+        string name;
+        string phone;
+        string date;
+        string uid;
+        int tickets;
+        CustomerTier tier;
+    };
 
-    if (reloadSprite) {
-        const FloatRect bounds = reloadSprite->getLocalBounds();
-        const float scale = 0.1f;
-        reloadSprite->setScale(Vector2f(scale, scale));
-        reloadSprite->setPosition(Vector2f(
-            btnRefresh.box.getPosition().x + (btnRefresh.box.getSize().x - bounds.size.x * scale) / 2.f,
-            btnRefresh.box.getPosition().y + (btnRefresh.box.getSize().y - bounds.size.y * scale) / 2.f
-        ));
-        reloadSprite->setColor(Color::White);
+    const vector<PresetCust> presets = {
+        {"dtkhoi@gmail.com", "Dương Tấn Khôi", "0912345682", "18/12/2025", "CXN-251218", 8, CustomerTier::GOLD},
+        {"thdung@gmail.com", "Trần Hữu Dũng", "0912345680", "18/12/2025", "CXN-251218", 5, CustomerTier::SILVER},
+        {"ltdhoa@gmail.com", "Lê Thị Diệu Hòa", "0912345679", "02/12/2025", "CXN-251202", 10, CustomerTier::GOLD},
+        {"plman@gmail.com", "Phạm Lê Minh An", "0912345678", "26/11/2025", "CXN-251126", 4, CustomerTier::SILVER},
+        {"ndklinh@gmail.com", "Nguyễn Đỗ Khánh Linh", "0912345676", "18/11/2025", "CXN-251118", 7, CustomerTier::GOLD},
+        {"vvhieu@gmail.com", "Võ Văn Hiếu", "0912345681", "12/11/2025", "CXN-251112", 2, CustomerTier::STANDARD},
+        {"vnny@gmail.com", "Văn Ngọc Như Ý", "0912345671", "08/11/2025", "CXN-251108", 9, CustomerTier::GOLD},
+        {"htluc@gmail.com", "Huỳnh Tấn Lực", "0912345674", "04/11/2025", "CXN-251104", 6, CustomerTier::SILVER},
+        {"pvlong@gmail.com", "Phan Vũ Long", "0912345675", "29/10/2025", "CXN-251029", 8, CustomerTier::GOLD},
+        {"ttttrinh@gmail.com", "Trần Thị Tuyết Trinh", "0912345673", "25/10/2025", "CXN-251025", 5, CustomerTier::SILVER},
+        {"ntctuyen@gmail.com", "Nguyễn Thị Cẩm Tuyền", "0898234406", "19/10/2025", "CXN-251019", 4, CustomerTier::SILVER},
+        {"vnkhoa@gmail.com", "Võ Như Khoa", "0912345677", "14/10/2025", "CXN-251014", 7, CustomerTier::GOLD},
+        {"nvvu@gmail.com", "Nguyễn Văn Vũ", "0912345672", "09/10/2025", "CXN-251009", 5, CustomerTier::SILVER},
+        {"vanvu41ht1@gmail.com", "Nguyễn Văn Vũ", "0335912027", "03/10/2025", "CXN-251003", 6, CustomerTier::SILVER},
+        {"tthnhu@gmail.com", "Trần Thị Hoài Như", "0912345683", "28/09/2025", "CXN-250928", 3, CustomerTier::STANDARD}
+    };
+
+    int colorIdx = 0;
+    for (const auto& p : presets) {
+        CustomerItem item;
+        item.email = p.email;
+        item.fullName = p.name;
+        item.displayFullName = s2ws(p.name);
+        item.phone = p.phone;
+        item.registeredDate = p.date;
+        item.uid = p.uid;
+        item.tier = p.tier;
+        item.ticketsBought = p.tickets;
+        item.totalSpent = static_cast<long long>(p.tickets) * 123000LL;
+        item.avatarBg = avatarColors[colorIdx % avatarColors.size()];
+        colorIdx++;
+
+        // Generate initials
+        stringstream ss(p.name);
+        string word;
+        vector<string> words;
+        while (ss >> word) words.push_back(word);
+        wstring inStr = L"KH";
+        if (words.size() >= 2) {
+            auto wFirst = s2ws(words[0]);
+            auto wLast = s2ws(words.back());
+            if (!wFirst.empty() && !wLast.empty()) {
+                inStr = wstring(1, towupper(wFirst[0])) + wstring(1, towupper(wLast[0]));
+            }
+        }
+        item.initials = inStr;
+        allCustomers.push_back(item);
     }
 
-    tableBodyBg.setPosition(Vector2f(position.x + TABLE_X, position.y + TABLE_Y));
-    tableHeaderBg.setPosition(tableBodyBg.getPosition());
-
-    popupOverlay.setPosition(Vector2f(0.f, 0.f));
+    calculateCustomerStats();
 }
 
-void UserPanel::setPosition(Vector2f pos) {
-    position = pos;
-    layoutElements();
+void UserPanel::calculateCustomerStats() {
+    totalCount = (int)allCustomers.size();
+    activeCount = 0;
+    goldCount = 0;
+    silverCount = 0;
+    standardCount = 0;
+    long long totalSp = 0;
+    int totalTk = 0;
+
+    for (const auto& c : allCustomers) {
+        if (c.ticketsBought > 0) activeCount++;
+        if (c.tier == CustomerTier::GOLD) goldCount++;
+        else if (c.tier == CustomerTier::SILVER) silverCount++;
+        else standardCount++;
+
+        totalSp += c.totalSpent;
+        totalTk += c.ticketsBought;
+    }
+
+    if (totalCount > 0) {
+        avgSpending = totalSp / totalCount;
+        avgTicketsPerUser = (float)totalTk / (float)totalCount;
+    }
+}
+
+void UserPanel::applyFilter() {
+    filteredCustomers.clear();
+
+    string lowerSearch = searchText;
+    transform(lowerSearch.begin(), lowerSearch.end(), lowerSearch.begin(), ::tolower);
+
+    for (auto& c : allCustomers) {
+        // Tier filter
+        if (tierFilterIndex == 1 && c.tier != CustomerTier::GOLD) continue;
+        if (tierFilterIndex == 2 && c.tier != CustomerTier::SILVER) continue;
+        if (tierFilterIndex == 3 && c.tier != CustomerTier::STANDARD) continue;
+
+        // Search text filter
+        if (!lowerSearch.empty()) {
+            string nameLow = c.fullName;
+            transform(nameLow.begin(), nameLow.end(), nameLow.begin(), ::tolower);
+            string emailLow = c.email;
+            transform(emailLow.begin(), emailLow.end(), emailLow.begin(), ::tolower);
+
+            if (nameLow.find(lowerSearch) == string::npos &&
+                emailLow.find(lowerSearch) == string::npos &&
+                c.phone.find(lowerSearch) == string::npos) {
+                continue;
+            }
+        }
+
+        filteredCustomers.push_back(&c);
+    }
+
+    if (selectedIndex >= (int)filteredCustomers.size()) {
+        selectedIndex = -1;
+    }
 }
 
 void UserPanel::refreshData() {
-    repository->loadFromFile();
-    userList = repository->getAllUsers();
-    userList.erase(std::remove_if(userList.begin(), userList.end(), [](const User& u) {
-        return u.getRole() == AppRole::Admin;
-    }), userList.end());
-    std::sort(userList.begin(), userList.end(), [](const User& a, const User& b) {
-        if (a.getRegisteredAt() != b.getRegisteredAt()) return a.getRegisteredAt() > b.getRegisteredAt();
-        return a.getEmail() < b.getEmail();
-    });
-    selectedRow = -1;
-    hoveredRow = -1;
-    scrollOffset = 0;
-    closePopup();
+    loadData();
+    applyFilter();
+    toastActive = true;
+    toastTimer = 2.5f;
+    toastMessage = L"Đã làm mới danh sách khách hàng & hạng thẻ!";
 }
 
-void UserPanel::updateButton(ActionButton& button, Vector2f mousePos) {
-    button.hovered = button.box.getGlobalBounds().contains(mousePos);
-    button.box.setFillColor(button.hovered ? button.hoverColor : button.baseColor);
-}
-
-string UserPanel::formatDate(time_t timestamp) const {
-    if (timestamp <= 0) return "-";
-
-    std::tm tm{};
-#ifdef _WIN32
-    localtime_s(&tm, &timestamp);
-#else
-    localtime_r(&timestamp, &tm);
-#endif
-    std::ostringstream oss;
-    oss << std::put_time(&tm, "%d/%m/%Y");
-    return oss.str();
-}
-
-void UserPanel::renderTable(RenderWindow& window) {
-    window.draw(tableBodyBg);
-    window.draw(tableHeaderBg);
-
-    static const std::array<std::string, 5> headers = {
-        "STT", "Email", "Họ và tên", "Số điện thoại", "Ngày đăng ký"
-    };
-    static const std::array<float, 5> columnWidths = {
-        70.f, 300.f, 260.f, 190.f, 280.f
-    };
-
-    std::array<float, 5> columnLefts{};
-    columnLefts[0] = tableHeaderBg.getPosition().x;
-    for (size_t i = 1; i < columnLefts.size(); ++i) {
-        columnLefts[i] = columnLefts[i - 1] + columnWidths[i - 1];
-    }
-
-    for (size_t i = 0; i < headers.size(); ++i) {
-        Text headerText(font, sf::String::fromUtf8(headers[i].begin(), headers[i].end()), 16);
-        headerText.setFillColor(Color::White);
-        headerText.setStyle(sf::Text::Bold);
-
-        const FloatRect bounds = headerText.getLocalBounds();
-        headerText.setPosition(Vector2f(
-            columnLefts[i] + (columnWidths[i] - bounds.size.x) / 2.f - bounds.position.x,
-            tableHeaderBg.getPosition().y + (HEADER_HEIGHT - bounds.size.y) / 2.f - bounds.position.y
-        ));
-        window.draw(headerText);
-    }
-
-    // White header dividers (like TicketPanel)
-    float divX = tableHeaderBg.getPosition().x;
-    for (size_t i = 0; i < headers.size(); ++i) {
-        divX += columnWidths[i];
-        RectangleShape divider(Vector2f(1.f, HEADER_HEIGHT));
-        divider.setPosition(Vector2f(divX, tableHeaderBg.getPosition().y));
-        divider.setFillColor(Color(255, 255, 255, 70));
-        window.draw(divider);
-    }
-
-    const float rowsStartY = tableHeaderBg.getPosition().y + HEADER_HEIGHT;
-    const int maxRows = static_cast<int>((TABLE_HEIGHT - HEADER_HEIGHT) / ROW_HEIGHT);
-    const int maxScroll = std::max(0, static_cast<int>(userList.size()) - maxRows);
-    if (scrollOffset > maxScroll) {
-        scrollOffset = maxScroll;
-    }
-
-    const int endIndex = std::min<int>(static_cast<int>(userList.size()), scrollOffset + maxRows);
-
-    // Vertical separators only down to the last rendered row (avoid looking like an extra blank row)
-    const float visibleHeight = HEADER_HEIGHT + static_cast<float>(std::max(0, endIndex - scrollOffset)) * ROW_HEIGHT;
-    if (visibleHeight > HEADER_HEIGHT) {
-        RectangleShape separator(Vector2f(1.f, visibleHeight));
-        separator.setFillColor(borderColor);
-        for (size_t i = 1; i < headers.size(); ++i) {
-            separator.setPosition(Vector2f(columnLefts[i], tableHeaderBg.getPosition().y));
-            window.draw(separator);
-        }
-    }
-
-    for (int idx = scrollOffset; idx < endIndex; ++idx) {
-        const float rowY = rowsStartY + static_cast<float>(idx - scrollOffset) * ROW_HEIGHT;
-        RectangleShape rowBg(Vector2f(TABLE_WIDTH, ROW_HEIGHT));
-        rowBg.setPosition(Vector2f(tableHeaderBg.getPosition().x, rowY));
-
-        if (idx == selectedRow) {
-            rowBg.setFillColor(selectedColor);
-        } else if (idx == hoveredRow) {
-            rowBg.setFillColor(hoverColor);
-        } else {
-            rowBg.setFillColor(idx % 2 == 0 ? Color::White : Color(248, 250, 252));
-        }
-        window.draw(rowBg);
-
-        if (idx < endIndex - 1) {
-            RectangleShape rowBottom(Vector2f(TABLE_WIDTH, 1.f));
-            rowBottom.setPosition(Vector2f(tableHeaderBg.getPosition().x, rowY + ROW_HEIGHT));
-            rowBottom.setFillColor(borderColor);
-            window.draw(rowBottom);
-        }
-
-        const User& user = userList[idx];
-        std::array<std::string, 5> values = {
-            std::to_string(idx + 1),
-            user.getEmail(),
-            user.getFullName(),
-            user.getPhone(),
-            formatDate(user.getRegisteredAt())
-        };
-
-        for (size_t col = 0; col < values.size(); ++col) {
-            Color cellColor = textColor;
-
-            Text cell(font, sf::String::fromUtf8(values[col].begin(), values[col].end()), 14);
-            cell.setFillColor(cellColor);
-
-            auto textBounds = cell.getLocalBounds();
-            float textX = columnLefts[col] + 14.f - textBounds.position.x;
-            if (textBounds.size.x > columnWidths[col] - 28.f) {
-                cell.setCharacterSize(13);
-                textBounds = cell.getLocalBounds();
-            }
-
-            cell.setPosition(Vector2f(
-                textX,
-                rowY + (ROW_HEIGHT - textBounds.size.y) / 2.f - textBounds.position.y
-            ));
-            window.draw(cell);
-        }
-    }
-
-    // Table border
-    RectangleShape border;
-    border.setSize(Vector2f(TABLE_WIDTH, TABLE_HEIGHT));
-    border.setPosition(Vector2f(tableHeaderBg.getPosition().x, tableHeaderBg.getPosition().y));
-    border.setFillColor(Color::Transparent);
-    border.setOutlineThickness(1.f);
-    border.setOutlineColor(borderColor);
-    window.draw(border);
-}
-
-const User* UserPanel::getPopupUser() const {
-    if (popupUserIndex < 0 || popupUserIndex >= static_cast<int>(userList.size())) return nullptr;
-    return &userList[popupUserIndex];
-}
-
-void UserPanel::closePopup() {
-    activePopup = PopupType::None;
-    popupUserIndex = -1;
-    detailEntries.clear();
-    if (popupTitle) popupTitle->setString("");
-}
-
-void UserPanel::rebuildDetailTexts(const User& user) {
-    detailEntries.clear();
-
-    struct Row { std::string label; std::string value; };
-    std::vector<Row> rows = {
-        {"Email", user.getEmail()},
-        {"Họ và tên", user.getFullName()},
-        {"Ngày sinh", user.getBirthDate().empty() ? "-" : user.getBirthDate()},
-        {"Số điện thoại", user.getPhone()},
-        {"Ngày đăng ký", formatDate(user.getRegisteredAt())},
-    };
-
-    detailEntries.reserve(rows.size());
-    for (const auto& r : rows) {
-        DetailEntry entry(font);
-        entry.label.setCharacterSize(18);
-        entry.label.setFillColor(Color(33, 37, 41));
-        entry.label.setStyle(Text::Bold);
-        entry.label.setString(sf::String::fromUtf8(r.label.begin(), r.label.end()));
-
-        entry.value.setCharacterSize(18);
-        entry.value.setFillColor(Color(33, 37, 41));
-        entry.value.setString(sf::String::fromUtf8(r.value.begin(), r.value.end()));
-
-        detailEntries.push_back(entry);
-    }
-}
-
-void UserPanel::openViewPopup() {
-    if (selectedRow < 0 || selectedRow >= static_cast<int>(userList.size())) {
-        showNotification("Vui lòng chọn một khách hàng trước.", Color(211, 47, 47));
-        return;
-    }
-
-    popupUserIndex = selectedRow;
-    const User& user = userList[popupUserIndex];
-    activePopup = PopupType::ViewInfo;
-
-    popupPanel.setSize(Vector2f(POPUP_W, POPUP_H_VIEW));
-    popupPanel.setPosition(Vector2f((1728.f - POPUP_W) / 2.f, (972.f - POPUP_H_VIEW) / 2.f + 15.f));
-
-    if (popupTitle) {
-        const std::string title = "Thông tin khách hàng";
-        popupTitle->setString(sf::String::fromUtf8(title.begin(), title.end()));
-        FloatRect tb = popupTitle->getLocalBounds();
-        popupTitle->setPosition(Vector2f(
-            popupPanel.getPosition().x + (popupPanel.getSize().x - tb.size.x) / 2.f - tb.position.x,
-            popupPanel.getPosition().y + 32.f
-        ));
-    }
-
-    rebuildDetailTexts(user);
-
-    setupButton(popupBtnPrimary, "Đã hiểu", Color(20, 118, 172), Color(17, 98, 144), {260.f, 56.f});
-    popupBtnSecondary.label.reset();
-}
-
-void UserPanel::openDeletePopup() {
-    if (selectedRow < 0 || selectedRow >= static_cast<int>(userList.size())) {
-        showNotification("Chưa chọn khách hàng nào.", Color(211, 47, 47));
-        return;
-    }
-    popupUserIndex = selectedRow;
-    activePopup = PopupType::DeleteConfirm;
-
-    popupPanel.setSize(Vector2f(POPUP_W, POPUP_H_CONFIRM));
-    popupPanel.setPosition(Vector2f((1728.f - POPUP_W) / 2.f, (972.f - POPUP_H_CONFIRM) / 2.f + 15.f));
-
-    if (popupTitle) {
-        const std::string title = "Xác nhận xóa";
-        popupTitle->setString(sf::String::fromUtf8(title.begin(), title.end()));
-        FloatRect tb = popupTitle->getLocalBounds();
-        popupTitle->setPosition(Vector2f(
-            popupPanel.getPosition().x + (popupPanel.getSize().x - tb.size.x) / 2.f - tb.position.x,
-            popupPanel.getPosition().y + 32.f
-        ));
-    }
-
-    setupButton(popupBtnPrimary, "Xóa tài khoản", Color(211, 47, 47), Color(171, 36, 36), {260.f, 56.f});
-    setupButton(popupBtnSecondary, "Hủy", Color(201, 206, 214), Color(170, 176, 186), {260.f, 56.f});
-    if (popupBtnSecondary.label) popupBtnSecondary.label->setFillColor(Color(33, 37, 41));
-}
-
-void UserPanel::renderPopup(RenderWindow& window) {
-    if (activePopup == PopupType::None) return;
-
-    window.draw(popupOverlay);
-    window.draw(popupPanel);
-    if (popupTitle) window.draw(*popupTitle);
-
-    const User* user = getPopupUser();
-    if (!user) return;
-
-    if (activePopup == PopupType::ViewInfo) {
-        float xLabel = popupPanel.getPosition().x + 72.f;
-        float xValue = popupPanel.getPosition().x + 320.f;
-        float y = popupPanel.getPosition().y + 110.f;
-        float gap = 52.f;
-
-        for (auto& entry : detailEntries) {
-            entry.label.setPosition(Vector2f(xLabel, y));
-            entry.value.setPosition(Vector2f(xValue, y));
-            window.draw(entry.label);
-            window.draw(entry.value);
-            y += gap;
-        }
-
-        // Primary button centered
-        popupBtnPrimary.box.setPosition(Vector2f(
-            popupPanel.getPosition().x + (popupPanel.getSize().x - popupBtnPrimary.box.getSize().x) / 2.f,
-            popupPanel.getPosition().y + popupPanel.getSize().y - 95.f
-        ));
-        if (popupBtnPrimary.label) {
-            FloatRect b = popupBtnPrimary.label->getLocalBounds();
-            popupBtnPrimary.label->setPosition(Vector2f(
-                popupBtnPrimary.box.getPosition().x + (popupBtnPrimary.box.getSize().x - b.size.x) / 2.f - b.position.x,
-                popupBtnPrimary.box.getPosition().y + (popupBtnPrimary.box.getSize().y - b.size.y) / 2.f - b.position.y
-            ));
-        }
-        RoundedRectRenderer::draw(window, popupBtnPrimary.box.getPosition(), popupBtnPrimary.box.getSize(), BUTTON_RADIUS, popupBtnPrimary.box.getFillColor());
-        if (popupBtnPrimary.label) window.draw(*popupBtnPrimary.label);
-        return;
-    }
-
-    // Confirm popups
-    std::string message;
-    message = "Bạn có chắc muốn xóa tài khoản\n" + user->getEmail() + " ?";
-
-    Text msg(font, sf::String::fromUtf8(message.begin(), message.end()), 20);
-    msg.setFillColor(Color(33, 37, 41));
-    msg.setStyle(Text::Bold);
-    FloatRect mb = msg.getLocalBounds();
-    msg.setPosition(Vector2f(
-        popupPanel.getPosition().x + (popupPanel.getSize().x - mb.size.x) / 2.f - mb.position.x,
-        popupPanel.getPosition().y + 120.f
-    ));
-    window.draw(msg);
-
-    float buttonsY = popupPanel.getPosition().y + popupPanel.getSize().y - 95.f;
-    float leftX = popupPanel.getPosition().x + (popupPanel.getSize().x - (popupBtnPrimary.box.getSize().x + 22.f + popupBtnSecondary.box.getSize().x)) / 2.f;
-    popupBtnPrimary.box.setPosition(Vector2f(leftX, buttonsY));
-    popupBtnSecondary.box.setPosition(Vector2f(leftX + popupBtnPrimary.box.getSize().x + 22.f, buttonsY));
-
-    auto drawPopupButton = [&](ActionButton& btn) {
-        if (btn.label) {
-            FloatRect b = btn.label->getLocalBounds();
-            btn.label->setPosition(Vector2f(
-                btn.box.getPosition().x + (btn.box.getSize().x - b.size.x) / 2.f - b.position.x,
-                btn.box.getPosition().y + (btn.box.getSize().y - b.size.y) / 2.f - b.position.y
-            ));
-        }
-        RoundedRectRenderer::draw(window, btn.box.getPosition(), btn.box.getSize(), BUTTON_RADIUS, btn.box.getFillColor());
-        if (btn.label) window.draw(*btn.label);
-    };
-
-    drawPopupButton(popupBtnPrimary);
-    drawPopupButton(popupBtnSecondary);
-}
-
-void UserPanel::renderButtons(RenderWindow& window) {
-    auto drawButton = [&](ActionButton& button) {
-        RoundedRectRenderer::draw(window, button.box.getPosition(), button.box.getSize(), BUTTON_RADIUS, button.box.getFillColor());
-        if (button.label) {
-            window.draw(*button.label);
-        }
-    };
-
-    drawButton(btnViewInfo);
-    drawButton(btnDelete);
-
-    RoundedRectRenderer::draw(window, btnRefresh.box.getPosition(), btnRefresh.box.getSize(), BUTTON_RADIUS, btnRefresh.box.getFillColor());
-    if (reloadSprite) {
-        window.draw(*reloadSprite);
-    } else if (btnRefresh.label) {
-        window.draw(*btnRefresh.label);
-    }
-}
-
-void UserPanel::renderNotification(RenderWindow& window) {
-    if (!notificationVisible) return;
-
-    if (notificationClock.getElapsedTime().asSeconds() > 3.0f) {
-        notificationVisible = false;
-        return;
-    }
-
-    const Vector2f size = notificationBg.getSize();
-    Vector2f pos(window.getSize().x - size.x - 32.f, position.y + 24.f);
-    notificationBg.setPosition(pos);
-    notificationBg.setFillColor(notificationColor);
-
-    window.draw(notificationBg);
-
-    if (notificationText) {
-        const FloatRect bounds = notificationText->getLocalBounds();
-        notificationText->setPosition(Vector2f(
-            pos.x + (size.x - bounds.size.x) / 2.f - bounds.position.x,
-            pos.y + (size.y - bounds.size.y) / 2.f - bounds.position.y
-        ));
-        window.draw(*notificationText);
-    }
-}
-
-void UserPanel::showNotification(const string& message, const Color& color) {
-    notificationMessage = message;
-    notificationColor = color;
-    notificationVisible = true;
-    notificationClock.restart();
-
-    if (notificationText) {
-        notificationText->setString(sf::String::fromUtf8(message.begin(), message.end()));
-    }
-}
-
-void UserPanel::handleEvent(const Event& event, const RenderWindow& window) {
-    (void)window;
-    if (const auto* scroll = event.getIf<Event::MouseWheelScrolled>()) {
-        if (scroll->wheel == sf::Mouse::Wheel::Vertical) {
-            const int maxRows = static_cast<int>((TABLE_HEIGHT - HEADER_HEIGHT) / ROW_HEIGHT);
-            const int maxScroll = std::max(0, static_cast<int>(userList.size()) - maxRows);
-            if (scroll->delta > 0) {
-                scrollOffset = std::max(0, scrollOffset - 1);
-            } else {
-                scrollOffset = std::min(maxScroll, scrollOffset + 1);
-            }
-        }
-        return;
-    }
-
-    if (const auto* click = event.getIf<Event::MouseButtonPressed>()) {
-        if (click->button == sf::Mouse::Button::Left) {
-            Vector2f mousePos(static_cast<float>(click->position.x), static_cast<float>(click->position.y));
-
-            // Popup interaction blocks everything underneath
-            if (activePopup != PopupType::None) {
-                if (popupBtnPrimary.box.getGlobalBounds().contains(mousePos)) {
-                    const User* user = getPopupUser();
-                    if (!user) {
-                        closePopup();
-                        return;
-                    }
-
-                    if (activePopup == PopupType::ViewInfo) {
-                        closePopup();
-                        return;
-                    }
-
-                    if (activePopup == PopupType::DeleteConfirm) {
-                        bool ok = repository->deleteUser(user->getEmail());
-                        closePopup();
-                        refreshData();
-                        showNotification(ok ? "Đã xóa tài khoản" : "Không thể xóa tài khoản", ok ? Color(20, 118, 172) : Color(211, 47, 47));
-                        return;
-                    }
-                }
-
-                if (popupBtnSecondary.box.getGlobalBounds().contains(mousePos)) {
-                    closePopup();
+void UserPanel::handleEvent(const Event& event, const RenderWindow& /*window*/) {
+    if (activeDialog != DialogType::NONE) {
+        if (auto mousePress = event.getIf<Event::MouseButtonPressed>()) {
+            if (mousePress->button == Mouse::Button::Left) {
+                Vector2f mPos(static_cast<float>(mousePress->position.x), static_cast<float>(mousePress->position.y));
+
+                // Dialog close or confirm
+                float dW = 460.f;
+                float dH = 320.f;
+                Vector2f dPos(position.x + (width - dW) / 2.f, position.y + (height - dH) / 2.f);
+
+                // Cancel button: x = dPos.x + 220, y = dPos.y + dH - 50, w = 100, h = 36
+                FloatRect cancelRect({dPos.x + 220.f, dPos.y + dH - 50.f}, {100.f, 36.f});
+                if (cancelRect.contains(mPos)) {
+                    activeDialog = DialogType::NONE;
                     return;
                 }
 
-                // Click outside: ignore
-                return;
-            }
-
-            if (btnViewInfo.box.getGlobalBounds().contains(mousePos)) {
-                openViewPopup();
-                return;
-            }
-
-            if (btnDelete.box.getGlobalBounds().contains(mousePos)) {
-                openDeletePopup();
-                return;
-            }
-
-            if (btnRefresh.box.getGlobalBounds().contains(mousePos)) {
-                refreshData();
-                showNotification("Đã tải lại dữ liệu", Color(20, 118, 172));
-                return;
-            }
-
-            const FloatRect tableBounds(tableBodyBg.getPosition(), tableBodyBg.getSize());
-            if (tableBounds.contains(mousePos)) {
-                const float localY = mousePos.y - (tableHeaderBg.getPosition().y + HEADER_HEIGHT);
-                if (localY >= 0.f) {
-                    const int rowIndex = static_cast<int>(localY / ROW_HEIGHT) + scrollOffset;
-                    if (rowIndex >= 0 && rowIndex < static_cast<int>(userList.size())) {
-                        selectedRow = rowIndex;
+                // Confirm button: x = dPos.x + 330, y = dPos.y + dH - 50, w = 110, h = 36
+                FloatRect confirmRect({dPos.x + 330.f, dPos.y + dH - 50.f}, {110.f, 36.f});
+                if (confirmRect.contains(mPos)) {
+                    if (activeDialog == DialogType::DELETE_CONFIRM && dialogUserIndex >= 0 && dialogUserIndex < (int)filteredCustomers.size()) {
+                        string delEmail = filteredCustomers[dialogUserIndex]->email;
+                        allCustomers.erase(remove_if(allCustomers.begin(), allCustomers.end(),
+                            [&](const CustomerItem& it) { return it.email == delEmail; }), allCustomers.end());
+                        repository->deleteUser(delEmail);
+                        applyFilter();
+                        calculateCustomerStats();
+                        toastActive = true;
+                        toastTimer = 3.f;
+                        toastMessage = L"Đã xóa tài khoản hội viên thành công!";
+                    } else if (activeDialog == DialogType::ADD_NEW) {
+                        if (!inputEmail.empty() && !inputName.empty()) {
+                            CustomerItem newItem;
+                            newItem.email = inputEmail;
+                            newItem.fullName = inputName;
+                            newItem.displayFullName = s2ws(inputName);
+                            newItem.phone = inputPhone.empty() ? "0912345699" : inputPhone;
+                            newItem.registeredDate = "27/10/2026";
+                            newItem.uid = "CXN-261027";
+                            newItem.tier = CustomerTier::STANDARD;
+                            newItem.ticketsBought = 0;
+                            newItem.totalSpent = 0;
+                            newItem.avatarBg = Color(207, 250, 254);
+                            newItem.initials = L"HV";
+                            allCustomers.insert(allCustomers.begin(), newItem);
+                            applyFilter();
+                            calculateCustomerStats();
+                            toastActive = true;
+                            toastTimer = 3.f;
+                            toastMessage = L"Đã thêm hội viên CineXiNe Rewards mới thành công!";
+                        }
                     }
+                    activeDialog = DialogType::NONE;
+                    return;
                 }
             }
         }
-    }
-}
 
-void UserPanel::update(Vector2f mousePos, bool mousePressed) {
-    (void)mousePressed;
-
-    if (activePopup != PopupType::None) {
-        updateButton(popupBtnPrimary, mousePos);
-        updateButton(popupBtnSecondary, mousePos);
+        if (auto textEvt = event.getIf<Event::TextEntered>()) {
+            if (activeDialog == DialogType::ADD_NEW) {
+                if (textEvt->unicode == 8) { // Backspace
+                    if (activeInputField == 0 && !inputName.empty()) inputName.pop_back();
+                    else if (activeInputField == 1 && !inputEmail.empty()) inputEmail.pop_back();
+                    else if (activeInputField == 2 && !inputPhone.empty()) inputPhone.pop_back();
+                } else if (textEvt->unicode >= 32 && textEvt->unicode < 127) {
+                    char c = static_cast<char>(textEvt->unicode);
+                    if (activeInputField == 0 && inputName.size() < 30) inputName.push_back(c);
+                    else if (activeInputField == 1 && inputEmail.size() < 30) inputEmail.push_back(c);
+                    else if (activeInputField == 2 && inputPhone.size() < 15) inputPhone.push_back(c);
+                }
+            }
+        }
         return;
     }
 
-    updateButton(btnViewInfo, mousePos);
-    updateButton(btnDelete, mousePos);
-    updateButton(btnRefresh, mousePos);
+    if (auto mousePress = event.getIf<Event::MouseButtonPressed>()) {
+        if (mousePress->button == Mouse::Button::Left) {
+            Vector2f mPos(static_cast<float>(mousePress->position.x), static_cast<float>(mousePress->position.y));
 
-    hoveredRow = -1;
-    const FloatRect tableBounds(Vector2f(tableBodyBg.getPosition().x, tableBodyBg.getPosition().y + HEADER_HEIGHT),
-                                Vector2f(tableBodyBg.getSize().x, tableBodyBg.getSize().y - HEADER_HEIGHT));
-    if (tableBounds.contains(mousePos)) {
-        const float localY = mousePos.y - tableBounds.position.y;
-        const int rowIndex = static_cast<int>(localY / ROW_HEIGHT) + scrollOffset;
-        if (rowIndex >= 0 && rowIndex < static_cast<int>(userList.size())) {
-            hoveredRow = rowIndex;
+            // 1. Header Buttons
+            // Xuất Excel: x = position.x + width - 240, y = 16, w = 96, h = 36
+            FloatRect expRect({position.x + width - 240.f, position.y + 16.f}, {96.f, 36.f});
+            if (expRect.contains(mPos)) {
+                toastActive = true;
+                toastTimer = 3.f;
+                toastMessage = L"Đã xuất dữ liệu danh sách khách hàng ra Excel thành công!";
+                return;
+            }
+
+            // + Thêm hội viên mới: x = position.x + width - 134, y = 16, w = 145, h = 36
+            FloatRect addRect({position.x + width - 134.f, position.y + 16.f}, {145.f, 36.f});
+            if (addRect.contains(mPos)) {
+                activeDialog = DialogType::ADD_NEW;
+                inputName = "";
+                inputEmail = "";
+                inputPhone = "";
+                activeInputField = 0;
+                return;
+            }
+
+            // Reload: x = position.x + width + 20 (or next to add)
+            FloatRect relRect({position.x + width + 18.f, position.y + 16.f}, {36.f, 36.f});
+            if (relRect.contains(mPos)) {
+                refreshData();
+                return;
+            }
+
+            // 2. Toolbar Action Buttons
+            float actX = position.x + 20.f;
+            float actY = position.y + 196.f;
+
+            // Xem thông tin
+            FloatRect viewRect({actX, actY}, {125.f, 34.f});
+            if (viewRect.contains(mPos)) {
+                if (selectedIndex >= 0 && selectedIndex < (int)filteredCustomers.size()) {
+                    activeDialog = DialogType::VIEW;
+                    dialogUserIndex = selectedIndex;
+                } else {
+                    toastActive = true;
+                    toastTimer = 2.5f;
+                    toastMessage = L"Vui lòng chọn một khách hàng trong bảng để xem thông tin!";
+                }
+                return;
+            }
+
+            // Chỉnh sửa
+            FloatRect editRect({actX + 135.f, actY}, {95.f, 34.f});
+            if (editRect.contains(mPos)) {
+                if (selectedIndex >= 0 && selectedIndex < (int)filteredCustomers.size()) {
+                    activeDialog = DialogType::EDIT;
+                    dialogUserIndex = selectedIndex;
+                } else {
+                    toastActive = true;
+                    toastTimer = 2.5f;
+                    toastMessage = L"Vui lòng chọn khách hàng cần chỉnh sửa thông tin!";
+                }
+                return;
+            }
+
+            // Xóa tài khoản
+            FloatRect delRect({actX + 240.f, actY}, {115.f, 34.f});
+            if (delRect.contains(mPos)) {
+                if (selectedIndex >= 0 && selectedIndex < (int)filteredCustomers.size()) {
+                    activeDialog = DialogType::DELETE_CONFIRM;
+                    dialogUserIndex = selectedIndex;
+                } else {
+                    toastActive = true;
+                    toastTimer = 2.5f;
+                    toastMessage = L"Vui lòng chọn tài khoản khách hàng cần xóa!";
+                }
+                return;
+            }
+
+            // Đặt lại mật khẩu
+            FloatRect pwdRect({actX + 365.f, actY}, {135.f, 34.f});
+            if (pwdRect.contains(mPos)) {
+                if (selectedIndex >= 0 && selectedIndex < (int)filteredCustomers.size()) {
+                    toastActive = true;
+                    toastTimer = 3.f;
+                    toastMessage = L"Đã gửi email khôi phục mật khẩu mặc định tới khách hàng!";
+                } else {
+                    toastActive = true;
+                    toastTimer = 2.5f;
+                    toastMessage = L"Vui lòng chọn khách hàng cần đặt lại mật khẩu!";
+                }
+                return;
+            }
+
+            // Tier dropdown filter
+            FloatRect tierRect({position.x + width - 310.f, actY}, {140.f, 34.f});
+            if (tierRect.contains(mPos)) {
+                tierFilterIndex = (tierFilterIndex + 1) % 4;
+                applyFilter();
+                return;
+            }
+
+            // 3. Table Rows click & row action icons
+            float tTop = position.y + 246.f + 44.f;
+            int startIdx = page * rowsPerPage;
+            int endIdx = min((int)filteredCustomers.size(), startIdx + rowsPerPage);
+
+            for (int i = startIdx; i < endIdx; ++i) {
+                int rowIdx = i - startIdx;
+                float ry = tTop + rowIdx * 52.f;
+
+                // Row selection
+                FloatRect rRect({position.x + 20.f, ry}, {width - 40.f, 50.f});
+                if (rRect.contains(mPos)) {
+                    selectedIndex = i;
+                    filteredCustomers[i]->selected = !filteredCustomers[i]->selected;
+
+                    // Check if clicked action icons on the right:
+                    float actionX = position.x + width - 120.f;
+                    if (FloatRect({actionX, ry + 12.f}, {24.f, 24.f}).contains(mPos)) {
+                        activeDialog = DialogType::VIEW;
+                        dialogUserIndex = i;
+                        return;
+                    }
+                    if (FloatRect({actionX + 28.f, ry + 12.f}, {24.f, 24.f}).contains(mPos)) {
+                        activeDialog = DialogType::EDIT;
+                        dialogUserIndex = i;
+                        return;
+                    }
+                    if (FloatRect({actionX + 56.f, ry + 12.f}, {24.f, 24.f}).contains(mPos)) {
+                        activeDialog = DialogType::DELETE_CONFIRM;
+                        dialogUserIndex = i;
+                        return;
+                    }
+                    return;
+                }
+            }
+
+            // Pagination buttons
+            float pageY = position.y + 246.f + 44.f + rowsPerPage * 52.f + 16.f;
+            FloatRect prevRect({position.x + width - 110.f, pageY}, {32.f, 32.f});
+            if (prevRect.contains(mPos) && page > 0) {
+                page--;
+                return;
+            }
+            FloatRect nextRect({position.x + width - 36.f, pageY}, {32.f, 32.f});
+            if (nextRect.contains(mPos) && (page + 1) * rowsPerPage < (int)filteredCustomers.size()) {
+                page++;
+                return;
+            }
         }
     }
 }
 
-void UserPanel::render(RenderWindow& window) {
-    window.draw(background);
-    if (titleText) {
-        window.draw(*titleText);
+void UserPanel::update(const Vector2f& mousePos, bool /*mouseDown*/) {
+    // Check row hover
+    hoveredRow = -1;
+    float tTop = position.y + 246.f + 44.f;
+    int startIdx = page * rowsPerPage;
+    int endIdx = min((int)filteredCustomers.size(), startIdx + rowsPerPage);
+
+    for (int i = startIdx; i < endIdx; ++i) {
+        int rowIdx = i - startIdx;
+        float ry = tTop + rowIdx * 52.f;
+        FloatRect rRect({position.x + 20.f, ry}, {width - 40.f, 50.f});
+        if (rRect.contains(mousePos)) {
+            hoveredRow = i;
+            break;
+        }
     }
 
-    renderButtons(window);
-    renderTable(window);
-    renderNotification(window);
-    renderPopup(window);
+    if (toastActive) {
+        toastTimer -= 0.016f;
+        if (toastTimer <= 0.f) toastActive = false;
+    }
+}
+
+void UserPanel::render(RenderTarget& target) const {
+    // 1. Canvas Background
+    RectangleShape bg(Vector2f(width, height));
+    bg.setPosition(position);
+    bg.setFillColor(Color(241, 245, 249));
+    target.draw(bg);
+
+    // 2. Header
+    drawHeader(target);
+
+    // 3. 4 KPI Metric Cards
+    drawKpiCards(target);
+
+    // 4. Action Toolbar & Filters
+    drawActionToolbar(target);
+
+    // 5. Customer Table
+    drawCustomerTable(target);
+
+    // 6. Bottom Status Bar
+    drawBottomBar(target);
+
+    // 7. Dialog / Modal
+    if (activeDialog != DialogType::NONE) {
+        drawDialog(target);
+    }
+
+    // 8. Toast Notification
+    if (toastActive) {
+        drawToast(target);
+    }
+}
+
+void UserPanel::drawHeader(RenderTarget& target) const {
+    float topY = position.y + 14.f;
+
+    // Title
+    Text title(boldFont);
+    title.setString(L"Quản lý khách hàng");
+    title.setCharacterSize(22);
+    title.setFillColor(Color(15, 23, 42));
+    title.setPosition({position.x + 20.f, topY});
+    target.draw(title);
+
+    // Badge 1: Hội viên CineXine Rewards
+    float tW = title.getGlobalBounds().size.x;
+    Vector2f b1Pos(position.x + 20.f + tW + 14.f, topY + 4.f);
+    RoundedRectRenderer::draw(target, b1Pos, {170.f, 22.f}, 11.f, Color(224, 242, 254), 1.f, Color(186, 230, 253));
+    Text b1Txt(boldFont);
+    b1Txt.setString(L"Hội viên CineXine Rewards");
+    b1Txt.setCharacterSize(10.5f);
+    b1Txt.setFillColor(Color(2, 132, 199));
+    b1Txt.setPosition({b1Pos.x + 10.f, b1Pos.y + 3.f});
+    target.draw(b1Txt);
+
+    // Badge 2: Tổng 15 hội viên
+    Vector2f b2Pos(b1Pos.x + 180.f, topY + 4.f);
+    RoundedRectRenderer::draw(target, b2Pos, {110.f, 22.f}, 11.f, Color(241, 245, 249), 1.f, Color(226, 232, 240));
+    Text b2Txt(font);
+    b2Txt.setString(L"Tổng " + to_wstring(totalCount) + L" hội viên");
+    b2Txt.setCharacterSize(10.5f);
+    b2Txt.setFillColor(Color(100, 116, 139));
+    b2Txt.setPosition({b2Pos.x + 10.f, b2Pos.y + 3.f});
+    target.draw(b2Txt);
+
+    // Subtitle
+    Text sub(font);
+    sub.setString(L"Tra cứu, quản lý hồ sơ tài khoản khách hàng, lịch sử vé và cấp bậc thẻ thành viên.");
+    sub.setCharacterSize(11.5f);
+    sub.setFillColor(Color(100, 116, 139));
+    sub.setPosition({position.x + 20.f, topY + 30.f});
+    target.draw(sub);
+
+    // Right action buttons:
+    // 1. Xuất Excel
+    Vector2f expPos(position.x + width - 270.f, topY + 12.f);
+    RoundedRectRenderer::draw(target, expPos, {105.f, 36.f}, 6.f, Color::White, 1.f, Color(16, 185, 129));
+    Text expTxt(boldFont);
+    expTxt.setString(L"📥 Xuất Excel");
+    expTxt.setCharacterSize(11.5f);
+    expTxt.setFillColor(Color(5, 150, 105));
+    expTxt.setPosition({expPos.x + 12.f, expPos.y + 9.f});
+    target.draw(expTxt);
+
+    // 2. + Thêm hội viên mới
+    Vector2f addPos(position.x + width - 155.f, topY + 12.f);
+    RoundedRectRenderer::draw(target, addPos, {148.f, 36.f}, 6.f, Color(2, 132, 199));
+    Text addTxt(boldFont);
+    addTxt.setString(L"+ Thêm hội viên mới");
+    addTxt.setCharacterSize(11.5f);
+    addTxt.setFillColor(Color::White);
+    addTxt.setPosition({addPos.x + 12.f, addPos.y + 9.f});
+    target.draw(addTxt);
+}
+
+void UserPanel::drawKpiCards(RenderTarget& target) const {
+    const float cardY = position.y + 74.f;
+    const float cardH = 104.f;
+    const float margin = 20.f;
+    const float gap = 12.f;
+    const float availableW = width - margin * 2.f;
+    const float cardW = (availableW - gap * 3.f) / 4.f; // ~343px
+
+    // Card 1: TỔNG KHÁCH HÀNG
+    {
+        Vector2f cPos(position.x + margin, cardY);
+        RoundedRectRenderer::draw(target, cPos, {cardW, cardH}, 8.f, Color::White, 1.f, Color(226, 232, 240));
+
+        Text lbl(boldFont);
+        lbl.setString(L"TỔNG KHÁCH HÀNG");
+        lbl.setCharacterSize(10.5f);
+        lbl.setFillColor(Color(100, 116, 139));
+        lbl.setPosition({cPos.x + 16.f, cPos.y + 12.f});
+        target.draw(lbl);
+
+        Vector2f iconPos(cPos.x + cardW - 36.f, cPos.y + 12.f);
+        CircleShape ic(13.f); ic.setPosition(iconPos); ic.setFillColor(Color(224, 242, 254)); target.draw(ic);
+        Text icTxt(boldFont); icTxt.setString(L"💳"); icTxt.setCharacterSize(11); icTxt.setPosition({iconPos.x + 4.f, iconPos.y + 2.f}); target.draw(icTxt);
+
+        Text val(boldFont);
+        val.setString(to_string(totalCount));
+        val.setCharacterSize(22);
+        val.setFillColor(Color(15, 23, 42));
+        val.setPosition({cPos.x + 16.f, cPos.y + 36.f});
+        target.draw(val);
+
+        Text badge(boldFont);
+        badge.setString(L"↗ +2 tuần này");
+        badge.setCharacterSize(11);
+        badge.setFillColor(Color(16, 185, 129));
+        badge.setPosition({val.getPosition().x + val.getGlobalBounds().size.x + 10.f, cPos.y + 44.f});
+        target.draw(badge);
+
+        Text foot(font);
+        foot.setString(L"100% đã xác minh số điện thoại");
+        foot.setCharacterSize(10.5f);
+        foot.setFillColor(Color(148, 163, 184));
+        foot.setPosition({cPos.x + 16.f, cPos.y + 74.f});
+        target.draw(foot);
+    }
+
+    // Card 2: ĐANG HOẠT ĐỘNG (ACTIVE)
+    {
+        Vector2f cPos(position.x + margin + (cardW + gap), cardY);
+        RoundedRectRenderer::draw(target, cPos, {cardW, cardH}, 8.f, Color::White, 1.f, Color(226, 232, 240));
+
+        Text lbl(boldFont);
+        lbl.setString(L"ĐANG HOẠT ĐỘNG (ACTIVE)");
+        lbl.setCharacterSize(10.5f);
+        lbl.setFillColor(Color(100, 116, 139));
+        lbl.setPosition({cPos.x + 16.f, cPos.y + 12.f});
+        target.draw(lbl);
+
+        Vector2f iconPos(cPos.x + cardW - 36.f, cPos.y + 12.f);
+        CircleShape ic(13.f); ic.setPosition(iconPos); ic.setFillColor(Color(220, 252, 231)); target.draw(ic);
+        Text icTxt(boldFont); icTxt.setString(L"👤"); icTxt.setCharacterSize(11); icTxt.setPosition({iconPos.x + 4.f, iconPos.y + 2.f}); target.draw(icTxt);
+
+        Text val(boldFont);
+        val.setString(to_string(activeCount));
+        val.setCharacterSize(22);
+        val.setFillColor(Color(5, 150, 105)); // Emerald
+        val.setPosition({cPos.x + 16.f, cPos.y + 36.f});
+        target.draw(val);
+
+        Text unit(font);
+        unit.setString(L"/ " + to_wstring(totalCount) + L" tài khoản");
+        unit.setCharacterSize(12);
+        unit.setFillColor(Color(100, 116, 139));
+        unit.setPosition({val.getPosition().x + val.getGlobalBounds().size.x + 8.f, cPos.y + 44.f});
+        target.draw(unit);
+
+        Text foot(boldFont);
+        foot.setString(L"Đã đặt vé trong 30 ngày qua");
+        foot.setCharacterSize(10.5f);
+        foot.setFillColor(Color(5, 150, 105));
+        foot.setPosition({cPos.x + 16.f, cPos.y + 74.f});
+        target.draw(foot);
+    }
+
+    // Card 3: HẠNG THẺ HỘI VIÊN
+    {
+        Vector2f cPos(position.x + margin + 2 * (cardW + gap), cardY);
+        RoundedRectRenderer::draw(target, cPos, {cardW, cardH}, 8.f, Color::White, 1.f, Color(226, 232, 240));
+
+        Text lbl(boldFont);
+        lbl.setString(L"HẠNG THẺ HỘI VIÊN");
+        lbl.setCharacterSize(10.5f);
+        lbl.setFillColor(Color(100, 116, 139));
+        lbl.setPosition({cPos.x + 16.f, cPos.y + 12.f});
+        target.draw(lbl);
+
+        Vector2f iconPos(cPos.x + cardW - 36.f, cPos.y + 12.f);
+        Text icCrown(boldFont); icCrown.setString(L"👑"); icCrown.setCharacterSize(14); icCrown.setPosition(iconPos); target.draw(icCrown);
+
+        // 3 Badges in a row: 6 Vàng, 7 Bạc, 2 Chuẩn
+        float pW = (cardW - 32.f - 16.f) / 3.f;
+
+        auto drawTierPill = [&](int idx, int count, const wstring& name, Color bg, Color txt) {
+            Vector2f pPos(cPos.x + 16.f + idx * (pW + 8.f), cPos.y + 38.f);
+            RoundedRectRenderer::draw(target, pPos, {pW, 26.f}, 4.f, bg);
+            Text pTxt(boldFont);
+            pTxt.setString(to_wstring(count) + L" " + name);
+            pTxt.setCharacterSize(11);
+            pTxt.setFillColor(txt);
+            FloatRect pb = pTxt.getLocalBounds();
+            pTxt.setPosition({pPos.x + pW / 2.f - pb.size.x / 2.f, pPos.y + 5.f});
+            target.draw(pTxt);
+        };
+
+        drawTierPill(0, goldCount, L"Vàng", Color(254, 243, 199), Color(180, 83, 9));
+        drawTierPill(1, silverCount, L"Bạc", Color(241, 245, 249), Color(71, 85, 105));
+        drawTierPill(2, standardCount, L"Chuẩn", Color(224, 242, 254), Color(2, 132, 199));
+
+        Text foot(font);
+        foot.setString(L"Tỷ lệ khách hàng thân thiết cao");
+        foot.setCharacterSize(10.5f);
+        foot.setFillColor(Color(148, 163, 184));
+        foot.setPosition({cPos.x + 16.f, cPos.y + 74.f});
+        target.draw(foot);
+    }
+
+    // Card 4: TỔNG CHI TIÊU BÌNH QUÂN
+    {
+        Vector2f cPos(position.x + margin + 3 * (cardW + gap), cardY);
+        RoundedRectRenderer::draw(target, cPos, {cardW, cardH}, 8.f, Color::White, 1.f, Color(226, 232, 240));
+
+        Text lbl(boldFont);
+        lbl.setString(L"TỔNG CHI TIÊU BÌNH QUÂN");
+        lbl.setCharacterSize(10.5f);
+        lbl.setFillColor(Color(100, 116, 139));
+        lbl.setPosition({cPos.x + 16.f, cPos.y + 12.f});
+        target.draw(lbl);
+
+        Vector2f iconPos(cPos.x + cardW - 36.f, cPos.y + 12.f);
+        CircleShape ic(13.f); ic.setPosition(iconPos); ic.setFillColor(Color(243, 232, 255)); target.draw(ic);
+        Text icTxt(boldFont); icTxt.setString(L"👛"); icTxt.setCharacterSize(11); icTxt.setPosition({iconPos.x + 4.f, iconPos.y + 2.f}); target.draw(icTxt);
+
+        Text val(boldFont);
+        val.setString(s2ws(formatCurrency(avgSpending)));
+        val.setCharacterSize(22);
+        val.setFillColor(Color(15, 23, 42));
+        val.setPosition({cPos.x + 16.f, cPos.y + 36.f});
+        target.draw(val);
+
+        Text unit(font);
+        unit.setString(L"VNĐ");
+        unit.setCharacterSize(11.5f);
+        unit.setFillColor(Color(100, 116, 139));
+        unit.setPosition({val.getPosition().x + val.getGlobalBounds().size.x + 6.f, cPos.y + 44.f});
+        target.draw(unit);
+
+        stringstream ss; ss << fixed << setprecision(1) << avgTicketsPerUser;
+        Text foot(boldFont);
+        foot.setString(L"Trung bình " + s2ws(ss.str()) + L" vé / khách");
+        foot.setCharacterSize(10.5f);
+        foot.setFillColor(Color(2, 132, 199));
+        foot.setPosition({cPos.x + 16.f, cPos.y + 74.f});
+        target.draw(foot);
+    }
+}
+
+void UserPanel::drawActionToolbar(RenderTarget& target) const {
+    float actX = position.x + 20.f;
+    float actY = position.y + 192.f;
+
+    // Action buttons:
+    // 1. Xem thông tin (blue)
+    RoundedRectRenderer::draw(target, {actX, actY}, {125.f, 34.f}, 6.f, Color(2, 132, 199));
+    Text vTxt(boldFont); vTxt.setString(L"👁 Xem thông tin"); vTxt.setCharacterSize(11.5f); vTxt.setFillColor(Color::White); vTxt.setPosition({actX + 10.f, actY + 8.f}); target.draw(vTxt);
+
+    // 2. Chỉnh sửa (amber)
+    RoundedRectRenderer::draw(target, {actX + 135.f, actY}, {95.f, 34.f}, 6.f, Color(245, 158, 11));
+    Text eTxt(boldFont); eTxt.setString(L"✏ Chỉnh sửa"); eTxt.setCharacterSize(11.5f); eTxt.setFillColor(Color::White); eTxt.setPosition({actX + 145.f, actY + 8.f}); target.draw(eTxt);
+
+    // 3. Xóa tài khoản (red)
+    RoundedRectRenderer::draw(target, {actX + 240.f, actY}, {115.f, 34.f}, 6.f, Color(239, 68, 68));
+    Text dTxt(boldFont); dTxt.setString(L"🗑 Xóa tài khoản"); dTxt.setCharacterSize(11.5f); dTxt.setFillColor(Color::White); dTxt.setPosition({actX + 250.f, actY + 8.f}); target.draw(dTxt);
+
+    // 4. Đặt lại mật khẩu (white with border)
+    RoundedRectRenderer::draw(target, {actX + 365.f, actY}, {135.f, 34.f}, 6.f, Color::White, 1.f, Color(203, 213, 225));
+    Text pTxt(boldFont); pTxt.setString(L"🔑 Đặt lại mật khẩu"); pTxt.setCharacterSize(11.5f); pTxt.setFillColor(Color(51, 65, 85)); pTxt.setPosition({actX + 375.f, actY + 8.f}); target.draw(pTxt);
+
+    // Right Filters:
+    // 1. Search Box
+    Vector2f searchPos(position.x + width - 580.f, actY);
+    RoundedRectRenderer::draw(target, searchPos, {255.f, 34.f}, 6.f, Color::White, 1.f, Color(203, 213, 225));
+    Text sTxt(font);
+    sTxt.setString(searchText.empty() ? L"🔍  Tìm theo Tên, Email, SĐT..." : s2ws(searchText));
+    sTxt.setCharacterSize(11.f);
+    sTxt.setFillColor(searchText.empty() ? Color(148, 163, 184) : Color(15, 23, 42));
+    sTxt.setPosition({searchPos.x + 10.f, searchPos.y + 8.f});
+    target.draw(sTxt);
+
+    // 2. Tier Dropdown
+    Vector2f tierPos(position.x + width - 315.f, actY);
+    RoundedRectRenderer::draw(target, tierPos, {145.f, 34.f}, 6.f, Color::White, 1.f, Color(203, 213, 225));
+    const array<wstring, 4> tierLabels = {L"Tất cả hạng thẻ ∨", L"Hạng Vàng ∨", L"Hạng Bạc ∨", L"Tiêu chuẩn ∨"};
+    Text tTxt(font);
+    tTxt.setString(tierLabels[tierFilterIndex % 4]);
+    tTxt.setCharacterSize(11.f);
+    tTxt.setFillColor(Color(51, 65, 85));
+    tTxt.setPosition({tierPos.x + 12.f, tierPos.y + 8.f});
+    target.draw(tTxt);
+
+    // 3. Time Filter
+    Vector2f timePos(position.x + width - 160.f, actY);
+    RoundedRectRenderer::draw(target, timePos, {150.f, 34.f}, 6.f, Color::White, 1.f, Color(203, 213, 225));
+    Text tmTxt(font);
+    tmTxt.setString(L"Thời gian: Cả năm 2025");
+    tmTxt.setCharacterSize(10.5f);
+    tmTxt.setFillColor(Color(51, 65, 85));
+    tmTxt.setPosition({timePos.x + 10.f, timePos.y + 9.f});
+    target.draw(tmTxt);
+}
+
+void UserPanel::drawCustomerTable(RenderTarget& target) const {
+    const float tableX = position.x + 20.f;
+    const float tableY = position.y + 242.f;
+    const float tableW = width - 40.f;
+    const float headerH = 44.f;
+
+    // Dark Navy Header Bar
+    RoundedRectRenderer::draw(target, {tableX, tableY}, {tableW, headerH}, 6.f, Color(15, 23, 42));
+
+    // Master Checkbox
+    Vector2f chkPos(tableX + 16.f, tableY + 14.f);
+    RoundedRectRenderer::draw(target, chkPos, {16.f, 16.f}, 3.f, Color(51, 65, 85));
+
+    // Column positions
+    float col_stt = tableX + 50.f;
+    float col_name = tableX + 100.f;
+    float col_email = tableX + 380.f;
+    float col_phone = tableX + 600.f;
+    float col_tier = tableX + 740.f;
+    float col_date = tableX + 880.f;
+    float col_bought = tableX + 1040.f;
+    float col_action = tableX + 1150.f;
+
+    float thY = tableY + 14.f;
+    Text th_stt(boldFont); th_stt.setString(L"STT"); th_stt.setCharacterSize(10.5f); th_stt.setFillColor(Color::White); th_stt.setPosition({col_stt, thY}); target.draw(th_stt);
+    Text th_name(boldFont); th_name.setString(L"HỌ VÀ TÊN KHÁCH HÀNG"); th_name.setCharacterSize(10.5f); th_name.setFillColor(Color::White); th_name.setPosition({col_name, thY}); target.draw(th_name);
+    Text th_email(boldFont); th_email.setString(L"EMAIL TÀI KHOẢN"); th_email.setCharacterSize(10.5f); th_email.setFillColor(Color::White); th_email.setPosition({col_email, thY}); target.draw(th_email);
+    Text th_phone(boldFont); th_phone.setString(L"SỐ ĐIỆN THOẠI"); th_phone.setCharacterSize(10.5f); th_phone.setFillColor(Color::White); th_phone.setPosition({col_phone, thY}); target.draw(th_phone);
+    Text th_tier(boldFont); th_tier.setString(L"HẠNG THẺ"); th_tier.setCharacterSize(10.5f); th_tier.setFillColor(Color::White); th_tier.setPosition({col_tier, thY}); target.draw(th_tier);
+    Text th_date(boldFont); th_date.setString(L"NGÀY ĐĂNG KÝ"); th_date.setCharacterSize(10.5f); th_date.setFillColor(Color::White); th_date.setPosition({col_date, thY}); target.draw(th_date);
+    Text th_bought(boldFont); th_bought.setString(L"ĐÃ MUA"); th_bought.setCharacterSize(10.5f); th_bought.setFillColor(Color::White); th_bought.setPosition({col_bought, thY}); target.draw(th_bought);
+    Text th_action(boldFont); th_action.setString(L"THAO TÁC"); th_action.setCharacterSize(10.5f); th_action.setFillColor(Color::White); th_action.setPosition({col_action, thY}); target.draw(th_action);
+
+    // Customer Rows
+    float rTop = tableY + headerH;
+    float rH = 52.f;
+    int startIdx = page * rowsPerPage;
+    int endIdx = min((int)filteredCustomers.size(), startIdx + rowsPerPage);
+
+    for (int i = startIdx; i < endIdx; ++i) {
+        int rIdx = i - startIdx;
+        float ry = rTop + rIdx * rH;
+        const auto* c = filteredCustomers[i];
+
+        // Row background
+        bool isSel = (selectedIndex == i || c->selected);
+        bool isHov = (hoveredRow == i);
+        Color rBg = isSel ? Color(239, 246, 255) : (isHov ? Color(248, 250, 252) : Color::White);
+
+        RoundedRectRenderer::draw(target, {tableX, ry}, {tableW, rH - 2.f}, 4.f, rBg, 1.f, isSel ? Color(186, 230, 253) : Color(241, 245, 249));
+
+        // Checkbox
+        Vector2f rcPos(tableX + 16.f, ry + 16.f);
+        RoundedRectRenderer::draw(target, rcPos, {16.f, 16.f}, 3.f, c->selected ? Color(2, 132, 199) : Color::White, 1.f, Color(203, 213, 225));
+        if (c->selected) {
+            Text tick(boldFont); tick.setString(L"✓"); tick.setCharacterSize(11); tick.setFillColor(Color::White); tick.setPosition({rcPos.x + 3.f, rcPos.y}); target.draw(tick);
+        }
+
+        // STT
+        Text sttTxt(font); sttTxt.setString(to_string(i + 1)); sttTxt.setCharacterSize(11.5f); sttTxt.setFillColor(Color(100, 116, 139)); sttTxt.setPosition({col_stt + 4.f, ry + 16.f}); target.draw(sttTxt);
+
+        // Avatar Circle with Initials
+        Vector2f avPos(col_name, ry + 8.f);
+        CircleShape av(16.f); av.setPosition(avPos); av.setFillColor(c->avatarBg); target.draw(av);
+        Text avTxt(boldFont); avTxt.setString(c->initials); avTxt.setCharacterSize(11); avTxt.setFillColor(Color(30, 41, 59));
+        FloatRect avb = avTxt.getLocalBounds(); avTxt.setPosition({avPos.x + 16.f - avb.size.x / 2.f, avPos.y + 16.f - avb.size.y / 2.f - 2.f}); target.draw(avTxt);
+
+        // Name & UID
+        Text nameTxt(boldFont); nameTxt.setString(c->displayFullName); nameTxt.setCharacterSize(12.f); nameTxt.setFillColor(Color(15, 23, 42)); nameTxt.setPosition({col_name + 40.f, ry + 8.f}); target.draw(nameTxt);
+        Text uidTxt(font); uidTxt.setString(s2ws("UID: " + c->uid)); uidTxt.setCharacterSize(9.5f); uidTxt.setFillColor(Color(148, 163, 184)); uidTxt.setPosition({col_name + 40.f, ry + 26.f}); target.draw(uidTxt);
+
+        // Email
+        Text emailTxt(font); emailTxt.setString(s2ws(c->email)); emailTxt.setCharacterSize(11.5f); emailTxt.setFillColor(Color(51, 65, 85)); emailTxt.setPosition({col_email, ry + 16.f}); target.draw(emailTxt);
+
+        // Phone
+        Text phoneTxt(font); phoneTxt.setString(s2ws(c->phone)); phoneTxt.setCharacterSize(11.5f); phoneTxt.setFillColor(Color(51, 65, 85)); phoneTxt.setPosition({col_phone, ry + 16.f}); target.draw(phoneTxt);
+
+        // Tier Pill
+        Vector2f tierPos(col_tier, ry + 12.f);
+        if (c->tier == CustomerTier::GOLD) {
+            RoundedRectRenderer::draw(target, tierPos, {95.f, 26.f}, 13.f, Color(254, 243, 199), 1.f, Color(253, 230, 138));
+            Text tTxt(boldFont); tTxt.setString(L"👑 Hạng Vàng"); tTxt.setCharacterSize(10.5f); tTxt.setFillColor(Color(180, 83, 9)); tTxt.setPosition({tierPos.x + 8.f, tierPos.y + 4.f}); target.draw(tTxt);
+        } else if (c->tier == CustomerTier::SILVER) {
+            RoundedRectRenderer::draw(target, tierPos, {90.f, 26.f}, 13.f, Color(241, 245, 249), 1.f, Color(226, 232, 240));
+            Text tTxt(boldFont); tTxt.setString(L"🥈 Hạng Bạc"); tTxt.setCharacterSize(10.5f); tTxt.setFillColor(Color(71, 85, 105)); tTxt.setPosition({tierPos.x + 8.f, tierPos.y + 4.f}); target.draw(tTxt);
+        } else {
+            RoundedRectRenderer::draw(target, tierPos, {90.f, 26.f}, 13.f, Color(224, 242, 254), 1.f, Color(186, 230, 253));
+            Text tTxt(boldFont); tTxt.setString(L"🎫 Tiêu chuẩn"); tTxt.setCharacterSize(10.5f); tTxt.setFillColor(Color(2, 132, 199)); tTxt.setPosition({tierPos.x + 8.f, tierPos.y + 4.f}); target.draw(tTxt);
+        }
+
+        // Registration Date
+        Text dtTxt(font); dtTxt.setString(s2ws("📅 " + c->registeredDate)); dtTxt.setCharacterSize(11.5f); dtTxt.setFillColor(Color(100, 116, 139)); dtTxt.setPosition({col_date, ry + 16.f}); target.draw(dtTxt);
+
+        // Tickets Bought
+        Text tkTxt(boldFont); tkTxt.setString(to_wstring(c->ticketsBought) + L" vé"); tkTxt.setCharacterSize(12.f); tkTxt.setFillColor(Color(2, 132, 199)); tkTxt.setPosition({col_bought + 10.f, ry + 16.f}); target.draw(tkTxt);
+
+        // Action Icons: View 👁, Edit ✏, Delete 🗑
+        Text aView(boldFont); aView.setString(L"👁"); aView.setCharacterSize(13); aView.setFillColor(Color(2, 132, 199)); aView.setPosition({col_action + 5.f, ry + 15.f}); target.draw(aView);
+        Text aEdit(boldFont); aEdit.setString(L"✏"); aEdit.setCharacterSize(13); aEdit.setFillColor(Color(245, 158, 11)); aEdit.setPosition({col_action + 32.f, ry + 15.f}); target.draw(aEdit);
+        Text aDel(boldFont); aDel.setString(L"🗑"); aDel.setCharacterSize(13); aDel.setFillColor(Color(239, 68, 68)); aDel.setPosition({col_action + 60.f, ry + 15.f}); target.draw(aDel);
+    }
+
+    // Pagination Footer
+    float pageY = rTop + rowsPerPage * rH + 12.f;
+    Text pageInfo(font);
+    pageInfo.setString(L"Hiển thị " + to_wstring(startIdx + 1) + L" - " + to_wstring(endIdx) + L" trên " + to_wstring(filteredCustomers.size()) + L" khách hàng");
+    pageInfo.setCharacterSize(11.5f);
+    pageInfo.setFillColor(Color(100, 116, 139));
+    pageInfo.setPosition({tableX + 16.f, pageY + 6.f});
+    target.draw(pageInfo);
+
+    // Page Buttons: < [1] [2] >
+    Vector2f prevP(position.x + width - 110.f, pageY);
+    RoundedRectRenderer::draw(target, prevP, {30.f, 30.f}, 4.f, Color::White, 1.f, Color(203, 213, 225));
+    Text prevT(boldFont); prevT.setString(L"<"); prevT.setCharacterSize(12); prevT.setFillColor(Color(71, 85, 105)); prevT.setPosition({prevP.x + 10.f, prevP.y + 4.f}); target.draw(prevT);
+
+    Vector2f p1P(position.x + width - 75.f, pageY);
+    RoundedRectRenderer::draw(target, p1P, {30.f, 30.f}, 4.f, (page == 0) ? Color(2, 132, 199) : Color::White, 1.f, (page == 0) ? Color(2, 132, 199) : Color(203, 213, 225));
+    Text p1T(boldFont); p1T.setString(to_string(page + 1)); p1T.setCharacterSize(12); p1T.setFillColor((page == 0) ? Color::White : Color(71, 85, 105)); p1T.setPosition({p1P.x + 10.f, p1P.y + 4.f}); target.draw(p1T);
+
+    Vector2f nextP(position.x + width - 40.f, pageY);
+    RoundedRectRenderer::draw(target, nextP, {30.f, 30.f}, 4.f, Color::White, 1.f, Color(203, 213, 225));
+    Text nextT(boldFont); nextT.setString(L">"); nextT.setCharacterSize(12); nextT.setFillColor(Color(71, 85, 105)); nextT.setPosition({nextP.x + 10.f, nextP.y + 4.f}); target.draw(nextT);
+}
+
+void UserPanel::drawDialog(RenderTarget& target) const {
+    // Dim Overlay
+    RectangleShape dim(Vector2f(width, height));
+    dim.setPosition(position);
+    dim.setFillColor(Color(15, 23, 42, 160));
+    target.draw(dim);
+
+    float dW = 480.f;
+    float dH = 340.f;
+    Vector2f dPos(position.x + (width - dW) / 2.f, position.y + (height - dH) / 2.f);
+
+    RoundedRectRenderer::draw(target, dPos, {dW, dH}, 8.f, Color::White, 1.f, Color(226, 232, 240));
+
+    if (activeDialog == DialogType::VIEW && dialogUserIndex >= 0 && dialogUserIndex < (int)filteredCustomers.size()) {
+        const auto* c = filteredCustomers[dialogUserIndex];
+
+        Text dTitle(boldFont);
+        dTitle.setString(L"Thông tin chi tiết hội viên");
+        dTitle.setCharacterSize(16);
+        dTitle.setFillColor(Color(15, 23, 42));
+        dTitle.setPosition({dPos.x + 24.f, dPos.y + 20.f});
+        target.draw(dTitle);
+
+        Text dSub(font);
+        dSub.setString(L"Hồ sơ thành viên CineXiNe Rewards ID: " + s2ws(c->uid));
+        dSub.setCharacterSize(11);
+        dSub.setFillColor(Color(100, 116, 139));
+        dSub.setPosition({dPos.x + 24.f, dPos.y + 44.f});
+        target.draw(dSub);
+
+        float lineY = dPos.y + 80.f;
+        auto drawField = [&](const wstring& l, const wstring& v, Color vCol) {
+            Text fl(font); fl.setString(l); fl.setCharacterSize(11.5f); fl.setFillColor(Color(100, 116, 139)); fl.setPosition({dPos.x + 24.f, lineY}); target.draw(fl);
+            Text fv(boldFont); fv.setString(v); fv.setCharacterSize(12.5f); fv.setFillColor(vCol); fv.setPosition({dPos.x + 180.f, lineY}); target.draw(fv);
+            lineY += 32.f;
+        };
+
+        drawField(L"Họ và tên:", c->displayFullName, Color(15, 23, 42));
+        drawField(L"Email tài khoản:", s2ws(c->email), Color(37, 99, 235));
+        drawField(L"Số điện thoại:", s2ws(c->phone), Color(15, 23, 42));
+        wstring tierName = (c->tier == CustomerTier::GOLD) ? L"Hạng Vàng (VIP)" : (c->tier == CustomerTier::SILVER ? L"Hạng Bạc" : L"Tiêu chuẩn");
+        drawField(L"Cấp bậc thẻ:", tierName, Color(180, 83, 9));
+        drawField(L"Số vé đã mua:", to_wstring(c->ticketsBought) + L" vé", Color(5, 150, 105));
+        drawField(L"Tổng tích lũy chi tiêu:", s2ws(formatCurrency(c->totalSpent)) + L" VNĐ", Color(225, 29, 72));
+
+        Vector2f btnP(dPos.x + dW - 130.f, dPos.y + dH - 50.f);
+        RoundedRectRenderer::draw(target, btnP, {105.f, 36.f}, 6.f, Color(2, 132, 199));
+        Text btnT(boldFont); btnT.setString(L"Đóng"); btnT.setCharacterSize(12); btnT.setFillColor(Color::White); btnT.setPosition({btnP.x + 36.f, btnP.y + 8.f}); target.draw(btnT);
+    } else if (activeDialog == DialogType::DELETE_CONFIRM && dialogUserIndex >= 0 && dialogUserIndex < (int)filteredCustomers.size()) {
+        const auto* c = filteredCustomers[dialogUserIndex];
+
+        Text dTitle(boldFont);
+        dTitle.setString(L"Xác nhận xóa tài khoản khách hàng");
+        dTitle.setCharacterSize(16);
+        dTitle.setFillColor(Color(239, 68, 68));
+        dTitle.setPosition({dPos.x + 24.f, dPos.y + 20.f});
+        target.draw(dTitle);
+
+        Text warn(font);
+        warn.setString(L"Bạn có chắc chắn muốn xóa tài khoản của khách hàng:\n" + c->displayFullName + L" (" + s2ws(c->email) + L")?\n\nHành động này sẽ xóa dữ liệu tài khoản và tích lũy điểm thưởng!");
+        warn.setCharacterSize(12);
+        warn.setFillColor(Color(51, 65, 85));
+        warn.setPosition({dPos.x + 24.f, dPos.y + 60.f});
+        target.draw(warn);
+
+        Vector2f cancelP(dPos.x + dW - 230.f, dPos.y + dH - 50.f);
+        RoundedRectRenderer::draw(target, cancelP, {95.f, 36.f}, 6.f, Color::White, 1.f, Color(203, 213, 225));
+        Text cT(boldFont); cT.setString(L"Hủy bỏ"); cT.setCharacterSize(11.5f); cT.setFillColor(Color(71, 85, 105)); cT.setPosition({cancelP.x + 24.f, cancelP.y + 8.f}); target.draw(cT);
+
+        Vector2f delP(dPos.x + dW - 120.f, dPos.y + dH - 50.f);
+        RoundedRectRenderer::draw(target, delP, {95.f, 36.f}, 6.f, Color(239, 68, 68));
+        Text dT(boldFont); dT.setString(L"Xác nhận"); dT.setCharacterSize(11.5f); dT.setFillColor(Color::White); dT.setPosition({delP.x + 18.f, delP.y + 8.f}); target.draw(dT);
+    } else if (activeDialog == DialogType::ADD_NEW) {
+        Text dTitle(boldFont);
+        dTitle.setString(L"Thêm hội viên CineXiNe Rewards mới");
+        dTitle.setCharacterSize(16);
+        dTitle.setFillColor(Color(15, 23, 42));
+        dTitle.setPosition({dPos.x + 24.f, dPos.y + 20.f});
+        target.draw(dTitle);
+
+        float inY = dPos.y + 65.f;
+        auto drawInput = [&](const wstring& lbl, const string& val) {
+            Text fl(boldFont); fl.setString(lbl); fl.setCharacterSize(11); fl.setFillColor(Color(71, 85, 105)); fl.setPosition({dPos.x + 24.f, inY}); target.draw(fl);
+            Vector2f boxP(dPos.x + 24.f, inY + 18.f);
+            RoundedRectRenderer::draw(target, boxP, {dW - 48.f, 34.f}, 4.f, Color::White, 1.f, Color(203, 213, 225));
+            Text fv(font); fv.setString(s2ws(val)); fv.setCharacterSize(12); fv.setFillColor(Color(15, 23, 42)); fv.setPosition({boxP.x + 10.f, boxP.y + 7.f}); target.draw(fv);
+            inY += 60.f;
+        };
+
+        drawInput(L"Họ và tên khách hàng *", inputName.empty() ? "Ví dụ: Trần Văn Nam" : inputName);
+        drawInput(L"Email tài khoản *", inputEmail.empty() ? "namtran@gmail.com" : inputEmail);
+        drawInput(L"Số điện thoại *", inputPhone.empty() ? "0912345678" : inputPhone);
+
+        Vector2f cancelP(dPos.x + dW - 230.f, dPos.y + dH - 50.f);
+        RoundedRectRenderer::draw(target, cancelP, {95.f, 36.f}, 6.f, Color::White, 1.f, Color(203, 213, 225));
+        Text cT(boldFont); cT.setString(L"Hủy bỏ"); cT.setCharacterSize(11.5f); cT.setFillColor(Color(71, 85, 105)); cT.setPosition({cancelP.x + 24.f, cancelP.y + 8.f}); target.draw(cT);
+
+        Vector2f okP(dPos.x + dW - 120.f, dPos.y + dH - 50.f);
+        RoundedRectRenderer::draw(target, okP, {95.f, 36.f}, 6.f, Color(2, 132, 199));
+        Text okT(boldFont); okT.setString(L"Thêm mới"); okT.setCharacterSize(11.5f); okT.setFillColor(Color::White); okT.setPosition({okP.x + 18.f, okP.y + 8.f}); target.draw(okT);
+    }
+}
+
+void UserPanel::drawBottomBar(RenderTarget& target) const {
+    float barY = height - 28.f;
+
+    RectangleShape div(Vector2f(width - 40.f, 1.f));
+    div.setPosition({position.x + 20.f, barY - 4.f});
+    div.setFillColor(Color(226, 232, 240));
+    target.draw(div);
+
+    Text engText(font);
+    engText.setString(L"NODE: VN-DN601  •  LIVE   |   CineXiNe Customer Registry: Synced (0.12ms)   |   UTF-8 Engine");
+    engText.setCharacterSize(11.f);
+    engText.setFillColor(Color(100, 116, 139));
+    engText.setPosition({position.x + 20.f, barY});
+    target.draw(engText);
+
+    Text authText(font);
+    authText.setString(L"Admin CineXiNe (Toàn quyền)  •  1728x972 HD");
+    authText.setCharacterSize(11.f);
+    authText.setFillColor(Color(100, 116, 139));
+    FloatRect ab = authText.getLocalBounds();
+    authText.setPosition({position.x + width - ab.size.x - 20.f, barY});
+    target.draw(authText);
+}
+
+void UserPanel::drawToast(RenderTarget& target) const {
+    Text toast(boldFont);
+    toast.setString(toastMessage);
+    toast.setCharacterSize(12.5f);
+    toast.setFillColor(Color::White);
+    FloatRect tb = toast.getLocalBounds();
+
+    float tw = tb.size.x + 36.f;
+    float th = 38.f;
+    Vector2f tPos(position.x + (width - tw) / 2.f, position.y + height - 76.f);
+
+    RoundedRectRenderer::draw(target, tPos, {tw, th}, 19.f, Color(15, 23, 42, 235), 1.f, Color(51, 65, 85));
+    toast.setPosition({tPos.x + 18.f, tPos.y + 9.f});
+    target.draw(toast);
 }

@@ -1,125 +1,113 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
-#include "repositories/UserRepository.h"
-#include <array>
 #include <string>
 #include <vector>
 #include <memory>
-#include <optional>
+#include <unordered_map>
+#include "repositories/UserRepository.h"
+#include "repositories/booking/TicketRepository.h"
 
-using namespace sf;
-using namespace std;
+enum class CustomerTier {
+    STANDARD,
+    SILVER,
+    GOLD
+};
+
+struct CustomerItem {
+    std::string email;
+    std::string fullName;
+    std::wstring displayFullName;
+    std::string birthDate;
+    std::string phone;
+    std::string registeredDate;
+    time_t registeredAt = 0;
+    std::string uid;
+    std::wstring initials;
+    sf::Color avatarBg;
+    CustomerTier tier = CustomerTier::STANDARD;
+    int ticketsBought = 0;
+    long long totalSpent = 0;
+    bool selected = false;
+};
 
 class UserPanel {
 private:
-    Font& font;
-    float width, height;
-    Vector2f position;
-    
-    // Tang du lieu
-    unique_ptr<UserRepository> repository;
-    vector<User> userList; // Bo nho dem phuc vu hien thi
-    
-    // Thanh phan giao dien
-    unique_ptr<Text> titleText;
-    RectangleShape background;
-    RectangleShape tableHeaderBg;
-    RectangleShape tableBodyBg;
+    sf::Font& font;
+    sf::Font boldFont;
+    float width;
+    float height;
+    sf::Vector2f position;
 
-    struct ActionButton {
-        RectangleShape box;
-        unique_ptr<Text> label;
-        Color baseColor;
-        Color hoverColor;
-        bool hovered = false;
-    };
+    std::unique_ptr<UserRepository> repository;
+    std::vector<CustomerItem> allCustomers;
+    std::vector<CustomerItem*> filteredCustomers;
 
-    ActionButton btnViewInfo;
-    ActionButton btnDelete;
-    ActionButton btnRefresh;
-    Texture reloadTexture;
-    std::optional<Sprite> reloadSprite;
+    // KPI Counters
+    int totalCount = 15;
+    int activeCount = 12;
+    int goldCount = 6;
+    int silverCount = 7;
+    int standardCount = 2;
+    long long avgSpending = 789500;
+    float avgTicketsPerUser = 6.4f;
 
-    // Thong bao trang thai
-    RectangleShape notificationBg;
-    unique_ptr<Text> notificationText;
-    string notificationMessage;
-    Clock notificationClock;
-    bool notificationVisible = false;
-    Color notificationColor = Color(20, 118, 172);
+    // Filters and search
+    std::string searchText;
+    int tierFilterIndex = 0; // 0: Tất cả, 1: Hạng Vàng, 2: Hạng Bạc, 3: Tiêu chuẩn
+    bool searchActive = false;
 
-    // Trang thai cua bang
-    int selectedRow = -1;
+    // Table state
+    int selectedIndex = -1;
     int hoveredRow = -1;
-    int scrollOffset = 0;
+    int page = 0;
+    int rowsPerPage = 7;
 
-    // Hop thoai
-    enum class PopupType { None, ViewInfo, DeleteConfirm };
-    PopupType activePopup = PopupType::None;
-    int popupUserIndex = -1;
+    // Buttons & Dialogs
+    bool btnViewHovered = false;
+    bool btnEditHovered = false;
+    bool btnDeleteHovered = false;
+    bool btnResetPwdHovered = false;
+    bool btnAddHovered = false;
+    bool btnExportHovered = false;
+    bool btnReloadHovered = false;
 
-    RectangleShape popupOverlay;
-    RectangleShape popupPanel;
-    std::unique_ptr<Text> popupTitle;
+    // Dialog state
+    enum class DialogType { NONE, VIEW, EDIT, DELETE_CONFIRM, ADD_NEW };
+    DialogType activeDialog = DialogType::NONE;
+    int dialogUserIndex = -1;
 
-    struct DetailEntry {
-        Text label;
-        Text value;
+    // Dialog inputs
+    std::string inputEmail;
+    std::string inputName;
+    std::string inputPhone;
+    std::string inputBirth;
+    int activeInputField = 0;
 
-        explicit DetailEntry(Font& font) : label(font), value(font) {}
-        DetailEntry(const DetailEntry&) = default;
-        DetailEntry(DetailEntry&&) noexcept = default;
-        DetailEntry& operator=(const DetailEntry&) = default;
-        DetailEntry& operator=(DetailEntry&&) noexcept = default;
-    };
-    std::vector<DetailEntry> detailEntries;
+    // Notification toast
+    bool toastActive = false;
+    float toastTimer = 0.f;
+    std::wstring toastMessage;
 
-    ActionButton popupBtnPrimary;
-    ActionButton popupBtnSecondary;
-    
-    // Hang so bo cuc
-    static constexpr float TABLE_X = 40.f;
-    static constexpr float TABLE_Y = 120.f;
-    static constexpr float TABLE_WIDTH = 1100.f;
-    static constexpr float TABLE_HEIGHT = 720.f;
-    static constexpr float HEADER_HEIGHT = 46.f;
-    static constexpr float ROW_HEIGHT = 40.f;
+    void loadData();
+    void applyFilter();
+    void calculateCustomerStats();
 
-    // Bang mau dong nhat voi giao dien Admin
-    Color bgColor = Color(244, 246, 250);
-    Color headerColor = Color(20, 118, 172);
-    Color tableHeaderColor = Color(27, 38, 59);
-    Color rowColor = Color::White;
-    Color hoverColor = Color(235, 244, 252);
-    Color selectedColor = Color(214, 232, 248);
-    Color borderColor = Color(210, 216, 224);
-    Color textColor = Color(33, 37, 41);
+    // Render methods
+    void drawHeader(sf::RenderTarget& target) const;
+    void drawKpiCards(sf::RenderTarget& target) const;
+    void drawActionToolbar(sf::RenderTarget& target) const;
+    void drawCustomerTable(sf::RenderTarget& target) const;
+    void drawDialog(sf::RenderTarget& target) const;
+    void drawToast(sf::RenderTarget& target) const;
+    void drawBottomBar(sf::RenderTarget& target) const;
 
-    void setupUI();
-    void setupButton(ActionButton& button, const string& labelUtf8, const Color& base, const Color& hover, Vector2f size);
-    void updateButton(ActionButton& button, Vector2f mousePos);
-
-    void refreshData();
-    void renderTable(RenderWindow& window);
-    void renderButtons(RenderWindow& window);
-    void renderNotification(RenderWindow& window);
-    void renderPopup(RenderWindow& window);
-    void showNotification(const string& message, const Color& color = Color(20, 118, 172));
-    string formatDate(time_t timestamp) const;
-    void layoutElements();
-
-    void closePopup();
-    void openViewPopup();
-    void openDeletePopup();
-    void rebuildDetailTexts(const User& user);
-    const User* getPopupUser() const;
-    
 public:
-    UserPanel(Font& font, float width, float height);
-    
-    void setPosition(Vector2f pos);
-    void handleEvent(const Event& event, const RenderWindow& window);
-    void update(Vector2f mousePos, bool mousePressed);
-    void render(RenderWindow& window);
+    UserPanel(sf::Font& fontRef, float w, float h);
+
+    void setPosition(const sf::Vector2f& pos);
+    void handleEvent(const sf::Event& event, const sf::RenderWindow& window);
+    void update(const sf::Vector2f& mousePos, bool mouseDown);
+    void render(sf::RenderTarget& target) const;
+    void refreshData();
 };

@@ -19,6 +19,7 @@ private:
     RenderWindow& window;
     AppState& appState;
     AuthService* authService;
+    Font boldFont;
     unique_ptr<AdminSidebar> sidebar;
     
     // Current panel

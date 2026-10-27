@@ -1,4 +1,5 @@
 #include "repositories/admin/AdminMovieRepository.h"
+#include "utils/FileUtils.h"
 
 #include <algorithm>
 #include <cctype>
@@ -12,7 +13,8 @@ bool isValidMovieId(const string& id) {
 }
 }
 
-AdminMovieRepository::AdminMovieRepository(const string& path) : filePath(path) {
+AdminMovieRepository::AdminMovieRepository(const string& path) {
+    filePath = FileUtils::resolveDataPath(path);
     loadFromFile();
 }
 

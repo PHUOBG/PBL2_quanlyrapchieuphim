@@ -2,119 +2,79 @@
 #include <SFML/Graphics.hpp>
 #include <string>
 #include <vector>
-#include <unordered_map>
-#include <chrono>
-#include <optional>
 #include <memory>
+#include <functional>
 
 using namespace sf;
 using namespace std;
 
+enum class SeatType {
+    STANDARD,      // Ghế Thường (100.000đ)
+    VIP,           // Ghế VIP Gold (140.000đ)
+    SWEETBOX,      // Ghế Đôi Sweetbox (220.000đ/cặp)
+    MAINTENANCE    // Ghế bảo trì
+};
+
+struct RoomData {
+    string id;
+    wstring name;
+    wstring roomType;     // "Laser 4K Atmos", "IMAX 3D", "Standard 2D"
+    wstring status;       // "Bình thường", "Bảo trì"
+    int rows = 6;
+    int cols = 6;
+    vector<vector<SeatType>> seatMatrix;
+};
+
 class RoomPanel {
 private:
-    struct RoomRow {
-        string roomId;
-        string roomName;
-        string currentMovie;
-        string upcomingMovie;
-    };
-
-    struct RoomInfo {
-        string id;
-        string name;
-    };
-
-    struct MovieInfo {
-        string title;
-        int durationMinutes;
-    };
-
-    struct ShowtimeSlot {
-        chrono::system_clock::time_point start;
-        chrono::system_clock::time_point end;
-        string movieTitle;
-    };
-
     Font& font;
+    Font boldFont;
     float width;
     float height;
     Vector2f position;
 
-    RectangleShape background;
-    RectangleShape tableHeaderBg;
-    unique_ptr<Text> titleText;
+    // Data
+    vector<RoomData> rooms;
+    int selectedRoomIndex = 0;
+    SeatType currentAssignType = SeatType::VIP;
+    int activeTab = 0; // 0: Sơ đồ trực quan, 1: Danh sách phòng
+    float zoomFactor = 1.0f;
 
-    Texture reloadTexture;
-    unique_ptr<Sprite> reloadSprite;
-    RectangleShape reloadButtonBg;
-    bool reloadHovered = false;
-    bool reloadPressed = false;
+    // Form inputs state
+    wstring inputRoomName;
+    string inputRows;
+    string inputCols;
+    wstring inputStatus;
+    int activeInputBox = -1; // 0: Name, 1: Rows, 2: Cols
 
-    RectangleShape notificationBg;
-    unique_ptr<Text> notificationText;
+    // Dropdown states
+    bool roomDropdownOpen = false;
+    bool statusDropdownOpen = false;
+    bool seatTypeDropdownOpen = false;
+
+    // Notification toast
     string notificationMessage;
-    bool notificationVisible = false;
     Clock notificationClock;
+    bool notificationVisible = false;
 
-    vector<RoomRow> rows;
-    vector<RoomInfo> rooms;
-    unordered_map<string, vector<ShowtimeSlot>> roomSchedules;
-    unordered_map<string, vector<ShowtimeSlot>> liveSchedules;
-    unordered_map<string, vector<ShowtimeSlot>> cachedSchedules;
-    bool cacheDirty = false;
-    const string cacheFilePath = "../data/room_schedule_cache.txt";
+    // Hover states
+    int hoveredSeatRow = -1;
+    int hoveredSeatCol = -1;
+    int hoveredButton = -1; // 1: Refresh, 2: Add, 3: Delete, 4: Save, 5: Cancel, 6: Zoom-, 7: Zoom+
 
-    int hoveredRow = -1;
-    int selectedRow = -1;
+    void initDefaultRooms();
+    void loadRoomsFromFile();
+    void saveRoomsToFile();
+    void updateSeatStatistics(int& standard, int& vip, int& sweetbox, int& maintenance) const;
 
-    Clock statusRefreshClock;
-    const float statusRefreshInterval = 1.0f;
-
-    static vector<string> splitLine(const string& line, char delimiter);
-    static string trim(const string& text);
-    static optional<chrono::system_clock::time_point> parseDateTime(const string& dateStr, const string& timeStr);
-    static optional<chrono::system_clock::time_point> parseCacheDateTime(const string& value);
-    static string formatDateTime(chrono::system_clock::time_point tp);
-
-    void setupUI();
-    void loadData();
-    vector<RoomInfo> loadRooms(const string& path);
-    unordered_map<string, MovieInfo> loadMovies(const string& path);
-    void loadShowtimes(const string& path, const unordered_map<string, MovieInfo>& movies);
-    void loadCache();
-    void saveCache();
-    bool removeExpiredCachedShows();
-    bool ensureUpcomingShowsCached();
-    bool hasSlot(const vector<ShowtimeSlot>& slots, const ShowtimeSlot& slot) const;
-    static bool slotsEqual(const ShowtimeSlot& a, const ShowtimeSlot& b);
-    static bool pruneSchedules(unordered_map<string, vector<ShowtimeSlot>>& schedules,
-                               chrono::system_clock::time_point now);
-    void updateRoomStatuses();
-    void renderTable(RenderWindow& window);
-
-    void showNotification(const string& message);
-    void renderNotification(RenderWindow& window);
-
-    Color bgColor = Color(244, 246, 250);
-    Color headerColor = Color(20, 118, 172);
-    Color rowColor = Color(255, 255, 255);
-    Color hoverColor = Color(229, 241, 251);
-    Color selectedColor = Color(204, 228, 247);
-    Color borderColor = Color(201, 206, 214);
-    Color textColor = Color(34, 34, 34);
-
-    static constexpr float TABLE_X = 40.f;
-    static constexpr float TABLE_Y = 120.f;
-    static constexpr float TABLE_WIDTH = 1100.f;
-    static constexpr float HEADER_HEIGHT = 44.f;
-    static constexpr float ROW_HEIGHT = 48.f;
-    static constexpr float COL_ID_X = TABLE_X + 10.f;
-    static constexpr float COL_NAME_X = TABLE_X + 140.f;
-    static constexpr float COL_CURRENT_X = TABLE_X + 420.f;
-    static constexpr float COL_NEXT_X = TABLE_X + 780.f;
+    // Drawing helpers
+    void drawSeat(RenderWindow& win, float x, float y, float w, float h, SeatType type, const string& label, bool hovered);
+    void drawRoundedCard(RenderWindow& win, Vector2f pos, Vector2f sz, float r, Color fill, float outline = 0.f, Color outCol = Color::Transparent);
+    void drawIcon(RenderWindow& win, const string& iconName, Vector2f pos, Color col);
 
 public:
-    RoomPanel(Font& font, float width, float height);
+    RoomPanel(Font& fontRef, float w, float h);
+
     void setPosition(Vector2f pos);
     void handleEvent(const Event& event, const RenderWindow& window);
     void update(Vector2f mousePos, bool mousePressed);

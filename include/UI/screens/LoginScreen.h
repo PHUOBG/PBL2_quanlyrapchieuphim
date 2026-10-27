@@ -19,6 +19,7 @@ public:
 private:
     AuthService& auth;
     const Font& font;
+    Font boldFont;
 
     // User inputs
     wstring emailInput;
@@ -69,6 +70,7 @@ private:
     void drawVectorChart(RenderTarget& target, Vector2f pos, Color color);
     void drawVectorPos(RenderTarget& target, Vector2f pos, Color color);
     void drawVectorHeaderScreen(RenderTarget& target, Vector2f pos, Color color);
+    void drawVectorAdminUser(RenderTarget& target, Vector2f pos, Color color);
     void drawVectorArrow(RenderTarget& target, Vector2f pos, Color color);
     void drawDotGrid(RenderTarget& target, float W, float H);
 };

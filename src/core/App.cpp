@@ -1,11 +1,11 @@
-﻿#include "core/App.h"
+#include "core/App.h"
 #include <SFML/Graphics.hpp>
 
 using namespace sf;
 
 App::App()
     : window(VideoMode({1728, 972}), L"PBL2 - HỆ THỐNG QUẢN LÝ RẠP CHIẾU PHIM & THỐNG KÊ DOANH THU", Style::Titlebar | Style::Close),
-      font("../assets/fonts/Montserrat_SemiBold.ttf"),
+      font("../assets/fonts/segoeui.ttf"),
       detail_font("../assets/fonts/quicksand_medium.ttf"),
       title_font("../assets/fonts/BEBAS_NEUE_ZSMALL.ttf"),
       state(AppState::LOGIN),

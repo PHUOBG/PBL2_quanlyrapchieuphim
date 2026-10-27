@@ -38,13 +38,17 @@ void RevenuePanel::setPosition(const Vector2f& pos) {
 }
 
 void RevenuePanel::handleEvent(const Event& event, const RenderWindow& window) {
-    if (mode == StatsMode::Tickets) {
+    if (mode == StatsMode::Revenue) {
+        overviewPanel.handleEvent(event, window);
+    } else {
         movieRevenuePanel.handleEvent(event, window);
     }
 }
 
 void RevenuePanel::update(const Vector2f& mousePos, bool mouseDown) {
-    if (mode == StatsMode::Tickets) {
+    if (mode == StatsMode::Revenue) {
+        overviewPanel.update(mousePos, mouseDown);
+    } else {
         movieRevenuePanel.update(mousePos, mouseDown);
     }
 }

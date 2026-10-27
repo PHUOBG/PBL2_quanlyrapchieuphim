@@ -1,61 +1,71 @@
-﻿#pragma once
+#pragma once
+
 #include <SFML/Graphics.hpp>
-#include <cstdint>
 #include <string>
 #include <memory>
 #include "services/AuthService.h"
-#include "UI/components/ProfileInfoCard.h"
 
 class AdminProfilePanel {
 private:
-    Font& font;
+    sf::Font& font;
+    sf::Font boldFont;
     float width;
     float height;
-    Vector2f position;
+    sf::Vector2f position;
+
     AuthService* authService;
     User* currentUser = nullptr;
-    std::string currentEmail;
-    bool userDataLoaded = false;
 
-    // Cac khoi bo cuc
-    RectangleShape panelBackground;
-    RectangleShape contentCard;
-    RectangleShape heroBanner;
-    CircleShape avatarCircle;
+    // Field values
+    std::string fullName = "ADMIN";
+    std::string birthDate = "12/02/2006";
+    std::string phone = "0898234406";
+    std::string email = "admin@cinexine.vn";
+    std::string department = "Phòng Quản lý vận hành rạp";
+    std::string location = "CineXine Đà Nẵng Center";
 
-    // Khu vuc thong tin chinh
-    Text heroNameText;
-    Text heroMetaText;
-    Text avatarInitialsText;
+    // Password values
+    std::string oldPass = "";
+    std::string newPass = "";
+    std::string confirmPass = "";
+    bool showOldPass = false;
+    bool showNewPass = false;
+    bool showConfirmPass = false;
 
-    // The hien lai ProfileInfoCard
-    ProfileInfoCard profileCard_;
+    // Active input field
+    // 1: fullName, 2: birthDate, 3: phone, 4: dept, 5: loc, 6: oldPass, 7: newPass, 8: confirmPass
+    int activeField = 0;
 
-    // Delete account feature
-    RectangleShape deleteAccountBtn;
-    Text deleteAccountText;
+    // Button hover states
+    bool saveInfoHovered = false;
+    bool changePassHovered = false;
+    bool deleteHovered = false;
     bool showDeleteConfirm = false;
-    RectangleShape confirmOverlay;
-    RectangleShape confirmCard;
-    Text confirmTitle;
-    Text confirmMsg;
-    RectangleShape confirmYesBtn;
-    RectangleShape confirmNoBtn;
-    Text confirmYesText;
-    Text confirmNoText;
 
-    void layoutElements();
-    void refreshUser();
-    void updateHeroContents();
-    std::wstring getRoleLabel(AppRole role) const;
-    std::wstring buildInitials(const std::string& source) const;
+    // Toast notification
+    bool toastActive = false;
+    float toastTimer = 0.f;
+    std::wstring toastMessage;
+
+    void loadUserData();
+    void saveUserData();
+    void changePassword();
+
+    // Render helpers
+    void drawHeaderBanner(sf::RenderTarget& target) const;
+    void drawPersonalInfoCard(sf::RenderTarget& target) const;
+    void drawPasswordCard(sf::RenderTarget& target) const;
+    void drawTwoFactorCard(sf::RenderTarget& target) const;
+    void drawDeleteModal(sf::RenderTarget& target) const;
+    void drawToast(sf::RenderTarget& target) const;
+    void drawBottomBar(sf::RenderTarget& target) const;
 
 public:
-    AdminProfilePanel(Font& font, float width, float height, AuthService* authService);
+    AdminProfilePanel(sf::Font& fontRef, float w, float h, AuthService* auth);
 
-    void setPosition(Vector2f pos);
-    void handleEvent(const Event& event, const RenderWindow& window);
-    void update(Vector2f mousePos, bool mousePressed);
-    void render(RenderWindow& window);
+    void setPosition(const sf::Vector2f& pos);
+    void handleEvent(const sf::Event& event, const sf::RenderWindow& window);
+    void update(const sf::Vector2f& mousePos, bool mouseDown);
+    void render(sf::RenderTarget& target) const;
     void reload();
 };

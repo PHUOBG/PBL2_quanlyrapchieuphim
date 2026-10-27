@@ -2,9 +2,8 @@
 #include <SFML/Graphics.hpp>
 #include <string>
 #include <functional>
-#include <memory>
+#include <vector>
 #include "core/AppState.h"
-#include "data-structures/DLL.h"
 #include "UI/components/Admin/RoundedRectRenderer.h"
 
 using namespace sf;
@@ -22,79 +21,107 @@ private:
     unique_ptr<Text> label;
 
 public:
-    SidebarRoundRectButton(Font& font, const string& text, Vector2f size, float radius);
+    SidebarRoundRectButton(Font& font, const string& text, Vector2f size, float radius)
+        : font(font), size(size), position(Vector2f()), radius(radius),
+          baseColor(Color::White), hoverColor(Color::White), hovered(false) {
+        label = make_unique<Text>(font);
+        label->setCharacterSize(20);
+        label->setFillColor(Color::White);
+        label->setString(String::fromUtf8(text.begin(), text.end()));
+    }
 
-    void setPosition(Vector2f pos);
-    void setColors(const Color& base, const Color& hover);
-    void setTextSize(unsigned int size);
-    void update(Vector2f mousePos);
-    bool contains(Vector2f point) const;
-    void draw(RenderWindow& window) const;
-    Vector2f getSize() const;
+    void setPosition(Vector2f pos) {
+        position = pos;
+        if (label) {
+            FloatRect bounds = label->getLocalBounds();
+            label->setPosition(Vector2f(
+                position.x + (size.x - bounds.size.x) / 2.f - bounds.position.x,
+                position.y + (size.y - bounds.size.y) / 2.f - bounds.position.y
+            ));
+        }
+    }
+
+    void setColors(const Color& base, const Color& hover) {
+        baseColor = base;
+        hoverColor = hover;
+    }
+
+    void setTextSize(unsigned int sz) {
+        if (label) {
+            label->setCharacterSize(sz);
+            setPosition(position);
+        }
+    }
+
+    void update(Vector2f mousePos) {
+        FloatRect bounds(position, size);
+        hovered = bounds.contains(mousePos);
+    }
+
+    bool contains(Vector2f point) const {
+        FloatRect bounds(position, size);
+        return bounds.contains(point);
+    }
+
+    void draw(RenderWindow& window) const {
+        const Color& color = hovered ? hoverColor : baseColor;
+        RoundedRectRenderer::draw(window, position, size, radius, color);
+        if (label) {
+            window.draw(*label);
+        }
+    }
+
+    Vector2f getSize() const {
+        return size;
+    }
+};
+
+enum class SidebarElementType {
+    SECTION_HEADER,
+    MENU_ITEM
+};
+
+struct SidebarElement {
+    SidebarElementType type;
+    wstring label;
+    AppState targetState;
+    FloatRect bounds;
 };
 
 class AdminSidebar {
-private:
-    struct MenuItem {
-        string label;
-        AppState targetState;
-        bool isGroupHeader;
-        bool isLogout;
-        
-        MenuItem(const string& l, AppState state, bool header = false, bool logout = false);
-    };
-    
-    float width;
-    float height;
-    Vector2f position;
-    
-    // Cau hinh mau sac
-    Color bgColor;          // #0D1B2A
-    Color textColor;        // #E9EEF5
-    Color hoverColor;       // #1B263B
-    Color activeColor;      // #1476AC
-    Color groupHeaderColor; // Sang hon mot chut
-    
-    // Danh sach muc
-    DLL<MenuItem> menuItems;
-    int hoveredIndex;
-    int activeIndex;
-    
-    // Hinh chu nhat trang tri
-    RectangleShape background;
-    DLL<RectangleShape> itemBackgrounds;
-    
-    // Van ban
-    Font font;
-    Font montserratFont;
-    unique_ptr<Text> headerText;
-    unique_ptr<Text> userNameText;
-    DLL<unique_ptr<Text>> itemTexts;
-    
-    // Ham goi lai khi doi trang thai
-    function<void(AppState)> onStateChange;
-    function<void()> onLogout;
-    
-    // Thong tin nguoi dung
-    string userName;
-    RectangleShape userInfoBg;
-    unique_ptr<SidebarRoundRectButton> logoutButton;
-    
-    void initializeMenuItems();
-    void setupGraphics();
-    int getItemAtPosition(Vector2f mousePos);
-    
 public:
     AdminSidebar(float width, float height, const string& userName);
-    
+
     void setPosition(Vector2f pos);
     void setOnStateChange(function<void(AppState)> callback);
     void setOnLogout(function<void()> callback);
     void setActiveState(AppState state);
-    
+
     void handleEvent(const Event& event, const RenderWindow& window);
     void update(const RenderWindow& window);
     void render(RenderWindow& window);
-    
+
     float getWidth() const;
+
+private:
+    float width;
+    float height;
+    Vector2f position;
+
+    Font font;
+    Font boldFont;
+    string userName;
+
+    AppState activeState = AppState::ADMIN_MOVIES;
+    int hoveredIndex = -1;
+    bool logoutHovered = false;
+
+    vector<SidebarElement> elements;
+    FloatRect logoutBounds;
+
+    function<void(AppState)> onStateChange;
+    function<void()> onLogout;
+
+    void recalculateLayout();
+    void drawLogoutIcon(RenderTarget& target, Vector2f pos, Color col);
 };
