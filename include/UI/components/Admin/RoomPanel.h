@@ -31,6 +31,8 @@ private:
     Font boldFont;
     Texture logoTex;
     bool hasLogo = false;
+    Texture reloadTex;
+    bool hasReloadTex = false;
     float width;
     float height;
     Vector2f position;

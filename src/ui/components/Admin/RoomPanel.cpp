@@ -60,6 +60,12 @@ RoomPanel::RoomPanel(Font& fontRef, float w, float h)
         hasLogo = true;
     }
 
+    if (reloadTex.loadFromFile("assets/elements/reload.png") ||
+        reloadTex.loadFromFile("../assets/elements/reload.png")) {
+        reloadTex.setSmooth(true);
+        hasReloadTex = true;
+    }
+
     initDefaultRooms();
     loadRoomsFromFile();
 
@@ -258,7 +264,14 @@ void RoomPanel::handleEvent(const Event& event, const RenderWindow& win) {
 
             if (btnRefresh.contains(mousePos)) {
                 loadRoomsFromFile();
-                notificationMessage = "Đã làm mới dữ liệu phòng chiếu!";
+                if (selectedRoomIndex >= 0 && selectedRoomIndex < (int)rooms.size()) {
+                    inputRoomName = rooms[selectedRoomIndex].name;
+                    inputRows = to_string(rooms[selectedRoomIndex].rows);
+                    inputCols = to_string(rooms[selectedRoomIndex].cols);
+                }
+                activeInputBox = -1;
+                zoomFactor = 1.0f;
+                notificationMessage = "Đã làm mới dữ liệu & khôi phục cấu hình phòng!";
                 notificationClock.restart();
                 notificationVisible = true;
                 return;
@@ -570,14 +583,18 @@ void RoomPanel::render(RenderWindow& win) {
     // 3 nút góc phải: Làm mới, Thêm phòng chiếu, Xóa phòng chiếu
     float btnY = position.y + 78.f;
     // Nút 1: Làm mới
-    drawRoundedCard(win, {position.x + width - 470.f, btnY}, {110.f, 38.f}, 8.f, Color::White, 1.2f, Color(203, 213, 225));
+    float headRefX = position.x + width - 470.f;
+    drawRoundedCard(win, {headRefX, btnY}, {110.f, 38.f}, 8.f, Color::White, 1.2f, Color(203, 213, 225));
+    if (hasReloadTex) {
+        Sprite spHead(reloadTex);
+        spHead.setColor(Color(51, 65, 85));
+        spHead.setScale({16.f / 500.f, 16.f / 500.f});
+        spHead.setPosition({headRefX + 14.f, btnY + 11.f});
+        win.draw(spHead);
+    }
     Text refTxt(boldFont, L"L\u00e0m m\u1edbi", 13);
     refTxt.setFillColor(Color(51, 65, 85));
-    FloatRect refb = refTxt.getLocalBounds();
-    refTxt.setPosition({
-        position.x + width - 470.f + (110.f - refb.size.x) / 2.f - refb.position.x,
-        btnY + (38.f - refb.size.y) / 2.f - refb.position.y
-    });
+    refTxt.setPosition({headRefX + (hasReloadTex ? 36.f : 24.f), btnY + 9.f});
     win.draw(refTxt);
 
     // Nút 2: + Thêm phòng chiếu
@@ -900,20 +917,20 @@ void RoomPanel::render(RenderWindow& win) {
     // 8. TOAST NOTIFICATION (nếu có)
     // ==========================================
     if (notificationVisible) {
-        if (notificationClock.getElapsedTime().asSeconds() > 3.0f) {
+        if (notificationClock.getElapsedTime().asSeconds() > 2.5f) {
             notificationVisible = false;
         } else {
-            float notW = 340.f;
+            float notW = 400.f;
             float notH = 44.f;
             float notX = position.x + (width - notW) / 2.f;
-            float notY = position.y + height - 70.f;
-            drawRoundedCard(win, {notX, notY}, {notW, notH}, 8.f, Color(15, 23, 42, 240), 1.f, Color(2, 132, 199));
+            float notY = position.y + 75.f; // Nằm ở giữa trên cao, cực kỳ rõ ràng và dễ thấy
+            drawRoundedCard(win, {notX, notY}, {notW, notH}, 8.f, Color(15, 23, 42, 245), 1.5f, Color(2, 132, 199));
             Text notText(boldFont, s2ws(notificationMessage), 12);
             notText.setFillColor(Color::White);
             FloatRect ntb = notText.getLocalBounds();
             notText.setPosition({
-                notX + (notW - ntb.size.x) / 2.f - ntb.position.x,
-                notY + (notH - ntb.size.y) / 2.f - ntb.position.y
+                std::floor(notX + (notW - ntb.size.x) / 2.f - ntb.position.x),
+                std::floor(notY + (notH - ntb.size.y) / 2.f - ntb.position.y)
             });
             win.draw(notText);
         }
