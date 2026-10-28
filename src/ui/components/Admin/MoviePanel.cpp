@@ -498,16 +498,16 @@ void MoviePanel::update(Vector2f mouse, bool mousePressed) {
         return;
     }
 
-    const float startX = position.x + 35.f; // 385.f
+    const float startX = position.x + 102.f; // Centered inside 1448px panel width (102px left, 102px right)
     const float toolY = 252.f;
 
     FloatRect searchBox({startX, toolY}, {360.f, 44.f});
     FloatRect genreBtn({startX + 375.f, toolY}, {160.f, 44.f});
     FloatRect statusBtn({startX + 550.f, toolY}, {160.f, 44.f});
     FloatRect reloadBtn({startX + 725.f, toolY}, {44.f, 44.f});
-    FloatRect editBtn({startX + 785.f, toolY}, {150.f, 44.f});
-    FloatRect deleteBtn({startX + 950.f, toolY}, {125.f, 44.f});
-    FloatRect addBtn({startX + 1090.f, toolY}, {165.f, 44.f});
+    FloatRect editBtn({startX + 779.f, toolY}, {150.f, 44.f});
+    FloatRect deleteBtn({startX + 941.f, toolY}, {125.f, 44.f});
+    FloatRect addBtn({startX + 1079.f, toolY}, {165.f, 44.f});
 
     btnSearchHover = searchBox.contains(mouse);
     btnGenreHover = genreBtn.contains(mouse);
@@ -644,10 +644,10 @@ void MoviePanel::update(Vector2f mouse, bool mousePressed) {
 }
 
 void MoviePanel::render(RenderWindow& window) {
-    const float startX = position.x + 35.f; // 385.f
+    const float startX = position.x + 102.f; // Centered inside 1448px panel width (102px left, 102px right)
 
     // 1. Standardized Top Navigation Bar & Profile Header
-    UITheme::drawTopBar(window, startX, position.y, width - 70.f, L"QUẢN LÝ PHIM", font, boldFont);
+    UITheme::drawTopBar(window, startX, position.y, 1244.f, L"QUẢN LÝ PHIM", font, boldFont);
 
     // 2. Standardized Page Heading & Subtitle
     UITheme::drawPageHeader(window, startX, position.y + 64.f,
@@ -748,29 +748,29 @@ void MoviePanel::render(RenderWindow& window) {
 
     // Edit Button (Amber/Orange)
     Color editCol = btnEditHover ? Color(217, 119, 6) : Color(245, 158, 11);
-    RoundedRectRenderer::draw(window, {startX + 785.f, toolY}, {150.f, 44.f}, 10.f, editCol);
-    drawPencilIcon(window, {startX + 800.f, toolY + 15.f}, Color::White);
+    RoundedRectRenderer::draw(window, {startX + 779.f, toolY}, {150.f, 44.f}, 10.f, editCol);
+    drawPencilIcon(window, {startX + 794.f, toolY + 15.f}, Color::White);
     Text editTxt(boldFont, L"S\u1eeda th\u00f4ng tin", 14);
     editTxt.setFillColor(Color::White);
-    editTxt.setPosition({startX + 822.f, toolY + 11.f});
+    editTxt.setPosition({startX + 816.f, toolY + 11.f});
     window.draw(editTxt);
 
     // Delete Button (Crimson)
     Color delCol = btnDeleteHover ? Color(220, 38, 38) : Color(239, 68, 68);
-    RoundedRectRenderer::draw(window, {startX + 950.f, toolY}, {125.f, 44.f}, 10.f, delCol);
-    drawTrashIcon(window, {startX + 964.f, toolY + 15.f}, Color::White);
+    RoundedRectRenderer::draw(window, {startX + 941.f, toolY}, {125.f, 44.f}, 10.f, delCol);
+    drawTrashIcon(window, {startX + 955.f, toolY + 15.f}, Color::White);
     Text delTxt(boldFont, L"X\u00f3a phim", 14);
     delTxt.setFillColor(Color::White);
-    delTxt.setPosition({startX + 986.f, toolY + 11.f});
+    delTxt.setPosition({startX + 977.f, toolY + 11.f});
     window.draw(delTxt);
 
     // Add Button (Ocean Blue)
     Color addCol = btnAddHover ? Color(3, 105, 161) : Color(0, 119, 182);
-    RoundedRectRenderer::draw(window, {startX + 1090.f, toolY}, {165.f, 44.f}, 10.f, addCol);
-    drawPlusIcon(window, {startX + 1106.f, toolY + 17.f}, Color::White);
+    RoundedRectRenderer::draw(window, {startX + 1079.f, toolY}, {165.f, 44.f}, 10.f, addCol);
+    drawPlusIcon(window, {startX + 1095.f, toolY + 17.f}, Color::White);
     Text addTxt(boldFont, L"Th\u00eam phim m\u1edbi", 14);
     addTxt.setFillColor(Color::White);
-    addTxt.setPosition({startX + 1126.f, toolY + 11.f});
+    addTxt.setPosition({startX + 1115.f, toolY + 11.f});
     window.draw(addTxt);
 
     // 6. DATA TABLE SUBHEADER
