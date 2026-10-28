@@ -468,30 +468,65 @@ void ShowtimePanel::render(RenderWindow& win) {
     Text valStat(font, selectedStatus, 13); valStat.setFillColor(Color(15, 23, 42)); valStat.setPosition({position.x + 62.f, fCardY + 116.f}); win.draw(valStat);
     Text arrStat(boldFont, L"\u25bc", 11); arrStat.setFillColor(Color(100, 116, 139)); arrStat.setPosition({position.x + 250.f, fCardY + 119.f}); win.draw(arrStat);
 
-    // Thẻ KPI Summary màu xanh dương bên phải
-    float kpiX = position.x + width - 380.f;
-    drawRoundedCard(win, {kpiX, fCardY + 28.f}, {280.f, 88.f}, 12.f, Color(0, 119, 182));
+    // Thẻ KPI Summary: Tách làm 2 ô màu khác nhau bên trong 1 ô card bao ngoài
+    float kpiOuterW = 320.f;
+    float kpiOuterH = 94.f;
+    float kpiOuterX = position.x + width - 365.f;
+    float kpiOuterY = fCardY + 28.f;
 
-    Text kpiNum(boldFont, to_wstring(filteredShowtimes.size()), 22);
+    // 1. Ô bao ngoài (Khung card chính)
+    drawRoundedCard(win, {kpiOuterX, kpiOuterY}, {kpiOuterW, kpiOuterH}, 12.f, Color(248, 250, 252), 1.2f, Color(226, 232, 240));
+
+    // 2. Ô trái (Màu 1 - Xanh dương đại dương #0284C7): Thống kê số lượng suất chiếu
+    float b1X = kpiOuterX + 7.f;
+    float b1Y = kpiOuterY + 7.f;
+    float b1W = 142.f;
+    float b1H = 80.f;
+    drawRoundedCard(win, {b1X, b1Y}, {b1W, b1H}, 8.f, Color(2, 132, 199));
+
+    Text kpiNum(boldFont, to_wstring(filteredShowtimes.size()), 24);
     kpiNum.setFillColor(Color::White);
-    kpiNum.setPosition({kpiX + 20.f, fCardY + 48.f});
-    win.draw(kpiNum);
+    FloatRect nb = kpiNum.getLocalBounds();
 
-    FloatRect kb = kpiNum.getGlobalBounds();
     Text kpiUnit(boldFont, L"SU\u1ea4T\nCHI\u1ebeU", 11);
     kpiUnit.setFillColor(Color(224, 242, 254));
-    kpiUnit.setPosition({std::floor(kb.position.x + kb.size.x + 8.f), std::floor(fCardY + 48.f)});
+    FloatRect ub = kpiUnit.getLocalBounds();
+
+    float totalW1 = nb.size.x + 8.f + ub.size.x;
+    float startX1 = b1X + (b1W - totalW1) / 2.f;
+    kpiNum.setPosition({std::floor(startX1 - nb.position.x), std::floor(b1Y + (b1H - nb.size.y) / 2.f - nb.position.y)});
+    kpiUnit.setPosition({std::floor(startX1 + nb.size.x + 8.f - ub.position.x), std::floor(b1Y + (b1H - ub.size.y) / 2.f - ub.position.y)});
+    win.draw(kpiNum);
     win.draw(kpiUnit);
 
-    Text kpiDate(font, L"Ng\u00e0y: 2026-10-27", 12);
-    kpiDate.setFillColor(Color(224, 242, 254));
-    kpiDate.setPosition({kpiX + 130.f, fCardY + 50.f});
-    win.draw(kpiDate);
+    // 3. Ô phải (Màu 2 - Xanh đen Navy đậm #0F172A): Thông tin ngày & phòng chiếu
+    float b2X = b1X + b1W + 6.f;
+    float b2Y = kpiOuterY + 7.f;
+    float b2W = 158.f;
+    float b2H = 80.f;
+    drawRoundedCard(win, {b2X, b2Y}, {b2W, b2H}, 8.f, Color(15, 23, 42));
 
-    Text kpiRoom(font, L"Ph\u00f2ng: " + selectedRoom, 12);
-    kpiRoom.setFillColor(Color(224, 242, 254));
-    kpiRoom.setPosition({kpiX + 130.f, fCardY + 70.f});
-    win.draw(kpiRoom);
+    float textPadX = b2X + 14.f;
+
+    Text kpiDateLbl(font, L"Ng\u00e0y: ", 12);
+    kpiDateLbl.setFillColor(Color(148, 163, 184));
+    kpiDateLbl.setPosition({std::floor(textPadX), std::floor(b2Y + 16.f)});
+    win.draw(kpiDateLbl);
+
+    Text kpiDateVal(boldFont, L"2026-10-27", 12);
+    kpiDateVal.setFillColor(Color::White);
+    kpiDateVal.setPosition({std::floor(textPadX + kpiDateLbl.getGlobalBounds().size.x), std::floor(b2Y + 16.f)});
+    win.draw(kpiDateVal);
+
+    Text kpiRoomLbl(font, L"Ph\u00f2ng: ", 12);
+    kpiRoomLbl.setFillColor(Color(148, 163, 184));
+    kpiRoomLbl.setPosition({std::floor(textPadX), std::floor(b2Y + 44.f)});
+    win.draw(kpiRoomLbl);
+
+    Text kpiRoomVal(boldFont, selectedRoom, 12);
+    kpiRoomVal.setFillColor(Color(56, 189, 248));
+    kpiRoomVal.setPosition({std::floor(textPadX + kpiRoomLbl.getGlobalBounds().size.x), std::floor(b2Y + 44.f)});
+    win.draw(kpiRoomVal);
 
     // ==========================================
     // 5. BẢNG DỮ LIỆU SUẤT CHIẾU
