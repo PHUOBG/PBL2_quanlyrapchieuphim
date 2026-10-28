@@ -29,6 +29,8 @@ class RoomPanel {
 private:
     Font& font;
     Font boldFont;
+    Texture logoTex;
+    bool hasLogo = false;
     float width;
     float height;
     Vector2f position;
