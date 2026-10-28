@@ -10,10 +10,10 @@ App::App()
 {
     window.setFramerateLimit(60);
 
-    if (!font.openFromFile("assets/fonts/Montserrat.ttf") &&
-        !font.openFromFile("../assets/fonts/Montserrat.ttf") &&
-        !font.openFromFile("assets/fonts/segoeui.ttf") &&
-        !font.openFromFile("../assets/fonts/segoeui.ttf")) {
+    if (!font.openFromFile("assets/fonts/segoeui.ttf") &&
+        !font.openFromFile("../assets/fonts/segoeui.ttf") &&
+        !font.openFromFile("assets/fonts/Montserrat.ttf") &&
+        !font.openFromFile("../assets/fonts/Montserrat.ttf")) {
         font.openFromFile("C:/Windows/Fonts/segoeui.ttf");
     }
 

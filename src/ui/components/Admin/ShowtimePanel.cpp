@@ -417,13 +417,34 @@ void ShowtimePanel::render(RenderWindow& win) {
     // 3 Nút Header
     float btnY = position.y + 78.f;
     drawRoundedCard(win, {position.x + width - 470.f, btnY}, {110.f, 38.f}, 8.f, Color::White, 1.2f, Color(203, 213, 225));
-    Text refTxt(boldFont, L"\u21bb  L\u00e0m m\u1edbi", 13); refTxt.setFillColor(Color(51, 65, 85)); refTxt.setPosition({position.x + width - 455.f, btnY + 9.f}); win.draw(refTxt);
+    Text refTxt(boldFont, L"L\u00e0m m\u1edbi", 13);
+    refTxt.setFillColor(Color(51, 65, 85));
+    FloatRect refb = refTxt.getLocalBounds();
+    refTxt.setPosition({
+        position.x + width - 470.f + (110.f - refb.size.x) / 2.f - refb.position.x,
+        btnY + (38.f - refb.size.y) / 2.f - refb.position.y
+    });
+    win.draw(refTxt);
 
-    drawRoundedCard(win, {position.x + width - 345.f, btnY}, {165.f, 38.f}, 8.f, Color::White, 1.2f, Color(203, 213, 225));
-    Text autoTxt(boldFont, L"\u2263  X\u1ebfp l\u1ecbch t\u1ef1 \u0111\u1ed9ng", 13); autoTxt.setFillColor(Color(51, 65, 85)); autoTxt.setPosition({position.x + width - 338.f, btnY + 9.f}); win.draw(autoTxt);
+    drawRoundedCard(win, {position.x + width - 350.f, btnY}, {170.f, 38.f}, 8.f, Color::White, 1.2f, Color(203, 213, 225));
+    Text autoTxt(boldFont, L"X\u1ebfp l\u1ecbch t\u1ef1 \u0111\u1ed9ng", 13);
+    autoTxt.setFillColor(Color(51, 65, 85));
+    FloatRect autob = autoTxt.getLocalBounds();
+    autoTxt.setPosition({
+        position.x + width - 350.f + (170.f - autob.size.x) / 2.f - autob.position.x,
+        btnY + (38.f - autob.size.y) / 2.f - autob.position.y
+    });
+    win.draw(autoTxt);
 
-    drawRoundedCard(win, {position.x + width - 165.f, btnY}, {135.f, 38.f}, 8.f, Color(2, 132, 199));
-    Text addTxt(boldFont, L"+ Th\u00eam su\u1ea5t m\u1edbi", 13); addTxt.setFillColor(Color::White); addTxt.setPosition({position.x + width - 157.f, btnY + 9.f}); win.draw(addTxt);
+    drawRoundedCard(win, {position.x + width - 170.f, btnY}, {140.f, 38.f}, 8.f, Color(2, 132, 199));
+    Text addTxt(boldFont, L"+ Th\u00eam su\u1ea5t m\u1edbi", 13);
+    addTxt.setFillColor(Color::White);
+    FloatRect addb = addTxt.getLocalBounds();
+    addTxt.setPosition({
+        position.x + width - 170.f + (140.f - addb.size.x) / 2.f - addb.position.x,
+        btnY + (38.f - addb.size.y) / 2.f - addb.position.y
+    });
+    win.draw(addTxt);
 
     // ==========================================
     // 4. FILTER CARD & KPI SUMMARY
@@ -435,7 +456,6 @@ void ShowtimePanel::render(RenderWindow& win) {
     Text lblDate(boldFont, L"Ng\u00e0y chi\u1ebfu", 12); lblDate.setFillColor(Color(71, 85, 105)); lblDate.setPosition({position.x + 50.f, fCardY + 16.f}); win.draw(lblDate);
     drawRoundedCard(win, {position.x + 50.f, fCardY + 38.f}, {230.f, 38.f}, 8.f, Color(248, 250, 252), 1.f, Color(203, 213, 225));
     Text valDate(font, L"10/27/2026", 13); valDate.setFillColor(Color(15, 23, 42)); valDate.setPosition({position.x + 62.f, fCardY + 47.f}); win.draw(valDate);
-    Text calIcon(boldFont, L"\u25a1", 14); calIcon.setFillColor(Color(100, 116, 139)); calIcon.setPosition({position.x + 250.f, fCardY + 47.f}); win.draw(calIcon);
 
     // Phòng chiếu
     Text lblRoom(boldFont, L"Ph\u00f2ng chi\u1ebfu", 12); lblRoom.setFillColor(Color(71, 85, 105)); lblRoom.setPosition({position.x + 310.f, fCardY + 16.f}); win.draw(lblRoom);
