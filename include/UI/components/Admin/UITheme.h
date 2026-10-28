@@ -140,70 +140,76 @@ namespace UITheme {
     // Standard Top Bar Navigation & Admin Profile Header
     inline void drawTopBar(RenderTarget& target, float startX, float panelY, float panelWidth,
                            const wstring& sectionName, const Font& font, const Font& boldFont) {
+        (void)sectionName;
         (void)font;
-        // 1. Breadcrumb Container (Pill badge)
-        float bcY = panelY + 20.f;
-        RoundedRectRenderer::draw(target, {startX, bcY}, {185.f, 28.f}, 14.f, PrimaryLight, 1.2f, PrimaryBorder);
 
-        // Checkmark / Pin Icon
+        // 1. "CỔNG QUẢN TRỊ" Pill Badge (Tự co giãn chuẩn xác theo nội dung, căn giữa hoàn hảo)
+        float bcY = panelY + 18.f;
+        Text bc1(boldFont, L"CỔNG QUẢN TRỊ", 11.5f);
+        bc1.setFillColor(Color(2, 132, 199));
+        FloatRect bcb = bc1.getLocalBounds();
+
+        float pillH = 28.f;
+        float pillW = bcb.size.x + 36.f; // 10px lề trái + 7px chấm tròn + 6px khoảng cách + chữ + 13px lề phải
+        RoundedRectRenderer::draw(target, {startX, bcY}, {pillW, pillH}, pillH / 2.f, Color(224, 242, 254), 1.f, Color(186, 230, 253));
+
         CircleShape pin(3.5f, 10);
-        pin.setFillColor(PrimaryHover);
-        pin.setPosition({startX + 12.f, bcY + 10.5f});
+        pin.setFillColor(Color(2, 132, 199));
+        pin.setPosition({startX + 10.f, bcY + (pillH - 7.f) / 2.f});
         target.draw(pin);
 
-        Text bc1(boldFont, L"CỔNG QUẢN TRỊ", BreadcrumbSize - 1);
-        bc1.setFillColor(PrimaryHover);
-        bc1.setPosition({startX + 24.f, bcY + 6.f});
+        bc1.setPosition({
+            startX + 22.f - bcb.position.x,
+            bcY + (pillH - bcb.size.y) / 2.f - bcb.position.y - 1.f
+        });
         target.draw(bc1);
 
-        Text bc2(boldFont, L"/   HỆ THỐNG   /   " + sectionName, BreadcrumbSize);
-        bc2.setFillColor(Color(51, 65, 85));
-        bc2.setPosition({startX + 196.f, bcY + 6.f});
-        target.draw(bc2);
+        // (Đã loại bỏ chuỗi điều hướng tĩnh '/ HỆ THỐNG / QUẢN LÝ PHIM' theo yêu cầu)
+        // (Đã loại bỏ chuông thông báo không có chức năng theo yêu cầu)
 
-        // 2. Right-side Status, Bell & Admin Profile Pill
-        float rightEdge = startX + panelWidth - 70.f;
+        // 2. Admin Profile Pill (Cân đối hoàn hảo ảnh đại diện và chữ)
+        float userW = 205.f;
+        float userH = 42.f;
+        float userY = panelY + 12.f;
+        float userX = startX + panelWidth - userW;
 
-        // Notification Bell
-        float bellX = rightEdge - 245.f;
-        RoundedRectRenderer::draw(target, {bellX, bcY - 2.f}, {36.f, 36.f}, 18.f, Surface, 1.2f, BorderMedium);
-        // Simple bell vector icon
-        RectangleShape bBody({10.f, 8.f});
-        bBody.setFillColor(TextSecondary);
-        bBody.setPosition({bellX + 13.f, bcY + 12.f});
-        target.draw(bBody);
-        CircleShape bTop(2.f, 8);
-        bTop.setFillColor(TextSecondary);
-        bTop.setPosition({bellX + 16.f, bcY + 9.f});
-        target.draw(bTop);
-        // Active notification dot
-        CircleShape bDot(3.5f, 8);
-        bDot.setFillColor(Danger);
-        bDot.setPosition({bellX + 23.f, bcY + 6.f});
-        target.draw(bDot);
+        RoundedRectRenderer::draw(target, {userX, userY}, {userW, userH}, userH / 2.f, Color::White, 1.2f, Color(203, 213, 225));
 
-        // User Avatar Pill
-        float userX = rightEdge - 198.f;
-        RoundedRectRenderer::draw(target, {userX, bcY - 4.f}, {198.f, 40.f}, 20.f, Surface, 1.2f, BorderMedium);
-
-        CircleShape av(15.f, 16);
-        av.setFillColor(Primary);
-        av.setPosition({userX + 5.f, bcY + 1.f});
+        // Avatar tròn đường kính 32px
+        float avRadius = 16.f;
+        CircleShape av(avRadius, 24);
+        av.setFillColor(Color(0, 119, 182));
+        av.setPosition({userX + 5.f, userY + 5.f});
         target.draw(av);
 
+        // Ký tự "AD" căn giữa tuyệt đối trong vòng tròn
         Text avTxt(boldFont, L"AD", 12);
-        avTxt.setFillColor(TextWhite);
-        avTxt.setPosition({userX + 12.f, bcY + 8.f});
+        avTxt.setFillColor(Color::White);
+        FloatRect atb = avTxt.getLocalBounds();
+        avTxt.setPosition({
+            userX + 5.f + avRadius - atb.size.x / 2.f - atb.position.x,
+            userY + 5.f + avRadius - atb.size.y / 2.f - atb.position.y - 1.f
+        });
         target.draw(avTxt);
 
+        // Khối văn bản Admin CineCore & Toàn quyền
+        float textStartX = userX + 44.f;
         Text uName(boldFont, L"Admin CineCore", 13);
-        uName.setFillColor(TextPrimary);
-        uName.setPosition({userX + 42.f, bcY + 4.f});
+        uName.setFillColor(Color(15, 23, 42));
+        FloatRect unb = uName.getLocalBounds();
+        uName.setPosition({
+            textStartX - unb.position.x,
+            userY + 7.f - unb.position.y
+        });
         target.draw(uName);
 
         Text uRole(boldFont, L"Toàn quyền • SuperAdmin", 11.5f);
-        uRole.setFillColor(TextSecondary);
-        uRole.setPosition({userX + 42.f, bcY + 20.f});
+        uRole.setFillColor(Color(100, 116, 139));
+        FloatRect urb = uRole.getLocalBounds();
+        uRole.setPosition({
+            textStartX - urb.position.x,
+            userY + 23.f - urb.position.y
+        });
         target.draw(uRole);
     }
 

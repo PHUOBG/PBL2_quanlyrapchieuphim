@@ -206,10 +206,16 @@ void AdminSidebar::render(RenderWindow& window) {
     }
 
     // Badge ADMIN
-    RoundedRectRenderer::draw(window, {position.x + width - 66.f, position.y + 24.f}, {50.f, 22.f}, 11.f, Color(0, 95, 146));
+    Vector2f bPos(position.x + width - 68.f, position.y + 24.f);
+    Vector2f bSize(52.f, 22.f);
+    RoundedRectRenderer::draw(window, bPos, bSize, 11.f, Color(0, 95, 146));
     Text admTxt(boldFont, L"ADMIN", 11);
     admTxt.setFillColor(Color(224, 242, 254));
-    admTxt.setPosition({position.x + width - 56.f, position.y + 27.f});
+    FloatRect ab = admTxt.getLocalBounds();
+    admTxt.setPosition({
+        bPos.x + (bSize.x - ab.size.x) / 2.f - ab.position.x,
+        bPos.y + (bSize.y - ab.size.y) / 2.f - ab.position.y - 1.f
+    });
     window.draw(admTxt);
 
     // 3. Render các nhóm và mục chức năng
