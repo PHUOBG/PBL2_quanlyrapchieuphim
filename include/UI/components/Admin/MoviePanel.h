@@ -5,6 +5,7 @@
 #include "UI/components/Admin/RoundedRectRenderer.h"
 #include <string>
 #include <vector>
+#include <map>
 #include <memory>
 
 using namespace sf;
@@ -24,6 +25,9 @@ private:
     Font boldFont;
     float width, height;
     Vector2f position;
+
+    map<string, Texture> posterCache;
+    const Texture* getPosterTexture(const string& rawPath, const string& movieId = "");
 
     unique_ptr<AdminMovieRepository> repository;
     vector<vector<string>> allMovies;

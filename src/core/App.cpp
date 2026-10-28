@@ -5,13 +5,27 @@ using namespace sf;
 
 App::App()
     : window(VideoMode({1728, 972}), L"PBL2 - HỆ THỐNG ĐẶT VÉ XEM PHIM KẾT HỢP THỐNG KÊ PHÂN TÍCH DOANH THU", Style::Titlebar | Style::Close),
-      font("../assets/fonts/segoeui.ttf"),
-      detail_font("../assets/fonts/quicksand_medium.ttf"),
-      title_font("../assets/fonts/BEBAS_NEUE_ZSMALL.ttf"),
       state(AppState::LOGIN),
       previousState(AppState::LOGIN)
 {
     window.setFramerateLimit(60);
+
+    if (!font.openFromFile("assets/fonts/Montserrat.ttf") &&
+        !font.openFromFile("../assets/fonts/Montserrat.ttf") &&
+        !font.openFromFile("assets/fonts/segoeui.ttf") &&
+        !font.openFromFile("../assets/fonts/segoeui.ttf")) {
+        font.openFromFile("C:/Windows/Fonts/segoeui.ttf");
+    }
+
+    if (!detail_font.openFromFile("assets/fonts/quicksand_medium.ttf") &&
+        !detail_font.openFromFile("../assets/fonts/quicksand_medium.ttf")) {
+        detail_font = font;
+    }
+
+    if (!title_font.openFromFile("assets/fonts/BEBAS_NEUE_ZSMALL.ttf") &&
+        !title_font.openFromFile("../assets/fonts/BEBAS_NEUE_ZSMALL.ttf")) {
+        title_font = font;
+    }
 
     // Set Window and Taskbar Icon
     Image appIcon;

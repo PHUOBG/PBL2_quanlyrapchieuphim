@@ -2,6 +2,7 @@
 #include <SFML/Graphics.hpp>
 #include <memory>
 #include <vector>
+#include <map>
 #include <string>
 
 using namespace sf;
@@ -25,6 +26,9 @@ private:
     float width;
     float height;
     Vector2f position;
+
+    map<string, Texture> comboCache;
+    const Texture* getComboTexture(const string& comboId, const wstring& name);
 
     vector<ComboItem> allCombos;
     vector<ComboItem> filteredCombos;

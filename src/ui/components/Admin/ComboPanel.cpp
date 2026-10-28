@@ -38,12 +38,66 @@ static string formatPrice(int price) {
 
 ComboPanel::ComboPanel(Font& fontRef, float w, float h)
     : font(fontRef),
-      boldFont("../assets/fonts/segoeuib.ttf"),
       width(w), height(h), position(280.f, 0.f)
 {
+    if (!boldFont.openFromFile("assets/fonts/Montserrat_SemiBold.ttf") &&
+        !boldFont.openFromFile("../assets/fonts/Montserrat_SemiBold.ttf") &&
+        !boldFont.openFromFile("assets/fonts/segoeuib.ttf") &&
+        !boldFont.openFromFile("../assets/fonts/segoeuib.ttf")) {
+        boldFont.openFromFile("C:/Windows/Fonts/segoeuib.ttf");
+    }
     initDefaultCombos();
     loadCombosFromFile();
     applyFilter();
+}
+
+const Texture* ComboPanel::getComboTexture(const string& id, const wstring& name) {
+    auto it = comboCache.find(id);
+    if (it != comboCache.end()) return &it->second;
+
+    string filename = "";
+    if (id == "CB01") filename = "combo_coca_cola.jpg";
+    else if (id == "CB02") filename = "combo_bap_caramel.jpg";
+    else if (id == "CB03") filename = "combo_bap_pho_mai.jpg";
+    else if (id == "CB04") filename = "combo_coca_cola_bap_caramel.jpg";
+    else if (id == "CB05") filename = "combo_coca_cola_bap_pho_mai.jpg";
+    else if (id == "CB06") filename = "combo_nhom_2_coca_cola_bap_caramel.jpg";
+    else if (id == "CB07") filename = "combo_coca_cola_bap_pho_mai.jpg";
+    else if (id == "CB08") filename = "combo_coca_cola_bap_caramel.jpg";
+    else if (id == "CB09") filename = "combo_coca_cola_bap_pho_mai.jpg";
+    else if (id == "CB10") filename = "combo_nhom_2_coca_cola_bap_caramel.jpg";
+    else {
+        if (name.find(L"Coca") != wstring::npos && name.find(L"Bắp") != wstring::npos)
+            filename = "combo_coca_cola_bap_caramel.jpg";
+        else if (name.find(L"Coca") != wstring::npos)
+            filename = "combo_coca_cola.jpg";
+        else if (name.find(L"Phô Mai") != wstring::npos)
+            filename = "combo_bap_pho_mai.jpg";
+        else
+            filename = "combo_bap_caramel.jpg";
+    }
+
+    vector<string> candidates = {
+        "assets/combos/" + filename,
+        "../assets/combos/" + filename,
+        "../../assets/combos/" + filename
+    };
+
+    Texture tex;
+    tex.setSmooth(true);
+    bool loaded = false;
+    for (const auto& c : candidates) {
+        if (tex.loadFromFile(c)) {
+            loaded = true;
+            break;
+        }
+    }
+
+    if (loaded) {
+        comboCache[id] = std::move(tex);
+        return &comboCache[id];
+    }
+    return nullptr;
 }
 
 void ComboPanel::setPosition(Vector2f pos) {
@@ -582,12 +636,23 @@ void ComboPanel::render(RenderWindow& win) {
         Text idTxt(boldFont, s2ws(itm.id), 12.5f); idTxt.setFillColor(Color(51, 65, 85)); idTxt.setPosition({position.x + 90.f, rY + 27.f}); win.draw(idTxt);
 
         // 3. Tên combo & Quy chuẩn chi tiết
-        // Icon hình tượng (Cốc nước / Hộp bắp)
-        drawRoundedCard(win, {position.x + 180.f, rY + 16.f}, {40.f, 40.f}, 8.f, itm.category == L"\u0110\u1ed3 u\u1ed1ng" ? Color(254, 226, 226) : Color(254, 243, 199));
-        Text icDish(boldFont, itm.category == L"\u0110\u1ed3 u\u1ed1ng" ? L"\U0001F964" : L"\U0001F37F", 14);
-        icDish.setFillColor(Color(180, 83, 9));
-        icDish.setPosition({position.x + 192.f, rY + 26.f});
-        win.draw(icDish);
+        // Real photo image from assets/combos
+        const Texture* cTex = getComboTexture(itm.id, itm.name);
+        if (cTex) {
+            drawRoundedCard(win, {position.x + 175.f, rY + 14.f}, {44.f, 44.f}, 8.f, Color::White, 1.2f, Color(226, 232, 240));
+            Sprite spr(*cTex);
+            Vector2u sz = cTex->getSize();
+            spr.setScale({42.f / (float)sz.x, 42.f / (float)sz.y});
+            spr.setPosition({position.x + 176.f, rY + 15.f});
+            win.draw(spr);
+            drawRoundedCard(win, {position.x + 176.f, rY + 15.f}, {42.f, 42.f}, 6.f, Color::Transparent, 1.f, Color(203, 213, 225));
+        } else {
+            drawRoundedCard(win, {position.x + 176.f, rY + 15.f}, {42.f, 42.f}, 8.f, itm.category == L"Đồ uống" ? Color(254, 226, 226) : Color(254, 243, 199));
+            Text icDish(boldFont, itm.category == L"Đồ uống" ? L"DRINK" : L"SNACK", 10);
+            icDish.setFillColor(Color(180, 83, 9));
+            icDish.setPosition({position.x + 180.f, rY + 28.f});
+            win.draw(icDish);
+        }
 
         Text nameTxt(boldFont, itm.name, 13.5f);
         nameTxt.setFillColor(Color(15, 23, 42));

@@ -2,8 +2,13 @@
 
 AdminScreen::AdminScreen(Font& font, RenderWindow& win, AppState& state, AuthService* auth)
     : BaseScreen(font), window(win), appState(state), authService(auth),
-      boldFont("../assets/fonts/segoeuib.ttf"),
       currentPanelState(AppState::ADMIN_DASHBOARD) {
+    if (!boldFont.openFromFile("assets/fonts/Montserrat_SemiBold.ttf") &&
+        !boldFont.openFromFile("../assets/fonts/Montserrat_SemiBold.ttf") &&
+        !boldFont.openFromFile("assets/fonts/segoeuib.ttf") &&
+        !boldFont.openFromFile("../assets/fonts/segoeuib.ttf")) {
+        boldFont.openFromFile("C:/Windows/Fonts/segoeuib.ttf");
+    }
     
     // Get current user
     User* currentUser = authService ? authService->getCurrentUser() : nullptr;

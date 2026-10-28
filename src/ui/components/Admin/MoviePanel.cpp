@@ -26,11 +26,79 @@ static string ws2s(const wstring& ws) {
 
 MoviePanel::MoviePanel(Font& fontRef, float w, float h)
     : font(fontRef),
-      boldFont("../assets/fonts/segoeuib.ttf"),
-      width(w), height(h), position(350.f, 0.f)
+      width(w), height(h), position(280.f, 0.f)
 {
+    if (!boldFont.openFromFile("assets/fonts/Montserrat_SemiBold.ttf") &&
+        !boldFont.openFromFile("../assets/fonts/Montserrat_SemiBold.ttf") &&
+        !boldFont.openFromFile("assets/fonts/segoeuib.ttf") &&
+        !boldFont.openFromFile("../assets/fonts/segoeuib.ttf")) {
+        boldFont.openFromFile("C:/Windows/Fonts/segoeuib.ttf");
+    }
     repository = make_unique<AdminMovieRepository>(FileUtils::resolveDataPath("data/movies.txt"));
     refreshData();
+}
+
+const Texture* MoviePanel::getPosterTexture(const string& rawPath, const string& movieId) {
+    string key = rawPath.empty() ? movieId : rawPath;
+    if (key.empty()) return nullptr;
+    auto it = posterCache.find(key);
+    if (it != posterCache.end()) return &it->second;
+
+    Texture tex;
+    tex.setSmooth(true);
+
+    vector<string> candidates;
+    if (!rawPath.empty()) {
+        candidates.push_back(rawPath);
+        candidates.push_back(FileUtils::resolveDataPath(rawPath));
+        auto p = rawPath.find_last_of("/\\");
+        string fname = (p == string::npos) ? rawPath : rawPath.substr(p + 1);
+        candidates.push_back("assets/posters/" + fname);
+        candidates.push_back("../assets/posters/" + fname);
+        candidates.push_back("../../assets/posters/" + fname);
+    }
+
+    if (movieId == "#PBL-001") {
+        candidates.push_back("assets/posters/latmat6-tamvedinhmenh.jpg");
+        candidates.push_back("../assets/posters/latmat6-tamvedinhmenh.jpg");
+    } else if (movieId == "#PBL-002") {
+        candidates.push_back("assets/posters/spiderman.jpg");
+        candidates.push_back("../assets/posters/spiderman.jpg");
+    } else if (movieId == "#PBL-003") {
+        candidates.push_back("assets/posters/vayhamkhongloithoat.jpg");
+        candidates.push_back("../assets/posters/vayhamkhongloithoat.jpg");
+    } else if (movieId == "#PBL-004") {
+        candidates.push_back("assets/posters/PBl04.jpg");
+        candidates.push_back("../assets/posters/PBl04.jpg");
+    } else if (movieId == "#PBL-005") {
+        candidates.push_back("assets/posters/cuocchienbatu.jpg");
+        candidates.push_back("../assets/posters/cuocchienbatu.jpg");
+    } else if (movieId == "#PBL-006") {
+        candidates.push_back("assets/posters/dune-part-two.png");
+        candidates.push_back("../assets/posters/dune-part-two.png");
+    } else if (movieId == "#PBL-007") {
+        candidates.push_back("assets/posters/mai.png");
+        candidates.push_back("../assets/posters/mai.png");
+    } else if (movieId == "#PBL-008") {
+        candidates.push_back("assets/posters/panda4.jpg");
+        candidates.push_back("../assets/posters/panda4.jpg");
+        candidates.push_back("assets/posters/inside-out.png");
+        candidates.push_back("../assets/posters/inside-out.png");
+    }
+
+    bool loaded = false;
+    for (const auto& c : candidates) {
+        if (!c.empty() && tex.loadFromFile(c)) {
+            loaded = true;
+            break;
+        }
+    }
+
+    if (loaded) {
+        posterCache[key] = std::move(tex);
+        return &posterCache[key];
+    }
+    return nullptr;
 }
 
 void MoviePanel::setPosition(Vector2f pos) {
@@ -861,14 +929,29 @@ void MoviePanel::render(RenderWindow& window) {
         float col2X = startX + 140.f;
         string fmtStr = (idx == 1) ? "IMAX 3D" : ((idx == 2) ? "2D Digital" : ((idx == 3) ? "4DX / 3D" : ((idx == 4) ? "2D Lồng tiếng" : "2D / Atmos")));
 
-        // Poster box: Premium dark slate miniature frame with film icon
-        RoundedRectRenderer::draw(window, {col2X, rY + 12.f}, {42.f, 56.f}, 6.f, UITheme::TextPrimary);
-        RoundedRectRenderer::draw(window, {col2X + 2.f, rY + 14.f}, {38.f, 52.f}, 4.f, Color(30, 41, 59));
-        drawFilmIcon(window, {col2X + 13.f, rY + 28.f}, UITheme::PrimaryBorder);
-        Text postFmt(boldFont, s2ws(fmtStr.substr(0, 3)), 8);
-        postFmt.setFillColor(UITheme::TextTertiary);
-        postFmt.setPosition({col2X + 11.f, rY + 48.f});
-        window.draw(postFmt);
+        // Poster box: Real cinema movie poster loaded from assets/posters
+        string pPath = (row.size() > 12) ? row[12] : "";
+        const Texture* pTex = getPosterTexture(pPath, idStr);
+        if (pTex) {
+            // Draw background card & border
+            RoundedRectRenderer::draw(window, {col2X - 1.f, rY + 11.f}, {44.f, 58.f}, 6.f, Color::White, 1.2f, UITheme::BorderLight);
+            Sprite spr(*pTex);
+            Vector2u sz = pTex->getSize();
+            spr.setScale({42.f / (float)sz.x, 56.f / (float)sz.y});
+            spr.setPosition({col2X, rY + 12.f});
+            window.draw(spr);
+            // Subtle glossy outline
+            RoundedRectRenderer::draw(window, {col2X, rY + 12.f}, {42.f, 56.f}, 5.f, Color::Transparent, 1.f, Color(255, 255, 255, 60));
+        } else {
+            // Fallback film frame
+            RoundedRectRenderer::draw(window, {col2X, rY + 12.f}, {42.f, 56.f}, 6.f, UITheme::TextPrimary);
+            RoundedRectRenderer::draw(window, {col2X + 2.f, rY + 14.f}, {38.f, 52.f}, 4.f, Color(30, 41, 59));
+            drawFilmIcon(window, {col2X + 13.f, rY + 28.f}, UITheme::PrimaryBorder);
+            Text postFmt(boldFont, s2ws(fmtStr.substr(0, 3)), 8);
+            postFmt.setFillColor(UITheme::TextTertiary);
+            postFmt.setPosition({col2X + 11.f, rY + 48.f});
+            window.draw(postFmt);
+        }
 
         // Title
         string titleStr = (row.size() > 1) ? row[1] : "";

@@ -1,0 +1,32 @@
+[
+  {
+    "file": "combos/combo_coca_cola.jpg",
+    "name_vi": "Coca-Cola",
+    "type": "illustration_generated_for_mock_data"
+  },
+  {
+    "file": "combos/combo_bap_caramel.jpg",
+    "name_vi": "Bắp caramel",
+    "type": "illustration_generated_for_mock_data"
+  },
+  {
+    "file": "combos/combo_bap_pho_mai.jpg",
+    "name_vi": "Bắp phô mai",
+    "type": "illustration_generated_for_mock_data"
+  },
+  {
+    "file": "combos/combo_coca_cola_bap_caramel.jpg",
+    "name_vi": "Coca-Cola + bắp caramel",
+    "type": "illustration_generated_for_mock_data"
+  },
+  {
+    "file": "combos/combo_coca_cola_bap_pho_mai.jpg",
+    "name_vi": "Coca-Cola + bắp phô mai",
+    "type": "illustration_generated_for_mock_data"
+  },
+  {
+    "file": "combos/combo_nhom_2_coca_cola_bap_caramel.jpg",
+    "name_vi": "Combo nhóm: 2 Coca-Cola + bắp caramel",
+    "type": "illustration_generated_for_mock_data"
+  }
+]
