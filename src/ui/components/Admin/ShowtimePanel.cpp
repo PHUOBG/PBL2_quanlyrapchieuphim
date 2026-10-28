@@ -282,9 +282,8 @@ void ShowtimePanel::handleEvent(const Event& event, const RenderWindow& win) {
                 float rY = tableY + 44.f + r * rowH;
                 float actX = position.x + width - 110.f;
 
-                FloatRect btnEdit({actX, rY + 10.f}, {24.f, 24.f});
-                FloatRect btnSeats({actX + 30.f, rY + 10.f}, {24.f, 24.f});
-                FloatRect btnDel({actX + 60.f, rY + 10.f}, {24.f, 24.f});
+                FloatRect btnEdit({actX, rY + 8.f}, {36.f, 26.f});
+                FloatRect btnDel({actX + 42.f, rY + 8.f}, {36.f, 26.f});
 
                 if (btnEdit.contains(mousePos)) {
                     int realIdx = startIdx + r;
@@ -311,7 +310,7 @@ void ShowtimePanel::handleEvent(const Event& event, const RenderWindow& win) {
             }
 
             // Phân trang
-            float pagY = position.y + 800.f;
+            float pagY = position.y + 830.f;
             FloatRect btnPrev({position.x + width - 260.f, pagY}, {55.f, 32.f});
             FloatRect btnP1({position.x + width - 195.f, pagY}, {32.f, 32.f});
             FloatRect btnP2({position.x + width - 155.f, pagY}, {32.f, 32.f});
@@ -479,9 +478,9 @@ void ShowtimePanel::render(RenderWindow& win) {
     win.draw(kpiNum);
 
     FloatRect kb = kpiNum.getGlobalBounds();
-    Text kpiUnit(boldFont, L"SU\u1ea5T\nCHI\u1ebeU", 11.5f);
+    Text kpiUnit(boldFont, L"SU\u1ea4T\nCHI\u1ebeU", 11);
     kpiUnit.setFillColor(Color(224, 242, 254));
-    kpiUnit.setPosition({kb.position.x + kb.size.x + 8.f, fCardY + 48.f});
+    kpiUnit.setPosition({std::floor(kb.position.x + kb.size.x + 8.f), std::floor(fCardY + 48.f)});
     win.draw(kpiUnit);
 
     Text kpiDate(font, L"Ng\u00e0y: 2026-10-27", 12);
@@ -493,10 +492,6 @@ void ShowtimePanel::render(RenderWindow& win) {
     kpiRoom.setFillColor(Color(224, 242, 254));
     kpiRoom.setPosition({kpiX + 130.f, fCardY + 70.f});
     win.draw(kpiRoom);
-
-    // Nút Sync đảo lịch
-    drawRoundedCard(win, {kpiX + 295.f, fCardY + 46.f}, {48.f, 48.f}, 8.f, Color(0, 119, 182));
-    Text syncIcon(boldFont, L"\u21bb", 20); syncIcon.setFillColor(Color::White); syncIcon.setPosition({kpiX + 310.f, fCardY + 56.f}); win.draw(syncIcon);
 
     // ==========================================
     // 5. BẢNG DỮ LIỆU SUẤT CHIẾU
@@ -513,7 +508,7 @@ void ShowtimePanel::render(RenderWindow& win) {
     Text h3(boldFont, L"PHIM", 12); h3.setFillColor(Color::White); h3.setPosition({position.x + 380.f, tableY + 14.f}); win.draw(h3);
     Text h4(boldFont, L"GI\u00c1 V\u00c9", 12); h4.setFillColor(Color::White); h4.setPosition({position.x + 650.f, tableY + 14.f}); win.draw(h4);
     Text h5(boldFont, L"T\u1ef8 L\u1ec6 L\u1ea4P \u0110\u1ea6Y", 12); h5.setFillColor(Color::White); h5.setPosition({position.x + 780.f, tableY + 14.f}); win.draw(h5);
-    Text h6(boldFont, L"THAO T\u00c1C", 12); h6.setFillColor(Color::White); h6.setPosition({position.x + width - 130.f, tableY + 14.f}); win.draw(h6);
+    Text h6(boldFont, L"THAO T\u00c1C", 12); h6.setFillColor(Color::White); h6.setPosition({position.x + width - 105.f, tableY + 14.f}); win.draw(h6);
 
     // Các dòng dữ liệu
     int startIdx = (currentPage - 1) * pageSize;
@@ -557,17 +552,25 @@ void ShowtimePanel::render(RenderWindow& win) {
         float fillW = max(4.f, 100.f * ((float)itm.bookedSeats / itm.totalSeats));
         drawRoundedCard(win, {position.x + 780.f, rY + 28.f}, {fillW, 4.f}, 2.f, barCol);
 
-        // 6. Thao tác: Bút chì, Ghế, Thùng rác
+        // 6. Thao tác: Sửa, Xóa
         float actX = position.x + width - 110.f;
-        Text icEdit(boldFont, L"\u270e", 14); icEdit.setFillColor(Color(148, 163, 184)); icEdit.setPosition({actX, rY + 14.f}); win.draw(icEdit);
-        Text icSeat(boldFont, L"\u229e", 14); icSeat.setFillColor(Color(148, 163, 184)); icSeat.setPosition({actX + 30.f, rY + 14.f}); win.draw(icSeat);
-        Text icDel(boldFont, L"\u2296", 14); icDel.setFillColor(Color(148, 163, 184)); icDel.setPosition({actX + 60.f, rY + 14.f}); win.draw(icDel);
+        drawRoundedCard(win, {actX, rY + 9.f}, {36.f, 26.f}, 4.f, Color(241, 245, 249), 1.f, Color(203, 213, 225));
+        Text btnEditTxt(boldFont, L"S\u1eeda", 11);
+        btnEditTxt.setFillColor(Color(2, 132, 199));
+        btnEditTxt.setPosition({std::floor(actX + 7.f), std::floor(rY + 13.f)});
+        win.draw(btnEditTxt);
+
+        drawRoundedCard(win, {actX + 42.f, rY + 9.f}, {36.f, 26.f}, 4.f, Color(254, 242, 242), 1.f, Color(254, 202, 202));
+        Text btnDelTxt(boldFont, L"X\u00f3a", 11);
+        btnDelTxt.setFillColor(Color(239, 68, 68));
+        btnDelTxt.setPosition({std::floor(actX + 49.f), std::floor(rY + 13.f)});
+        win.draw(btnDelTxt);
     }
 
     // ==========================================
     // 6. PHÂN TRANG (Pagination)
     // ==========================================
-    float pagY = position.y + 796.f;
+    float pagY = position.y + 830.f;
     wstring showInfo = L"Hi\u1ec3n th\u1ecb 1 \u2013 " + to_wstring(count) + L" tr\u00ean t\u1ed5ng s\u1ed1 " + to_wstring(filteredShowtimes.size()) + L" su\u1ea5t chi\u1ebfu";
     Text pageInfo(font, showInfo, 12); pageInfo.setFillColor(Color(100, 116, 139)); pageInfo.setPosition({position.x + 30.f, pagY + 6.f}); win.draw(pageInfo);
 
@@ -597,7 +600,7 @@ void ShowtimePanel::render(RenderWindow& win) {
     // ==========================================
     // 7. KHỐI CHÍNH SÁCH RẠP (POLICY NOTE BOX)
     // ==========================================
-    float noteY = position.y + 850.f;
+    float noteY = position.y + 876.f;
     drawRoundedCard(win, {position.x + 30.f, noteY}, {tableW, 60.f}, 8.f, Color(238, 248, 255), 1.f, Color(186, 230, 253));
 
     // Icon info

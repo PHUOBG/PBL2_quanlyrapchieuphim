@@ -615,17 +615,6 @@ void RoomPanel::render(RenderWindow& win) {
     });
     win.draw(secHeadTxt);
 
-    // Badge tĩnh số lượng phòng chiếu
-    drawRoundedCard(win, {position.x + 325.f, position.y + 156.f}, {125.f, 36.f}, 8.f, Color(241, 245, 249), 1.f, Color(226, 232, 240));
-    Text cntRooms(boldFont, to_wstring(rooms.size()) + L" ph\u00f2ng chi\u1ebfu", 12.5f);
-    cntRooms.setFillColor(Color(71, 85, 105));
-    FloatRect crb = cntRooms.getLocalBounds();
-    cntRooms.setPosition({
-        position.x + 325.f + (125.f - crb.size.x) / 2.f - crb.position.x,
-        position.y + 156.f + (36.f - crb.size.y) / 2.f - crb.position.y
-    });
-    win.draw(cntRooms);
-
     // ==========================================
     // 5. CỘT TRÁI: FORM "THÔNG TIN PHÒNG CHIẾU"
     // ==========================================
@@ -634,23 +623,23 @@ void RoomPanel::render(RenderWindow& win) {
     float cardH = height - 230.f;
     drawRoundedCard(win, {position.x + 30.f, cardY}, {leftCardW, cardH}, 14.f, Color::White, 1.f, Color(226, 232, 240));
 
-    // Tiêu đề form & Badge "BÌNH THƯỜNG" (cân đối trong card)
+    // Tiêu đề form & Badge "BÌNH THƯỜNG" (cân đối, sắc nét)
     Text formTitle(boldFont, L"Th\u00f4ng tin ph\u00f2ng chi\u1ebfu", 16);
     formTitle.setFillColor(Color(15, 23, 42));
     formTitle.setPosition({position.x + 50.f, cardY + 20.f});
     win.draw(formTitle);
 
-    float sBadgeW = 100.f;
-    float sBadgeH = 24.f;
+    float sBadgeW = 104.f;
+    float sBadgeH = 26.f;
     float sBadgeX = position.x + 30.f + leftCardW - 20.f - sBadgeW;
     float sBadgeY = cardY + 18.f;
-    drawRoundedCard(win, {sBadgeX, sBadgeY}, {sBadgeW, sBadgeH}, 12.f, Color(209, 250, 229));
-    Text stBadge(boldFont, L"B\u00ccNH TH\u01af\u1edcNG", 11.f);
-    stBadge.setFillColor(Color(5, 150, 105));
+    drawRoundedCard(win, {sBadgeX, sBadgeY}, {sBadgeW, sBadgeH}, 13.f, Color(209, 250, 229));
+    Text stBadge(boldFont, L"B\u00ccNH TH\u01af\u1edcNG", 12);
+    stBadge.setFillColor(Color(4, 120, 87));
     FloatRect sbb = stBadge.getLocalBounds();
     stBadge.setPosition({
-        sBadgeX + (sBadgeW - sbb.size.x) / 2.f - sbb.position.x,
-        sBadgeY + (sBadgeH - sbb.size.y) / 2.f - sbb.position.y
+        std::floor(sBadgeX + (sBadgeW - sbb.size.x) / 2.f - sbb.position.x + 0.5f),
+        std::floor(sBadgeY + (sBadgeH - sbb.size.y) / 2.f - sbb.position.y + 0.5f)
     });
     win.draw(stBadge);
 
