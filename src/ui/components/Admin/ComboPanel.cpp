@@ -411,7 +411,7 @@ void ComboPanel::render(RenderWindow& win) {
     // ==========================================
     // 2. TOP BAR
     // ==========================================
-    Text bc1(boldFont, L"\u2263  PBL2 - H\u1ec6 TH\u1ed0NG QU\u1ea2N L\u00dd R\u1ea0P CHI\u1ebeU PHIM & TH\u1ed0NG K\u00ca DOANH THU", 12);
+    Text bc1(boldFont, L"\u2263  PBL2 - H\u1ec6 TH\u1ed0NG \u0110\u1eb6T V\u00c9 XEM PHIM K\u1ebeT H\u1ee2P TH\u1ed0NG K\u00ca PH\u00c2N T\u00cdCH DOANH THU", 12);
     bc1.setFillColor(Color(2, 132, 199));
     bc1.setPosition({position.x + 30.f, position.y + 20.f});
     win.draw(bc1);

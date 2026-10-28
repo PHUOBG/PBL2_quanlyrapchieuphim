@@ -35,6 +35,14 @@ AdminSidebar::AdminSidebar(float w, float h, const string& uName)
         {SidebarElementType::MENU_ITEM, L"Th\u00f4ng tin c\u00e1 nh\u00e2n", AppState::ADMIN_CHANGE_PASSWORD, {}}
     };
 
+    if (logoTexture.loadFromFile("../assets/elements/cinexine_logo.png") ||
+        logoTexture.loadFromFile("assets/elements/cinexine_logo.png") ||
+        logoTexture.loadFromFile("../assets/elements/icon.png") ||
+        logoTexture.loadFromFile("assets/elements/icon.png")) {
+        logoTexture.setSmooth(true);
+        logoSprite.emplace(logoTexture);
+    }
+
     recalculateLayout();
 }
 
@@ -162,20 +170,40 @@ void AdminSidebar::render(RenderWindow& window) {
 
     const float padX = position.x + 16.f;
 
-    // 2. Tiêu đề thương hiệu (Icon box + CiNeXiNe + PBL2 PORTAL + ADMIN badge)
-    RoundedRectRenderer::draw(window, {padX, position.y + 18.f}, {36.f, 36.f}, 8.f, Color(255, 255, 255, 45));
-    RectangleShape prj1({6.f, 18.f}); prj1.setFillColor(Color::White); prj1.setPosition({padX + 9.f, position.y + 27.f}); window.draw(prj1);
-    RectangleShape prj2({6.f, 18.f}); prj2.setFillColor(Color::White); prj2.setPosition({padX + 21.f, position.y + 27.f}); window.draw(prj2);
+    // 2. Tiêu đề thương hiệu (Logo + CiNeXiNe + PBL2 PORTAL + ADMIN badge)
+    if (logoSprite) {
+        float targetH = 36.f;
+        float scale = targetH / (float)logoTexture.getSize().y;
+        logoSprite->setScale({scale, scale});
+        logoSprite->setPosition({padX, position.y + 18.f});
+        window.draw(*logoSprite);
 
-    Text brandLogo(boldFont, L"CiNeXiNe", 19);
-    brandLogo.setFillColor(Color::White);
-    brandLogo.setPosition({padX + 44.f, position.y + 16.f});
-    window.draw(brandLogo);
+        float brandTextX = padX + (float)logoTexture.getSize().x * scale + 10.f;
 
-    Text brandPortal(boldFont, L"PBL2 PORTAL", 10);
-    brandPortal.setFillColor(Color(186, 230, 253));
-    brandPortal.setPosition({padX + 45.f, position.y + 39.f});
-    window.draw(brandPortal);
+        Text brandLogo(boldFont, L"CiNeXiNe", 19);
+        brandLogo.setFillColor(Color::White);
+        brandLogo.setPosition({brandTextX, position.y + 16.f});
+        window.draw(brandLogo);
+
+        Text brandPortal(boldFont, L"PBL2 PORTAL", 10);
+        brandPortal.setFillColor(Color(186, 230, 253));
+        brandPortal.setPosition({brandTextX + 1.f, position.y + 39.f});
+        window.draw(brandPortal);
+    } else {
+        RoundedRectRenderer::draw(window, {padX, position.y + 18.f}, {36.f, 36.f}, 8.f, Color(255, 255, 255, 45));
+        RectangleShape prj1({6.f, 18.f}); prj1.setFillColor(Color::White); prj1.setPosition({padX + 9.f, position.y + 27.f}); window.draw(prj1);
+        RectangleShape prj2({6.f, 18.f}); prj2.setFillColor(Color::White); prj2.setPosition({padX + 21.f, position.y + 27.f}); window.draw(prj2);
+
+        Text brandLogo(boldFont, L"CiNeXiNe", 19);
+        brandLogo.setFillColor(Color::White);
+        brandLogo.setPosition({padX + 44.f, position.y + 16.f});
+        window.draw(brandLogo);
+
+        Text brandPortal(boldFont, L"PBL2 PORTAL", 10);
+        brandPortal.setFillColor(Color(186, 230, 253));
+        brandPortal.setPosition({padX + 45.f, position.y + 39.f});
+        window.draw(brandPortal);
+    }
 
     // Badge ADMIN
     RoundedRectRenderer::draw(window, {position.x + width - 66.f, position.y + 24.f}, {50.f, 22.f}, 11.f, Color(0, 95, 146));

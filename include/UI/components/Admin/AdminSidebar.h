@@ -3,6 +3,7 @@
 #include <string>
 #include <functional>
 #include <vector>
+#include <optional>
 #include "core/AppState.h"
 #include "UI/components/Admin/RoundedRectRenderer.h"
 
@@ -121,6 +122,9 @@ private:
 
     function<void(AppState)> onStateChange;
     function<void()> onLogout;
+
+    Texture logoTexture;
+    optional<Sprite> logoSprite;
 
     void recalculateLayout();
     void drawLogoutIcon(RenderTarget& target, Vector2f pos, Color col);

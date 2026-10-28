@@ -4,7 +4,7 @@
 using namespace sf;
 
 App::App()
-    : window(VideoMode({1728, 972}), L"PBL2 - HỆ THỐNG QUẢN LÝ RẠP CHIẾU PHIM & THỐNG KÊ DOANH THU", Style::Titlebar | Style::Close),
+    : window(VideoMode({1728, 972}), L"PBL2 - HỆ THỐNG ĐẶT VÉ XEM PHIM KẾT HỢP THỐNG KÊ PHÂN TÍCH DOANH THU", Style::Titlebar | Style::Close),
       font("../assets/fonts/segoeui.ttf"),
       detail_font("../assets/fonts/quicksand_medium.ttf"),
       title_font("../assets/fonts/BEBAS_NEUE_ZSMALL.ttf"),
@@ -12,6 +12,15 @@ App::App()
       previousState(AppState::LOGIN)
 {
     window.setFramerateLimit(60);
+
+    // Set Window and Taskbar Icon
+    Image appIcon;
+    if (appIcon.loadFromFile("../assets/elements/icon.png") ||
+        appIcon.loadFromFile("assets/elements/icon.png") ||
+        appIcon.loadFromFile("../assets/elements/cinexine_logo.png") ||
+        appIcon.loadFromFile("assets/elements/cinexine_logo.png")) {
+        window.setIcon(appIcon.getSize(), appIcon.getPixelsPtr());
+    }
 
     ShowtimeCleanupService::maintainShowtimes("../data/showtimes.txt", 6);
 

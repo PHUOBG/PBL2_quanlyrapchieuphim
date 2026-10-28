@@ -15,6 +15,13 @@ LoginScreen::LoginScreen(const Font& fontRef, AuthService& authRef)
       statusColor(Color(239, 68, 68)),
       forgotMsgColor(Color(239, 68, 68))
 {
+    if (logoTexture.loadFromFile("../assets/elements/cinexine_logo.png") ||
+        logoTexture.loadFromFile("assets/elements/cinexine_logo.png") ||
+        logoTexture.loadFromFile("../assets/elements/icon.png") ||
+        logoTexture.loadFromFile("assets/elements/icon.png")) {
+        logoTexture.setSmooth(true);
+        logoSprite.emplace(logoTexture);
+    }
 }
 
 wstring LoginScreen::bullets(size_t n) {
@@ -556,13 +563,20 @@ void LoginScreen::draw(RenderWindow& window) {
     drawDotGrid(window, W, H);
 
     // 2. Top Header Bar
-    drawVectorHeaderScreen(window, {24.f, 20.f}, Color(30, 41, 59));
+    if (logoSprite) {
+        float hScale = 22.f / (float)logoTexture.getSize().y;
+        logoSprite->setScale({hScale, hScale});
+        logoSprite->setPosition({24.f, 16.f});
+        window.draw(*logoSprite);
+    } else {
+        drawVectorHeaderScreen(window, {24.f, 20.f}, Color(30, 41, 59));
+    }
 
     Text headerTitle(boldFont);
-    headerTitle.setString(L"PBL2 \u2013 H\u1ec6 TH\u1ed0NG QU\u1ea2N L\u00dd R\u1ea0P CHI\u1ebeU PHIM & TH\u1ed0NG K\u00ca DOANH THU");
+    headerTitle.setString(L"PBL2 \u2013 H\u1ec6 TH\u1ed0NG \u0110\u1eb6T V\u00c9 XEM PHIM K\u1ebeT H\u1ee2P TH\u1ed0NG K\u00ca PH\u00c2N T\u00cdCH DOANH THU");
     headerTitle.setCharacterSize(13);
     headerTitle.setFillColor(Color(30, 41, 59));
-    headerTitle.setPosition({52.f, 19.f});
+    headerTitle.setPosition({56.f, 19.f});
     window.draw(headerTitle);
 
     // Top-right version pill badge
@@ -619,18 +633,38 @@ void LoginScreen::draw(RenderWindow& window) {
     const float featH = 68.f;
 
     // Top brand icon container
-    RoundedRectRenderer::draw(window, {leftPadX, cardY + 42.f}, {50.f, 50.f}, 12.f, Color(255, 255, 255, 38));
-    drawVectorClapper(window, {leftPadX + 13.f, cardY + 57.f}, Color::White);
+    if (logoSprite) {
+        float targetH = 46.f;
+        float scale = targetH / (float)logoTexture.getSize().y;
+        logoSprite->setScale({scale, scale});
+        logoSprite->setPosition({leftPadX, cardY + 44.f});
+        window.draw(*logoSprite);
 
-    Text brandTop(boldFont, L"CINEADMIN ENTERPRISE", 11);
-    brandTop.setFillColor(Color(255, 255, 255, 210));
-    brandTop.setPosition({leftPadX + 64.f, cardY + 44.f});
-    window.draw(brandTop);
+        float brandTextX = leftPadX + (float)logoTexture.getSize().x * scale + 12.f;
 
-    Text brandMain(boldFont, L"PBL2", 26);
-    brandMain.setFillColor(Color::White);
-    brandMain.setPosition({leftPadX + 64.f, cardY + 60.f});
-    window.draw(brandMain);
+        Text brandTop(boldFont, L"CINEADMIN ENTERPRISE", 11);
+        brandTop.setFillColor(Color(255, 255, 255, 210));
+        brandTop.setPosition({brandTextX, cardY + 44.f});
+        window.draw(brandTop);
+
+        Text brandMain(boldFont, L"CineCore", 24);
+        brandMain.setFillColor(Color::White);
+        brandMain.setPosition({brandTextX, cardY + 59.f});
+        window.draw(brandMain);
+    } else {
+        RoundedRectRenderer::draw(window, {leftPadX, cardY + 42.f}, {50.f, 50.f}, 12.f, Color(255, 255, 255, 38));
+        drawVectorClapper(window, {leftPadX + 13.f, cardY + 57.f}, Color::White);
+
+        Text brandTop(boldFont, L"CINEADMIN ENTERPRISE", 11);
+        brandTop.setFillColor(Color(255, 255, 255, 210));
+        brandTop.setPosition({leftPadX + 64.f, cardY + 44.f});
+        window.draw(brandTop);
+
+        Text brandMain(boldFont, L"PBL2", 26);
+        brandMain.setFillColor(Color::White);
+        brandMain.setPosition({leftPadX + 64.f, cardY + 60.f});
+        window.draw(brandMain);
+    }
 
     // Thin white divider
     RectangleShape brandLine({featW, 1.f});
@@ -933,7 +967,7 @@ void LoginScreen::draw(RenderWindow& window) {
     window.draw(regLink);
 
     // 6. Bottom Footer Bar
-    Text footLeft(font, L"\u00a9 2024 PBL2 Cinema Management System. B\u1ea3n quy\u1ec1n thu\u1ed9c B\u1ed9 m\u00f4n K\u1ef9 thu\u1eadt ph\u1ea7n m\u1ec1m.", 11);
+    Text footLeft(font, L"\u00a9 2025 PBL2 \u2013 B\u1ed9 m\u00f4n \u0110\u1ed3 \u00e1n L\u1eadp tr\u00ecnh t\u00ednh to\u00e1n", 11);
     footLeft.setFillColor(Color(100, 116, 139));
     footLeft.setPosition({cardX, H - 32.f});
     window.draw(footLeft);

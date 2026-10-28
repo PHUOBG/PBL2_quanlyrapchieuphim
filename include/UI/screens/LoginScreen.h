@@ -2,6 +2,7 @@
 #include <SFML/Graphics.hpp> 
 #include <string>
 #include <memory>
+#include <optional>
 
 #include "services/AuthService.h"
 #include "core/AppState.h"
@@ -56,6 +57,10 @@ private:
     Color forgotMsgColor;
     bool forgotBtnHovered = false;
     bool forgotCloseHovered = false;
+
+    // Brand logo
+    Texture logoTexture;
+    optional<Sprite> logoSprite;
 
     // Helper functions
     wstring bullets(size_t n);
