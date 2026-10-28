@@ -377,7 +377,7 @@ void AdminProfilePanel::drawHeaderBanner(RenderTarget& target) const {
     Color delBg = deleteHovered ? Color(185, 28, 28) : Color(220, 38, 38);
     RoundedRectRenderer::draw(target, delPos, {210.f, 42.f}, 6.f, delBg);
     Text delTxt(boldFont);
-    delTxt.setString(L"🗑 XÓA VĨNH VIỄN TÀI KHOẢN");
+    delTxt.setString(L"XÓA VĨNH VIỄN TÀI KHOẢN");
     delTxt.setCharacterSize(11.f);
     delTxt.setFillColor(Color::White);
     FloatRect db = delTxt.getLocalBounds();
@@ -467,12 +467,12 @@ void AdminProfilePanel::drawPersonalInfoCard(RenderTarget& target) const {
     };
 
     // Row 1: Họ tên (Field 1) & Ngày sinh (Field 2)
-    drawInputBox(cardX + 24.f, cardY + 74.f, L"Họ và tên *", fullName, L"👤", activeField == 1, false);
-    drawInputBox(cardX + 24.f + inW + 18.f, cardY + 74.f, L"Ngày sinh *", birthDate, L"📅", activeField == 2, false);
+    drawInputBox(cardX + 24.f, cardY + 74.f, L"Họ và tên *", fullName, L"", activeField == 1, false);
+    drawInputBox(cardX + 24.f + inW + 18.f, cardY + 74.f, L"Ngày sinh *", birthDate, L"", activeField == 2, false);
 
     // Row 2: Số điện thoại (Field 3) & Email hệ thống
-    drawInputBox(cardX + 24.f, cardY + 154.f, L"Số điện thoại *", phone, L"📞", activeField == 3, false);
-    drawInputBox(cardX + 24.f + inW + 18.f, cardY + 154.f, L"Email hệ thống *", email, L"✉", false, true);
+    drawInputBox(cardX + 24.f, cardY + 154.f, L"Số điện thoại *", phone, L"", activeField == 3, false);
+    drawInputBox(cardX + 24.f + inW + 18.f, cardY + 154.f, L"Email hệ thống *", email, L"", false, true);
 
     // Row 3: Chức vụ (Field 4) & Cơ sở trực thuộc (Field 5)
     drawInputBox(cardX + 24.f, cardY + 234.f, L"Chức vụ / Bộ phận", department, L"", activeField == 4, false);

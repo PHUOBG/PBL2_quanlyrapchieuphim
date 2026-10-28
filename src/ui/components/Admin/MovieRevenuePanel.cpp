@@ -407,7 +407,7 @@ void MovieRevenuePanel::drawHeader(RenderTarget& target) const {
     Vector2f dateRangePos(position.x + width - 485.f, topY + 46.f);
     RoundedRectRenderer::draw(target, dateRangePos, {255.f, 36.f}, 6.f, Color::White, 1.f, Color(203, 213, 225));
     Text dateRangeTxt(font);
-    dateRangeTxt.setString(L"Từ:  01/09/2025   →   Đến:  24/12/2025  📅");
+    dateRangeTxt.setString(L"Từ:  01/09/2025   →   Đến:  24/12/2025");
     dateRangeTxt.setCharacterSize(11.f);
     dateRangeTxt.setFillColor(Color(51, 65, 85));
     dateRangeTxt.setPosition({dateRangePos.x + 10.f, dateRangePos.y + 9.f});

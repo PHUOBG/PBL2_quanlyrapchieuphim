@@ -414,20 +414,20 @@ void OverviewPanel::drawHeader(RenderTarget& target) const {
     Vector2f searchPos(position.x + width - 755.f, topY);
     RoundedRectRenderer::draw(target, searchPos, {210.f, 36.f}, 6.f, Color::White, 1.f, Color(203, 213, 225));
     Text searchPlaceholder(font);
-    searchPlaceholder.setString(L"🔍  Tìm kiếm phim, mã vé, combo...");
+    searchPlaceholder.setString(L"Tìm kiếm phim, mã vé, combo...");
     searchPlaceholder.setCharacterSize(12.5f);
     searchPlaceholder.setFillColor(Color(148, 163, 184));
-    searchPlaceholder.setPosition({searchPos.x + 10.f, searchPos.y + 8.f});
+    searchPlaceholder.setPosition({searchPos.x + 12.f, searchPos.y + 8.f});
     target.draw(searchPlaceholder);
 
     // 2. Date Filter
     Vector2f datePos(position.x + width - 535.f, topY);
     RoundedRectRenderer::draw(target, datePos, {185.f, 36.f}, 6.f, Color::White, 1.f, Color(203, 213, 225));
     Text dateText(font);
-    dateText.setString(L"📅 Tháng 10/2026 (01/10 - 31/10) ∨");
+    dateText.setString(L"Tháng 10/2026 (01/10 - 31/10) ∨");
     dateText.setCharacterSize(12.f);
     dateText.setFillColor(Color(51, 65, 85));
-    dateText.setPosition({datePos.x + 8.f, datePos.y + 8.f});
+    dateText.setPosition({datePos.x + 10.f, datePos.y + 8.f});
     target.draw(dateText);
 
     // 3. Room Filter
