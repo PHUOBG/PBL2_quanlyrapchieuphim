@@ -413,11 +413,28 @@ void OverviewPanel::drawHeader(RenderTarget& target) const {
     // 1. Search Box
     Vector2f searchPos(position.x + width - 755.f, topY);
     RoundedRectRenderer::draw(target, searchPos, {210.f, 36.f}, 6.f, Color::White, 1.f, Color(203, 213, 225));
+
+    // Kính lúp tìm kiếm
+    Vector2f oIconPos(searchPos.x + 10.f, topY + 11.f);
+    Color oIcCol(148, 163, 184);
+    CircleShape oLens(5.f, 16);
+    oLens.setFillColor(Color::Transparent);
+    oLens.setOutlineThickness(1.6f);
+    oLens.setOutlineColor(oIcCol);
+    oLens.setPosition(oIconPos);
+    target.draw(oLens);
+
+    RectangleShape oStem({5.5f, 1.8f});
+    oStem.setFillColor(oIcCol);
+    oStem.setRotation(degrees(45.f));
+    oStem.setPosition({oIconPos.x + 8.f, oIconPos.y + 8.f});
+    target.draw(oStem);
+
     Text searchPlaceholder(font);
     searchPlaceholder.setString(L"Tìm kiếm phim, mã vé, combo...");
     searchPlaceholder.setCharacterSize(12.5f);
     searchPlaceholder.setFillColor(Color(148, 163, 184));
-    searchPlaceholder.setPosition({searchPos.x + 12.f, searchPos.y + 8.f});
+    searchPlaceholder.setPosition({searchPos.x + 28.f, searchPos.y + 8.f});
     target.draw(searchPlaceholder);
 
     // 2. Date Filter

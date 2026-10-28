@@ -45,6 +45,9 @@ private:
     Clock notificationClock;
     bool notificationVisible = false;
 
+    Texture reloadTex;
+    bool hasReloadTex = false;
+
     void loadTickets();
     void applySearch();
     void deleteSelectedTicket();

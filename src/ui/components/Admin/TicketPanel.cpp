@@ -35,6 +35,11 @@ TicketPanel::TicketPanel(Font& fontRef, float w, float h)
       width(w), height(h), position(280.f, 0.f),
       repository(FileUtils::resolveDataPath("data/tickets.txt"))
 {
+    if (reloadTex.loadFromFile("assets/elements/reload.png") ||
+        reloadTex.loadFromFile("../assets/elements/reload.png")) {
+        reloadTex.setSmooth(true);
+        hasReloadTex = true;
+    }
     loadTickets();
 }
 
@@ -276,25 +281,39 @@ void TicketPanel::render(RenderWindow& win) {
 
     // Ô Input Tìm kiếm: Tìm theo ID vé, Email...
     drawRoundedCard(win, {position.x + 280.f, barY}, {260.f, 38.f}, 6.f, Color::White, searchActive ? 1.5f : 1.f, searchActive ? Color(2, 132, 199) : Color(203, 213, 225));
-    Text searchIcon(boldFont, L"\U0001F50D", 12);
-    searchIcon.setFillColor(Color(148, 163, 184));
-    searchIcon.setPosition({position.x + 292.f, barY + 10.f});
-    win.draw(searchIcon);
+
+    // Ký hiệu kính lúp tìm kiếm vẽ bằng SFML shapes chuẩn sắc nét
+    Vector2f iconPos(position.x + 293.f, barY + 12.f);
+    Color icCol(148, 163, 184);
+    CircleShape lens(5.f, 16);
+    lens.setFillColor(Color::Transparent);
+    lens.setOutlineThickness(1.6f);
+    lens.setOutlineColor(icCol);
+    lens.setPosition(iconPos);
+    win.draw(lens);
+
+    RectangleShape stem({5.5f, 1.8f});
+    stem.setFillColor(icCol);
+    stem.setRotation(degrees(45.f));
+    stem.setPosition({iconPos.x + 8.f, iconPos.y + 8.f});
+    win.draw(stem);
 
     wstring sDisplay = searchQuery.empty() ? L"T\u00ecm theo ID v\u00e9, Email..." : s2ws(searchQuery) + (searchActive ? L"|" : L"");
     Text searchTxt(font, sDisplay, 12);
     searchTxt.setFillColor(searchQuery.empty() ? Color(148, 163, 184) : Color(15, 23, 42));
-    searchTxt.setPosition({position.x + 316.f, barY + 10.f});
+    searchTxt.setPosition({position.x + 314.f, barY + 10.f});
     win.draw(searchTxt);
 
     // Nút Reload góc phải
+    float relX = position.x + width - 75.f;
     Color relBg = btnReloadHover ? Color(3, 105, 161) : Color(2, 132, 199);
-    drawRoundedCard(win, {position.x + width - 75.f, barY}, {45.f, 38.f}, 6.f, relBg);
-    Text relIcon(boldFont, L"\u21bb", 20);
-    relIcon.setFillColor(Color::White);
-    FloatRect rtb = relIcon.getLocalBounds();
-    relIcon.setPosition({position.x + width - 75.f + (45.f - rtb.size.x) / 2.f - rtb.position.x, barY + (38.f - rtb.size.y) / 2.f - rtb.position.y});
-    win.draw(relIcon);
+    drawRoundedCard(win, {relX, barY}, {45.f, 38.f}, 6.f, relBg);
+    if (hasReloadTex) {
+        Sprite spRel(reloadTex);
+        spRel.setScale({20.f / 500.f, 20.f / 500.f});
+        spRel.setPosition({relX + 12.f, barY + 9.f});
+        win.draw(spRel);
+    }
 
     // ==========================================
     // 5. BẢNG DỮ LIỆU VÉ (DATA TABLE)

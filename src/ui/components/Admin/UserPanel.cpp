@@ -730,11 +730,28 @@ void UserPanel::drawActionToolbar(RenderTarget& target) const {
     // 1. Search Box
     Vector2f searchPos(position.x + width - 580.f, actY);
     RoundedRectRenderer::draw(target, searchPos, {255.f, 34.f}, 6.f, Color::White, 1.f, Color(203, 213, 225));
+
+    // Kính lúp tìm kiếm
+    Vector2f uIconPos(searchPos.x + 10.f, searchPos.y + 10.f);
+    Color uIcCol(148, 163, 184);
+    CircleShape uLens(5.f, 16);
+    uLens.setFillColor(Color::Transparent);
+    uLens.setOutlineThickness(1.6f);
+    uLens.setOutlineColor(uIcCol);
+    uLens.setPosition(uIconPos);
+    target.draw(uLens);
+
+    RectangleShape uStem({5.5f, 1.8f});
+    uStem.setFillColor(uIcCol);
+    uStem.setRotation(degrees(45.f));
+    uStem.setPosition({uIconPos.x + 8.f, uIconPos.y + 8.f});
+    target.draw(uStem);
+
     Text sTxt(font);
     sTxt.setString(searchText.empty() ? L"Tìm theo Tên, Email, SĐT..." : s2ws(searchText));
     sTxt.setCharacterSize(12.5f);
     sTxt.setFillColor(searchText.empty() ? Color(148, 163, 184) : Color(15, 23, 42));
-    sTxt.setPosition({searchPos.x + 12.f, searchPos.y + 8.f});
+    sTxt.setPosition({searchPos.x + 28.f, searchPos.y + 8.f});
     target.draw(sTxt);
 
     // 2. Tier Dropdown
