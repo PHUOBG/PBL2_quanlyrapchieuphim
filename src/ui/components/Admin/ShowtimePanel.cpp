@@ -51,6 +51,12 @@ ShowtimePanel::ShowtimePanel(Font& fontRef, float w, float h)
         L"S\u1eafp chi\u1ebfu"
     };
 
+    if (reloadTex.loadFromFile("assets/elements/reload.png") ||
+        reloadTex.loadFromFile("../assets/elements/reload.png")) {
+        reloadTex.setSmooth(true);
+        hasReloadTex = true;
+    }
+
     initSampleShowtimes();
     loadShowtimesFromFile();
     applyFilter();
@@ -210,6 +216,18 @@ void ShowtimePanel::handleEvent(const Event& event, const RenderWindow& win) {
                 loadShowtimesFromFile();
                 applyFilter();
                 notificationMessage = "Đã làm mới dữ liệu suất chiếu!";
+                notificationClock.restart();
+                notificationVisible = true;
+                return;
+            }
+
+            // Nút Làm mới (Dấu xoay vòng cạnh KPI Summary)
+            float fCardY_ev = position.y + 144.f;
+            FloatRect btnReloadKpi({position.x + width - 85.f, fCardY_ev + 51.f}, {48.f, 48.f});
+            if (btnReloadKpi.contains(mousePos)) {
+                loadShowtimesFromFile();
+                applyFilter();
+                notificationMessage = "Đã làm mới danh sách suất chiếu!";
                 notificationClock.restart();
                 notificationVisible = true;
                 return;
@@ -415,14 +433,18 @@ void ShowtimePanel::render(RenderWindow& win) {
 
     // 3 Nút Header
     float btnY = position.y + 78.f;
-    drawRoundedCard(win, {position.x + width - 470.f, btnY}, {110.f, 38.f}, 8.f, Color::White, 1.2f, Color(203, 213, 225));
+    float headRefX = position.x + width - 470.f;
+    drawRoundedCard(win, {headRefX, btnY}, {110.f, 38.f}, 8.f, Color::White, 1.2f, Color(203, 213, 225));
+    if (hasReloadTex) {
+        Sprite spHead(reloadTex);
+        spHead.setColor(Color(51, 65, 85));
+        spHead.setScale({16.f / 500.f, 16.f / 500.f});
+        spHead.setPosition({headRefX + 14.f, btnY + 11.f});
+        win.draw(spHead);
+    }
     Text refTxt(boldFont, L"L\u00e0m m\u1edbi", 13);
     refTxt.setFillColor(Color(51, 65, 85));
-    FloatRect refb = refTxt.getLocalBounds();
-    refTxt.setPosition({
-        position.x + width - 470.f + (110.f - refb.size.x) / 2.f - refb.position.x,
-        btnY + (38.f - refb.size.y) / 2.f - refb.position.y
-    });
+    refTxt.setPosition({headRefX + (hasReloadTex ? 36.f : 24.f), btnY + 9.f});
     win.draw(refTxt);
 
     drawRoundedCard(win, {position.x + width - 350.f, btnY}, {170.f, 38.f}, 8.f, Color::White, 1.2f, Color(203, 213, 225));
@@ -469,9 +491,9 @@ void ShowtimePanel::render(RenderWindow& win) {
     Text arrStat(boldFont, L"\u25bc", 11); arrStat.setFillColor(Color(100, 116, 139)); arrStat.setPosition({position.x + 250.f, fCardY + 119.f}); win.draw(arrStat);
 
     // Thẻ KPI Summary: Tách làm 2 ô màu khác nhau bên trong 1 ô card bao ngoài
-    float kpiOuterW = 320.f;
+    float kpiOuterW = 285.f;
     float kpiOuterH = 94.f;
-    float kpiOuterX = position.x + width - 365.f;
+    float kpiOuterX = position.x + width - 390.f;
     float kpiOuterY = fCardY + 28.f;
 
     // 1. Ô bao ngoài (Khung card chính)
@@ -480,7 +502,7 @@ void ShowtimePanel::render(RenderWindow& win) {
     // 2. Ô trái (Màu 1 - Xanh dương đại dương #0284C7): Thống kê số lượng suất chiếu
     float b1X = kpiOuterX + 7.f;
     float b1Y = kpiOuterY + 7.f;
-    float b1W = 142.f;
+    float b1W = 126.f;
     float b1H = 80.f;
     drawRoundedCard(win, {b1X, b1Y}, {b1W, b1H}, 8.f, Color(2, 132, 199));
 
@@ -502,31 +524,45 @@ void ShowtimePanel::render(RenderWindow& win) {
     // 3. Ô phải (Màu 2 - Xanh đen Navy đậm #0F172A): Thông tin ngày & phòng chiếu
     float b2X = b1X + b1W + 6.f;
     float b2Y = kpiOuterY + 7.f;
-    float b2W = 158.f;
+    float b2W = 140.f;
     float b2H = 80.f;
     drawRoundedCard(win, {b2X, b2Y}, {b2W, b2H}, 8.f, Color(15, 23, 42));
 
-    float textPadX = b2X + 14.f;
+    float textPadX = b2X + 12.f;
 
-    Text kpiDateLbl(font, L"Ng\u00e0y: ", 12);
+    Text kpiDateLbl(font, L"Ng\u00e0y: ", 11.5f);
     kpiDateLbl.setFillColor(Color(148, 163, 184));
     kpiDateLbl.setPosition({std::floor(textPadX), std::floor(b2Y + 16.f)});
     win.draw(kpiDateLbl);
 
-    Text kpiDateVal(boldFont, L"2026-10-27", 12);
+    Text kpiDateVal(boldFont, L"2026-10-27", 11.5f);
     kpiDateVal.setFillColor(Color::White);
     kpiDateVal.setPosition({std::floor(textPadX + kpiDateLbl.getGlobalBounds().size.x), std::floor(b2Y + 16.f)});
     win.draw(kpiDateVal);
 
-    Text kpiRoomLbl(font, L"Ph\u00f2ng: ", 12);
+    Text kpiRoomLbl(font, L"Ph\u00f2ng: ", 11.5f);
     kpiRoomLbl.setFillColor(Color(148, 163, 184));
     kpiRoomLbl.setPosition({std::floor(textPadX), std::floor(b2Y + 44.f)});
     win.draw(kpiRoomLbl);
 
-    Text kpiRoomVal(boldFont, selectedRoom, 12);
+    Text kpiRoomVal(boldFont, selectedRoom, 11.5f);
     kpiRoomVal.setFillColor(Color(56, 189, 248));
     kpiRoomVal.setPosition({std::floor(textPadX + kpiRoomLbl.getGlobalBounds().size.x), std::floor(b2Y + 44.f)});
     win.draw(kpiRoomVal);
+
+    // 4. Nút Làm mới (Dấu xoay vòng reload)
+    float refBtnX = position.x + width - 85.f;
+    float refBtnY = fCardY + 51.f;
+    float refBtnW = 48.f;
+    float refBtnH = 48.f;
+    drawRoundedCard(win, {refBtnX, refBtnY}, {refBtnW, refBtnH}, 8.f, Color(2, 132, 199));
+
+    if (hasReloadTex) {
+        Sprite spReload(reloadTex);
+        spReload.setScale({26.f / 500.f, 26.f / 500.f});
+        spReload.setPosition({refBtnX + 11.f, refBtnY + 11.f});
+        win.draw(spReload);
+    }
 
     // ==========================================
     // 5. BẢNG DỮ LIỆU SUẤT CHIẾU

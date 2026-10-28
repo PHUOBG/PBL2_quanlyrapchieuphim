@@ -60,6 +60,10 @@ private:
     Clock notificationClock;
     bool notificationVisible = false;
 
+    // Assets
+    Texture reloadTex;
+    bool hasReloadTex = false;
+
     // Popup Add/Edit
     bool showAddPopup = false;
     int editingIndex = -1;
