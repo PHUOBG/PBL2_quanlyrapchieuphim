@@ -883,7 +883,12 @@ void MoviePanel::render(RenderWindow& window) {
         if (!cols[c].first.empty()) {
             Text hText(boldFont, cols[c].first, 12);
             hText.setFillColor(Color::White);
-            hText.setPosition({curColX + 12.f, tblY + 15.f});
+            if (c == 4) { // Cột QUỐC GIA căn giữa theo cột
+                FloatRect hb = hText.getLocalBounds();
+                hText.setPosition({curColX + (cols[c].second - hb.size.x) / 2.f - hb.position.x, tblY + 15.f});
+            } else {
+                hText.setPosition({curColX + 12.f, tblY + 15.f});
+            }
             window.draw(hText);
         }
         curColX += cols[c].second;
@@ -984,6 +989,7 @@ void MoviePanel::render(RenderWindow& window) {
 
         // Col 4: Country pill (e.g. VN Việt Nam, US Mỹ, KR Hàn Quốc, RU Nga)
         float col4X = startX + 645.f;
+        float col4W = 125.f;
         string ctry = (row.size() > 3) ? row[3] : "Việt Nam";
 
         Color ctryBg = Color(254, 226, 226);
@@ -1003,10 +1009,19 @@ void MoviePanel::render(RenderWindow& window) {
             code = "RU ";
         }
 
-        RoundedRectRenderer::draw(window, {col4X + 8.f, rY + 27.f}, {100.f, 26.f}, 13.f, ctryBg);
+        float pillW = 104.f;
+        float pillH = 26.f;
+        float pillX = col4X + (col4W - pillW) / 2.f;
+        float pillY = rY + (rowH - pillH) / 2.f;
+
+        RoundedRectRenderer::draw(window, {pillX, pillY}, {pillW, pillH}, pillH / 2.f, ctryBg);
         Text ctryDisplay(boldFont, s2ws(code + ctry), 12);
         ctryDisplay.setFillColor(ctryText);
-        ctryDisplay.setPosition({col4X + 16.f, rY + 30.f});
+        FloatRect ctb = ctryDisplay.getLocalBounds();
+        ctryDisplay.setPosition({
+            pillX + (pillW - ctb.size.x) / 2.f - ctb.position.x,
+            pillY + (pillH - ctb.size.y) / 2.f - ctb.position.y - 1.f
+        });
         window.draw(ctryDisplay);
 
         // Col 5: Duration
