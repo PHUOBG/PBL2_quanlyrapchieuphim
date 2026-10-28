@@ -642,7 +642,7 @@ void LoginScreen::draw(RenderWindow& window) {
 
         float brandTextX = leftPadX + (float)logoTexture.getSize().x * scale + 12.f;
 
-        Text brandTop(boldFont, L"CINEADMIN ENTERPRISE", 11);
+        Text brandTop(boldFont, L"CINECORE ENTERPRISE", 11);
         brandTop.setFillColor(Color(255, 255, 255, 210));
         brandTop.setPosition({brandTextX, cardY + 44.f});
         window.draw(brandTop);
@@ -655,7 +655,7 @@ void LoginScreen::draw(RenderWindow& window) {
         RoundedRectRenderer::draw(window, {leftPadX, cardY + 42.f}, {50.f, 50.f}, 12.f, Color(255, 255, 255, 38));
         drawVectorClapper(window, {leftPadX + 13.f, cardY + 57.f}, Color::White);
 
-        Text brandTop(boldFont, L"CINEADMIN ENTERPRISE", 11);
+        Text brandTop(boldFont, L"CINECORE ENTERPRISE", 11);
         brandTop.setFillColor(Color(255, 255, 255, 210));
         brandTop.setPosition({leftPadX + 64.f, cardY + 44.f});
         window.draw(brandTop);

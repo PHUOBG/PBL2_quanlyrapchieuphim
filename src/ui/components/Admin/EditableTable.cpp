@@ -8,7 +8,7 @@ EditableTable::Cell::Cell(const string& val, bool editable)
 EditableTable::EditableTable(Font& font, float x, float y, float width, float height)
     : font(font), x(x), y(y), width(width), height(height) {
     
-    // Setup background với CineXine theme
+    // Setup background với CineCore theme
     background.setSize(Vector2f(width, height));
     background.setPosition(Vector2f(x, y));
     background.setFillColor(bgColor);

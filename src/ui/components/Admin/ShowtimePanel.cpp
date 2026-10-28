@@ -1,4 +1,5 @@
 #include "UI/components/Admin/ShowtimePanel.h"
+#include "UI/components/Admin/UITheme.h"
 #include "UI/components/Admin/RoundedRectRenderer.h"
 #include "utils/FileUtils.h"
 #include <algorithm>
@@ -392,48 +393,21 @@ void ShowtimePanel::render(RenderWindow& win) {
     win.draw(bg);
 
     // ==========================================
-    // 2. TOP BAR
+    // 2. TOP BAR (Standardized Navigation & Profile)
     // ==========================================
-    Text bc1(boldFont, L"C\u1ed4NG QU\u1ea2N TR\u1eca N\u1ed8I B\u1ed8", 12);
-    bc1.setFillColor(Color(2, 132, 199));
-    bc1.setPosition({position.x + 30.f, position.y + 20.f});
-    win.draw(bc1);
-
-    Text slash1(boldFont, L" /  H\u1ec6 TH\u1ed0NG  /  ", 12);
-    slash1.setFillColor(Color(148, 163, 184));
-    slash1.setPosition({position.x + 190.f, position.y + 20.f});
-    win.draw(slash1);
-
-    Text bc2(boldFont, L"QU\u1ea2N L\u00dd SU\u1ea5T CHI\u1ebeU", 12);
-    bc2.setFillColor(Color(2, 132, 199));
-    bc2.setPosition({position.x + 305.f, position.y + 20.f});
-    win.draw(bc2);
-
-    float rOffset = position.x + width - 30.f;
-    drawRoundedCard(win, {rOffset - 390.f, position.y + 14.f}, {185.f, 28.f}, 14.f, Color(241, 245, 249), 1.f, Color(226, 232, 240));
-    CircleShape dotGrn(3.5f); dotGrn.setFillColor(Color(34, 197, 94)); dotGrn.setPosition({rOffset - 378.f, position.y + 24.f}); win.draw(dotGrn);
-    Text sqlText(boldFont, L"MS-SQL R\u1ea0P \u0110\u00c0 N\u1eb5NG : ONLINE", 10); sqlText.setFillColor(Color(71, 85, 105)); sqlText.setPosition({rOffset - 366.f, position.y + 21.f}); win.draw(sqlText);
-
-    CircleShape bellCircle(15.f); bellCircle.setFillColor(Color(241, 245, 249)); bellCircle.setPosition({rOffset - 190.f, position.y + 13.f}); win.draw(bellCircle);
-    CircleShape bellRedDot(3.5f); bellRedDot.setFillColor(Color(239, 68, 68)); bellRedDot.setPosition({rOffset - 173.f, position.y + 14.f}); win.draw(bellRedDot);
-
-    CircleShape avatarBg(16.f); avatarBg.setFillColor(Color(2, 132, 199)); avatarBg.setPosition({rOffset - 145.f, position.y + 12.f}); win.draw(avatarBg);
-    Text avText(boldFont, L"AD", 12); avText.setFillColor(Color::White); avText.setPosition({rOffset - 138.f, position.y + 20.f}); win.draw(avText);
-
-    Text uName(boldFont, L"Admin Danang01", 12); uName.setFillColor(Color(15, 23, 42)); uName.setPosition({rOffset - 105.f, position.y + 12.f}); win.draw(uName);
-    Text uSub(font, L"C\u1ee5m r\u1ea1p CiNeXiNe Center", 11); uSub.setFillColor(Color(100, 116, 139)); uSub.setPosition({rOffset - 105.f, position.y + 28.f}); win.draw(uSub);
+    UITheme::drawTopBar(win, position.x + 30.f, position.y, width - 60.f, L"QUẢN LÝ SUẤT CHIẾU", font, boldFont);
 
     // ==========================================
     // 3. PAGE HEADER CARD
     // ==========================================
-    Text title(boldFont, L"Qu\u1ea3n l\u00fd su\u1ea5t chi\u1ebfu", 24);
-    title.setFillColor(Color(15, 23, 42));
+    Text title(boldFont, L"Qu\u1ea3n l\u00fd su\u1ea5t chi\u1ebfu", UITheme::PageTitleSize);
+    title.setFillColor(UITheme::TextPrimary);
     title.setPosition({position.x + 30.f, position.y + 68.f});
     win.draw(title);
 
     FloatRect tb = title.getGlobalBounds();
-    drawRoundedCard(win, {tb.position.x + tb.size.x + 16.f, position.y + 74.f}, {130.f, 24.f}, 12.f, Color(224, 242, 254));
-    Text bBadge(boldFont, L"L\u1ecbch bi\u1ec3u ho\u1ea1t \u0111\u1ed9ng", 11); bBadge.setFillColor(Color(2, 132, 199)); bBadge.setPosition({tb.position.x + tb.size.x + 28.f, position.y + 78.f}); win.draw(bBadge);
+    drawRoundedCard(win, {tb.position.x + tb.size.x + 16.f, position.y + 72.f}, {145.f, 26.f}, 13.f, Color(224, 242, 254));
+    Text bBadge(boldFont, L"L\u1ecbch bi\u1ec3u ho\u1ea1t \u0111\u1ed9ng", 12); bBadge.setFillColor(Color(2, 132, 199)); bBadge.setPosition({tb.position.x + tb.size.x + 24.f, position.y + 77.f}); win.draw(bBadge);
 
     Text subTitle(font, L"\u0110i\u1ec1u ph\u1ed1i l\u1ecbch chi\u1ebfu theo ph\u00f2ng, theo d\u00f5i t\u1ef7 l\u1ec7 l\u1ea5p \u0111\u1ea7y gh\u1ebf v\u00e0 ph\u00e2n b\u1ed1 khung gi\u1edd chi\u1ebfu.", 13);
     subTitle.setFillColor(Color(100, 116, 139));
@@ -479,23 +453,23 @@ void ShowtimePanel::render(RenderWindow& win) {
     float kpiX = position.x + width - 380.f;
     drawRoundedCard(win, {kpiX, fCardY + 28.f}, {280.f, 88.f}, 12.f, Color(0, 119, 182));
 
-    Text kpiNum(boldFont, to_wstring(filteredShowtimes.size()), 32);
+    Text kpiNum(boldFont, to_wstring(filteredShowtimes.size()), 22);
     kpiNum.setFillColor(Color::White);
-    kpiNum.setPosition({kpiX + 20.f, fCardY + 44.f});
+    kpiNum.setPosition({kpiX + 20.f, fCardY + 48.f});
     win.draw(kpiNum);
 
     FloatRect kb = kpiNum.getGlobalBounds();
-    Text kpiUnit(boldFont, L"SU\u1ea5T\nCHI\u1ebeU", 10);
+    Text kpiUnit(boldFont, L"SU\u1ea5T\nCHI\u1ebeU", 11.5f);
     kpiUnit.setFillColor(Color(224, 242, 254));
-    kpiUnit.setPosition({kb.position.x + kb.size.x + 8.f, fCardY + 50.f});
+    kpiUnit.setPosition({kb.position.x + kb.size.x + 8.f, fCardY + 48.f});
     win.draw(kpiUnit);
 
-    Text kpiDate(font, L"Ng\u00e0y: 2026-10-27", 11);
+    Text kpiDate(font, L"Ng\u00e0y: 2026-10-27", 12);
     kpiDate.setFillColor(Color(224, 242, 254));
-    kpiDate.setPosition({kpiX + 130.f, fCardY + 52.f});
+    kpiDate.setPosition({kpiX + 130.f, fCardY + 50.f});
     win.draw(kpiDate);
 
-    Text kpiRoom(font, L"Ph\u00f2ng: " + selectedRoom, 11);
+    Text kpiRoom(font, L"Ph\u00f2ng: " + selectedRoom, 12);
     kpiRoom.setFillColor(Color(224, 242, 254));
     kpiRoom.setPosition({kpiX + 130.f, fCardY + 70.f});
     win.draw(kpiRoom);
@@ -555,8 +529,8 @@ void ShowtimePanel::render(RenderWindow& win) {
         wstring seatInfo = to_wstring(itm.bookedSeats) + L"/" + to_wstring(itm.totalSeats) + L" v\u00e9";
         if (pct >= 100) seatInfo = to_wstring(itm.bookedSeats) + L"/" + to_wstring(itm.totalSeats) + L" (H\u1ebft v\u00e9)";
 
-        Text seatTxt(font, seatInfo, 11); seatTxt.setFillColor(barCol); seatTxt.setPosition({position.x + 780.f, rY + 10.f}); win.draw(seatTxt);
-        Text pctTxt(boldFont, to_wstring(pct) + L"%", 11); pctTxt.setFillColor(barCol); pctTxt.setPosition({position.x + 860.f, rY + 10.f}); win.draw(pctTxt);
+        Text seatTxt(font, seatInfo, 12.5f); seatTxt.setFillColor(barCol); seatTxt.setPosition({position.x + 780.f, rY + 10.f}); win.draw(seatTxt);
+        Text pctTxt(boldFont, to_wstring(pct) + L"%", 12.5f); pctTxt.setFillColor(barCol); pctTxt.setPosition({position.x + 860.f, rY + 10.f}); win.draw(pctTxt);
 
         // Progress bar
         drawRoundedCard(win, {position.x + 780.f, rY + 28.f}, {100.f, 4.f}, 2.f, Color(226, 232, 240));
@@ -608,9 +582,9 @@ void ShowtimePanel::render(RenderWindow& win) {
 
     // Icon info
     CircleShape infoCir(8.f); infoCir.setFillColor(Color(2, 132, 199)); infoCir.setPosition({position.x + 48.f, noteY + 16.f}); win.draw(infoCir);
-    Text ifTxt(boldFont, L"i", 10); ifTxt.setFillColor(Color::White); ifTxt.setPosition({position.x + 54.f, noteY + 17.f}); win.draw(ifTxt);
+    Text ifTxt(boldFont, L"i", 11.5f); ifTxt.setFillColor(Color::White); ifTxt.setPosition({position.x + 53.f, noteY + 16.f}); win.draw(ifTxt);
 
-    Text noteTxt(font, L"Quy chu\u1ea9n d\u1ecdn d\u1eb9p & gi\u00e3n c\u00e1ch su\u1ea5t chi\u1ebfu: Gi\u1eefa m\u1ed7i su\u1ea5t chi\u1ebfu, h\u1ec7 th\u1ed1ng t\u1ef1 \u0111\u1ed9ng ch\u1eeba 15\u201320 ph\u00fat th\u1eddi gian l\u00e0m v\u1ec7 sinh ph\u00f2ng v\u00e0 ki\u1ec3m tra thi\u1ebft b\u1ecb \u00e2m\nthanh/m\u00e1y chi\u1ebfu tr\u01b0\u1edbc khi \u0111\u00f3n l\u01b0\u1ee3t kh\u00e1ch ti\u1ebfp theo. \u0110\u1ec3 thay \u0111\u1ed5i th\u1eddi gian ngh\u1ec9 k\u1ef9 thu\u1eadt n\u00e0y, vui l\u00f2ng truy c\u1eadp m\u1ee5c C\u1ea5u h\u00ecnh r\u1ea1p chi\u1ebfu.", 11);
+    Text noteTxt(font, L"Quy chu\u1ea9n d\u1ecdn d\u1eb9p & gi\u00e3n c\u00e1ch su\u1ea5t chi\u1ebfu: Gi\u1eefa m\u1ed7i su\u1ea5t chi\u1ebfu, h\u1ec7 th\u1ed1ng t\u1ef1 \u0111\u1ed9ng ch\u1eeba 15\u201320 ph\u00fat th\u1eddi gian l\u00e0m v\u1ec7 sinh ph\u00f2ng v\u00e0 ki\u1ec3m tra thi\u1ebft b\u1ecb \u00e2m\nthanh/m\u00e1y chi\u1ebfu tr\u01b0\u1edbc khi \u0111\u00f3n l\u01b0\u1ee3t kh\u00e1ch ti\u1ebfp theo. \u0110\u1ec3 thay \u0111\u1ed5i th\u1eddi gian ngh\u1ec9 k\u1ef9 thu\u1eadt n\u00e0y, vui l\u00f2ng truy c\u1eadp m\u1ee5c C\u1ea5u h\u00ecnh r\u1ea1p chi\u1ebfu.", 12);
     noteTxt.setFillColor(Color(71, 85, 105));
     noteTxt.setPosition({position.x + 75.f, noteY + 13.f});
     win.draw(noteTxt);

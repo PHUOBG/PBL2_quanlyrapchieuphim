@@ -38,9 +38,9 @@ private:
     Clock cursorBlinkClock;
     int hoveredRow = -1;
     
-    // Bang mau chu de CineXine
+    // Bang mau chu de CineCore
     Color bgColor = Color(17, 28, 42);           // #111C2A - dam hon sidebar
-    Color headerColor = Color(20, 118, 172);     // #1476AC - xanh CineXine
+    Color headerColor = Color(20, 118, 172);     // #1476AC - xanh CineCore
     Color rowColor = Color(24, 44, 64);          // #182C40 - nen dong
     Color borderColor = Color(34, 59, 84);       // #223B54 - vien nhe
     Color hoverColor = Color(30, 58, 92);        // #1E3A5C - mau hover

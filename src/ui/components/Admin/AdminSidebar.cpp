@@ -70,16 +70,16 @@ void AdminSidebar::setActiveState(AppState state) {
 void AdminSidebar::recalculateLayout() {
     const float padX = position.x + 16.f;
     const float itemW = width - 32.f;
-    float curY = position.y + 64.f;
+    float curY = position.y + 72.f;
 
     for (size_t i = 0; i < elements.size(); ++i) {
         if (elements[i].type == SidebarElementType::SECTION_HEADER) {
-            if (i > 0) curY += 16.f; // Khoảng cách giữa các nhóm chức năng
+            if (i > 0) curY += 14.f; // Khoảng cách giữa các nhóm chức năng
             elements[i].bounds = FloatRect({padX, curY}, {itemW, 22.f});
-            curY += 28.f;
+            curY += 26.f;
         } else {
             elements[i].bounds = FloatRect({padX, curY}, {itemW, 36.f});
-            curY += 39.f;
+            curY += 40.f;
         }
     }
 
@@ -170,7 +170,7 @@ void AdminSidebar::render(RenderWindow& window) {
 
     const float padX = position.x + 16.f;
 
-    // 2. Tiêu đề thương hiệu (Logo + CiNeXiNe + PBL2 PORTAL + ADMIN badge)
+    // 2. Tiêu đề thương hiệu (Logo + CineCore + PBL2 PORTAL + ADMIN badge)
     if (logoSprite) {
         float targetH = 36.f;
         float scale = targetH / (float)logoTexture.getSize().y;
@@ -180,36 +180,36 @@ void AdminSidebar::render(RenderWindow& window) {
 
         float brandTextX = padX + (float)logoTexture.getSize().x * scale + 10.f;
 
-        Text brandLogo(boldFont, L"CiNeXiNe", 19);
+        Text brandLogo(boldFont, L"CineCore", 19);
         brandLogo.setFillColor(Color::White);
         brandLogo.setPosition({brandTextX, position.y + 16.f});
         window.draw(brandLogo);
 
-        Text brandPortal(boldFont, L"PBL2 PORTAL", 10);
+        Text brandPortal(boldFont, L"PBL2 PORTAL", 11);
         brandPortal.setFillColor(Color(186, 230, 253));
-        brandPortal.setPosition({brandTextX + 1.f, position.y + 39.f});
+        brandPortal.setPosition({brandTextX + 1.f, position.y + 38.f});
         window.draw(brandPortal);
     } else {
         RoundedRectRenderer::draw(window, {padX, position.y + 18.f}, {36.f, 36.f}, 8.f, Color(255, 255, 255, 45));
         RectangleShape prj1({6.f, 18.f}); prj1.setFillColor(Color::White); prj1.setPosition({padX + 9.f, position.y + 27.f}); window.draw(prj1);
         RectangleShape prj2({6.f, 18.f}); prj2.setFillColor(Color::White); prj2.setPosition({padX + 21.f, position.y + 27.f}); window.draw(prj2);
 
-        Text brandLogo(boldFont, L"CiNeXiNe", 19);
+        Text brandLogo(boldFont, L"CineCore", 19);
         brandLogo.setFillColor(Color::White);
         brandLogo.setPosition({padX + 44.f, position.y + 16.f});
         window.draw(brandLogo);
 
-        Text brandPortal(boldFont, L"PBL2 PORTAL", 10);
+        Text brandPortal(boldFont, L"PBL2 PORTAL", 11);
         brandPortal.setFillColor(Color(186, 230, 253));
-        brandPortal.setPosition({padX + 45.f, position.y + 39.f});
+        brandPortal.setPosition({padX + 45.f, position.y + 38.f});
         window.draw(brandPortal);
     }
 
     // Badge ADMIN
     RoundedRectRenderer::draw(window, {position.x + width - 66.f, position.y + 24.f}, {50.f, 22.f}, 11.f, Color(0, 95, 146));
-    Text admTxt(boldFont, L"ADMIN", 10);
+    Text admTxt(boldFont, L"ADMIN", 11);
     admTxt.setFillColor(Color(224, 242, 254));
-    admTxt.setPosition({position.x + width - 56.f, position.y + 28.f});
+    admTxt.setPosition({position.x + width - 56.f, position.y + 27.f});
     window.draw(admTxt);
 
     // 3. Render các nhóm và mục chức năng
@@ -260,32 +260,32 @@ void AdminSidebar::render(RenderWindow& window) {
             window.draw(itemText);
 
             if (elem.targetState == AppState::ADMIN_CUSTOMERS) {
-                Vector2f bPos(elem.bounds.position.x + elem.bounds.size.x - 36.f, elem.bounds.position.y + (elem.bounds.size.y - 20.f) / 2.f);
-                RoundedRectRenderer::draw(window, bPos, {24.f, 20.f}, 10.f, isActive ? Color(224, 242, 254) : Color(0, 80, 130));
-                Text bTxt(boldFont, L"15", 10);
+                Vector2f bPos(elem.bounds.position.x + elem.bounds.size.x - 38.f, elem.bounds.position.y + (elem.bounds.size.y - 20.f) / 2.f);
+                RoundedRectRenderer::draw(window, bPos, {26.f, 20.f}, 10.f, isActive ? Color(224, 242, 254) : Color(0, 80, 130));
+                Text bTxt(boldFont, L"15", 11.5f);
                 bTxt.setFillColor(isActive ? Color(0, 102, 160) : Color(224, 242, 254));
                 FloatRect bb = bTxt.getLocalBounds();
-                bTxt.setPosition({bPos.x + 12.f - bb.size.x / 2.f, bPos.y + 3.f});
+                bTxt.setPosition({bPos.x + 13.f - bb.size.x / 2.f, bPos.y + 2.f});
                 window.draw(bTxt);
             }
         }
     }
 
     // 4. Trạng thái node hệ thống & Nút Đăng xuất
-    float statY = logoutBounds.position.y - 22.f;
-    Text nodeTxt(boldFont, L"NODE - VN - DN601", 10);
+    float statY = logoutBounds.position.y - 24.f;
+    Text nodeTxt(boldFont, L"NODE - VN - DN601", 11);
     nodeTxt.setFillColor(Color(186, 230, 253));
     nodeTxt.setPosition({padX + 2.f, statY});
     window.draw(nodeTxt);
 
-    CircleShape liveDot(3.f);
+    CircleShape liveDot(3.5f);
     liveDot.setFillColor(Color(34, 197, 94));
-    liveDot.setPosition({position.x + width - 58.f, statY + 4.f});
+    liveDot.setPosition({position.x + width - 60.f, statY + 4.f});
     window.draw(liveDot);
 
-    Text liveTxt(boldFont, L"LIVE", 10);
+    Text liveTxt(boldFont, L"LIVE", 11);
     liveTxt.setFillColor(Color(34, 197, 94));
-    liveTxt.setPosition({position.x + width - 48.f, statY});
+    liveTxt.setPosition({position.x + width - 50.f, statY});
     window.draw(liveTxt);
 
     Color logBg = logoutHovered ? Color(255, 255, 255, 45) : Color(255, 255, 255, 18);

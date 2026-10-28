@@ -1,4 +1,5 @@
 #include "UI/components/Admin/TicketPanel.h"
+#include "UI/components/Admin/UITheme.h"
 #include "UI/components/Admin/RoundedRectRenderer.h"
 #include "utils/FileUtils.h"
 #include <algorithm>
@@ -238,43 +239,16 @@ void TicketPanel::render(RenderWindow& win) {
     win.draw(bg);
 
     // ==========================================
-    // 2. TOP BAR
+    // 2. TOP BAR (Standardized Navigation & Profile)
     // ==========================================
-    Text bc1(boldFont, L"C\u1ed4NG QU\u1ea2N TR\u1eca N\u1ed8I B\u1ed8", 12);
-    bc1.setFillColor(Color(2, 132, 199));
-    bc1.setPosition({position.x + 30.f, position.y + 20.f});
-    win.draw(bc1);
-
-    Text slash1(boldFont, L" /  H\u1ec6 TH\u1ed0NG  /  ", 12);
-    slash1.setFillColor(Color(148, 163, 184));
-    slash1.setPosition({position.x + 190.f, position.y + 20.f});
-    win.draw(slash1);
-
-    Text bc2(boldFont, L"QU\u1ea2N L\u00dd V\u00c9", 12);
-    bc2.setFillColor(Color(2, 132, 199));
-    bc2.setPosition({position.x + 305.f, position.y + 20.f});
-    win.draw(bc2);
-
-    float rOffset = position.x + width - 30.f;
-    drawRoundedCard(win, {rOffset - 390.f, position.y + 14.f}, {185.f, 28.f}, 14.f, Color(241, 245, 249), 1.f, Color(226, 232, 240));
-    CircleShape dotGrn(3.5f); dotGrn.setFillColor(Color(34, 197, 94)); dotGrn.setPosition({rOffset - 378.f, position.y + 24.f}); win.draw(dotGrn);
-    Text sqlText(boldFont, L"MS-SQL R\u1ea0P \u0110\u00c0 N\u1eb5NG : ONLINE", 10); sqlText.setFillColor(Color(71, 85, 105)); sqlText.setPosition({rOffset - 366.f, position.y + 21.f}); win.draw(sqlText);
-
-    CircleShape bellCircle(15.f); bellCircle.setFillColor(Color(241, 245, 249)); bellCircle.setPosition({rOffset - 190.f, position.y + 13.f}); win.draw(bellCircle);
-    CircleShape bellRedDot(3.5f); bellRedDot.setFillColor(Color(239, 68, 68)); bellRedDot.setPosition({rOffset - 173.f, position.y + 14.f}); win.draw(bellRedDot);
-
-    CircleShape avatarBg(16.f); avatarBg.setFillColor(Color(2, 132, 199)); avatarBg.setPosition({rOffset - 145.f, position.y + 12.f}); win.draw(avatarBg);
-    Text avText(boldFont, L"AD", 12); avText.setFillColor(Color::White); avText.setPosition({rOffset - 138.f, position.y + 20.f}); win.draw(avText);
-
-    Text uName(boldFont, L"Admin Danang01", 12); uName.setFillColor(Color(15, 23, 42)); uName.setPosition({rOffset - 105.f, position.y + 12.f}); win.draw(uName);
-    Text uSub(font, L"DANANG-CN01", 11); uSub.setFillColor(Color(100, 116, 139)); uSub.setPosition({rOffset - 105.f, position.y + 28.f}); win.draw(uSub);
+    UITheme::drawTopBar(win, position.x + 30.f, position.y, width - 60.f, L"QUẢN LÝ VÉ", font, boldFont);
 
     // ==========================================
     // 3. PAGE TITLE
     // ==========================================
-    Text title(boldFont, L"Qu\u1ea3n l\u00fd v\u00e9", 26);
-    title.setFillColor(Color(15, 23, 42));
-    title.setPosition({position.x + 30.f, position.y + 60.f});
+    Text title(boldFont, L"Qu\u1ea3n l\u00fd v\u00e9", UITheme::PageTitleSize);
+    title.setFillColor(UITheme::TextPrimary);
+    title.setPosition({position.x + 30.f, position.y + 64.f});
     win.draw(title);
 
     // ==========================================

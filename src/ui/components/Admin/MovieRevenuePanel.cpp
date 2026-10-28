@@ -482,14 +482,14 @@ void MovieRevenuePanel::drawKpiCards(RenderTarget& target) const {
         // Footer
         Text fLeft(boldFont);
         fLeft.setString(L"↗ +18.4% so với quý trước");
-        fLeft.setCharacterSize(10.5f);
+        fLeft.setCharacterSize(12.f);
         fLeft.setFillColor(Color(16, 185, 129));
         fLeft.setPosition({cPos.x + 16.f, cPos.y + 68.f});
         target.draw(fLeft);
 
         Text fRight(font);
         fRight.setString(L"Đã quyết toán VAT");
-        fRight.setCharacterSize(10.5f);
+        fRight.setCharacterSize(12.f);
         fRight.setFillColor(Color(148, 163, 184));
         fRight.setPosition({cPos.x + cardW - 16.f - fRight.getGlobalBounds().size.x, cPos.y + 68.f});
         target.draw(fRight);
@@ -532,14 +532,14 @@ void MovieRevenuePanel::drawKpiCards(RenderTarget& target) const {
 
         Text fLeft(boldFont);
         fLeft.setString(L"Chiếm 59.1% tổng nguồn thu");
-        fLeft.setCharacterSize(10.5f);
+        fLeft.setCharacterSize(12.f);
         fLeft.setFillColor(Color(2, 132, 199));
         fLeft.setPosition({cPos.x + 16.f, cPos.y + 68.f});
         target.draw(fLeft);
 
         Text fRight(font);
         fRight.setString(to_wstring(totalTickets) + L" vé đã xuất");
-        fRight.setCharacterSize(10.5f);
+        fRight.setCharacterSize(12.f);
         fRight.setFillColor(Color(148, 163, 184));
         fRight.setPosition({cPos.x + cardW - 16.f - fRight.getGlobalBounds().size.x, cPos.y + 68.f});
         target.draw(fRight);
@@ -583,14 +583,14 @@ void MovieRevenuePanel::drawKpiCards(RenderTarget& target) const {
 
         Text fLeft(boldFont);
         fLeft.setString(L"Chiếm 40.9% tổng nguồn thu");
-        fLeft.setCharacterSize(10.5f);
+        fLeft.setCharacterSize(12.f);
         fLeft.setFillColor(Color(217, 119, 6));
         fLeft.setPosition({cPos.x + 16.f, cPos.y + 68.f});
         target.draw(fLeft);
 
         Text fRight(font);
         fRight.setString(to_wstring(totalCombos) + L" Combo & Nước");
-        fRight.setCharacterSize(10.5f);
+        fRight.setCharacterSize(12.f);
         fRight.setFillColor(Color(148, 163, 184));
         fRight.setPosition({cPos.x + cardW - 16.f - fRight.getGlobalBounds().size.x, cPos.y + 68.f});
         target.draw(fRight);
@@ -699,7 +699,7 @@ void MovieRevenuePanel::drawTab1TicketsByMovie(RenderTarget& target) const {
 
             Text valTxt(boldFont);
             valTxt.setString(to_string(moviesList[i].tickets));
-            valTxt.setCharacterSize(10.5f);
+            valTxt.setCharacterSize(12.f);
             valTxt.setFillColor(Color(51, 65, 85));
             FloatRect vb = valTxt.getLocalBounds();
             valTxt.setPosition({bx + colW / 2.f - vb.size.x / 2.f, by - 16.f});
@@ -707,7 +707,7 @@ void MovieRevenuePanel::drawTab1TicketsByMovie(RenderTarget& target) const {
 
             Text nameTxt(font);
             nameTxt.setString(moviesList[i].shortTitle);
-            nameTxt.setCharacterSize(9.5f);
+            nameTxt.setCharacterSize(11.5f);
             nameTxt.setFillColor(Color(100, 116, 139));
             FloatRect nb = nameTxt.getLocalBounds();
             nameTxt.setPosition({bx + colW / 2.f - nb.size.x / 2.f, chartBottom + 6.f});
@@ -719,7 +719,7 @@ void MovieRevenuePanel::drawTab1TicketsByMovie(RenderTarget& target) const {
         RoundedRectRenderer::draw(target, boxPos, {leftW - 28.f, 36.f}, 6.f, Color(254, 243, 199));
         Text leadTxt(boldFont);
         leadTxt.setString(L"⭐ Phim dẫn đầu: Tử Chiến Trên Không (31 vé)");
-        leadTxt.setCharacterSize(11.f);
+        leadTxt.setCharacterSize(12.5f);
         leadTxt.setFillColor(Color(180, 83, 9));
         leadTxt.setPosition({boxPos.x + 10.f, boxPos.y + 9.f});
         target.draw(leadTxt);
@@ -755,13 +755,13 @@ void MovieRevenuePanel::drawTab1TicketsByMovie(RenderTarget& target) const {
         float colX_share = cPos.x + 910.f;
 
         float thY = cPos.y + 44.f;
-        Text th_id(boldFont); th_id.setString(L"#"); th_id.setCharacterSize(10.5f); th_id.setFillColor(Color(148, 163, 184)); th_id.setPosition({colX_id, thY}); target.draw(th_id);
-        Text th_title(boldFont); th_title.setString(L"TÊN PHIM"); th_title.setCharacterSize(10.5f); th_title.setFillColor(Color(148, 163, 184)); th_title.setPosition({colX_title, thY}); target.draw(th_title);
-        Text th_genre(boldFont); th_genre.setString(L"THỂ LOẠI"); th_genre.setCharacterSize(10.5f); th_genre.setFillColor(Color(148, 163, 184)); th_genre.setPosition({colX_genre, thY}); target.draw(th_genre);
-        Text th_show(boldFont); th_show.setString(L"SUẤT CHIẾU"); th_show.setCharacterSize(10.5f); th_show.setFillColor(Color(148, 163, 184)); th_show.setPosition({colX_showtimes, thY}); target.draw(th_show);
-        Text th_tick(boldFont); th_tick.setString(L"SỐ VÉ BÁN"); th_tick.setCharacterSize(10.5f); th_tick.setFillColor(Color(148, 163, 184)); th_tick.setPosition({colX_tickets, thY}); target.draw(th_tick);
-        Text th_rev(boldFont); th_rev.setString(L"DOANH THU PHIM"); th_rev.setCharacterSize(10.5f); th_rev.setFillColor(Color(148, 163, 184)); th_rev.setPosition({colX_revenue, thY}); target.draw(th_rev);
-        Text th_sh(boldFont); th_sh.setString(L"TỶ TRỌNG"); th_sh.setCharacterSize(10.5f); th_sh.setFillColor(Color(148, 163, 184)); th_sh.setPosition({colX_share, thY}); target.draw(th_sh);
+        Text th_id(boldFont); th_id.setString(L"#"); th_id.setCharacterSize(12.5f); th_id.setFillColor(Color(100, 116, 139)); th_id.setPosition({colX_id, thY}); target.draw(th_id);
+        Text th_title(boldFont); th_title.setString(L"TÊN PHIM"); th_title.setCharacterSize(12.5f); th_title.setFillColor(Color(100, 116, 139)); th_title.setPosition({colX_title, thY}); target.draw(th_title);
+        Text th_genre(boldFont); th_genre.setString(L"THỂ LOẠI"); th_genre.setCharacterSize(12.5f); th_genre.setFillColor(Color(100, 116, 139)); th_genre.setPosition({colX_genre, thY}); target.draw(th_genre);
+        Text th_show(boldFont); th_show.setString(L"SUẤT CHIẾU"); th_show.setCharacterSize(12.5f); th_show.setFillColor(Color(100, 116, 139)); th_show.setPosition({colX_showtimes, thY}); target.draw(th_show);
+        Text th_tick(boldFont); th_tick.setString(L"SỐ VÉ BÁN"); th_tick.setCharacterSize(12.5f); th_tick.setFillColor(Color(100, 116, 139)); th_tick.setPosition({colX_tickets, thY}); target.draw(th_tick);
+        Text th_rev(boldFont); th_rev.setString(L"DOANH THU PHIM"); th_rev.setCharacterSize(12.5f); th_rev.setFillColor(Color(100, 116, 139)); th_rev.setPosition({colX_revenue, thY}); target.draw(th_rev);
+        Text th_sh(boldFont); th_sh.setString(L"TỶ TRỌNG"); th_sh.setCharacterSize(12.5f); th_sh.setFillColor(Color(100, 116, 139)); th_sh.setPosition({colX_share, thY}); target.draw(th_sh);
 
         RectangleShape div(Vector2f(rightW - 40.f, 1.f));
         div.setPosition({cPos.x + 20.f, cPos.y + 64.f});
@@ -783,15 +783,15 @@ void MovieRevenuePanel::drawTab1TicketsByMovie(RenderTarget& target) const {
                 target.draw(c);
                 Text rTxt(boldFont);
                 rTxt.setString(to_string(i + 1));
-                rTxt.setCharacterSize(9.5f);
+                rTxt.setCharacterSize(11.5f);
                 rTxt.setFillColor(Color::White);
                 FloatRect rb = rTxt.getLocalBounds();
-                rTxt.setPosition({colX_id + 9.f - rb.size.x / 2.f, ry + 3.f});
+                rTxt.setPosition({colX_id + 9.f - rb.size.x / 2.f, ry + 2.f});
                 target.draw(rTxt);
             } else {
                 Text rTxt(font);
                 rTxt.setString(to_string(i + 1));
-                rTxt.setCharacterSize(11.f);
+                rTxt.setCharacterSize(12.f);
                 rTxt.setFillColor(Color(148, 163, 184));
                 rTxt.setPosition({colX_id + 4.f, ry + 2.f});
                 target.draw(rTxt);
@@ -800,26 +800,26 @@ void MovieRevenuePanel::drawTab1TicketsByMovie(RenderTarget& target) const {
             // Title + Tag
             Text tTxt(boldFont);
             tTxt.setString(moviesList[i].title);
-            tTxt.setCharacterSize(12.f);
+            tTxt.setCharacterSize(13.f);
             tTxt.setFillColor(Color(15, 23, 42));
             tTxt.setPosition({colX_title, ry + 2.f});
             target.draw(tTxt);
 
             if (moviesList[i].isHot) {
                 Vector2f hotPos(tTxt.getPosition().x + tTxt.getGlobalBounds().size.x + 8.f, ry + 2.f);
-                RoundedRectRenderer::draw(target, hotPos, {34.f, 18.f}, 3.f, Color(254, 226, 226));
+                RoundedRectRenderer::draw(target, hotPos, {38.f, 20.f}, 3.f, Color(254, 226, 226));
                 Text hotTxt(boldFont);
                 hotTxt.setString(L"HOT");
-                hotTxt.setCharacterSize(9.5f);
+                hotTxt.setCharacterSize(11.5f);
                 hotTxt.setFillColor(Color(225, 29, 72));
-                hotTxt.setPosition({hotPos.x + 6.f, hotPos.y + 1.f});
+                hotTxt.setPosition({hotPos.x + 6.f, hotPos.y + 2.f});
                 target.draw(hotTxt);
             }
 
             // Genre
             Text gTxt(font);
             gTxt.setString(moviesList[i].genre);
-            gTxt.setCharacterSize(11.f);
+            gTxt.setCharacterSize(12.5f);
             gTxt.setFillColor(Color(100, 116, 139));
             gTxt.setPosition({colX_genre, ry + 2.f});
             target.draw(gTxt);
@@ -827,7 +827,7 @@ void MovieRevenuePanel::drawTab1TicketsByMovie(RenderTarget& target) const {
             // Showtimes
             Text sTxt(font);
             sTxt.setString(to_string(moviesList[i].showtimes));
-            sTxt.setCharacterSize(12.f);
+            sTxt.setCharacterSize(13.f);
             sTxt.setFillColor(Color(51, 65, 85));
             sTxt.setPosition({colX_showtimes + 15.f, ry + 2.f});
             target.draw(sTxt);
@@ -954,25 +954,25 @@ void MovieRevenuePanel::drawTab2TotalRevenue(RenderTarget& target) const {
             CircleShape c1(4.f); c1.setPosition({tPts[i].x - 4.f, tPts[i].y - 4.f}); c1.setFillColor(Color(37, 99, 235)); target.draw(c1);
             CircleShape c2(4.f); c2.setPosition({cPts[i].x - 4.f, cPts[i].y - 4.f}); c2.setFillColor(Color(245, 158, 11)); target.draw(c2);
 
-            Text ml(boldFont); ml.setString(mNames[i]); ml.setCharacterSize(10.5f); ml.setFillColor(Color(51, 65, 85));
+            Text ml(boldFont); ml.setString(mNames[i]); ml.setCharacterSize(12.f); ml.setFillColor(Color(51, 65, 85));
             FloatRect mb = ml.getLocalBounds();
             ml.setPosition({tPts[i].x - mb.size.x / 2.f, chartB + 6.f});
             target.draw(ml);
 
-            Text mr(font); mr.setString(mRevs[i]); mr.setCharacterSize(9.5f); mr.setFillColor(Color(148, 163, 184));
+            Text mr(font); mr.setString(mRevs[i]); mr.setCharacterSize(11.5f); mr.setFillColor(Color(148, 163, 184));
             FloatRect mrb = mr.getLocalBounds();
-            mr.setPosition({tPts[i].x - mrb.size.x / 2.f, chartB + 20.f});
+            mr.setPosition({tPts[i].x - mrb.size.x / 2.f, chartB + 22.f});
             target.draw(mr);
         }
 
         // Peak Badge above Month 11
-        Vector2f peakPos(tPts[2].x - 60.f, tPts[2].y - 34.f);
-        RoundedRectRenderer::draw(target, peakPos, {120.f, 20.f}, 4.f, Color(15, 23, 42));
+        Vector2f peakPos(tPts[2].x - 65.f, tPts[2].y - 36.f);
+        RoundedRectRenderer::draw(target, peakPos, {130.f, 22.f}, 4.f, Color(15, 23, 42));
         Text peakTxt(boldFont);
         peakTxt.setString(L"Đỉnh T11: 4.305.000 đ");
-        peakTxt.setCharacterSize(9.5f);
+        peakTxt.setCharacterSize(11.5f);
         peakTxt.setFillColor(Color::White);
-        peakTxt.setPosition({peakPos.x + 8.f, peakPos.y + 2.f});
+        peakTxt.setPosition({peakPos.x + 8.f, peakPos.y + 3.f});
         target.draw(peakTxt);
     }
 
@@ -983,16 +983,16 @@ void MovieRevenuePanel::drawTab2TotalRevenue(RenderTarget& target) const {
 
         Text title(boldFont);
         title.setString(L"Cơ cấu tỷ trọng doanh thu");
-        title.setCharacterSize(13);
+        title.setCharacterSize(15);
         title.setFillColor(Color(15, 23, 42));
         title.setPosition({cPos.x + 16.f, cPos.y + 14.f});
         target.draw(title);
 
         Text sub(font);
         sub.setString(L"Tỷ lệ tương quan giữa bán vé phòng chiếu và dịch vụ bắp nước");
-        sub.setCharacterSize(10.5f);
+        sub.setCharacterSize(12.f);
         sub.setFillColor(Color(148, 163, 184));
-        sub.setPosition({cPos.x + 16.f, cPos.y + 32.f});
+        sub.setPosition({cPos.x + 16.f, cPos.y + 34.f});
         target.draw(sub);
 
         // Donut Chart Representation
@@ -1009,7 +1009,7 @@ void MovieRevenuePanel::drawTab2TotalRevenue(RenderTarget& target) const {
 
         Text dTitle(boldFont);
         dTitle.setString(L"TỔNG CỘNG");
-        dTitle.setCharacterSize(9);
+        dTitle.setCharacterSize(11.f);
         dTitle.setFillColor(Color(148, 163, 184));
         dTitle.setPosition({donutCenter.x - 28.f, donutCenter.y - 12.f});
         target.draw(dTitle);
@@ -1023,8 +1023,8 @@ void MovieRevenuePanel::drawTab2TotalRevenue(RenderTarget& target) const {
 
         // Right side legend
         Vector2f legPos(cPos.x + 250.f, cPos.y + 105.f);
-        Text l1(boldFont); l1.setString(L"● Vé phim (59.1%)\n   7.000.000 đ"); l1.setCharacterSize(12.f); l1.setFillColor(Color(37, 99, 235)); l1.setPosition(legPos); target.draw(l1);
-        Text l2(boldFont); l2.setString(L"● Combo bắp nước (40.9%)\n   4.842.500 đ"); l2.setCharacterSize(12.f); l2.setFillColor(Color(217, 119, 6)); l2.setPosition({legPos.x, legPos.y + 44.f}); target.draw(l2);
+        Text l1(boldFont); l1.setString(L"● Vé phim (59.1%)\n   7.000.000 đ"); l1.setCharacterSize(12.5f); l1.setFillColor(Color(37, 99, 235)); l1.setPosition(legPos); target.draw(l1);
+        Text l2(boldFont); l2.setString(L"● Combo bắp nước (40.9%)\n   4.842.500 đ"); l2.setCharacterSize(12.5f); l2.setFillColor(Color(217, 119, 6)); l2.setPosition({legPos.x, legPos.y + 44.f}); target.draw(l2);
 
         // Bottom 3 mini stats
         float pillY = cPos.y + 225.f;
@@ -1033,7 +1033,7 @@ void MovieRevenuePanel::drawTab2TotalRevenue(RenderTarget& target) const {
         auto drawStatPill = [&](int idx, const wstring& l, const wstring& v) {
             Vector2f pPos(cPos.x + 16.f + idx * (pW + 10.f), pillY);
             RoundedRectRenderer::draw(target, pPos, {pW, 40.f}, 6.f, Color(248, 250, 252));
-            Text pl(font); pl.setString(l); pl.setCharacterSize(9.5f); pl.setFillColor(Color(100, 116, 139)); pl.setPosition({pPos.x + 10.f, pPos.y + 4.f}); target.draw(pl);
+            Text pl(font); pl.setString(l); pl.setCharacterSize(11.5f); pl.setFillColor(Color(100, 116, 139)); pl.setPosition({pPos.x + 10.f, pPos.y + 4.f}); target.draw(pl);
             Text pv(boldFont); pv.setString(v); pv.setCharacterSize(12.5f); pv.setFillColor(Color(15, 23, 42)); pv.setPosition({pPos.x + 10.f, pPos.y + 18.f}); target.draw(pv);
         };
 
@@ -1073,13 +1073,13 @@ void MovieRevenuePanel::drawTab2TotalRevenue(RenderTarget& target) const {
         float col_act = cPos.x + 1330.f;
 
         float thY = cPos.y + 42.f;
-        Text th1(boldFont); th1.setString(L"THÁNG / KỲ"); th1.setCharacterSize(10.5f); th1.setFillColor(Color(148, 163, 184)); th1.setPosition({col_m, thY}); target.draw(th1);
-        Text th2(boldFont); th2.setString(L"DOANH THU VÉ (Đ)"); th2.setCharacterSize(10.5f); th2.setFillColor(Color(148, 163, 184)); th2.setPosition({col_tv, thY}); target.draw(th2);
-        Text th3(boldFont); th3.setString(L"DOANH THU COMBO (Đ)"); th3.setCharacterSize(10.5f); th3.setFillColor(Color(148, 163, 184)); th3.setPosition({col_cv, thY}); target.draw(th3);
-        Text th4(boldFont); th4.setString(L"TỔNG DOANH THU (Đ)"); th4.setCharacterSize(10.5f); th4.setFillColor(Color(148, 163, 184)); th4.setPosition({col_tot, thY}); target.draw(th4);
-        Text th5(boldFont); th5.setString(L"TĂNG TRƯỞNG"); th5.setCharacterSize(10.5f); th5.setFillColor(Color(148, 163, 184)); th5.setPosition({col_gr, thY}); target.draw(th5);
-        Text th6(boldFont); th6.setString(L"ĐÓNG GÓP F&B"); th6.setCharacterSize(10.5f); th6.setFillColor(Color(148, 163, 184)); th6.setPosition({col_sh, thY}); target.draw(th6);
-        Text th7(boldFont); th7.setString(L"THAO TÁC"); th7.setCharacterSize(10.5f); th7.setFillColor(Color(148, 163, 184)); th7.setPosition({col_act, thY}); target.draw(th7);
+        Text th1(boldFont); th1.setString(L"THÁNG / KỲ"); th1.setCharacterSize(12.5f); th1.setFillColor(Color(100, 116, 139)); th1.setPosition({col_m, thY}); target.draw(th1);
+        Text th2(boldFont); th2.setString(L"DOANH THU VÉ (Đ)"); th2.setCharacterSize(12.5f); th2.setFillColor(Color(100, 116, 139)); th2.setPosition({col_tv, thY}); target.draw(th2);
+        Text th3(boldFont); th3.setString(L"DOANH THU COMBO (Đ)"); th3.setCharacterSize(12.5f); th3.setFillColor(Color(100, 116, 139)); th3.setPosition({col_cv, thY}); target.draw(th3);
+        Text th4(boldFont); th4.setString(L"TỔNG DOANH THU (Đ)"); th4.setCharacterSize(12.5f); th4.setFillColor(Color(100, 116, 139)); th4.setPosition({col_tot, thY}); target.draw(th4);
+        Text th5(boldFont); th5.setString(L"TĂNG TRƯỞNG"); th5.setCharacterSize(12.5f); th5.setFillColor(Color(100, 116, 139)); th5.setPosition({col_gr, thY}); target.draw(th5);
+        Text th6(boldFont); th6.setString(L"ĐÓNG GÓP F&B"); th6.setCharacterSize(12.5f); th6.setFillColor(Color(100, 116, 139)); th6.setPosition({col_sh, thY}); target.draw(th6);
+        Text th7(boldFont); th7.setString(L"THAO TÁC"); th7.setCharacterSize(12.5f); th7.setFillColor(Color(100, 116, 139)); th7.setPosition({col_act, thY}); target.draw(th7);
 
         RectangleShape div(Vector2f(availableW - 40.f, 1.f));
         div.setPosition({cPos.x + 20.f, cPos.y + 60.f});
@@ -1093,21 +1093,21 @@ void MovieRevenuePanel::drawTab2TotalRevenue(RenderTarget& target) const {
             Text tm(boldFont); tm.setString(monthsList[i].displayMonth); tm.setCharacterSize(12.f); tm.setFillColor(Color(15, 23, 42)); tm.setPosition({col_m, ry + 2.f}); target.draw(tm);
             if (monthsList[i].isRecord) {
                 Vector2f recPos(tm.getPosition().x + tm.getGlobalBounds().size.x + 8.f, ry + 2.f);
-                RoundedRectRenderer::draw(target, recPos, {46.f, 18.f}, 3.f, Color(254, 226, 226));
-                Text recTxt(boldFont); recTxt.setString(L"Kỷ lục"); recTxt.setCharacterSize(9.5f); recTxt.setFillColor(Color(225, 29, 72)); recTxt.setPosition({recPos.x + 8.f, recPos.y + 1.f}); target.draw(recTxt);
+                RoundedRectRenderer::draw(target, recPos, {52.f, 20.f}, 3.f, Color(254, 226, 226));
+                Text recTxt(boldFont); recTxt.setString(L"Kỷ lục"); recTxt.setCharacterSize(11.5f); recTxt.setFillColor(Color(225, 29, 72)); recTxt.setPosition({recPos.x + 8.f, recPos.y + 2.f}); target.draw(recTxt);
             }
 
-            Text tv(font); tv.setString(s2ws(toCurrency(monthsList[i].ticketRev))); tv.setCharacterSize(12.f); tv.setFillColor(Color(51, 65, 85)); tv.setPosition({col_tv, ry + 2.f}); target.draw(tv);
-            Text tc(font); tc.setString(s2ws(toCurrency(monthsList[i].comboRev))); tc.setCharacterSize(12.f); tc.setFillColor(Color(51, 65, 85)); tc.setPosition({col_cv, ry + 2.f}); target.draw(tc);
-            Text tt(boldFont); tt.setString(s2ws(toCurrency(monthsList[i].totalRev))); tt.setCharacterSize(12.5f); tt.setFillColor(Color(15, 23, 42)); tt.setPosition({col_tot, ry + 2.f}); target.draw(tt);
+            Text tv(font); tv.setString(s2ws(toCurrency(monthsList[i].ticketRev))); tv.setCharacterSize(12.5f); tv.setFillColor(Color(51, 65, 85)); tv.setPosition({col_tv, ry + 2.f}); target.draw(tv);
+            Text tc(font); tc.setString(s2ws(toCurrency(monthsList[i].comboRev))); tc.setCharacterSize(12.5f); tc.setFillColor(Color(51, 65, 85)); tc.setPosition({col_cv, ry + 2.f}); target.draw(tc);
+            Text tt(boldFont); tt.setString(s2ws(toCurrency(monthsList[i].totalRev))); tt.setCharacterSize(13.f); tt.setFillColor(Color(15, 23, 42)); tt.setPosition({col_tot, ry + 2.f}); target.draw(tt);
 
             Color grCol = (monthsList[i].growth[0] == '+') ? Color(16, 185, 129) : (monthsList[i].growth[0] == '-' ? Color(225, 29, 72) : Color(100, 116, 139));
-            Text tg(boldFont); tg.setString(monthsList[i].growth); tg.setCharacterSize(12.f); tg.setFillColor(grCol); tg.setPosition({col_gr, ry + 2.f}); target.draw(tg);
+            Text tg(boldFont); tg.setString(monthsList[i].growth); tg.setCharacterSize(12.5f); tg.setFillColor(grCol); tg.setPosition({col_gr, ry + 2.f}); target.draw(tg);
 
             stringstream ss; ss << fixed << setprecision(1) << monthsList[i].comboShare << "%";
-            Text ts(font); ts.setString(ss.str()); ts.setCharacterSize(12.f); ts.setFillColor(Color(100, 116, 139)); ts.setPosition({col_sh, ry + 2.f}); target.draw(ts);
+            Text ts(font); ts.setString(ss.str()); ts.setCharacterSize(12.5f); ts.setFillColor(Color(100, 116, 139)); ts.setPosition({col_sh, ry + 2.f}); target.draw(ts);
 
-            Text ta(boldFont); ta.setString(L"Chi tiết"); ta.setCharacterSize(11.5f); ta.setFillColor(Color(2, 132, 199)); ta.setPosition({col_act, ry + 2.f}); target.draw(ta);
+            Text ta(boldFont); ta.setString(L"Chi tiết"); ta.setCharacterSize(12.5f); ta.setFillColor(Color(2, 132, 199)); ta.setPosition({col_act, ry + 2.f}); target.draw(ta);
         }
     }
 }
@@ -1124,25 +1124,25 @@ void MovieRevenuePanel::drawTab3RevenueByMovie(RenderTarget& target) const {
 
         Text title(boldFont);
         title.setString(L"XẾP HẠNG DOANH THU THEO PHIM (VND)");
-        title.setCharacterSize(13);
+        title.setCharacterSize(15);
         title.setFillColor(Color(15, 23, 42));
         title.setPosition({cPos.x + 16.f, cPos.y + 14.f});
         target.draw(title);
 
         Text sub(font);
         sub.setString(L"Thang đo định mức tối đa: 4.000.000 đ");
-        sub.setCharacterSize(10.5f);
+        sub.setCharacterSize(12.f);
         sub.setFillColor(Color(148, 163, 184));
-        sub.setPosition({cPos.x + 16.f, cPos.y + 32.f});
+        sub.setPosition({cPos.x + 16.f, cPos.y + 34.f});
         target.draw(sub);
 
-        Vector2f bPos(cPos.x + halfW - 110.f, cPos.y + 14.f);
-        RoundedRectRenderer::draw(target, bPos, {94.f, 20.f}, 4.f, Color(224, 242, 254));
+        Vector2f bPos(cPos.x + halfW - 120.f, cPos.y + 14.f);
+        RoundedRectRenderer::draw(target, bPos, {105.f, 22.f}, 4.f, Color(224, 242, 254));
         Text bTxt(boldFont);
         bTxt.setString(L"TOP 8 BOX OFFICE");
-        bTxt.setCharacterSize(9.5f);
+        bTxt.setCharacterSize(11.5f);
         bTxt.setFillColor(Color(2, 132, 199));
-        bTxt.setPosition({bPos.x + 8.f, bPos.y + 2.f});
+        bTxt.setPosition({bPos.x + 8.f, bPos.y + 3.f});
         target.draw(bTxt);
 
         // 8 Horizontal Progress Bars
@@ -1195,7 +1195,7 @@ void MovieRevenuePanel::drawTab3RevenueByMovie(RenderTarget& target) const {
 
         Text t1Badge(boldFont);
         t1Badge.setString(L"⭐ TOP 1 PHIM BÁN CHẠY NHẤT");
-        t1Badge.setCharacterSize(10.5f);
+        t1Badge.setCharacterSize(12.f);
         t1Badge.setFillColor(Color(245, 158, 11));
         t1Badge.setPosition({top1Pos.x + 16.f, top1Pos.y + 14.f});
         target.draw(t1Badge);
@@ -1209,7 +1209,7 @@ void MovieRevenuePanel::drawTab3RevenueByMovie(RenderTarget& target) const {
 
         Text t1Genre(font);
         t1Genre.setString(L"Thể loại: Hành động / Kịch tính");
-        t1Genre.setCharacterSize(11);
+        t1Genre.setCharacterSize(12.f);
         t1Genre.setFillColor(Color(148, 163, 184));
         t1Genre.setPosition({top1Pos.x + 16.f, top1Pos.y + 64.f});
         target.draw(t1Genre);
@@ -1283,32 +1283,32 @@ void MovieRevenuePanel::drawTab4RevenueByCombo(RenderTarget& target) const {
 
     Text title(boldFont);
     title.setString(L"Doanh thu combo");
-    title.setCharacterSize(13.5f);
+    title.setCharacterSize(15);
     title.setFillColor(Color(15, 23, 42));
     title.setPosition({cPos.x + 16.f, cPos.y + 12.f});
     target.draw(title);
 
-    Vector2f bPos(cPos.x + 140.f, cPos.y + 12.f);
-    RoundedRectRenderer::draw(target, bPos, {95.f, 20.f}, 4.f, Color(254, 243, 199));
+    Vector2f bPos(cPos.x + 155.f, cPos.y + 12.f);
+    RoundedRectRenderer::draw(target, bPos, {110.f, 22.f}, 4.f, Color(254, 243, 199));
     Text bTxt(boldFont);
     bTxt.setString(L"10 Mã sản phẩm");
-    bTxt.setCharacterSize(9.5f);
+    bTxt.setCharacterSize(12.f);
     bTxt.setFillColor(Color(217, 119, 6));
-    bTxt.setPosition({bPos.x + 8.f, bPos.y + 2.f});
+    bTxt.setPosition({bPos.x + 8.f, bPos.y + 3.f});
     target.draw(bTxt);
 
     Text sub(font);
     sub.setString(L"Biểu đồ thể hiện mức thu nhập thực tế từ từng combo bắp rang và nước uống (Đơn vị: VNĐ)");
-    sub.setCharacterSize(10.5f);
+    sub.setCharacterSize(12.f);
     sub.setFillColor(Color(148, 163, 184));
-    sub.setPosition({cPos.x + 16.f, cPos.y + 32.f});
+    sub.setPosition({cPos.x + 16.f, cPos.y + 34.f});
     target.draw(sub);
 
     Text leg(boldFont);
     leg.setString(L"■ Doanh thu đạt được   Max: 1.000.000đ");
-    leg.setCharacterSize(11);
+    leg.setCharacterSize(12);
     leg.setFillColor(Color(217, 119, 6));
-    leg.setPosition({cPos.x + availableW - 240.f, cPos.y + 14.f});
+    leg.setPosition({cPos.x + availableW - 260.f, cPos.y + 14.f});
     target.draw(leg);
 
     // 10 Bars
@@ -1331,7 +1331,7 @@ void MovieRevenuePanel::drawTab4RevenueByCombo(RenderTarget& target) const {
 
         Text valTxt(boldFont);
         valTxt.setString(to_string(combosList[i].revenue / 1000) + "k");
-        valTxt.setCharacterSize(10.f);
+        valTxt.setCharacterSize(11.5f);
         valTxt.setFillColor(Color(51, 65, 85));
         FloatRect vb = valTxt.getLocalBounds();
         valTxt.setPosition({bx + colW / 2.f - vb.size.x / 2.f, by - 16.f});
@@ -1339,7 +1339,7 @@ void MovieRevenuePanel::drawTab4RevenueByCombo(RenderTarget& target) const {
 
         Text codeTxt(boldFont);
         codeTxt.setString(combosList[i].code);
-        codeTxt.setCharacterSize(10.5f);
+        codeTxt.setCharacterSize(12.f);
         codeTxt.setFillColor(Color(100, 116, 139));
         FloatRect cb = codeTxt.getLocalBounds();
         codeTxt.setPosition({bx + colW / 2.f - cb.size.x / 2.f, chartBottom + 6.f});
@@ -1353,14 +1353,14 @@ void MovieRevenuePanel::drawTab4RevenueByCombo(RenderTarget& target) const {
     // Callout 1: COMBO DẪN ĐẦU
     Vector2f c1Pos(position.x + 20.f, callY);
     RoundedRectRenderer::draw(target, c1Pos, {callW, 64.f}, 6.f, Color(255, 251, 235), 1.f, Color(254, 243, 199));
-    Text c1T(boldFont); c1T.setString(L"COMBO DẪN ĐẦU DOANH THU"); c1T.setCharacterSize(10.5f); c1T.setFillColor(Color(180, 83, 9)); c1T.setPosition({c1Pos.x + 12.f, c1Pos.y + 8.f}); target.draw(c1T);
-    Text c1B(font); c1B.setString(L"CB05: 1 CocaCola + 1 Bắp Phô Mai mang về 600.000 đ (6 lượt chọn phổ biến)."); c1B.setCharacterSize(11); c1B.setFillColor(Color(120, 53, 15)); c1B.setPosition({c1Pos.x + 12.f, c1Pos.y + 28.f}); target.draw(c1B);
+    Text c1T(boldFont); c1T.setString(L"COMBO DẪN ĐẦU DOANH THU"); c1T.setCharacterSize(12.f); c1T.setFillColor(Color(180, 83, 9)); c1T.setPosition({c1Pos.x + 12.f, c1Pos.y + 8.f}); target.draw(c1T);
+    Text c1B(font); c1B.setString(L"CB05: 1 CocaCola + 1 Bắp Phô Mai mang về 600.000 đ (6 lượt chọn phổ biến)."); c1B.setCharacterSize(12); c1B.setFillColor(Color(120, 53, 15)); c1B.setPosition({c1Pos.x + 12.f, c1Pos.y + 30.f}); target.draw(c1B);
 
     // Callout 2: XU HƯỚNG VỊ GIÁC
     Vector2f c2Pos(position.x + 20.f + callW + 14.f, callY);
     RoundedRectRenderer::draw(target, c2Pos, {callW, 64.f}, 6.f, Color(240, 249, 255), 1.f, Color(224, 242, 254));
-    Text c2T(boldFont); c2T.setString(L"XU HƯỚNG VỊ GIÁC RẠP CHIẾU"); c2T.setCharacterSize(10.5f); c2T.setFillColor(Color(2, 132, 199)); c2T.setPosition({c2Pos.x + 12.f, c2Pos.y + 8.f}); target.draw(c2T);
-    Text c2B(font); c2B.setString(L"Hương vị Bắp Phô Mai chiếm áp đảo 62% tổng số bắp bán ra (CB03, CB05, CB07, CB09, CB10)."); c2B.setCharacterSize(11); c2B.setFillColor(Color(3, 105, 161)); c2B.setPosition({c2Pos.x + 12.f, c2Pos.y + 28.f}); target.draw(c2B);
+    Text c2T(boldFont); c2T.setString(L"XU HƯỚNG VỊ GIÁC RẠP CHIẾU"); c2T.setCharacterSize(12.f); c2T.setFillColor(Color(2, 132, 199)); c2T.setPosition({c2Pos.x + 12.f, c2Pos.y + 8.f}); target.draw(c2T);
+    Text c2B(font); c2B.setString(L"Hương vị Bắp Phô Mai chiếm áp đảo 62% tổng số bắp bán ra (CB03, CB05, CB07, CB09, CB10)."); c2B.setCharacterSize(12); c2B.setFillColor(Color(3, 105, 161)); c2B.setPosition({c2Pos.x + 12.f, c2Pos.y + 30.f}); target.draw(c2B);
 }
 
 void MovieRevenuePanel::drawBottomBar(RenderTarget& target) const {
@@ -1372,15 +1372,15 @@ void MovieRevenuePanel::drawBottomBar(RenderTarget& target) const {
     target.draw(div);
 
     Text engText(font);
-    engText.setString(L"NODE: VN-DN601  •  24ms   |   CineXiNe Financial Gateway: Connected   |   UTF-8 Engine");
-    engText.setCharacterSize(11.f);
+    engText.setString(L"NODE: VN-DN601  •  24ms   |   CineCore Financial Gateway: Connected   |   UTF-8 Engine");
+    engText.setCharacterSize(12.f);
     engText.setFillColor(Color(100, 116, 139));
     engText.setPosition({position.x + 20.f, barY});
     target.draw(engText);
 
     Text authText(font);
-    authText.setString(L"Phụ trách: Admin CineXiNe (Toàn quyền)  •  1728x972 HD");
-    authText.setCharacterSize(11.f);
+    authText.setString(L"Phụ trách: Admin CineCore (Toàn quyền)  •  1728x972 HD");
+    authText.setCharacterSize(12.f);
     authText.setFillColor(Color(100, 116, 139));
     FloatRect ab = authText.getLocalBounds();
     authText.setPosition({position.x + width - ab.size.x - 20.f, barY});

@@ -1,4 +1,5 @@
 #include "UI/components/Admin/ComboPanel.h"
+#include "UI/components/Admin/UITheme.h"
 #include "UI/components/Admin/RoundedRectRenderer.h"
 #include "utils/FileUtils.h"
 #include <algorithm>
@@ -409,44 +410,23 @@ void ComboPanel::render(RenderWindow& win) {
     win.draw(bg);
 
     // ==========================================
-    // 2. TOP BAR
+    // 2. TOP BAR (Standardized Navigation & Profile)
     // ==========================================
-    Text bc1(boldFont, L"\u2263  PBL2 - H\u1ec6 TH\u1ed0NG \u0110\u1eb6T V\u00c9 XEM PHIM K\u1ebeT H\u1ee2P TH\u1ed0NG K\u00ca PH\u00c2N T\u00cdCH DOANH THU", 12);
-    bc1.setFillColor(Color(2, 132, 199));
-    bc1.setPosition({position.x + 30.f, position.y + 20.f});
-    win.draw(bc1);
-
-    Text slash1(boldFont, L"  /  Khu v\u1ef1c F&B Cinema", 12);
-    slash1.setFillColor(Color(100, 116, 139));
-    slash1.setPosition({position.x + 520.f, position.y + 20.f});
-    win.draw(slash1);
-
-    float rOffset = position.x + width - 30.f;
-    CircleShape bellCircle(15.f); bellCircle.setFillColor(Color(241, 245, 249)); bellCircle.setPosition({rOffset - 270.f, position.y + 13.f}); win.draw(bellCircle);
-    CircleShape bellRedDot(3.5f); bellRedDot.setFillColor(Color(239, 68, 68)); bellRedDot.setPosition({rOffset - 253.f, position.y + 14.f}); win.draw(bellRedDot);
-
-    Text locTxt(font, L"\u0110\u00e0 N\u1eb5ng, Vi\u1ec7t Nam", 11); locTxt.setFillColor(Color(51, 65, 85)); locTxt.setPosition({rOffset - 230.f, position.y + 12.f}); win.draw(locTxt);
-    Text shiftTxt(font, L"Ca tr\u1ef1c: Chi\u1ec1u - T\u1ed1i", 10); shiftTxt.setFillColor(Color(100, 116, 139)); shiftTxt.setPosition({rOffset - 230.f, position.y + 28.f}); win.draw(shiftTxt);
-
-    CircleShape avatarBg(16.f); avatarBg.setFillColor(Color(2, 132, 199)); avatarBg.setPosition({rOffset - 90.f, position.y + 12.f}); win.draw(avatarBg);
-    Text avText(boldFont, L"AD", 12); avText.setFillColor(Color::White); avText.setPosition({rOffset - 83.f, position.y + 20.f}); win.draw(avText);
-
-    Text uName(boldFont, L"Admin CineXine", 12); uName.setFillColor(Color(15, 23, 42)); uName.setPosition({rOffset - 50.f, position.y + 12.f}); win.draw(uName);
-    Text uRole(font, L"To\u00e0n quy\u1ec1n v\u1eadn h\u00e0nh", 10); uRole.setFillColor(Color(100, 116, 139)); uRole.setPosition({rOffset - 50.f, position.y + 28.f}); win.draw(uRole);
+    UITheme::drawTopBar(win, position.x + 30.f, position.y, width - 60.f, L"QUẢN LÝ BẮP NƯỚC", font, boldFont);
 
     // ==========================================
     // 3. PAGE HEADER
     // ==========================================
-    Text title(boldFont, L"Qu\u1ea3n l\u00fd combo b\u1eafp n\u01b0\u1edbc", 24);
-    title.setFillColor(Color(15, 23, 42));
+    Text title(boldFont, L"Qu\u1ea3n l\u00fd combo b\u1eafp n\u01b0\u1edbc", UITheme::PageTitleSize);
+    title.setFillColor(UITheme::TextPrimary);
     title.setPosition({position.x + 30.f, position.y + 68.f});
     win.draw(title);
 
     FloatRect tb = title.getGlobalBounds();
-    drawRoundedCard(win, {tb.position.x + tb.size.x + 16.f, position.y + 74.f}, {150.f, 24.f}, 12.f, Color(220, 252, 231));
-    Text bBadge(boldFont, to_wstring(allCombos.size()) + L" Combo \u0110ang B\u00e1n", 11);
+    drawRoundedCard(win, {tb.position.x + tb.size.x + 16.f, position.y + 72.f}, {165.f, 26.f}, 13.f, Color(220, 252, 231));
+    Text bBadge(boldFont, to_wstring(allCombos.size()) + L" Combo \u0110ang B\u00e1n", 12);
     bBadge.setFillColor(Color(22, 101, 52));
-    bBadge.setPosition({tb.position.x + tb.size.x + 24.f, position.y + 78.f});
+    bBadge.setPosition({tb.position.x + tb.size.x + 24.f, position.y + 77.f});
     win.draw(bBadge);
 
     Text subTitle(font, L"C\u1eadp nh\u1eadt b\u1ea3ng gi\u00e1, c\u00f4ng th\u1ee9c m\u00f3n b\u1eafp rang, n\u01b0\u1edbc ng\u1ecdt v\u00e0 c\u00e1c g\u00f3i \u01b0u \u0111\u00e3i t\u1ea1i qu\u1ea7y b\u1eafp n\u01b0\u1edbc.", 13);
@@ -458,9 +438,9 @@ void ComboPanel::render(RenderWindow& win) {
     drawRoundedCard(win, {position.x + width - 170.f, position.y + 76.f}, {40.f, 38.f}, 6.f, Color::White, 1.f, Color(203, 213, 225));
     Text relIcon(boldFont, L"\u21bb", 18); relIcon.setFillColor(Color(71, 85, 105)); relIcon.setPosition({position.x + width - 158.f, position.y + 83.f}); win.draw(relIcon);
 
-    drawRoundedCard(win, {position.x + width - 120.f, position.y + 76.f}, {90.f, 38.f}, 6.f, Color::White, 1.f, Color(203, 213, 225));
+    drawRoundedCard(win, {position.x + width - 120.f, position.y + 76.f}, {95.f, 38.f}, 6.f, Color::White, 1.f, Color(203, 213, 225));
     Text expIcon(boldFont, L"\u229e", 13); expIcon.setFillColor(Color(22, 101, 52)); expIcon.setPosition({position.x + width - 110.f, position.y + 87.f}); win.draw(expIcon);
-    Text expTxt(boldFont, L"Xu\u1ea5t Excel", 12); expTxt.setFillColor(Color(15, 23, 42)); expTxt.setPosition({position.x + width - 92.f, position.y + 87.f}); win.draw(expTxt);
+    Text expTxt(boldFont, L"Xu\u1ea5t Excel", 12.5f); expTxt.setFillColor(Color(15, 23, 42)); expTxt.setPosition({position.x + width - 90.f, position.y + 87.f}); win.draw(expTxt);
 
     // ==========================================
     // 4. 4 THẺ THỐNG KÊ KPI (STAT CARDS GRID)
@@ -472,41 +452,41 @@ void ComboPanel::render(RenderWindow& win) {
     // Card 1: Tổng danh mục
     float c1X = position.x + 30.f;
     drawRoundedCard(win, {c1X, statY}, {cardW, cardH}, 10.f, Color::White, 1.f, Color(226, 232, 240));
-    Text sc1T(boldFont, L"T\u1ed4NG DANH M\u1ee4C", 11); sc1T.setFillColor(Color(100, 116, 139)); sc1T.setPosition({c1X + 16.f, statY + 12.f}); win.draw(sc1T);
+    Text sc1T(boldFont, L"T\u1ed4NG DANH M\u1ee4C", 12.5f); sc1T.setFillColor(Color(100, 116, 139)); sc1T.setPosition({c1X + 16.f, statY + 12.f}); win.draw(sc1T);
     CircleShape ic1(12.f); ic1.setFillColor(Color(224, 242, 254)); ic1.setPosition({c1X + cardW - 36.f, statY + 10.f}); win.draw(ic1);
-    Text sc1V(boldFont, to_wstring(allCombos.size()), 24); sc1V.setFillColor(Color(15, 23, 42)); sc1V.setPosition({c1X + 16.f, statY + 28.f}); win.draw(sc1V);
+    Text sc1V(boldFont, to_wstring(allCombos.size()), 20); sc1V.setFillColor(Color(15, 23, 42)); sc1V.setPosition({c1X + 16.f, statY + 30.f}); win.draw(sc1V);
     FloatRect v1b = sc1V.getGlobalBounds();
-    drawRoundedCard(win, {v1b.position.x + v1b.size.x + 10.f, statY + 34.f}, {85.f, 20.f}, 10.f, Color(220, 252, 231));
-    Text sc1B(boldFont, L"100% Kh\u1ea3 d\u1ee5ng", 10); sc1B.setFillColor(Color(22, 101, 52)); sc1B.setPosition({v1b.position.x + v1b.size.x + 16.f, statY + 37.f}); win.draw(sc1B);
-    Text sc1S(font, L"G\u1ed3m n\u01b0\u1edbc ng\u1ecdt, b\u1eafp v\u1ecb, combo \u0111\u00f4i", 10); sc1S.setFillColor(Color(148, 163, 184)); sc1S.setPosition({c1X + 16.f, statY + 62.f}); win.draw(sc1S);
+    drawRoundedCard(win, {v1b.position.x + v1b.size.x + 10.f, statY + 34.f}, {92.f, 22.f}, 11.f, Color(220, 252, 231));
+    Text sc1B(boldFont, L"100% Kh\u1ea3 d\u1ee5ng", 11.5f); sc1B.setFillColor(Color(22, 101, 52)); sc1B.setPosition({v1b.position.x + v1b.size.x + 16.f, statY + 37.f}); win.draw(sc1B);
+    Text sc1S(font, L"G\u1ed3m n\u01b0\u1edbc ng\u1ecdt, b\u1eafp v\u1ecb, combo \u0111\u00f4i", 12); sc1S.setFillColor(Color(148, 163, 184)); sc1S.setPosition({c1X + 16.f, statY + 62.f}); win.draw(sc1S);
 
     // Card 2: Doanh thu F&B hôm nay
     float c2X = c1X + cardW + 15.f;
     drawRoundedCard(win, {c2X, statY}, {cardW, cardH}, 10.f, Color::White, 1.f, Color(226, 232, 240));
-    Text sc2T(boldFont, L"DOANH THU F&B H\u00d4M NAY", 11); sc2T.setFillColor(Color(100, 116, 139)); sc2T.setPosition({c2X + 16.f, statY + 12.f}); win.draw(sc2T);
+    Text sc2T(boldFont, L"DOANH THU F&B H\u00d4M NAY", 12.5f); sc2T.setFillColor(Color(100, 116, 139)); sc2T.setPosition({c2X + 16.f, statY + 12.f}); win.draw(sc2T);
     CircleShape ic2(12.f); ic2.setFillColor(Color(220, 252, 231)); ic2.setPosition({c2X + cardW - 36.f, statY + 10.f}); win.draw(ic2);
-    Text sc2V(boldFont, L"14.850.000 \u0111", 18); sc2V.setFillColor(Color(15, 23, 42)); sc2V.setPosition({c2X + 16.f, statY + 32.f}); win.draw(sc2V);
+    Text sc2V(boldFont, L"14.850.000 \u0111", 20); sc2V.setFillColor(Color(15, 23, 42)); sc2V.setPosition({c2X + 16.f, statY + 30.f}); win.draw(sc2V);
     FloatRect v2b = sc2V.getGlobalBounds();
-    Text sc2Inc(boldFont, L"+18.4%", 10); sc2Inc.setFillColor(Color(16, 185, 129)); sc2Inc.setPosition({v2b.position.x + v2b.size.x + 8.f, statY + 36.f}); win.draw(sc2Inc);
-    Text sc2S(font, L"Chi\u1ebfm 36% t\u1ed5ng doanh thu v\u00e9", 10); sc2S.setFillColor(Color(148, 163, 184)); sc2S.setPosition({c2X + 16.f, statY + 62.f}); win.draw(sc2S);
+    Text sc2Inc(boldFont, L"+18.4%", 12); sc2Inc.setFillColor(Color(16, 185, 129)); sc2Inc.setPosition({v2b.position.x + v2b.size.x + 8.f, statY + 34.f}); win.draw(sc2Inc);
+    Text sc2S(font, L"Chi\u1ebfm 36% t\u1ed5ng doanh thu v\u00e9", 12); sc2S.setFillColor(Color(148, 163, 184)); sc2S.setPosition({c2X + 16.f, statY + 62.f}); win.draw(sc2S);
 
     // Card 3: Best Seller hôm nay
     float c3X = c2X + cardW + 15.f;
     drawRoundedCard(win, {c3X, statY}, {cardW, cardH}, 10.f, Color::White, 1.f, Color(226, 232, 240));
-    Text sc3T(boldFont, L"BEST SELLER H\u00d4M NAY", 11); sc3T.setFillColor(Color(100, 116, 139)); sc3T.setPosition({c3X + 16.f, statY + 12.f}); win.draw(sc3T);
+    Text sc3T(boldFont, L"BEST SELLER H\u00d4M NAY", 12.5f); sc3T.setFillColor(Color(100, 116, 139)); sc3T.setPosition({c3X + 16.f, statY + 12.f}); win.draw(sc3T);
     CircleShape ic3(12.f); ic3.setFillColor(Color(254, 243, 199)); ic3.setPosition({c3X + cardW - 36.f, statY + 10.f}); win.draw(ic3);
     Text sc3V(boldFont, L"CB02: B\u1eafp Caramel", 16); sc3V.setFillColor(Color(15, 23, 42)); sc3V.setPosition({c3X + 16.f, statY + 34.f}); win.draw(sc3V);
-    Text sc3S(boldFont, L"184 ph\u1ea7n \u0111\u00e3 b\u00e1n ra", 10); sc3S.setFillColor(Color(217, 119, 6)); sc3S.setPosition({c3X + 16.f, statY + 62.f}); win.draw(sc3S);
+    Text sc3S(boldFont, L"184 ph\u1ea7n \u0111\u00e3 b\u00e1n ra", 12); sc3S.setFillColor(Color(217, 119, 6)); sc3S.setPosition({c3X + 16.f, statY + 62.f}); win.draw(sc3S);
 
     // Card 4: Giá trị trung bình F&B
     float c4X = c3X + cardW + 15.f;
     drawRoundedCard(win, {c4X, statY}, {cardW, cardH}, 10.f, Color::White, 1.f, Color(226, 232, 240));
-    Text sc4T(boldFont, L"GI\u00c1 TR\u1eca TRUNG B\u00ccNH F&B", 11); sc4T.setFillColor(Color(100, 116, 139)); sc4T.setPosition({c4X + 16.f, statY + 12.f}); win.draw(sc4T);
+    Text sc4T(boldFont, L"GI\u00c1 TR\u1eca TRUNG B\u00ccNH F&B", 12.5f); sc4T.setFillColor(Color(100, 116, 139)); sc4T.setPosition({c4X + 16.f, statY + 12.f}); win.draw(sc4T);
     CircleShape ic4(12.f); ic4.setFillColor(Color(243, 232, 255)); ic4.setPosition({c4X + cardW - 36.f, statY + 10.f}); win.draw(ic4);
-    Text sc4V(boldFont, L"115.000 \u0111", 18); sc4V.setFillColor(Color(15, 23, 42)); sc4V.setPosition({c4X + 16.f, statY + 32.f}); win.draw(sc4V);
+    Text sc4V(boldFont, L"115.000 \u0111", 20); sc4V.setFillColor(Color(15, 23, 42)); sc4V.setPosition({c4X + 16.f, statY + 30.f}); win.draw(sc4V);
     FloatRect v4b = sc4V.getGlobalBounds();
-    Text sc4Tx(font, L"/ giao d\u1ecbch", 10); sc4Tx.setFillColor(Color(100, 116, 139)); sc4Tx.setPosition({v4b.position.x + v4b.size.x + 4.f, statY + 36.f}); win.draw(sc4Tx);
-    Text sc4S(font, L"Th\u01b0\u1eddng mua k\u00e8m v\u00e9 \u0111\u00f4i", 10); sc4S.setFillColor(Color(147, 51, 234)); sc4S.setPosition({c4X + 16.f, statY + 62.f}); win.draw(sc4S);
+    Text sc4Tx(font, L"/ giao d\u1ecbch", 12); sc4Tx.setFillColor(Color(100, 116, 139)); sc4Tx.setPosition({v4b.position.x + v4b.size.x + 4.f, statY + 34.f}); win.draw(sc4Tx);
+    Text sc4S(font, L"Th\u01b0\u1eddng mua k\u00e8m v\u00e9 \u0111\u00f4i", 12); sc4S.setFillColor(Color(147, 51, 234)); sc4S.setPosition({c4X + 16.f, statY + 62.f}); win.draw(sc4S);
 
     // ==========================================
     // 5. TOOLBAR & FILTER PILLS
@@ -535,9 +515,9 @@ void ComboPanel::render(RenderWindow& win) {
     Text sIcon(boldFont, L"\U0001F50D", 12); sIcon.setFillColor(Color(148, 163, 184)); sIcon.setPosition({position.x + 40.f, fltY + 9.f}); win.draw(sIcon);
 
     wstring sPrompt = searchQuery.empty() ? L"T\u00ecm theo m\u00e3 combo (CB01...) ho\u1eb7c t\u00ean s\u1ea3n ph\u1ea9m..." : s2ws(searchQuery) + (searchActive ? L"|" : L"");
-    Text sTxt(font, sPrompt, 11); sTxt.setFillColor(searchQuery.empty() ? Color(148, 163, 184) : Color(15, 23, 42)); sTxt.setPosition({position.x + 64.f, fltY + 9.f}); win.draw(sTxt);
+    Text sTxt(font, sPrompt, 12); sTxt.setFillColor(searchQuery.empty() ? Color(148, 163, 184) : Color(15, 23, 42)); sTxt.setPosition({position.x + 64.f, fltY + 9.f}); win.draw(sTxt);
 
-    Text locLbl(boldFont, L"L\u1eccC:", 11); locLbl.setFillColor(Color(100, 116, 139)); locLbl.setPosition({position.x + 350.f, fltY + 9.f}); win.draw(locLbl);
+    Text locLbl(boldFont, L"L\u1eccC:", 12); locLbl.setFillColor(Color(100, 116, 139)); locLbl.setPosition({position.x + 350.f, fltY + 9.f}); win.draw(locLbl);
 
     // Các Pill filter
     vector<pair<wstring, float>> pills = {
@@ -551,7 +531,7 @@ void ComboPanel::render(RenderWindow& win) {
     for (size_t i = 0; i < pills.size(); ++i) {
         bool isAct = ((int)i == activeFilterIndex);
         drawRoundedCard(win, {pX, fltY}, {pills[i].second, 34.f}, 17.f, isAct ? Color(2, 132, 199) : Color::White, isAct ? 0.f : 1.f, Color(226, 232, 240));
-        Text pTxt(boldFont, pills[i].first, 11);
+        Text pTxt(boldFont, pills[i].first, 12.5f);
         pTxt.setFillColor(isAct ? Color::White : Color(71, 85, 105));
         FloatRect ptb = pTxt.getLocalBounds();
         pTxt.setPosition({pX + (pills[i].second - ptb.size.x) / 2.f - ptb.position.x, fltY + (34.f - ptb.size.y) / 2.f - ptb.position.y});
@@ -570,12 +550,12 @@ void ComboPanel::render(RenderWindow& win) {
     drawRoundedCard(win, {position.x + 30.f, tableY}, {tableW, 44.f}, 6.f, Color(0, 119, 182));
 
     drawRoundedCard(win, {position.x + 44.f, tableY + 14.f}, {16.f, 16.f}, 3.f, Color(255, 255, 255, 60));
-    Text h1(boldFont, L"M\u00c3 COMBO", 11); h1.setFillColor(Color::White); h1.setPosition({position.x + 85.f, tableY + 14.f}); win.draw(h1);
-    Text h2(boldFont, L"T\u00caN COMBO & QUY CHU\u1ea8N CHI TI\u1ebeT", 11); h2.setFillColor(Color::White); h2.setPosition({position.x + 230.f, tableY + 14.f}); win.draw(h2);
-    Text h3(boldFont, L"PH\u00c2N LO\u1ea0I", 11); h3.setFillColor(Color::White); h3.setPosition({position.x + 550.f, tableY + 14.f}); win.draw(h3);
-    Text h4(boldFont, L"GI\u00c1 B\u00c1N NI\u00caM Y\u1ebeT", 11); h4.setFillColor(Color::White); h4.setPosition({position.x + 720.f, tableY + 14.f}); win.draw(h4);
-    Text h5(boldFont, L"TR\u1ea0NG TH\u00c1I", 11); h5.setFillColor(Color::White); h5.setPosition({position.x + 880.f, tableY + 14.f}); win.draw(h5);
-    Text h6(boldFont, L"THAO T\u00c1C", 11); h6.setFillColor(Color::White); h6.setPosition({position.x + width - 110.f, tableY + 14.f}); win.draw(h6);
+    Text h1(boldFont, L"M\u00c3 COMBO", 12.5f); h1.setFillColor(Color::White); h1.setPosition({position.x + 85.f, tableY + 12.f}); win.draw(h1);
+    Text h2(boldFont, L"T\u00caN COMBO & QUY CHU\u1ea8N CHI TI\u1ebeT", 12.5f); h2.setFillColor(Color::White); h2.setPosition({position.x + 230.f, tableY + 12.f}); win.draw(h2);
+    Text h3(boldFont, L"PH\u00c2N LO\u1ea0I", 12.5f); h3.setFillColor(Color::White); h3.setPosition({position.x + 550.f, tableY + 12.f}); win.draw(h3);
+    Text h4(boldFont, L"GI\u00c1 B\u00c1N NI\u00caM Y\u1ebeT", 12.5f); h4.setFillColor(Color::White); h4.setPosition({position.x + 720.f, tableY + 12.f}); win.draw(h4);
+    Text h5(boldFont, L"TR\u1ea0NG TH\u00c1I", 12.5f); h5.setFillColor(Color::White); h5.setPosition({position.x + 880.f, tableY + 12.f}); win.draw(h5);
+    Text h6(boldFont, L"THAO T\u00c1C", 12.5f); h6.setFillColor(Color::White); h6.setPosition({position.x + width - 110.f, tableY + 12.f}); win.draw(h6);
 
     // Dòng dữ liệu
     int count = min((int)filteredCombos.size() - scrollOffset, maxVisibleRows);
@@ -594,12 +574,12 @@ void ComboPanel::render(RenderWindow& win) {
         // 1. Checkbox
         drawRoundedCard(win, {position.x + 44.f, rY + 28.f}, {16.f, 16.f}, 3.f, itm.isChecked ? Color(2, 132, 199) : Color::White, 1.f, Color(203, 213, 225));
         if (itm.isChecked) {
-            Text ckTxt(boldFont, L"\u2714", 10); ckTxt.setFillColor(Color::White); ckTxt.setPosition({position.x + 46.f, rY + 28.f}); win.draw(ckTxt);
+            Text ckTxt(boldFont, L"\u2714", 11); ckTxt.setFillColor(Color::White); ckTxt.setPosition({position.x + 46.f, rY + 28.f}); win.draw(ckTxt);
         }
 
         // 2. Mã combo (Badge viền mỏng)
         drawRoundedCard(win, {position.x + 80.f, rY + 24.f}, {55.f, 24.f}, 4.f, Color(248, 250, 252), 1.f, Color(226, 232, 240));
-        Text idTxt(boldFont, s2ws(itm.id), 11); idTxt.setFillColor(Color(51, 65, 85)); idTxt.setPosition({position.x + 92.f, rY + 28.f}); win.draw(idTxt);
+        Text idTxt(boldFont, s2ws(itm.id), 12.5f); idTxt.setFillColor(Color(51, 65, 85)); idTxt.setPosition({position.x + 90.f, rY + 27.f}); win.draw(idTxt);
 
         // 3. Tên combo & Quy chuẩn chi tiết
         // Icon hình tượng (Cốc nước / Hộp bắp)
@@ -609,7 +589,7 @@ void ComboPanel::render(RenderWindow& win) {
         icDish.setPosition({position.x + 192.f, rY + 26.f});
         win.draw(icDish);
 
-        Text nameTxt(boldFont, itm.name, 13);
+        Text nameTxt(boldFont, itm.name, 13.5f);
         nameTxt.setFillColor(Color(15, 23, 42));
         nameTxt.setPosition({position.x + 230.f, rY + 16.f});
         win.draw(nameTxt);
@@ -617,11 +597,11 @@ void ComboPanel::render(RenderWindow& win) {
         // Badge HOT nếu có
         if (itm.isHot) {
             FloatRect nb = nameTxt.getGlobalBounds();
-            drawRoundedCard(win, {nb.position.x + nb.size.x + 8.f, rY + 16.f}, {34.f, 18.f}, 4.f, Color(245, 158, 11));
-            Text hotTxt(boldFont, L"HOT", 9); hotTxt.setFillColor(Color::White); hotTxt.setPosition({nb.position.x + nb.size.x + 12.f, rY + 18.f}); win.draw(hotTxt);
+            drawRoundedCard(win, {nb.position.x + nb.size.x + 8.f, rY + 16.f}, {38.f, 20.f}, 4.f, Color(245, 158, 11));
+            Text hotTxt(boldFont, L"HOT", 11.5f); hotTxt.setFillColor(Color::White); hotTxt.setPosition({nb.position.x + nb.size.x + 12.f, rY + 17.f}); win.draw(hotTxt);
         }
 
-        Text subTxt(font, itm.subtitle, 11);
+        Text subTxt(font, itm.subtitle, 12);
         subTxt.setFillColor(Color(100, 116, 139));
         subTxt.setPosition({position.x + 230.f, rY + 38.f});
         win.draw(subTxt);
@@ -634,22 +614,22 @@ void ComboPanel::render(RenderWindow& win) {
         else if (itm.category == L"Combo \u0110\u01a1n") { catBg = Color(224, 242, 254); catFg = Color(2, 132, 199); }
         else if (itm.category == L"Combo Nh\u00f3m") { catBg = Color(243, 232, 255); catFg = Color(126, 34, 206); }
 
-        drawRoundedCard(win, {position.x + 550.f, rY + 24.f}, {80.f, 24.f}, 12.f, catBg);
-        Text catTxt(boldFont, itm.category, 10); catTxt.setFillColor(catFg);
+        drawRoundedCard(win, {position.x + 550.f, rY + 24.f}, {88.f, 26.f}, 13.f, catBg);
+        Text catTxt(boldFont, itm.category, 12); catTxt.setFillColor(catFg);
         FloatRect ctb = catTxt.getLocalBounds();
-        catTxt.setPosition({position.x + 550.f + (80.f - ctb.size.x) / 2.f - ctb.position.x, rY + 24.f + (24.f - ctb.size.y) / 2.f - ctb.position.y});
+        catTxt.setPosition({position.x + 550.f + (88.f - ctb.size.x) / 2.f - ctb.position.x, rY + 24.f + (26.f - ctb.size.y) / 2.f - ctb.position.y});
         win.draw(catTxt);
 
         // 5. Giá bán niêm yết
-        Text prTxt(boldFont, s2ws(formatPrice(itm.price)), 14);
+        Text prTxt(boldFont, s2ws(formatPrice(itm.price)), 13.5f);
         prTxt.setFillColor(Color(15, 23, 42));
         prTxt.setPosition({position.x + 720.f, rY + 26.f});
         win.draw(prTxt);
 
         // 6. Trạng thái: ● Đang bán
-        drawRoundedCard(win, {position.x + 880.f, rY + 24.f}, {85.f, 24.f}, 12.f, Color(220, 252, 231));
-        CircleShape dotG(3.f); dotG.setFillColor(Color(22, 101, 52)); dotG.setPosition({position.x + 888.f, rY + 33.f}); win.draw(dotG);
-        Text stTxt(boldFont, L"\u0110ang b\u00e1n", 10); stTxt.setFillColor(Color(22, 101, 52)); stTxt.setPosition({position.x + 898.f, rY + 29.f}); win.draw(stTxt);
+        drawRoundedCard(win, {position.x + 880.f, rY + 24.f}, {92.f, 26.f}, 13.f, Color(220, 252, 231));
+        CircleShape dotG(3.f); dotG.setFillColor(Color(22, 101, 52)); dotG.setPosition({position.x + 888.f, rY + 34.f}); win.draw(dotG);
+        Text stTxt(boldFont, L"\u0110ang b\u00e1n", 12); stTxt.setFillColor(Color(22, 101, 52)); stTxt.setPosition({position.x + 898.f, rY + 28.f}); win.draw(stTxt);
 
         // 7. Thao tác: Bút chì & Thùng rác
         float actX = position.x + width - 110.f;

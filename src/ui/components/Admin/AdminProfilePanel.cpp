@@ -346,20 +346,20 @@ void AdminProfilePanel::drawHeaderBanner(RenderTarget& target) const {
     // Badge: 🛡 Quản trị viên cấp cao
     float tW = title.getGlobalBounds().size.x;
     Vector2f bPos(textX + tW + 14.f, cardY + 28.f);
-    RoundedRectRenderer::draw(target, bPos, {155.f, 22.f}, 11.f, Color(224, 242, 254), 1.f, Color(186, 230, 253));
+    RoundedRectRenderer::draw(target, bPos, {165.f, 24.f}, 12.f, Color(224, 242, 254), 1.f, Color(186, 230, 253));
     Text bTxt(boldFont);
     bTxt.setString(L"🛡 Quản trị viên cấp cao");
-    bTxt.setCharacterSize(10.5f);
+    bTxt.setCharacterSize(12.f);
     bTxt.setFillColor(Color(2, 132, 199));
     bTxt.setPosition({bPos.x + 10.f, bPos.y + 3.f});
     target.draw(bTxt);
 
     // Status Pill: Đang hoạt động (Active)
     Vector2f stPos(textX, cardY + 58.f);
-    RoundedRectRenderer::draw(target, stPos, {142.f, 20.f}, 10.f, Color(220, 252, 231), 1.f, Color(167, 243, 208));
+    RoundedRectRenderer::draw(target, stPos, {150.f, 22.f}, 11.f, Color(220, 252, 231), 1.f, Color(167, 243, 208));
     Text stTxt(boldFont);
     stTxt.setString(L"Đang hoạt động (Active)");
-    stTxt.setCharacterSize(10.5f);
+    stTxt.setCharacterSize(12.f);
     stTxt.setFillColor(Color(5, 150, 105));
     stTxt.setPosition({stPos.x + 10.f, stPos.y + 2.f});
     target.draw(stTxt);
@@ -367,7 +367,7 @@ void AdminProfilePanel::drawHeaderBanner(RenderTarget& target) const {
     // Metadata line: Email • Role • Last Login
     Text meta(font);
     meta.setString(L"✉ " + s2ws(email) + L"   •   👤 Quản trị viên   •   🕒 Đăng nhập gần nhất: 10 phút trước (118.69.214.88)");
-    meta.setCharacterSize(11.5f);
+    meta.setCharacterSize(12.5f);
     meta.setFillColor(Color(100, 116, 139));
     meta.setPosition({textX, cardY + 86.f});
     target.draw(meta);
@@ -438,7 +438,7 @@ void AdminProfilePanel::drawPersonalInfoCard(RenderTarget& target) const {
         if (hasVerifiedBadge) {
             Text vBadge(boldFont);
             vBadge.setString(L"✓ Đã xác minh");
-            vBadge.setCharacterSize(10.f);
+            vBadge.setCharacterSize(12.f);
             vBadge.setFillColor(Color(5, 150, 105));
             vBadge.setPosition({x + lbl.getGlobalBounds().size.x + 8.f, y});
             target.draw(vBadge);
@@ -460,7 +460,7 @@ void AdminProfilePanel::drawPersonalInfoCard(RenderTarget& target) const {
         float textOffset = icon.empty() ? 12.f : 34.f;
         Text vTxt(boldFont);
         vTxt.setString(s2ws(val));
-        vTxt.setCharacterSize(12.f);
+        vTxt.setCharacterSize(13.f);
         vTxt.setFillColor(Color(15, 23, 42));
         vTxt.setPosition({bPos.x + textOffset, bPos.y + 11.f});
         target.draw(vTxt);
@@ -484,9 +484,9 @@ void AdminProfilePanel::drawPersonalInfoCard(RenderTarget& target) const {
     Text notIc(boldFont); notIc.setString(L"ℹ"); notIc.setCharacterSize(14); notIc.setFillColor(Color(2, 132, 199)); notIc.setPosition({notPos.x + 12.f, notPos.y + 15.f}); target.draw(notIc);
     Text notTxt(font);
     notTxt.setString(L"Mọi thay đổi thông tin cá nhân sẽ được lưu vào Nhật ký kiểm toán\nhệ thống (Audit Log) theo tiêu chuẩn ISO 27001.");
-    notTxt.setCharacterSize(10.5f);
+    notTxt.setCharacterSize(12.f);
     notTxt.setFillColor(Color(3, 105, 161));
-    notTxt.setPosition({notPos.x + 36.f, notPos.y + 10.f});
+    notTxt.setPosition({notPos.x + 36.f, notPos.y + 8.f});
     target.draw(notTxt);
 
     // Save Button: 💾 LƯU THÔNG TIN
@@ -495,10 +495,10 @@ void AdminProfilePanel::drawPersonalInfoCard(RenderTarget& target) const {
     RoundedRectRenderer::draw(target, savePos, {170.f, 42.f}, 6.f, saveBg);
     Text saveTxt(boldFont);
     saveTxt.setString(L"💾 LƯU THÔNG TIN");
-    saveTxt.setCharacterSize(11.5f);
+    saveTxt.setCharacterSize(13.f);
     saveTxt.setFillColor(Color::White);
     FloatRect sb = saveTxt.getLocalBounds();
-    saveTxt.setPosition({savePos.x + 85.f - sb.size.x / 2.f, savePos.y + 12.f});
+    saveTxt.setPosition({savePos.x + 85.f - sb.size.x / 2.f, savePos.y + 11.f});
     target.draw(saveTxt);
 }
 
@@ -595,14 +595,14 @@ void AdminProfilePanel::drawPasswordCard(RenderTarget& target) const {
     float meterY = cardY + 214.f;
     Text sLbl(font);
     sLbl.setString(L"Độ mạnh mật khẩu:");
-    sLbl.setCharacterSize(10.5f);
+    sLbl.setCharacterSize(12.f);
     sLbl.setFillColor(Color(100, 116, 139));
     sLbl.setPosition({cardX + 24.f, meterY});
     target.draw(sLbl);
 
     Text sVal(boldFont);
     sVal.setString(L"Rất mạnh");
-    sVal.setCharacterSize(10.5f);
+    sVal.setCharacterSize(12.f);
     sVal.setFillColor(Color(16, 185, 129));
     sVal.setPosition({cardX + cardW - 24.f - sVal.getGlobalBounds().size.x, meterY});
     target.draw(sVal);
@@ -621,8 +621,8 @@ void AdminProfilePanel::drawPasswordCard(RenderTarget& target) const {
     // Password Rules Checklist (2x2 grid)
     float ruleY = cardY + 316.f;
     Text rTitle(boldFont);
-    rTitle.setString(L"Quy định mật khẩu CineXine:");
-    rTitle.setCharacterSize(10.5f);
+    rTitle.setString(L"Quy định mật khẩu CineCore:");
+    rTitle.setCharacterSize(12.5f);
     rTitle.setFillColor(Color(71, 85, 105));
     rTitle.setPosition({cardX + 24.f, ruleY});
     target.draw(rTitle);
@@ -630,14 +630,14 @@ void AdminProfilePanel::drawPasswordCard(RenderTarget& target) const {
     auto drawRuleItem = [&](float x, float y, const wstring& rTxt, bool checked) {
         Text ic(boldFont);
         ic.setString(checked ? L"●" : L"○");
-        ic.setCharacterSize(10);
+        ic.setCharacterSize(11.5f);
         ic.setFillColor(checked ? Color(16, 185, 129) : Color(148, 163, 184));
         ic.setPosition({x, y});
         target.draw(ic);
 
         Text t(font);
         t.setString(rTxt);
-        t.setCharacterSize(10.5f);
+        t.setCharacterSize(12.f);
         t.setFillColor(Color(100, 116, 139));
         t.setPosition({x + 14.f, y});
         target.draw(t);
@@ -654,10 +654,10 @@ void AdminProfilePanel::drawPasswordCard(RenderTarget& target) const {
     RoundedRectRenderer::draw(target, chgPos, {165.f, 42.f}, 6.f, chgBg);
     Text chgTxt(boldFont);
     chgTxt.setString(L"🔁 ĐỔI MẬT KHẨU");
-    chgTxt.setCharacterSize(11.5f);
+    chgTxt.setCharacterSize(13.f);
     chgTxt.setFillColor(Color::White);
     FloatRect cb = chgTxt.getLocalBounds();
-    chgTxt.setPosition({chgPos.x + 82.f - cb.size.x / 2.f, chgPos.y + 12.f});
+    chgTxt.setPosition({chgPos.x + 82.f - cb.size.x / 2.f, chgPos.y + 11.f});
     target.draw(chgTxt);
 }
 
@@ -693,17 +693,17 @@ void AdminProfilePanel::drawTwoFactorCard(RenderTarget& target) const {
 
     Text sub(font);
     sub.setString(L"Bảo vệ tài khoản qua mã OTP ứng dụng điện thoại");
-    sub.setCharacterSize(10.5f);
+    sub.setCharacterSize(12.f);
     sub.setFillColor(Color(100, 116, 139));
     sub.setPosition({cardX + 58.f, cardY + 30.f});
     target.draw(sub);
 
     // Badge: ● ĐÃ BẬT
-    Vector2f bPos(cardX + cardW - 95.f, cardY + 16.f);
-    RoundedRectRenderer::draw(target, bPos, {80.f, 26.f}, 13.f, Color(220, 252, 231), 1.f, Color(167, 243, 208));
+    Vector2f bPos(cardX + cardW - 100.f, cardY + 16.f);
+    RoundedRectRenderer::draw(target, bPos, {85.f, 26.f}, 13.f, Color(220, 252, 231), 1.f, Color(167, 243, 208));
     Text bTxt(boldFont);
     bTxt.setString(L"● ĐÃ BẬT");
-    bTxt.setCharacterSize(11);
+    bTxt.setCharacterSize(12.f);
     bTxt.setFillColor(Color(5, 150, 105));
     bTxt.setPosition({bPos.x + 12.f, bPos.y + 4.f});
     target.draw(bTxt);
@@ -741,7 +741,7 @@ void AdminProfilePanel::drawDeleteModal(RenderTarget& target) const {
     RoundedRectRenderer::draw(target, canPos, {95.f, 36.f}, 6.f, Color::White, 1.f, Color(203, 213, 225));
     Text canTxt(boldFont);
     canTxt.setString(L"Hủy bỏ");
-    canTxt.setCharacterSize(11.5f);
+    canTxt.setCharacterSize(12.5f);
     canTxt.setFillColor(Color(71, 85, 105));
     canTxt.setPosition({canPos.x + 24.f, canPos.y + 8.f});
     target.draw(canTxt);
@@ -751,9 +751,9 @@ void AdminProfilePanel::drawDeleteModal(RenderTarget& target) const {
     RoundedRectRenderer::draw(target, delPos, {95.f, 36.f}, 6.f, Color(220, 38, 38));
     Text delTxt(boldFont);
     delTxt.setString(L"Xóa vĩnh viễn");
-    delTxt.setCharacterSize(11.5f);
+    delTxt.setCharacterSize(12.5f);
     delTxt.setFillColor(Color::White);
-    delTxt.setPosition({delPos.x + 12.f, delPos.y + 8.f});
+    delTxt.setPosition({delPos.x + 10.f, delPos.y + 8.f});
     target.draw(delTxt);
 }
 
@@ -766,14 +766,14 @@ void AdminProfilePanel::drawBottomBar(RenderTarget& target) const {
     target.draw(div);
 
     Text engText(font);
-    engText.setString(L"NODE: VN-DN601  •  LIVE   |   CineXiNe Admin Security Vault: Protected   |   UTF-8 Engine");
+    engText.setString(L"NODE: VN-DN601  •  LIVE   |   CineCore Admin Security Vault: Protected   |   UTF-8 Engine");
     engText.setCharacterSize(11.f);
     engText.setFillColor(Color(100, 116, 139));
     engText.setPosition({position.x + 20.f, barY});
     target.draw(engText);
 
     Text authText(font);
-    authText.setString(L"Phụ trách: Admin CineXiNe (Toàn quyền)  •  1728x972 HD");
+    authText.setString(L"Phụ trách: Admin CineCore (Toàn quyền)  •  1728x972 HD");
     authText.setCharacterSize(11.f);
     authText.setFillColor(Color(100, 116, 139));
     FloatRect ab = authText.getLocalBounds();

@@ -1,4 +1,5 @@
 #include "UI/components/Admin/MoviePanel.h"
+#include "UI/components/Admin/UITheme.h"
 #include "utils/FileUtils.h"
 #include <algorithm>
 #include <cwctype>
@@ -645,51 +646,14 @@ void MoviePanel::update(Vector2f mouse, bool mousePressed) {
 void MoviePanel::render(RenderWindow& window) {
     const float startX = position.x + 35.f; // 385.f
 
-    // 1. Breadcrumbs
-    RoundedRectRenderer::draw(window, {startX, 38.f}, {195.f, 28.f}, 14.f, Color(239, 246, 255), 1.2f, Color(186, 230, 253));
-    drawCheckmark(window, {startX + 14.f, 49.f}, Color(2, 132, 199));
+    // 1. Standardized Top Navigation Bar & Profile Header
+    UITheme::drawTopBar(window, startX, position.y, width - 70.f, L"QUẢN LÝ PHIM", font, boldFont);
 
-    Text b1(boldFont, L"C\u1ed4NG QU\u1ea2N TR\u1eca N\u1ed8I B\u1ed8", 12);
-    b1.setFillColor(Color(2, 132, 199));
-    b1.setPosition({startX + 30.f, 43.f});
-    window.draw(b1);
-
-    Text b2(boldFont, L"/   H\u1ec6 TH\u1ed0NG   /   QU\u1ea2N L\u00dd PHIM", 13);
-    b2.setFillColor(Color(51, 65, 85));
-    b2.setPosition({startX + 208.f, 42.f});
-    window.draw(b2);
-
-    // 2. Heading
-    Text heading(boldFont, L"DANH S\u00c1CH & \u0110I\u1ec0U PH\u1ed0I PHIM", 26);
-    heading.setFillColor(Color(15, 23, 42));
-    heading.setPosition({startX, 74.f});
-    window.draw(heading);
-
-    // 3. Top-Right Bell and Admin Avatar
-    RoundedRectRenderer::draw(window, {position.x + width - 270.f, 40.f}, {42.f, 42.f}, 21.f, Color::White, 1.2f, Color(203, 213, 225));
-    drawBellIcon(window, {position.x + width - 257.f, 53.f}, Color(51, 65, 85));
-
-    // User pill
-    RoundedRectRenderer::draw(window, {position.x + width - 215.f, 36.f}, {200.f, 50.f}, 25.f, Color::White, 1.2f, Color(203, 213, 225));
-    CircleShape av(18.f, 20);
-    av.setFillColor(Color(2, 132, 199));
-    av.setPosition({position.x + width - 209.f, 43.f});
-    window.draw(av);
-
-    Text avText(boldFont, L"AD", 13);
-    avText.setFillColor(Color::White);
-    avText.setPosition({position.x + width - 200.f, 51.f});
-    window.draw(avText);
-
-    Text uName(boldFont, L"Admin Danang01", 14);
-    uName.setFillColor(Color(15, 23, 42));
-    uName.setPosition({position.x + width - 165.f, 42.f});
-    window.draw(uName);
-
-    Text uRole(boldFont, L"ADM-9842 (SuperAdmin)", 11);
-    uRole.setFillColor(Color(71, 85, 105));
-    uRole.setPosition({position.x + width - 165.f, 62.f});
-    window.draw(uRole);
+    // 2. Standardized Page Heading & Subtitle
+    UITheme::drawPageHeader(window, startX, position.y + 64.f,
+                            L"DANH SÁCH & ĐIỀU PHỐI PHIM",
+                            L"Hệ thống quản lý kho phim rạp CineCore, phân loại định dạng và trạng thái phát hành",
+                            boldFont, font);
 
     // 4. 4 KPI STAT CARDS
     const float cardY = 126.f;
@@ -706,99 +670,31 @@ void MoviePanel::render(RenderWindow& window) {
     }
 
     // Card 1: Phim đang chiếu
-    RoundedRectRenderer::draw(window, {startX, cardY}, {cardW, cardH}, 12.f, Color::White, 1.2f, Color(226, 232, 240));
-    CircleShape i1(19.f, 20);
-    i1.setFillColor(Color(220, 252, 231));
-    i1.setPosition({startX + cardW - 50.f, cardY + 14.f});
-    window.draw(i1);
-    drawPlayIcon(window, {startX + cardW - 36.f, cardY + 28.f}, Color(21, 128, 61));
-
-    Text t1(boldFont, L"Phim \u0111ang chi\u1ebfu", 13);
-    t1.setFillColor(Color(51, 65, 85));
-    t1.setPosition({startX + 18.f, cardY + 14.f});
-    window.draw(t1);
-
-    Text n1(boldFont, to_wstring(countActive), 30);
-    n1.setFillColor(Color(15, 23, 42));
-    n1.setPosition({startX + 18.f, cardY + 34.f});
-    window.draw(n1);
-
-    Text s1(boldFont, L"\u0110ang t\u1ea1o doanh thu", 12);
-    s1.setFillColor(Color(21, 128, 61));
-    s1.setPosition({startX + 18.f, cardY + 74.f});
-    window.draw(s1);
+    UITheme::drawKpiCard(window, {startX, cardY}, {cardW, cardH},
+                         L"Phim đang chiếu", to_wstring(countActive), L"Đang tạo doanh thu",
+                         UITheme::SuccessLight, UITheme::SuccessDark, boldFont);
+    drawPlayIcon(window, {startX + cardW - 36.f, cardY + 28.f}, UITheme::SuccessDark);
 
     // Card 2: Phim sắp khởi chiếu
     float c2X = startX + cardW + cardGap;
-    RoundedRectRenderer::draw(window, {c2X, cardY}, {cardW, cardH}, 12.f, Color::White, 1.2f, Color(226, 232, 240));
-    CircleShape i2(19.f, 20);
-    i2.setFillColor(Color(224, 242, 254));
-    i2.setPosition({c2X + cardW - 50.f, cardY + 14.f});
-    window.draw(i2);
-    drawCalendarIcon(window, {c2X + cardW - 38.f, cardY + 27.f}, Color(3, 105, 161));
-
-    Text t2(boldFont, L"Phim s\u1eafp kh\u1edfi chi\u1ebfu", 13);
-    t2.setFillColor(Color(51, 65, 85));
-    t2.setPosition({c2X + 18.f, cardY + 14.f});
-    window.draw(t2);
-
-    Text n2(boldFont, to_wstring(countUpcoming), 30);
-    n2.setFillColor(Color(15, 23, 42));
-    n2.setPosition({c2X + 18.f, cardY + 34.f});
-    window.draw(n2);
-
-    Text s2(boldFont, L"\u0110\u00e3 m\u1edf b\u00e1n s\u1edbm", 12);
-    s2.setFillColor(Color(3, 105, 161));
-    s2.setPosition({c2X + 18.f, cardY + 74.f});
-    window.draw(s2);
+    UITheme::drawKpiCard(window, {c2X, cardY}, {cardW, cardH},
+                         L"Phim sắp khởi chiếu", to_wstring(countUpcoming), L"Đã mở bán sớm",
+                         UITheme::InfoLight, UITheme::InfoDark, boldFont);
+    drawCalendarIcon(window, {c2X + cardW - 38.f, cardY + 27.f}, UITheme::InfoDark);
 
     // Card 3: Tổng suất hôm nay
     float c3X = c2X + cardW + cardGap;
-    RoundedRectRenderer::draw(window, {c3X, cardY}, {cardW, cardH}, 12.f, Color::White, 1.2f, Color(226, 232, 240));
-    CircleShape i3(19.f, 20);
-    i3.setFillColor(Color(243, 232, 255));
-    i3.setPosition({c3X + cardW - 50.f, cardY + 14.f});
-    window.draw(i3);
+    UITheme::drawKpiCard(window, {c3X, cardY}, {cardW, cardH},
+                         L"Tổng suất hôm nay", L"42", L"12 phòng chiếu full",
+                         Color(243, 232, 255), Color(126, 34, 206), boldFont);
     drawClockIcon(window, {c3X + cardW - 38.f, cardY + 26.f}, Color(126, 34, 206));
-
-    Text t3(boldFont, L"T\u1ed5ng su\u1ea5t h\u00f4m nay", 13);
-    t3.setFillColor(Color(51, 65, 85));
-    t3.setPosition({c3X + 18.f, cardY + 14.f});
-    window.draw(t3);
-
-    Text n3(boldFont, L"42", 30);
-    n3.setFillColor(Color(15, 23, 42));
-    n3.setPosition({c3X + 18.f, cardY + 34.f});
-    window.draw(n3);
-
-    Text s3(boldFont, L"12 ph\u00f2ng chi\u1ebfu full", 12);
-    s3.setFillColor(Color(126, 34, 206));
-    s3.setPosition({c3X + 18.f, cardY + 74.f});
-    window.draw(s3);
 
     // Card 4: Tổng phim quản lý
     float c4X = c3X + cardW + cardGap;
-    RoundedRectRenderer::draw(window, {c4X, cardY}, {cardW, cardH}, 12.f, Color::White, 1.2f, Color(226, 232, 240));
-    CircleShape i4(19.f, 20);
-    i4.setFillColor(Color(241, 245, 249));
-    i4.setPosition({c4X + cardW - 50.f, cardY + 14.f});
-    window.draw(i4);
-    drawFilmIcon(window, {c4X + cardW - 38.f, cardY + 27.f}, Color(51, 65, 85));
-
-    Text t4(boldFont, L"T\u1ed5ng phim qu\u1ea3n l\u00fd", 13);
-    t4.setFillColor(Color(51, 65, 85));
-    t4.setPosition({c4X + 18.f, cardY + 14.f});
-    window.draw(t4);
-
-    Text n4(boldFont, to_wstring(allMovies.size()), 30);
-    n4.setFillColor(Color(15, 23, 42));
-    n4.setPosition({c4X + 18.f, cardY + 34.f});
-    window.draw(n4);
-
-    Text s4(boldFont, L"Kho d\u1eef li\u1ec7u 2024", 12);
-    s4.setFillColor(Color(51, 65, 85));
-    s4.setPosition({c4X + 18.f, cardY + 74.f});
-    window.draw(s4);
+    UITheme::drawKpiCard(window, {c4X, cardY}, {cardW, cardH},
+                         L"Tổng phim quản lý", to_wstring(allMovies.size()), L"Kho dữ liệu CineCore",
+                         UITheme::SurfaceSubtle, UITheme::TextSecondary, boldFont);
+    drawFilmIcon(window, {c4X + cardW - 38.f, cardY + 27.f}, UITheme::TextSecondary);
 
     // 5. TOOLBAR (Search & Filters & Actions)
     const float toolY = 252.f;
@@ -963,33 +859,36 @@ void MoviePanel::render(RenderWindow& window) {
 
         // Col 2: Poster thumbnail + Title + Format & Genre
         float col2X = startX + 140.f;
-        // Poster box
-        RoundedRectRenderer::draw(window, {col2X, rY + 13.f}, {40.f, 54.f}, 6.f, Color(226, 232, 240));
-        Text postTxt(boldFont, L"POSTER", 9);
-        postTxt.setFillColor(Color(71, 85, 105));
-        postTxt.setPosition({col2X + 4.f, rY + 31.f});
-        window.draw(postTxt);
+        string fmtStr = (idx == 1) ? "IMAX 3D" : ((idx == 2) ? "2D Digital" : ((idx == 3) ? "4DX / 3D" : ((idx == 4) ? "2D Lồng tiếng" : "2D / Atmos")));
+
+        // Poster box: Premium dark slate miniature frame with film icon
+        RoundedRectRenderer::draw(window, {col2X, rY + 12.f}, {42.f, 56.f}, 6.f, UITheme::TextPrimary);
+        RoundedRectRenderer::draw(window, {col2X + 2.f, rY + 14.f}, {38.f, 52.f}, 4.f, Color(30, 41, 59));
+        drawFilmIcon(window, {col2X + 13.f, rY + 28.f}, UITheme::PrimaryBorder);
+        Text postFmt(boldFont, s2ws(fmtStr.substr(0, 3)), 8);
+        postFmt.setFillColor(UITheme::TextTertiary);
+        postFmt.setPosition({col2X + 11.f, rY + 48.f});
+        window.draw(postFmt);
 
         // Title
         string titleStr = (row.size() > 1) ? row[1] : "";
         Text titleTxt(boldFont, s2ws(titleStr), 15);
-        titleTxt.setFillColor(Color(15, 23, 42));
+        titleTxt.setFillColor(UITheme::TextPrimary);
         titleTxt.setPosition({col2X + 50.f, rY + 14.f});
         window.draw(titleTxt);
 
         // Format Pill (e.g. 2D / Atmos, IMAX 3D, 4DX/3D)
-        string fmtStr = (idx == 1) ? "IMAX 3D" : ((idx == 2) ? "2D Digital" : ((idx == 3) ? "4DX / 3D" : ((idx == 4) ? "2D Lồng tiếng" : "2D / Atmos")));
-        RoundedRectRenderer::draw(window, {col2X + 50.f, rY + 41.f}, {72.f, 22.f}, 5.f, Color(241, 245, 249), 1.f, Color(203, 213, 225));
-        Text fmtTxt(boldFont, s2ws(fmtStr), 11);
+        RoundedRectRenderer::draw(window, {col2X + 50.f, rY + 41.f}, {76.f, 22.f}, 5.f, UITheme::SurfaceSubtle, 1.f, UITheme::BorderMedium);
+        Text fmtTxt(boldFont, s2ws(fmtStr), 12);
         fmtTxt.setFillColor(Color(30, 41, 59));
-        fmtTxt.setPosition({col2X + 56.f, rY + 44.f});
+        fmtTxt.setPosition({col2X + 56.f, rY + 43.f});
         window.draw(fmtTxt);
 
         // Genre bullet & text
         string genreStr = (row.size() > 5) ? row[5] : "";
-        Text gTxt(boldFont, L"\u2022  " + s2ws(genreStr), 12);
-        gTxt.setFillColor(Color(71, 85, 105));
-        gTxt.setPosition({col2X + 128.f, rY + 44.f});
+        Text gTxt(boldFont, L"\u2022  " + s2ws(genreStr), 12.5f);
+        gTxt.setFillColor(UITheme::TextSecondary);
+        gTxt.setPosition({col2X + 134.f, rY + 43.f});
         window.draw(gTxt);
 
         // Col 3: Director
@@ -1021,21 +920,21 @@ void MoviePanel::render(RenderWindow& window) {
             code = "RU ";
         }
 
-        RoundedRectRenderer::draw(window, {col4X + 8.f, rY + 27.f}, {96.f, 26.f}, 13.f, ctryBg);
-        Text ctryDisplay(boldFont, s2ws(code + ctry), 11);
+        RoundedRectRenderer::draw(window, {col4X + 8.f, rY + 27.f}, {100.f, 26.f}, 13.f, ctryBg);
+        Text ctryDisplay(boldFont, s2ws(code + ctry), 12);
         ctryDisplay.setFillColor(ctryText);
-        ctryDisplay.setPosition({col4X + 18.f, rY + 31.f});
+        ctryDisplay.setPosition({col4X + 16.f, rY + 30.f});
         window.draw(ctryDisplay);
 
         // Col 5: Duration
         float col5X = startX + 770.f;
         string dur = (row.size() > 6) ? row[6] : "120";
         Text durVal(boldFont, s2ws(dur), 14);
-        durVal.setFillColor(Color(15, 23, 42));
+        durVal.setFillColor(UITheme::TextPrimary);
         durVal.setPosition({col5X + 10.f, rY + 23.f});
         window.draw(durVal);
-        Text durUnit(boldFont, L"ph\u00fat", 11);
-        durUnit.setFillColor(Color(71, 85, 105));
+        Text durUnit(boldFont, L"ph\u00fat", 12);
+        durUnit.setFillColor(UITheme::TextSecondary);
         durUnit.setPosition({col5X + 10.f, rY + 41.f});
         window.draw(durUnit);
 
@@ -1047,36 +946,27 @@ void MoviePanel::render(RenderWindow& window) {
         dateTxt.setPosition({col6X + 10.f, rY + 31.f});
         window.draw(dateTxt);
 
-        // Col 7: Status Pill (• Đang chiếu / • Sắp chiếu)
+        // Col 7: Status Pill with standardized UITheme badge
         float col7X = startX + 990.f;
         string st = (row.size() >= 14) ? row[13] : "Đang chiếu";
         if (st.empty()) st = "Đang chiếu";
-
         bool isPlaying = (st == "Đang chiếu");
-        Color sPillBg = isPlaying ? Color(220, 252, 231) : Color(224, 242, 254);
-        Color sPillText = isPlaying ? Color(21, 128, 61) : Color(3, 105, 161);
-        Color sDot = isPlaying ? Color(21, 128, 61) : Color(3, 105, 161);
+        UITheme::drawBadge(window, {col7X + 6.f, rY + 26.f},
+                           isPlaying ? L"Đang chiếu" : L"Sắp chiếu",
+                           isPlaying ? UITheme::BadgeVariant::Success : UITheme::BadgeVariant::Warning,
+                           boldFont, true, 26.f);
 
-        RoundedRectRenderer::draw(window, {col7X + 6.f, rY + 25.f}, {112.f, 30.f}, 15.f, sPillBg);
-        CircleShape dot(3.5f, 10);
-        dot.setFillColor(sDot);
-        dot.setPosition({col7X + 18.f, rY + 37.f});
-        window.draw(dot);
-
-        Text sPill(boldFont, isPlaying ? L"\u0110ang chi\u1ebfu" : L"S\u1eafp chi\u1ebfu", 12);
-        sPill.setFillColor(sPillText);
-        sPill.setPosition({col7X + 28.f, rY + 30.f});
-        window.draw(sPill);
-
-        // Col 8: Action Icons (Edit & Delete)
+        // Col 8: Action Icons (Edit & Delete) with standard hover & border
         float col8X = startX + 1125.f;
-        RoundedRectRenderer::draw(window, {col8X + 8.f, rY + 24.f}, {32.f, 32.f}, 8.f, (idx == hoveredEditRow) ? Color(254, 243, 199) : Color(241, 245, 249));
-        Color iEditCol = (idx == hoveredEditRow) ? Color(180, 83, 9) : Color(217, 119, 6);
-        drawPencilIcon(window, {col8X + 16.f, rY + 32.f}, iEditCol);
+        Color editBg = (idx == hoveredEditRow) ? UITheme::WarningLight : UITheme::SurfaceSubtle;
+        Color editIcon = (idx == hoveredEditRow) ? UITheme::WarningDark : UITheme::TextSecondary;
+        RoundedRectRenderer::draw(window, {col8X + 8.f, rY + 23.f}, {34.f, 34.f}, 8.f, editBg, 1.f, UITheme::BorderLight);
+        drawPencilIcon(window, {col8X + 17.f, rY + 31.f}, editIcon);
 
-        RoundedRectRenderer::draw(window, {col8X + 48.f, rY + 24.f}, {32.f, 32.f}, 8.f, (idx == hoveredDeleteRow) ? Color(254, 226, 226) : Color(241, 245, 249));
-        Color iDelCol = (idx == hoveredDeleteRow) ? Color(185, 28, 28) : Color(220, 38, 38);
-        drawTrashIcon(window, {col8X + 56.f, rY + 32.f}, iDelCol);
+        Color delBg = (idx == hoveredDeleteRow) ? UITheme::DangerLight : UITheme::SurfaceSubtle;
+        Color delIcon = (idx == hoveredDeleteRow) ? UITheme::DangerDark : UITheme::TextSecondary;
+        RoundedRectRenderer::draw(window, {col8X + 50.f, rY + 23.f}, {34.f, 34.f}, 8.f, delBg, 1.f, UITheme::BorderLight);
+        drawTrashIcon(window, {col8X + 58.f, rY + 31.f}, delIcon);
     }
 
     // 9. Dropdown menus (if open)

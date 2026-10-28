@@ -10,7 +10,7 @@ using namespace std;
 
 struct VoucherItem {
     string code;            // "WELCOME"
-    wstring subtitle;       // L"Chào mừng thành viên CineXiNe"
+    wstring subtitle;       // L"Chào mừng thành viên CineCore"
     int type = 2;           // 1: Tiền, 2: %
     int value = 20;         // 20 (%) hoặc 30000 (đ)
     int minBill = 0;        // 0 đ

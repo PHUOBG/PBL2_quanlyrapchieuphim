@@ -22,7 +22,7 @@ private:
     std::string phone = "0898234406";
     std::string email = "admin@cinexine.vn";
     std::string department = "Phòng Quản lý vận hành rạp";
-    std::string location = "CineXine Đà Nẵng Center";
+    std::string location = "CineCore Đà Nẵng Center";
 
     // Password values
     std::string oldPass = "";
