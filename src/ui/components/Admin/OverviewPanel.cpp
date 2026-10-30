@@ -231,9 +231,9 @@ void OverviewPanel::calculateStats() {
     // Monthly stats default baseline
     monthlyStatsList = {
         {"09/2025", L"09/2025", 1675000, L"Khởi điểm", Color(241, 245, 249), Color(100, 116, 139), false},
-        {"10/2025", L"10/2025", 2915000, L"+74.0% ↗", Color(220, 252, 231), Color(22, 163, 74), false},
-        {"11/2025", L"11/2025", 4305000, L"+47.7% ↗", Color(220, 252, 231), Color(22, 163, 74), true},
-        {"12/2025", L"12/2025", 2947500, L"-31.5% ↘", Color(255, 228, 230), Color(225, 29, 72), false}
+        {"10/2025", L"10/2025", 2915000, L"+74.0%", Color(220, 252, 231), Color(22, 163, 74), false},
+        {"11/2025", L"11/2025", 4305000, L"+47.7%", Color(220, 252, 231), Color(22, 163, 74), true},
+        {"12/2025", L"12/2025", 2947500, L"-31.5%", Color(255, 228, 230), Color(225, 29, 72), false}
     };
 
     // Dynamic extraction if tickets exist in data
@@ -292,16 +292,16 @@ void OverviewPanel::handleEvent(const Event& event, const RenderWindow& /*window
         if (mousePress->button == Mouse::Button::Left) {
             Vector2f mPos(static_cast<float>(mousePress->position.x), static_cast<float>(mousePress->position.y));
             
-            // Xuất báo cáo button: x = position.x + width - 145, y = position.y + 16, w = 100, h = 36
-            FloatRect exportRect({position.x + width - 145.f, position.y + 16.f}, {100.f, 36.f});
+            // Xuất báo cáo button
+            FloatRect exportRect({position.x + width - 181.f, position.y + 16.f}, {115.f, 36.f});
             if (exportRect.contains(mPos)) {
                 toastActive = true;
                 toastTimer = 3.f;
                 toastMessage = L"Đã xuất báo cáo tổng quan thành công (Excel / CSV)!";
             }
 
-            // Reload button: x = position.x + width - 38, y = position.y + 16, w = 36, h = 36
-            FloatRect reloadRect({position.x + width - 38.f, position.y + 16.f}, {36.f, 36.f});
+            // Reload button
+            FloatRect reloadRect({position.x + width - 56.f, position.y + 16.f}, {36.f, 36.f});
             if (reloadRect.contains(mPos)) {
                 refresh();
             }
@@ -311,11 +311,11 @@ void OverviewPanel::handleEvent(const Event& event, const RenderWindow& /*window
 
 void OverviewPanel::update(const Vector2f& mousePos, bool /*mouseDown*/) {
     // Export hover
-    FloatRect exportRect({position.x + width - 145.f, position.y + 16.f}, {100.f, 36.f});
+    FloatRect exportRect({position.x + width - 181.f, position.y + 16.f}, {115.f, 36.f});
     exportHovered = exportRect.contains(mousePos);
 
     // Reload hover
-    FloatRect reloadRect({position.x + width - 38.f, position.y + 16.f}, {36.f, 36.f});
+    FloatRect reloadRect({position.x + width - 56.f, position.y + 16.f}, {36.f, 36.f});
     reloadHovered = reloadRect.contains(mousePos);
 
     // Movie table hover
@@ -411,8 +411,8 @@ void OverviewPanel::drawHeader(RenderTarget& target) const {
 
     // Right Controls
     // 1. Search Box
-    Vector2f searchPos(position.x + width - 755.f, topY);
-    RoundedRectRenderer::draw(target, searchPos, {210.f, 36.f}, 6.f, Color::White, 1.f, Color(203, 213, 225));
+    Vector2f searchPos(position.x + width - 781.f, topY);
+    RoundedRectRenderer::draw(target, searchPos, {200.f, 36.f}, 6.f, Color::White, 1.f, Color(203, 213, 225));
 
     // Kính lúp tìm kiếm
     Vector2f oIconPos(searchPos.x + 10.f, topY + 11.f);
@@ -432,51 +432,69 @@ void OverviewPanel::drawHeader(RenderTarget& target) const {
 
     Text searchPlaceholder(font);
     searchPlaceholder.setString(L"Tìm kiếm phim, mã vé, combo...");
-    searchPlaceholder.setCharacterSize(12.5f);
+    searchPlaceholder.setCharacterSize(12.f);
     searchPlaceholder.setFillColor(Color(148, 163, 184));
-    searchPlaceholder.setPosition({searchPos.x + 28.f, searchPos.y + 8.f});
+    searchPlaceholder.setPosition({searchPos.x + 28.f, searchPos.y + 9.f});
     target.draw(searchPlaceholder);
 
     // 2. Date Filter
-    Vector2f datePos(position.x + width - 535.f, topY);
+    Vector2f datePos(position.x + width - 571.f, topY);
     RoundedRectRenderer::draw(target, datePos, {185.f, 36.f}, 6.f, Color::White, 1.f, Color(203, 213, 225));
     Text dateText(font);
-    dateText.setString(L"Tháng 10/2026 (01/10 - 31/10) ∨");
-    dateText.setCharacterSize(12.f);
+    dateText.setString(L"Tháng 10/2026 (01/10 - 31/10)");
+    dateText.setCharacterSize(11.5f);
     dateText.setFillColor(Color(51, 65, 85));
-    dateText.setPosition({datePos.x + 10.f, datePos.y + 8.f});
+    dateText.setPosition({datePos.x + 10.f, datePos.y + 9.f});
     target.draw(dateText);
 
+    ConvexShape dateChev;
+    dateChev.setPointCount(3);
+    dateChev.setPoint(0, {datePos.x + 165.f, datePos.y + 16.f});
+    dateChev.setPoint(1, {datePos.x + 173.f, datePos.y + 16.f});
+    dateChev.setPoint(2, {datePos.x + 169.f, datePos.y + 21.f});
+    dateChev.setFillColor(Color(100, 116, 139));
+    target.draw(dateChev);
+
     // 3. Room Filter
-    Vector2f roomPos(position.x + width - 340.f, topY);
+    Vector2f roomPos(position.x + width - 376.f, topY);
     RoundedRectRenderer::draw(target, roomPos, {185.f, 36.f}, 6.f, Color::White, 1.f, Color(203, 213, 225));
     Text roomText(font);
-    roomText.setString(L"Tất cả phòng chiếu (Hall 01-08) ∨");
-    roomText.setCharacterSize(12.f);
+    roomText.setString(L"Tất cả phòng chiếu (Hall 01-08)");
+    roomText.setCharacterSize(11.5f);
     roomText.setFillColor(Color(51, 65, 85));
-    roomText.setPosition({roomPos.x + 8.f, roomPos.y + 8.f});
+    roomText.setPosition({roomPos.x + 8.f, roomPos.y + 9.f});
     target.draw(roomText);
 
+    ConvexShape roomChev;
+    roomChev.setPointCount(3);
+    roomChev.setPoint(0, {roomPos.x + 165.f, roomPos.y + 16.f});
+    roomChev.setPoint(1, {roomPos.x + 173.f, roomPos.y + 16.f});
+    roomChev.setPoint(2, {roomPos.x + 169.f, roomPos.y + 21.f});
+    roomChev.setFillColor(Color(100, 116, 139));
+    target.draw(roomChev);
+
     // 4. Export Report Button
-    Vector2f exportPos(position.x + width - 145.f, topY);
+    Vector2f exportPos(position.x + width - 181.f, topY);
     Color exportBg = exportHovered ? Color(30, 41, 59) : Color(15, 23, 42);
-    RoundedRectRenderer::draw(target, exportPos, {100.f, 36.f}, 6.f, exportBg);
+    RoundedRectRenderer::draw(target, exportPos, {115.f, 36.f}, 6.f, exportBg);
     Text exportText(boldFont);
-    exportText.setString(L"📥 Xuất báo cáo");
+    exportText.setString(L"Xuất báo cáo");
     exportText.setCharacterSize(12.5f);
     exportText.setFillColor(Color::White);
-    exportText.setPosition({exportPos.x + 10.f, exportPos.y + 8.f});
+    FloatRect expB = exportText.getLocalBounds();
+    exportText.setPosition({exportPos.x + (115.f - expB.size.x) / 2.f - expB.position.x, exportPos.y + (36.f - expB.size.y) / 2.f - expB.position.y});
     target.draw(exportText);
 
     // 5. Reload Button
-    Vector2f reloadPos(position.x + width - 38.f, topY);
+    Vector2f reloadPos(position.x + width - 56.f, topY);
     Color reloadBg = reloadHovered ? Color(241, 245, 249) : Color::White;
     RoundedRectRenderer::draw(target, reloadPos, {36.f, 36.f}, 6.f, reloadBg, 1.f, Color(203, 213, 225));
     Text reloadText(boldFont);
-    reloadText.setString(L"🔄");
-    reloadText.setCharacterSize(14);
+    reloadText.setString(L"\u21bb");
+    reloadText.setCharacterSize(16);
     reloadText.setFillColor(Color(71, 85, 105));
-    reloadText.setPosition({reloadPos.x + 8.f, reloadPos.y + 7.f});
+    FloatRect relB = reloadText.getLocalBounds();
+    reloadText.setPosition({reloadPos.x + (36.f - relB.size.x) / 2.f - relB.position.x, reloadPos.y + (36.f - relB.size.y) / 2.f - relB.position.y});
     target.draw(reloadText);
 }
 
@@ -511,13 +529,23 @@ void OverviewPanel::drawKpiCards(RenderTarget& target) const {
         iconCircle.setFillColor(iconBg);
         target.draw(iconCircle);
 
-        Text iconTxt(boldFont);
-        iconTxt.setString(iconChar);
-        iconTxt.setCharacterSize(12);
-        iconTxt.setFillColor(iconColor);
-        FloatRect ib = iconTxt.getLocalBounds();
-        iconTxt.setPosition({iconPos.x + 13.f - ib.size.x / 2.f, iconPos.y + 13.f - ib.size.y / 2.f - 2.f});
-        target.draw(iconTxt);
+        if (iconChar == L"PLAY") {
+            ConvexShape tri;
+            tri.setPointCount(3);
+            tri.setPoint(0, {iconPos.x + 10.5f, iconPos.y + 8.5f});
+            tri.setPoint(1, {iconPos.x + 17.5f, iconPos.y + 13.f});
+            tri.setPoint(2, {iconPos.x + 10.5f, iconPos.y + 17.5f});
+            tri.setFillColor(iconColor);
+            target.draw(tri);
+        } else {
+            Text iconTxt(boldFont);
+            iconTxt.setString(iconChar);
+            iconTxt.setCharacterSize(iconChar.length() > 1 ? 9.5f : 12.f);
+            iconTxt.setFillColor(iconColor);
+            FloatRect ib = iconTxt.getLocalBounds();
+            iconTxt.setPosition({iconPos.x + 13.f - ib.size.x / 2.f - ib.position.x, iconPos.y + 13.f - ib.size.y / 2.f - ib.position.y});
+            target.draw(iconTxt);
+        }
 
         // Value
         Text val(boldFont);
@@ -564,7 +592,7 @@ void OverviewPanel::drawKpiCards(RenderTarget& target) const {
 
     // 1. Doanh thu trong ngày
     drawStandardCard(0, L"Doanh thu trong ngày", s2ws(toCurrency(dailyRevenue)), L"",
-                     L"Hôm nay (27/10/2026)", L"↗ +12.5%", Color(16, 185, 129), L"so với hôm qua",
+                     L"Hôm nay (27/10/2026)", L"+12.5%", Color(16, 185, 129), L"so với hôm qua",
                      Color(224, 242, 254), L"$", Color(2, 132, 199));
 
     // 2. Khách hàng mới (with progress bar)
@@ -586,13 +614,20 @@ void OverviewPanel::drawKpiCards(RenderTarget& target) const {
         iconCircle.setFillColor(Color(220, 252, 231));
         target.draw(iconCircle);
 
-        Text iconTxt(boldFont);
-        iconTxt.setString(L"👤");
-        iconTxt.setCharacterSize(11);
-        iconTxt.setFillColor(Color(5, 150, 105));
-        FloatRect ib = iconTxt.getLocalBounds();
-        iconTxt.setPosition({iconPos.x + 13.f - ib.size.x / 2.f, iconPos.y + 13.f - ib.size.y / 2.f - 2.f});
-        target.draw(iconTxt);
+        // Vector User Icon
+        CircleShape uHead(3.8f);
+        uHead.setPosition({iconPos.x + 13.f - 3.8f, iconPos.y + 5.5f});
+        uHead.setFillColor(Color(5, 150, 105));
+        target.draw(uHead);
+
+        ConvexShape uBody;
+        uBody.setPointCount(4);
+        uBody.setPoint(0, {iconPos.x + 8.f, iconPos.y + 20.f});
+        uBody.setPoint(1, {iconPos.x + 18.f, iconPos.y + 20.f});
+        uBody.setPoint(2, {iconPos.x + 16.5f, iconPos.y + 14.5f});
+        uBody.setPoint(3, {iconPos.x + 9.5f, iconPos.y + 14.5f});
+        uBody.setFillColor(Color(5, 150, 105));
+        target.draw(uBody);
 
         Text val(boldFont);
         val.setString(to_wstring(newCustomersThisMonth));
@@ -656,13 +691,12 @@ void OverviewPanel::drawKpiCards(RenderTarget& target) const {
         iconCircle.setFillColor(Color(254, 243, 199));
         target.draw(iconCircle);
 
-        Text iconTxt(boldFont);
-        iconTxt.setString(L"🎫");
-        iconTxt.setCharacterSize(11);
-        iconTxt.setFillColor(Color(217, 119, 6));
-        FloatRect ib = iconTxt.getLocalBounds();
-        iconTxt.setPosition({iconPos.x + 13.f - ib.size.x / 2.f, iconPos.y + 13.f - ib.size.y / 2.f - 2.f});
-        target.draw(iconTxt);
+        // Vector Ticket Icon
+        RoundedRectRenderer::draw(target, {iconPos.x + 6.f, iconPos.y + 7.5f}, {14.f, 11.f}, 2.f, Color(217, 119, 6));
+        RectangleShape tDash({6.f, 1.5f});
+        tDash.setPosition({iconPos.x + 10.f, iconPos.y + 12.2f});
+        tDash.setFillColor(Color(254, 243, 199));
+        target.draw(tDash);
 
         Text val(boldFont);
         val.setString(to_wstring(totalTicketsThisMonth));
@@ -740,7 +774,7 @@ void OverviewPanel::drawKpiCards(RenderTarget& target) const {
         target.draw(sub);
 
         Text fLeft(boldFont);
-        fLeft.setString(L"↗ +28.4%");
+        fLeft.setString(L"+28.4%");
         fLeft.setCharacterSize(12);
         fLeft.setFillColor(Color(52, 211, 153)); // Emerald light
         fLeft.setPosition({cardPos.x + 14.f, cardPos.y + 90.f});
@@ -757,12 +791,12 @@ void OverviewPanel::drawKpiCards(RenderTarget& target) const {
     // 5. Doanh thu theo phim
     drawStandardCard(4, L"Doanh thu theo phim", s2ws(toCurrency(movieRevenueThisMonth)), L"",
                      L"8 phim đang công chiếu", L"Chiếm 70.0%", Color(37, 99, 235), L"tổng doanh thu",
-                     Color(219, 234, 254), L"🎬", Color(37, 99, 235));
+                     Color(219, 234, 254), L"PLAY", Color(37, 99, 235));
 
     // 6. Doanh thu combo bắp nước
     drawStandardCard(5, L"Doanh thu combo bắp nước", s2ws(toCurrency(comboRevenueThisMonth)), L"",
                      L"Bắp Caramel / Phô mai", L"Chiếm 30.0%", Color(225, 29, 72), L"+18.2% vs T9",
-                     Color(255, 228, 230), L"🍿", Color(225, 29, 72));
+                     Color(255, 228, 230), L"F&B", Color(225, 29, 72));
 }
 
 void OverviewPanel::drawTopLeftChart(RenderTarget& target) const {
@@ -973,14 +1007,16 @@ void OverviewPanel::drawTopRightTable(RenderTarget& target) const {
             target.draw(rTxt);
         }
 
-        // Poster thumbnail square
+        // Poster thumbnail square with mini play icon
         Vector2f postPos(colTitleX + 24.f, ry + 1.f);
         RoundedRectRenderer::draw(target, postPos, {18.f, 18.f}, 3.f, Color(30, 41, 59));
-        Text postIcon(font);
-        postIcon.setString(L"🎞");
-        postIcon.setCharacterSize(10.f);
-        postIcon.setPosition({postPos.x + 2.f, postPos.y + 1.f});
-        target.draw(postIcon);
+        ConvexShape postPlay;
+        postPlay.setPointCount(3);
+        postPlay.setPoint(0, {postPos.x + 6.5f, postPos.y + 4.5f});
+        postPlay.setPoint(1, {postPos.x + 13.f, postPos.y + 9.f});
+        postPlay.setPoint(2, {postPos.x + 6.5f, postPos.y + 13.5f});
+        postPlay.setFillColor(Color(148, 163, 184));
+        target.draw(postPlay);
 
         // Movie Title
         Text mTitle(boldFont);

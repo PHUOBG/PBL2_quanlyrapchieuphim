@@ -238,11 +238,11 @@ void MovieRevenuePanel::handleEvent(const Event& event, const RenderWindow& /*wi
         if (mousePress->button == Mouse::Button::Left) {
             Vector2f mPos(static_cast<float>(mousePress->position.x), static_cast<float>(mousePress->position.y));
 
-            // 1. Tab Bar Clicking: y ≈ position.y + 196.f, height 36.f
-            float tabY = position.y + 196.f;
+            // 1. Tab Bar Clicking: y ≈ position.y + 192.f, height 36.f
+            float tabY = position.y + 192.f;
             float tabX = position.x + 20.f;
 
-            // Tab 0: Số vé bán ra theo phim 101 (~200px)
+            // Tab 0: Số vé bán ra theo phim (~200px)
             FloatRect t0Rect({tabX, tabY}, {200.f, 36.f});
             if (t0Rect.contains(mPos)) {
                 activeTab = RevenueTab::TICKETS_BY_MOVIE;
@@ -271,13 +271,13 @@ void MovieRevenuePanel::handleEvent(const Event& event, const RenderWindow& /*wi
             }
 
             // 2. Buttons in Header: Tải dữ liệu & Xuất Excel
-            FloatRect reloadRect({position.x + width - 215.f, position.y + 50.f}, {96.f, 34.f});
+            FloatRect reloadRect({position.x + width - 230.f, position.y + 16.f}, {100.f, 36.f});
             if (reloadRect.contains(mPos)) {
                 refresh();
                 return;
             }
 
-            FloatRect exportRect({position.x + width - 110.f, position.y + 50.f}, {90.f, 34.f});
+            FloatRect exportRect({position.x + width - 120.f, position.y + 16.f}, {100.f, 36.f});
             if (exportRect.contains(mPos)) {
                 toastActive = true;
                 toastTimer = 3.f;
@@ -291,7 +291,7 @@ void MovieRevenuePanel::handleEvent(const Event& event, const RenderWindow& /*wi
 void MovieRevenuePanel::update(const Vector2f& mousePos, bool /*mouseDown*/) {
     // Check tab hover
     hoveredTab = -1;
-    float tabY = position.y + 196.f;
+    float tabY = position.y + 192.f;
     float tabX = position.x + 20.f;
     if (FloatRect({tabX, tabY}, {200.f, 36.f}).contains(mousePos)) hoveredTab = 0;
     else if (FloatRect({tabX + 210.f, tabY}, {140.f, 36.f}).contains(mousePos)) hoveredTab = 1;
@@ -299,8 +299,8 @@ void MovieRevenuePanel::update(const Vector2f& mousePos, bool /*mouseDown*/) {
     else if (FloatRect({tabX + 550.f, tabY}, {190.f, 36.f}).contains(mousePos)) hoveredTab = 3;
 
     // Button hovers
-    reloadHovered = FloatRect({position.x + width - 215.f, position.y + 50.f}, {96.f, 34.f}).contains(mousePos);
-    exportHovered = FloatRect({position.x + width - 110.f, position.y + 50.f}, {90.f, 34.f}).contains(mousePos);
+    reloadHovered = FloatRect({position.x + width - 230.f, position.y + 16.f}, {100.f, 36.f}).contains(mousePos);
+    exportHovered = FloatRect({position.x + width - 120.f, position.y + 16.f}, {100.f, 36.f}).contains(mousePos);
 
     if (toastActive) {
         toastTimer -= 0.016f;
@@ -403,42 +403,45 @@ void MovieRevenuePanel::drawHeader(RenderTarget& target) const {
     target.draw(subText);
 
     // Right Controls
-    // Date Range Box: "Từ: 01/09/2025  →  Đến: 24/12/2025  📅"
-    Vector2f dateRangePos(position.x + width - 485.f, topY + 46.f);
-    RoundedRectRenderer::draw(target, dateRangePos, {255.f, 36.f}, 6.f, Color::White, 1.f, Color(203, 213, 225));
+    // Date Range Box: "Từ: 01/09/2025  →  Đến: 24/12/2025"
+    Vector2f dateRangePos(position.x + width - 500.f, topY);
+    RoundedRectRenderer::draw(target, dateRangePos, {260.f, 36.f}, 6.f, Color::White, 1.f, Color(203, 213, 225));
     Text dateRangeTxt(font);
     dateRangeTxt.setString(L"Từ:  01/09/2025   →   Đến:  24/12/2025");
-    dateRangeTxt.setCharacterSize(11.f);
+    dateRangeTxt.setCharacterSize(11.5f);
     dateRangeTxt.setFillColor(Color(51, 65, 85));
-    dateRangeTxt.setPosition({dateRangePos.x + 10.f, dateRangePos.y + 9.f});
+    FloatRect drB = dateRangeTxt.getLocalBounds();
+    dateRangeTxt.setPosition({dateRangePos.x + (260.f - drB.size.x) / 2.f - drB.position.x, dateRangePos.y + (36.f - drB.size.y) / 2.f - drB.position.y});
     target.draw(dateRangeTxt);
 
     // Button "Tải dữ liệu"
-    Vector2f reloadPos(position.x + width - 215.f, topY + 46.f);
+    Vector2f reloadPos(position.x + width - 230.f, topY);
     Color reloadBg = reloadHovered ? Color(3, 105, 161) : Color(2, 132, 199);
-    RoundedRectRenderer::draw(target, reloadPos, {96.f, 36.f}, 6.f, reloadBg);
+    RoundedRectRenderer::draw(target, reloadPos, {100.f, 36.f}, 6.f, reloadBg);
     Text reloadTxt(boldFont);
-    reloadTxt.setString(L"🔄 Tải dữ liệu");
-    reloadTxt.setCharacterSize(11.5f);
+    reloadTxt.setString(L"Tải dữ liệu");
+    reloadTxt.setCharacterSize(12.f);
     reloadTxt.setFillColor(Color::White);
-    reloadTxt.setPosition({reloadPos.x + 10.f, reloadPos.y + 9.f});
+    FloatRect relB = reloadTxt.getLocalBounds();
+    reloadTxt.setPosition({reloadPos.x + (100.f - relB.size.x) / 2.f - relB.position.x, reloadPos.y + (36.f - relB.size.y) / 2.f - relB.position.y});
     target.draw(reloadTxt);
 
     // Button "Xuất Excel"
-    Vector2f exportPos(position.x + width - 110.f, topY + 46.f);
+    Vector2f exportPos(position.x + width - 120.f, topY);
     Color exportBg = exportHovered ? Color(4, 120, 87) : Color(5, 150, 105);
-    RoundedRectRenderer::draw(target, exportPos, {90.f, 36.f}, 6.f, exportBg);
+    RoundedRectRenderer::draw(target, exportPos, {100.f, 36.f}, 6.f, exportBg);
     Text exportTxt(boldFont);
-    exportTxt.setString(L"📥 Xuất Excel");
-    exportTxt.setCharacterSize(11.5f);
+    exportTxt.setString(L"Xuất Excel");
+    exportTxt.setCharacterSize(12.f);
     exportTxt.setFillColor(Color::White);
-    exportTxt.setPosition({exportPos.x + 10.f, exportPos.y + 9.f});
+    FloatRect expB = exportTxt.getLocalBounds();
+    exportTxt.setPosition({exportPos.x + (100.f - expB.size.x) / 2.f - expB.position.x, exportPos.y + (36.f - expB.size.y) / 2.f - expB.position.y});
     target.draw(exportTxt);
 }
 
 void MovieRevenuePanel::drawKpiCards(RenderTarget& target) const {
-    const float cardY = position.y + 88.f;
-    const float cardH = 96.f;
+    const float cardY = position.y + 70.f;
+    const float cardH = 104.f;
     const float margin = 20.f;
     const float gap = 14.f;
     const float availableW = width - margin * 2.f;
@@ -453,11 +456,11 @@ void MovieRevenuePanel::drawKpiCards(RenderTarget& target) const {
         lbl.setString(L"Tổng doanh thu toàn rạp (01/09/2025 - 24/12/2025)");
         lbl.setCharacterSize(11.5f);
         lbl.setFillColor(Color(100, 116, 139));
-        lbl.setPosition({cPos.x + 16.f, cPos.y + 10.f});
+        lbl.setPosition({cPos.x + 16.f, cPos.y + 12.f});
         target.draw(lbl);
 
         // Icon circle
-        Vector2f iconPos(cPos.x + cardW - 36.f, cPos.y + 10.f);
+        Vector2f iconPos(cPos.x + cardW - 36.f, cPos.y + 12.f);
         CircleShape iconCircle(13.f);
         iconCircle.setPosition(iconPos);
         iconCircle.setFillColor(Color(254, 226, 226));
@@ -468,30 +471,30 @@ void MovieRevenuePanel::drawKpiCards(RenderTarget& target) const {
         iconTxt.setCharacterSize(12);
         iconTxt.setFillColor(Color(225, 29, 72));
         FloatRect ib = iconTxt.getLocalBounds();
-        iconTxt.setPosition({iconPos.x + 13.f - ib.size.x / 2.f, iconPos.y + 13.f - ib.size.y / 2.f - 2.f});
+        iconTxt.setPosition({iconPos.x + 13.f - ib.size.x / 2.f - ib.position.x, iconPos.y + 13.f - ib.size.y / 2.f - ib.position.y});
         target.draw(iconTxt);
 
         // Big value
         Text val(boldFont);
         val.setString(s2ws(toCurrency(totalRevenue)));
-        val.setCharacterSize(21);
+        val.setCharacterSize(22);
         val.setFillColor(Color(15, 23, 42));
-        val.setPosition({cPos.x + 16.f, cPos.y + 32.f});
+        val.setPosition({cPos.x + 16.f, cPos.y + 36.f});
         target.draw(val);
 
         // Footer
         Text fLeft(boldFont);
-        fLeft.setString(L"↗ +18.4% so với quý trước");
+        fLeft.setString(L"+18.4% so với quý trước");
         fLeft.setCharacterSize(12.f);
         fLeft.setFillColor(Color(16, 185, 129));
-        fLeft.setPosition({cPos.x + 16.f, cPos.y + 68.f});
+        fLeft.setPosition({cPos.x + 16.f, cPos.y + 74.f});
         target.draw(fLeft);
 
         Text fRight(font);
         fRight.setString(L"Đã quyết toán VAT");
         fRight.setCharacterSize(12.f);
         fRight.setFillColor(Color(148, 163, 184));
-        fRight.setPosition({cPos.x + cardW - 16.f - fRight.getGlobalBounds().size.x, cPos.y + 68.f});
+        fRight.setPosition({cPos.x + cardW - 16.f - fRight.getGlobalBounds().size.x, cPos.y + 74.f});
         target.draw(fRight);
     }
 
@@ -507,41 +510,42 @@ void MovieRevenuePanel::drawKpiCards(RenderTarget& target) const {
         lbl.setString(L"Doanh thu phim (01/09/2025 - 24/12/2025)");
         lbl.setCharacterSize(11.5f);
         lbl.setFillColor(Color(100, 116, 139));
-        lbl.setPosition({cPos.x + 16.f, cPos.y + 10.f});
+        lbl.setPosition({cPos.x + 16.f, cPos.y + 12.f});
         target.draw(lbl);
 
-        Vector2f iconPos(cPos.x + cardW - 36.f, cPos.y + 10.f);
+        Vector2f iconPos(cPos.x + cardW - 36.f, cPos.y + 12.f);
         CircleShape iconCircle(13.f);
         iconCircle.setPosition(iconPos);
         iconCircle.setFillColor(Color(224, 242, 254));
         target.draw(iconCircle);
 
-        Text iconTxt(boldFont);
-        iconTxt.setString(L"🎬");
-        iconTxt.setCharacterSize(11);
-        FloatRect ib = iconTxt.getLocalBounds();
-        iconTxt.setPosition({iconPos.x + 13.f - ib.size.x / 2.f, iconPos.y + 13.f - ib.size.y / 2.f - 2.f});
-        target.draw(iconTxt);
+        ConvexShape playIco;
+        playIco.setPointCount(3);
+        playIco.setPoint(0, {iconPos.x + 10.5f, iconPos.y + 8.5f});
+        playIco.setPoint(1, {iconPos.x + 17.5f, iconPos.y + 13.f});
+        playIco.setPoint(2, {iconPos.x + 10.5f, iconPos.y + 17.5f});
+        playIco.setFillColor(Color(2, 132, 199));
+        target.draw(playIco);
 
         Text val(boldFont);
         val.setString(s2ws(toCurrency(movieRevenue)));
-        val.setCharacterSize(21);
+        val.setCharacterSize(22);
         val.setFillColor(Color(15, 23, 42));
-        val.setPosition({cPos.x + 16.f, cPos.y + 32.f});
+        val.setPosition({cPos.x + 16.f, cPos.y + 36.f});
         target.draw(val);
 
         Text fLeft(boldFont);
         fLeft.setString(L"Chiếm 59.1% tổng nguồn thu");
         fLeft.setCharacterSize(12.f);
         fLeft.setFillColor(Color(2, 132, 199));
-        fLeft.setPosition({cPos.x + 16.f, cPos.y + 68.f});
+        fLeft.setPosition({cPos.x + 16.f, cPos.y + 74.f});
         target.draw(fLeft);
 
         Text fRight(font);
         fRight.setString(to_wstring(totalTickets) + L" vé đã xuất");
         fRight.setCharacterSize(12.f);
         fRight.setFillColor(Color(148, 163, 184));
-        fRight.setPosition({cPos.x + cardW - 16.f - fRight.getGlobalBounds().size.x, cPos.y + 68.f});
+        fRight.setPosition({cPos.x + cardW - 16.f - fRight.getGlobalBounds().size.x, cPos.y + 74.f});
         target.draw(fRight);
     }
 
@@ -558,47 +562,48 @@ void MovieRevenuePanel::drawKpiCards(RenderTarget& target) const {
         lbl.setString(L"Doanh thu combo F&B (01/09/2025 - 24/12/2025)");
         lbl.setCharacterSize(11.5f);
         lbl.setFillColor(Color(100, 116, 139));
-        lbl.setPosition({cPos.x + 16.f, cPos.y + 10.f});
+        lbl.setPosition({cPos.x + 16.f, cPos.y + 12.f});
         target.draw(lbl);
 
-        Vector2f iconPos(cPos.x + cardW - 36.f, cPos.y + 10.f);
+        Vector2f iconPos(cPos.x + cardW - 36.f, cPos.y + 12.f);
         CircleShape iconCircle(13.f);
         iconCircle.setPosition(iconPos);
         iconCircle.setFillColor(Color(254, 243, 199));
         target.draw(iconCircle);
 
-        Text iconTxt(boldFont);
-        iconTxt.setString(L"🍿");
-        iconTxt.setCharacterSize(11);
-        FloatRect ib = iconTxt.getLocalBounds();
-        iconTxt.setPosition({iconPos.x + 13.f - ib.size.x / 2.f, iconPos.y + 13.f - ib.size.y / 2.f - 2.f});
-        target.draw(iconTxt);
+        Text fbTxt(boldFont);
+        fbTxt.setString(L"F&B");
+        fbTxt.setCharacterSize(10.f);
+        fbTxt.setFillColor(Color(217, 119, 6));
+        FloatRect fbb = fbTxt.getLocalBounds();
+        fbTxt.setPosition({iconPos.x + 13.f - fbb.size.x / 2.f - fbb.position.x, iconPos.y + 13.f - fbb.size.y / 2.f - fbb.position.y});
+        target.draw(fbTxt);
 
         Text val(boldFont);
         val.setString(s2ws(toCurrency(comboRevenue)));
-        val.setCharacterSize(21);
+        val.setCharacterSize(22);
         val.setFillColor(isComboTab ? Color(180, 83, 9) : Color(15, 23, 42));
-        val.setPosition({cPos.x + 16.f, cPos.y + 32.f});
+        val.setPosition({cPos.x + 16.f, cPos.y + 36.f});
         target.draw(val);
 
         Text fLeft(boldFont);
         fLeft.setString(L"Chiếm 40.9% tổng nguồn thu");
         fLeft.setCharacterSize(12.f);
         fLeft.setFillColor(Color(217, 119, 6));
-        fLeft.setPosition({cPos.x + 16.f, cPos.y + 68.f});
+        fLeft.setPosition({cPos.x + 16.f, cPos.y + 74.f});
         target.draw(fLeft);
 
         Text fRight(font);
         fRight.setString(to_wstring(totalCombos) + L" Combo & Nước");
         fRight.setCharacterSize(12.f);
         fRight.setFillColor(Color(148, 163, 184));
-        fRight.setPosition({cPos.x + cardW - 16.f - fRight.getGlobalBounds().size.x, cPos.y + 68.f});
+        fRight.setPosition({cPos.x + cardW - 16.f - fRight.getGlobalBounds().size.x, cPos.y + 74.f});
         target.draw(fRight);
     }
 }
 
 void MovieRevenuePanel::drawTabBar(RenderTarget& target) const {
-    const float tabY = position.y + 196.f;
+    const float tabY = position.y + 192.f;
     const float tabH = 34.f;
     float tabX = position.x + 20.f;
 
@@ -609,10 +614,10 @@ void MovieRevenuePanel::drawTabBar(RenderTarget& target) const {
     };
 
     const array<TabDef, 4> tabs = {
-        TabDef{RevenueTab::TICKETS_BY_MOVIE, L"🎫 Số vé bán ra theo phim 101", 200.f},
-        TabDef{RevenueTab::TOTAL_REVENUE, L"📈 Tổng doanh thu", 140.f},
-        TabDef{RevenueTab::REVENUE_BY_MOVIE, L"🎬 Doanh thu theo phim", 180.f},
-        TabDef{RevenueTab::REVENUE_BY_COMBO, L"🍿 Doanh thu theo combo", 185.f}
+        TabDef{RevenueTab::TICKETS_BY_MOVIE, L"Số vé bán ra theo phim", 200.f},
+        TabDef{RevenueTab::TOTAL_REVENUE, L"Tổng doanh thu", 140.f},
+        TabDef{RevenueTab::REVENUE_BY_MOVIE, L"Doanh thu theo phim", 180.f},
+        TabDef{RevenueTab::REVENUE_BY_COMBO, L"Doanh thu theo combo", 190.f}
     };
 
     for (size_t i = 0; i < tabs.size(); ++i) {
@@ -718,7 +723,7 @@ void MovieRevenuePanel::drawTab1TicketsByMovie(RenderTarget& target) const {
         Vector2f boxPos(cPos.x + 14.f, cPos.y + contentH - 50.f);
         RoundedRectRenderer::draw(target, boxPos, {leftW - 28.f, 36.f}, 6.f, Color(254, 243, 199));
         Text leadTxt(boldFont);
-        leadTxt.setString(L"⭐ Phim dẫn đầu: Tử Chiến Trên Không (31 vé)");
+        leadTxt.setString(L"Phim dẫn đầu: Tử Chiến Trên Không (31 vé)");
         leadTxt.setCharacterSize(12.5f);
         leadTxt.setFillColor(Color(180, 83, 9));
         leadTxt.setPosition({boxPos.x + 10.f, boxPos.y + 9.f});
@@ -947,7 +952,7 @@ void MovieRevenuePanel::drawTab2TotalRevenue(RenderTarget& target) const {
         }
 
         // Draw markers and X labels
-        const array<wstring, 4> mNames = {L"Tháng 09", L"Tháng 10", L"Tháng 11 ★", L"Tháng 12"};
+        const array<wstring, 4> mNames = {L"Tháng 09", L"Tháng 10", L"Tháng 11", L"Tháng 12"};
         const array<wstring, 4> mRevs = {L"1.675M", L"2.915M", L"4.305M", L"2.947M"};
 
         for (size_t i = 0; i < tPts.size(); ++i) {
@@ -1194,7 +1199,7 @@ void MovieRevenuePanel::drawTab3RevenueByMovie(RenderTarget& target) const {
         RoundedRectRenderer::draw(target, top1Pos, {halfW, 160.f}, 8.f, Color(15, 23, 42));
 
         Text t1Badge(boldFont);
-        t1Badge.setString(L"⭐ TOP 1 PHIM BÁN CHẠY NHẤT");
+        t1Badge.setString(L"TOP 1 PHIM BÁN CHẠY NHẤT");
         t1Badge.setCharacterSize(12.f);
         t1Badge.setFillColor(Color(245, 158, 11));
         t1Badge.setPosition({top1Pos.x + 16.f, top1Pos.y + 14.f});
