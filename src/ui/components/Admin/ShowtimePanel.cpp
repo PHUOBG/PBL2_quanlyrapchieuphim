@@ -744,10 +744,7 @@ void ShowtimePanel::render(RenderWindow& win) {
     valSearch.setPosition({position.x + 322.f, fCardY + 117.f});
     win.draw(valSearch);
     if (!searchQuery.empty()) {
-        Text clearBtn(boldFont, L"\u2715", 11);
-        clearBtn.setFillColor(Color(148, 163, 184));
-        clearBtn.setPosition({position.x + 518.f, fCardY + 118.f});
-        win.draw(clearBtn);
+        UITheme::drawCloseIcon(win, {position.x + 522.f, fCardY + 126.f}, 10.f, Color(148, 163, 184), 1.8f);
     }
 
     // Thẻ KPI Summary: Tách làm 2 ô màu khác nhau bên trong 1 ô card bao ngoài
@@ -999,7 +996,7 @@ void ShowtimePanel::render(RenderWindow& win) {
 
         // Nút chọn nhanh Phòng chiếu ở góc trên phải của Popup
         drawRoundedCard(win, {popX + popW - 155.f, popY + 20.f}, {125.f, 28.f}, 6.f, Color(224, 242, 254), 1.f, Color(186, 230, 253));
-        Text rBadge(boldFont, popupRoomName + L" \u25be", 11.5f);
+        Text rBadge(boldFont, popupRoomName + L" \u25bc", 11.5f);
         rBadge.setFillColor(Color(2, 132, 199));
         FloatRect rbb = rBadge.getLocalBounds();
         rBadge.setPosition({

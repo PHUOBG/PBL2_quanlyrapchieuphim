@@ -413,10 +413,7 @@ void TicketPanel::render(RenderWindow& win) {
     win.draw(searchTxt);
 
     if (!searchQuery.empty()) {
-        Text clearBtn(boldFont, L"\u2715", 12);
-        clearBtn.setFillColor(Color(148, 163, 184));
-        clearBtn.setPosition({position.x + 558.f, barY + 11.f});
-        win.draw(clearBtn);
+        UITheme::drawCloseIcon(win, {position.x + 563.f, barY + 19.f}, 10.f, Color(148, 163, 184), 1.8f);
     }
 
     // Badge hiển thị tổng số kết quả tìm được
@@ -519,10 +516,7 @@ void TicketPanel::render(RenderWindow& win) {
         popTitle.setPosition({popX + 30.f, popY + 22.f});
         win.draw(popTitle);
 
-        Text closeBtn(boldFont, L"\u2715", 16);
-        closeBtn.setFillColor(Color(148, 163, 184));
-        closeBtn.setPosition({popX + popW - 38.f, popY + 20.f});
-        win.draw(closeBtn);
+        UITheme::drawCloseIcon(win, {popX + popW - 32.f, popY + 30.f}, 13.f, Color(148, 163, 184), 2.f);
 
         // Đường kẻ ngang mỏng
         RectangleShape sep({popW - 60.f, 1.f});

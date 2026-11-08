@@ -1,5 +1,6 @@
 #include "UI/components/Admin/OverviewPanel.h"
 #include "UI/components/Admin/RoundedRectRenderer.h"
+#include "UI/components/Admin/UITheme.h"
 #include "repositories/booking/ComboRepository.h"
 #include "repositories/booking/ShowtimeRepository.h"
 #include "repositories/UserRepository.h"
@@ -489,13 +490,7 @@ void OverviewPanel::drawHeader(RenderTarget& target) const {
     Vector2f reloadPos(position.x + width - 56.f, topY);
     Color reloadBg = reloadHovered ? Color(241, 245, 249) : Color::White;
     RoundedRectRenderer::draw(target, reloadPos, {36.f, 36.f}, 6.f, reloadBg, 1.f, Color(203, 213, 225));
-    Text reloadText(boldFont);
-    reloadText.setString(L"\u21bb");
-    reloadText.setCharacterSize(16);
-    reloadText.setFillColor(Color(71, 85, 105));
-    FloatRect relB = reloadText.getLocalBounds();
-    reloadText.setPosition({reloadPos.x + (36.f - relB.size.x) / 2.f - relB.position.x, reloadPos.y + (36.f - relB.size.y) / 2.f - relB.position.y});
-    target.draw(reloadText);
+    UITheme::drawReloadIcon(target, {reloadPos.x + 18.f, reloadPos.y + 18.f}, 18.f, Color(71, 85, 105));
 }
 
 void OverviewPanel::drawKpiCards(RenderTarget& target) const {

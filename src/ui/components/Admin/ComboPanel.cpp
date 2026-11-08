@@ -710,10 +710,7 @@ void ComboPanel::render(RenderWindow& win) {
     sTxt.setPosition({position.x + 62.f, fltY + 9.f});
     win.draw(sTxt);
     if (!searchQuery.empty()) {
-        Text clrTxt(boldFont, L"\u2715", 11);
-        clrTxt.setFillColor(Color(148, 163, 184));
-        clrTxt.setPosition({position.x + 312.f, fltY + 10.f});
-        win.draw(clrTxt);
+        UITheme::drawCloseIcon(win, {position.x + 316.f, fltY + 17.f}, 10.f, Color(148, 163, 184), 1.8f);
     }
 
     Text locLbl(boldFont, L"L\u1eccC:", 12); locLbl.setFillColor(Color(100, 116, 139)); locLbl.setPosition({position.x + 350.f, fltY + 9.f}); win.draw(locLbl);
@@ -773,7 +770,7 @@ void ComboPanel::render(RenderWindow& win) {
         // 1. Checkbox
         drawRoundedCard(win, {position.x + 44.f, rY + 28.f}, {16.f, 16.f}, 3.f, itm.isChecked ? Color(2, 132, 199) : Color::White, 1.f, Color(203, 213, 225));
         if (itm.isChecked) {
-            Text ckTxt(boldFont, L"\u2714", 11); ckTxt.setFillColor(Color::White); ckTxt.setPosition({position.x + 46.f, rY + 28.f}); win.draw(ckTxt);
+            UITheme::drawCheckmark(win, {position.x + 52.f, rY + 36.f}, 0.72f, Color::White, 2.f);
         }
 
         // 2. Mã combo (Badge viền mỏng)
@@ -886,7 +883,7 @@ void ComboPanel::render(RenderWindow& win) {
 
         // Nút chọn phân loại combo ở góc trên phải
         drawRoundedCard(win, {popX + popW - 150.f, popY + 20.f}, {120.f, 28.f}, 6.f, Color(224, 242, 254), 1.f, Color(186, 230, 253));
-        Text catBadge(boldFont, (popupCat.empty() ? L"Combo \u0110\u01a1n" : popupCat) + L" \u25be", 11.5f);
+        Text catBadge(boldFont, (popupCat.empty() ? L"Combo \u0110\u01a1n" : popupCat) + L" \u25bc", 11.5f);
         catBadge.setFillColor(Color(2, 132, 199));
         FloatRect cbb = catBadge.getLocalBounds();
         catBadge.setPosition({popX + popW - 150.f + (120.f - cbb.size.x) / 2.f - cbb.position.x, popY + 20.f + (28.f - cbb.size.y) / 2.f - cbb.position.y - 1.f});

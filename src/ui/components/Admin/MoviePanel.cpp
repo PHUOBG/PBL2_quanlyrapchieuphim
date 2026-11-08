@@ -867,10 +867,7 @@ void MoviePanel::render(RenderWindow& window) {
             window.draw(caret);
         }
 
-        Text clrTxt(boldFont, L"\u2715", 13);
-        clrTxt.setFillColor(Color(148, 163, 184));
-        clrTxt.setPosition({startX + 335.f, toolY + 12.f});
-        window.draw(clrTxt);
+        UITheme::drawCloseIcon(window, {startX + 340.f, toolY + 22.f}, 11.f, Color(148, 163, 184), 1.8f);
     }
 
     // Genre Dropdown Button

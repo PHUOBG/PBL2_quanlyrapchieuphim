@@ -1,4 +1,5 @@
 #include "UI/components/Admin/UICheckboxItem.h"
+#include "UI/components/Admin/UITheme.h"
 #include <cstdint>
 
 UICheckboxItem::Config::Config()
@@ -43,7 +44,7 @@ UICheckboxItem::UICheckboxItem(sf::Font& font, const Config& config)
     secondaryTextObj_->setFillColor(config_.secondaryTextColor);
     
     // Setup checkmark
-    checkmark_->setString(L"✓");
+    checkmark_->setString(L"");
     checkmark_->setCharacterSize(config_.fontSize);
     checkmark_->setFillColor(sf::Color::White);
     
@@ -144,7 +145,8 @@ void UICheckboxItem::render(sf::RenderTarget& target) {
     }
     
     if (checked_) {
-        target.draw(*checkmark_);
+        sf::Vector2f cbPos = checkbox_.getPosition();
+        UITheme::drawCheckmark(target, {cbPos.x + config_.checkboxSize / 2.f, cbPos.y + config_.checkboxSize / 2.f}, 0.78f, sf::Color::White, 2.f);
     }
 }
 

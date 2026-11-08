@@ -640,10 +640,11 @@ void UserPanel::drawHeader(RenderTarget& target) const {
     Vector2f expPos(position.x + width - 275.f, topY + 12.f);
     RoundedRectRenderer::draw(target, expPos, {110.f, 36.f}, 6.f, Color::White, 1.f, Color(16, 185, 129));
     Text expTxt(boldFont);
-    expTxt.setString(L"📥 Xuất Excel");
+    expTxt.setString(L"Xuất Excel");
     expTxt.setCharacterSize(12.5f);
     expTxt.setFillColor(Color(5, 150, 105));
-    expTxt.setPosition({expPos.x + 12.f, expPos.y + 8.f});
+    FloatRect expB = expTxt.getLocalBounds();
+    expTxt.setPosition({expPos.x + (110.f - expB.size.x) / 2.f - expB.position.x, expPos.y + (36.f - expB.size.y) / 2.f - expB.position.y});
     target.draw(expTxt);
 
     // 2. + Thêm hội viên mới
@@ -653,7 +654,8 @@ void UserPanel::drawHeader(RenderTarget& target) const {
     addTxt.setString(L"+ Thêm hội viên mới");
     addTxt.setCharacterSize(12.5f);
     addTxt.setFillColor(Color::White);
-    addTxt.setPosition({addPos.x + 12.f, addPos.y + 8.f});
+    FloatRect addB = addTxt.getLocalBounds();
+    addTxt.setPosition({addPos.x + (150.f - addB.size.x) / 2.f - addB.position.x, addPos.y + (36.f - addB.size.y) / 2.f - addB.position.y});
     target.draw(addTxt);
 }
 
@@ -679,7 +681,7 @@ void UserPanel::drawKpiCards(RenderTarget& target) const {
 
         Vector2f iconPos(cPos.x + cardW - 36.f, cardY + 12.f);
         CircleShape ic(13.f); ic.setPosition(iconPos); ic.setFillColor(Color(224, 242, 254)); target.draw(ic);
-        Text icTxt(boldFont); icTxt.setString(L"💳"); icTxt.setCharacterSize(12); icTxt.setPosition({iconPos.x + 4.f, iconPos.y + 2.f}); target.draw(icTxt);
+        UITheme::drawUserIcon(target, {iconPos.x + 13.f, iconPos.y + 13.f}, Color(2, 132, 199));
 
         Text val(boldFont);
         val.setString(to_string(totalCount));
@@ -689,7 +691,7 @@ void UserPanel::drawKpiCards(RenderTarget& target) const {
         target.draw(val);
 
         Text badge(boldFont);
-        badge.setString(L"↗ +2 tuần này");
+        badge.setString(L"\u2191 +2 tuần này");
         badge.setCharacterSize(12);
         badge.setFillColor(Color(16, 185, 129));
         badge.setPosition({val.getPosition().x + val.getGlobalBounds().size.x + 10.f, cPos.y + 44.f});
@@ -717,6 +719,7 @@ void UserPanel::drawKpiCards(RenderTarget& target) const {
 
         Vector2f iconPos(cPos.x + cardW - 36.f, cPos.y + 12.f);
         CircleShape ic(13.f); ic.setPosition(iconPos); ic.setFillColor(Color(220, 252, 231)); target.draw(ic);
+        UITheme::drawCheckmark(target, {iconPos.x + 13.f, iconPos.y + 13.f}, 0.85f, Color(5, 150, 105), 2.f);
 
         Text val(boldFont);
         val.setString(to_string(activeCount));
@@ -795,6 +798,11 @@ void UserPanel::drawKpiCards(RenderTarget& target) const {
 
         Vector2f iconPos(cPos.x + cardW - 36.f, cPos.y + 12.f);
         CircleShape ic(13.f); ic.setPosition(iconPos); ic.setFillColor(Color(243, 232, 255)); target.draw(ic);
+        Text icDollar(boldFont, L"$", 12);
+        icDollar.setFillColor(Color(147, 51, 234));
+        FloatRect db = icDollar.getLocalBounds();
+        icDollar.setPosition({iconPos.x + 13.f - db.size.x / 2.f - db.position.x, iconPos.y + 13.f - db.size.y / 2.f - db.position.y});
+        target.draw(icDollar);
 
         Text val(boldFont);
         val.setString(s2ws(formatCurrency(avgSpending)));
@@ -875,13 +883,14 @@ void UserPanel::drawActionToolbar(RenderTarget& target) const {
     // 2. Tier Dropdown
     Vector2f tierPos(position.x + width - 315.f, actY);
     RoundedRectRenderer::draw(target, tierPos, {145.f, 34.f}, 6.f, Color::White, 1.f, Color(203, 213, 225));
-    const array<wstring, 4> tierLabels = {L"Tất cả hạng thẻ ∨", L"Hạng Vàng ∨", L"Hạng Bạc ∨", L"Tiêu chuẩn ∨"};
+    const array<wstring, 4> tierLabels = {L"Tất cả hạng thẻ", L"Hạng Vàng", L"Hạng Bạc", L"Tiêu chuẩn"};
     Text tTxt(font);
     tTxt.setString(tierLabels[tierFilterIndex % 4]);
     tTxt.setCharacterSize(12.f);
     tTxt.setFillColor(Color(51, 65, 85));
     tTxt.setPosition({tierPos.x + 12.f, tierPos.y + 8.f});
     target.draw(tTxt);
+    UITheme::drawChevronDown(target, {tierPos.x + 130.f, tierPos.y + 17.f}, 4.2f, Color(100, 116, 139));
 
     // 3. Time Filter
     Vector2f timePos(position.x + width - 160.f, actY);
@@ -949,7 +958,7 @@ void UserPanel::drawCustomerTable(RenderTarget& target) const {
         Vector2f rcPos(tableX + 16.f, ry + 16.f);
         RoundedRectRenderer::draw(target, rcPos, {16.f, 16.f}, 3.f, c->selected ? Color(2, 132, 199) : Color::White, 1.f, Color(203, 213, 225));
         if (c->selected) {
-            Text tick(boldFont); tick.setString(L"✓"); tick.setCharacterSize(11); tick.setFillColor(Color::White); tick.setPosition({rcPos.x + 3.f, rcPos.y}); target.draw(tick);
+            UITheme::drawCheckmark(target, {rcPos.x + 8.f, rcPos.y + 8.f}, 0.72f, Color::White, 2.f);
         }
 
         // STT

@@ -701,10 +701,7 @@ void VoucherPanel::render(RenderWindow& win) {
     win.draw(dstTxt);
 
     drawRoundedCard(win, {position.x + 409.f, actY}, {34.f, 34.f}, 6.f, Color::White, 1.f, Color(203, 213, 225));
-    Text relTxt(boldFont, L"\u21bb", 16); relTxt.setFillColor(Color(71, 85, 105));
-    FloatRect rb = relTxt.getLocalBounds();
-    relTxt.setPosition({position.x + 409.f + (34.f - rb.size.x) / 2.f - rb.position.x, actY + (34.f - rb.size.y) / 2.f - rb.position.y});
-    win.draw(relTxt);
+    UITheme::drawReloadIcon(win, {position.x + 426.f, actY + 17.f}, 16.f, Color(71, 85, 105));
 
     // Hàng tìm kiếm & Bộ lọc Pill
     float fltY = position.y + 312.f;
@@ -1024,7 +1021,7 @@ void VoucherPanel::render(RenderWindow& win) {
         Text l2(boldFont, L"Lo\u1ea1i voucher (Click \u0111\u1ec3 \u0111\u1ed5i):", 13); l2.setFillColor(Color(71, 85, 105)); l2.setPosition({popX + 260.f, popY + 65.f}); win.draw(l2);
         drawRoundedCard(win, {popX + 260.f, popY + 85.f}, {210.f, 36.f}, 6.f,
                         f1Act ? Color::White : Color(248, 250, 252), f1Act ? 1.8f : 1.f, f1Act ? Color(2, 132, 199) : Color(203, 213, 225));
-        Text v2(font, to_wstring(popupType) + (popupType == 2 ? L" (Gi\u1ea3m %) \u25be" : L" (Gi\u1ea3m ti\u1ec1n \u0111) \u25be"), 13); v2.setFillColor(Color(2, 132, 199)); v2.setPosition({popX + 270.f, popY + 93.f}); win.draw(v2);
+        Text v2(font, to_wstring(popupType) + (popupType == 2 ? L" (Gi\u1ea3m %) \u25bc" : L" (Gi\u1ea3m ti\u1ec1n \u0111) \u25bc"), 13); v2.setFillColor(Color(2, 132, 199)); v2.setPosition({popX + 270.f, popY + 93.f}); win.draw(v2);
 
         bool f2Act = (popupActiveField == 2);
         Text l3(boldFont, L"Chi ti\u1ebft / M\u00f4 t\u1ea3:", 13); l3.setFillColor(Color(71, 85, 105)); l3.setPosition({popX + 30.f, popY + 130.f}); win.draw(l3);

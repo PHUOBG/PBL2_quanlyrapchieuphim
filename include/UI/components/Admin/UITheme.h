@@ -264,6 +264,220 @@ namespace UITheme {
     }
 
     // ==========================================
+    // 4B. REUSABLE VECTOR & TEXTURE ICON RENDERERS
+    // ==========================================
+
+    // Vẽ dấu tích chuẩn (Checkmark vector) thay thế ký tự Unicode thiếu trong font
+    inline void drawCheckmark(RenderTarget& target, Vector2f center, float scale, Color color, float thickness = 2.f) {
+        RectangleShape seg1({5.5f * scale, thickness * scale});
+        seg1.setFillColor(color);
+        seg1.setOrigin({0.f, thickness * scale / 2.f});
+        seg1.setPosition({center.x - 4.5f * scale, center.y + 0.5f * scale});
+        seg1.setRotation(degrees(42.f));
+        target.draw(seg1);
+
+        RectangleShape seg2({9.5f * scale, thickness * scale});
+        seg2.setFillColor(color);
+        seg2.setOrigin({0.f, thickness * scale / 2.f});
+        seg2.setPosition({center.x - 1.2f * scale, center.y + 3.8f * scale});
+        seg2.setRotation(degrees(-48.f));
+        target.draw(seg2);
+    }
+
+    // Vẽ nút đóng / xóa (Close X vector)
+    inline void drawCloseIcon(RenderTarget& target, Vector2f center, float size, Color color, float thickness = 1.8f) {
+        for (float angle : {45.f, -45.f}) {
+            RectangleShape bar({size, thickness});
+            bar.setOrigin({size / 2.f, thickness / 2.f});
+            bar.setPosition(center);
+            bar.setFillColor(color);
+            bar.setRotation(degrees(angle));
+            target.draw(bar);
+        }
+    }
+
+    // Vẽ mũi tên tam giác chỉ xuống (Dropdown Chevron)
+    inline void drawChevronDown(RenderTarget& target, Vector2f center, float halfW, Color color) {
+        ConvexShape chev(3);
+        chev.setPoint(0, {center.x - halfW, center.y - halfW * 0.55f});
+        chev.setPoint(1, {center.x + halfW, center.y - halfW * 0.55f});
+        chev.setPoint(2, {center.x, center.y + halfW * 0.65f});
+        chev.setFillColor(color);
+        target.draw(chev);
+    }
+
+    // Vẽ biểu tượng Làm mới (Reload): ưu tiên texture reload.png, dự phòng bằng vector
+    inline void drawReloadIcon(RenderTarget& target, Vector2f center, float size, Color color) {
+        static Texture reloadTex;
+        static bool attempted = false;
+        static bool loaded = false;
+        if (!attempted) {
+            attempted = true;
+            loaded = reloadTex.loadFromFile("../assets/elements/reload.png") ||
+                     reloadTex.loadFromFile("assets/elements/reload.png");
+            if (loaded) reloadTex.setSmooth(true);
+        }
+        if (loaded && reloadTex.getSize().x > 0) {
+            Sprite sp(reloadTex);
+            sp.setColor(color);
+            float sc = size / static_cast<float>(reloadTex.getSize().x);
+            sp.setScale({sc, sc});
+            sp.setPosition({center.x - size / 2.f, center.y - size / 2.f});
+            target.draw(sp);
+        } else {
+            float r = size * 0.38f;
+            CircleShape ring(r, 20);
+            ring.setFillColor(Color::Transparent);
+            ring.setOutlineThickness(1.8f);
+            ring.setOutlineColor(color);
+            ring.setPosition({center.x - r, center.y - r});
+            target.draw(ring);
+
+            ConvexShape arrow(3);
+            arrow.setPoint(0, {center.x + r - 3.f, center.y - r - 2.f});
+            arrow.setPoint(1, {center.x + r + 3.f, center.y - r + 1.f});
+            arrow.setPoint(2, {center.x + r - 2.f, center.y - r + 4.f});
+            arrow.setFillColor(color);
+            target.draw(arrow);
+        }
+    }
+
+    // Vẽ biểu tượng Mắt ẩn/hiện mật khẩu (tái sử dụng eye-open.png / eye-close.png của PasswordField)
+    inline void drawEyeIcon(RenderTarget& target, Vector2f center, bool isOpen, Color tint = Color(100, 116, 139)) {
+        static Texture openTex, closeTex;
+        static bool attempted = false;
+        static bool loaded = false;
+        if (!attempted) {
+            attempted = true;
+            bool ok1 = openTex.loadFromFile("../assets/elements/eye-open.png") ||
+                       openTex.loadFromFile("assets/elements/eye-open.png");
+            bool ok2 = closeTex.loadFromFile("../assets/elements/eye-close.png") ||
+                       closeTex.loadFromFile("assets/elements/eye-close.png");
+            loaded = ok1 && ok2;
+            if (loaded) {
+                openTex.setSmooth(true);
+                closeTex.setSmooth(true);
+            }
+        }
+        if (loaded) {
+            const Texture& tex = isOpen ? openTex : closeTex;
+            Sprite sp(tex);
+            float targetS = 16.f;
+            float scX = targetS / static_cast<float>(tex.getSize().x);
+            float scY = targetS / static_cast<float>(tex.getSize().y);
+            sp.setScale({scX, scY});
+            sp.setColor(tint);
+            sp.setPosition({center.x - targetS / 2.f, center.y - targetS / 2.f});
+            target.draw(sp);
+        } else {
+            CircleShape outer(5.5f, 16);
+            outer.setScale({1.35f, 0.85f});
+            outer.setFillColor(Color::Transparent);
+            outer.setOutlineThickness(1.4f);
+            outer.setOutlineColor(tint);
+            outer.setPosition({center.x - 7.4f, center.y - 4.6f});
+            target.draw(outer);
+
+            CircleShape pupil(2.2f, 12);
+            pupil.setFillColor(tint);
+            pupil.setPosition({center.x - 2.2f, center.y - 2.2f});
+            target.draw(pupil);
+
+            if (!isOpen) {
+                RectangleShape slash({14.f, 1.6f});
+                slash.setOrigin({7.f, 0.8f});
+                slash.setPosition(center);
+                slash.setFillColor(tint);
+                slash.setRotation(degrees(-35.f));
+                target.draw(slash);
+            }
+        }
+    }
+
+    // Vẽ biểu tượng Khiên bảo mật (Shield icon)
+    inline void drawShieldIcon(RenderTarget& target, Vector2f center, float r, Color color) {
+        ConvexShape shield(6);
+        shield.setPoint(0, {center.x, center.y - r});
+        shield.setPoint(1, {center.x + r * 0.85f, center.y - r * 0.55f});
+        shield.setPoint(2, {center.x + r * 0.75f, center.y + r * 0.25f});
+        shield.setPoint(3, {center.x, center.y + r});
+        shield.setPoint(4, {center.x - r * 0.75f, center.y + r * 0.25f});
+        shield.setPoint(5, {center.x - r * 0.85f, center.y - r * 0.55f});
+        shield.setFillColor(color);
+        target.draw(shield);
+    }
+
+    // Vẽ biểu tượng Thẻ hồ sơ (ID Card icon) thay cho emoji 💳 bị lỗi ô vuông
+    inline void drawIdCardIcon(RenderTarget& target, Vector2f center, Color color) {
+        RoundedRectRenderer::draw(target, {center.x - 9.f, center.y - 6.5f}, {18.f, 13.f}, 2.5f, Color::Transparent, 1.6f, color);
+        CircleShape head(2.2f, 12);
+        head.setFillColor(color);
+        head.setPosition({center.x - 6.5f, center.y - 3.f});
+        target.draw(head);
+
+        RectangleShape line1({6.5f, 1.6f});
+        line1.setFillColor(color);
+        line1.setPosition({center.x - 0.5f, center.y - 2.8f});
+        target.draw(line1);
+
+        RectangleShape line2({5.f, 1.6f});
+        line2.setFillColor(color);
+        line2.setPosition({center.x - 0.5f, center.y + 1.f});
+        target.draw(line2);
+    }
+
+    // Vẽ biểu tượng Chìa khóa (Key icon) thay cho emoji 🔑
+    inline void drawKeyIcon(RenderTarget& target, Vector2f center, Color color) {
+        CircleShape head(4.2f, 16);
+        head.setFillColor(Color::Transparent);
+        head.setOutlineThickness(1.8f);
+        head.setOutlineColor(color);
+        head.setPosition({center.x - 7.5f, center.y - 4.2f});
+        target.draw(head);
+
+        RectangleShape shaft({8.5f, 2.f});
+        shaft.setFillColor(color);
+        shaft.setPosition({center.x + 0.5f, center.y - 1.f});
+        target.draw(shaft);
+
+        RectangleShape tooth1({1.8f, 3.2f});
+        tooth1.setFillColor(color);
+        tooth1.setPosition({center.x + 4.2f, center.y + 0.8f});
+        target.draw(tooth1);
+
+        RectangleShape tooth2({1.8f, 3.2f});
+        tooth2.setFillColor(color);
+        tooth2.setPosition({center.x + 7.2f, center.y + 0.8f});
+        target.draw(tooth2);
+    }
+
+    // Vẽ biểu tượng Ổ khóa (Lock icon) thay cho emoji 🔒
+    inline void drawLockIcon(RenderTarget& target, Vector2f center, Color color) {
+        CircleShape shackle(3.5f, 14);
+        shackle.setFillColor(Color::Transparent);
+        shackle.setOutlineThickness(1.6f);
+        shackle.setOutlineColor(color);
+        shackle.setPosition({center.x - 3.5f, center.y - 6.8f});
+        target.draw(shackle);
+
+        RoundedRectRenderer::draw(target, {center.x - 5.5f, center.y - 1.5f}, {11.f, 8.f}, 2.f, color);
+        CircleShape keyhole(1.2f, 8);
+        keyhole.setFillColor(Color::White);
+        keyhole.setPosition({center.x - 1.2f, center.y + 1.2f});
+        target.draw(keyhole);
+    }
+
+    // Vẽ biểu tượng Khách hàng (User silhouette icon)
+    inline void drawUserIcon(RenderTarget& target, Vector2f center, Color color) {
+        CircleShape head(3.2f, 14);
+        head.setFillColor(color);
+        head.setPosition({center.x - 3.2f, center.y - 6.5f});
+        target.draw(head);
+
+        RoundedRectRenderer::draw(target, {center.x - 6.f, center.y + 0.8f}, {12.f, 5.5f}, 2.8f, color);
+    }
+
+    // ==========================================
     // 5. VIETNAMESE UNICODE & DSA SEARCH HELPERS
     // ==========================================
     inline wstring utf8ToWstr(const string& str) {
