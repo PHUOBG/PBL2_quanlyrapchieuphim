@@ -49,6 +49,7 @@ void TicketPanel::setPosition(Vector2f pos) {
 
 void TicketPanel::loadTickets() {
     allTickets.clear();
+    ticketIndexMap.clear();
     DLL<Ticket> list = repository.loadAll();
     for (const auto& t : list) {
         allTickets.push_back(t);
@@ -56,32 +57,55 @@ void TicketPanel::loadTickets() {
 
     // Hiển thị vé mới nhất lên trên đầu như trong ảnh tham khảo (T0057 -> T0001)
     reverse(allTickets.begin(), allTickets.end());
+
+    // Xây dựng bảng băm HashTable O(1) theo mã vé (ticketId chuẩn hóa chữ thường)
+    for (size_t i = 0; i < allTickets.size(); ++i) {
+        string normId = UITheme::normalizeViUtf8(allTickets[i].ticketId);
+        ticketIndexMap.insert(normId, (int)i);
+    }
     applySearch();
 }
 
 void TicketPanel::applySearch() {
     filteredTickets.clear();
-    string q = searchQuery;
-    for (auto& c : q) c = (char)tolower(c);
 
+    // Trim khoảng trắng hai đầu của từ khóa tìm kiếm
+    wstring q = searchQuery;
+    size_t first = q.find_first_not_of(L" \t");
+    if (first == wstring::npos) {
+        filteredTickets = allTickets;
+        selectedRow = -1;
+        scrollOffset = 0;
+        return;
+    }
+    size_t last = q.find_last_not_of(L" \t");
+    q = q.substr(first, last - first + 1);
+
+    // 1. Tra cứu O(1) bằng HashTable nếu người dùng nhập đúng mã vé (ví dụ: T0056, t0056)
+    string normQueryUtf8 = UITheme::normalizeViUtf8(UITheme::wstrToUtf8(q));
+    int* exactIdx = ticketIndexMap.find(normQueryUtf8);
+    if (exactIdx && *exactIdx >= 0 && *exactIdx < (int)allTickets.size()) {
+        filteredTickets.push_back(allTickets[*exactIdx]);
+    }
+
+    // 2. Kết hợp tìm kiếm chuỗi con không dấu (ID vé, ID suất chiếu, Email, Họ tên, Tên phim, Phòng, Ngày đặt)
     for (const auto& t : allTickets) {
-        if (q.empty()) {
-            filteredTickets.push_back(t);
-            continue;
-        }
-        string idLower = t.ticketId;
-        string emailLower = t.email;
-        string stLower = t.showtimeId;
-        for (auto& c : idLower) c = (char)tolower(c);
-        for (auto& c : emailLower) c = (char)tolower(c);
-        for (auto& c : stLower) c = (char)tolower(c);
+        if (exactIdx && t.ticketId == allTickets[*exactIdx].ticketId) continue;
 
-        if (idLower.find(q) != string::npos || emailLower.find(q) != string::npos || stLower.find(q) != string::npos) {
+        bool match = UITheme::matchesViQuery(s2ws(t.ticketId), q) ||
+                     UITheme::matchesViQuery(s2ws(t.showtimeId), q) ||
+                     UITheme::matchesViQuery(s2ws(t.email), q) ||
+                     UITheme::matchesViQuery(s2ws(t.fullName), q) ||
+                     UITheme::matchesViQuery(s2ws(t.title), q) ||
+                     UITheme::matchesViQuery(s2ws(t.roomName), q) ||
+                     UITheme::matchesViQuery(s2ws(t.bookedDate), q);
+
+        if (match) {
             filteredTickets.push_back(t);
         }
     }
 
-    selectedRow = -1;
+    selectedRow = filteredTickets.empty() ? -1 : 0;
     scrollOffset = 0;
 }
 
@@ -95,6 +119,7 @@ void TicketPanel::deleteSelectedTicket() {
 
     string tId = filteredTickets[selectedRow].ticketId;
     if (repository.deleteTicket(tId)) {
+        deleteConfirmVisible = false;
         notificationMessage = "Đã xóa vé " + tId + " thành công!";
         notificationClock.restart();
         notificationVisible = true;
@@ -107,32 +132,76 @@ void TicketPanel::drawRoundedCard(RenderWindow& win, Vector2f pos, Vector2f sz, 
 }
 
 void TicketPanel::handleEvent(const Event& event, const RenderWindow& win) {
-    if (const auto* mouseBtn = event.getIf<Event::MouseButtonPressed>()) {
-        if (mouseBtn->button == Mouse::Button::Left) {
-            Vector2f mousePos = win.mapPixelToCoords(Mouse::getPosition(win));
+    // 1. ƯU TIÊN XỬ LÝ MODAL XÁC NHẬN XÓA VÉ
+    if (deleteConfirmVisible) {
+        float popW = 420.f;
+        float popH = 210.f;
+        float popX = position.x + (width - popW) / 2.f;
+        float popY = position.y + (height - popH) / 2.f - 20.f;
 
-            // Nếu đang mở Modal Popup
-            if (detailVisible) {
-                float popW = 540.f;
-                float popH = 460.f;
-                float popX = position.x + (width - popW) / 2.f;
-                float popY = position.y + (height - popH) / 2.f - 20.f;
+        if (const auto* mouseBtn = event.getIf<Event::MouseButtonPressed>()) {
+            if (mouseBtn->button == Mouse::Button::Left) {
+                Vector2f mousePos = win.mapPixelToCoords(Mouse::getPosition(win));
+                FloatRect btnConfirm({popX + 55.f, popY + 145.f}, {145.f, 38.f});
+                FloatRect btnCancel({popX + 220.f, popY + 145.f}, {145.f, 38.f});
 
+                if (btnConfirm.contains(mousePos)) {
+                    deleteSelectedTicket();
+                    return;
+                }
+                if (btnCancel.contains(mousePos) || !FloatRect({popX, popY}, {popW, popH}).contains(mousePos)) {
+                    deleteConfirmVisible = false;
+                    return;
+                }
+            }
+            return;
+        }
+        if (const auto* keyEv = event.getIf<Event::KeyPressed>()) {
+            if (keyEv->code == Keyboard::Key::Escape) { deleteConfirmVisible = false; return; }
+            if (keyEv->code == Keyboard::Key::Enter) { deleteSelectedTicket(); return; }
+        }
+        return;
+    }
+
+    // 2. ƯU TIÊN XỬ LÝ MODAL CHI TIẾT VÉ
+    if (detailVisible) {
+        float popW = 540.f;
+        float popH = 470.f;
+        float popX = position.x + (width - popW) / 2.f;
+        float popY = position.y + (height - popH) / 2.f - 20.f;
+
+        if (const auto* mouseBtn = event.getIf<Event::MouseButtonPressed>()) {
+            if (mouseBtn->button == Mouse::Button::Left) {
+                Vector2f mousePos = win.mapPixelToCoords(Mouse::getPosition(win));
                 FloatRect btnClose({popX + (popW - 140.f) / 2.f, popY + popH - 52.f}, {140.f, 38.f});
-                FloatRect btnX({popX + popW - 42.f, popY + 16.f}, {28.f, 28.f});
+                FloatRect btnX({popX + popW - 45.f, popY + 14.f}, {32.f, 32.f});
 
-                if (btnClose.contains(mousePos) || btnX.contains(mousePos)) {
+                if (btnClose.contains(mousePos) || btnX.contains(mousePos) || !FloatRect({popX, popY}, {popW, popH}).contains(mousePos)) {
                     detailVisible = false;
                     return;
                 }
+            }
+            return;
+        }
+        if (const auto* keyEv = event.getIf<Event::KeyPressed>()) {
+            if (keyEv->code == Keyboard::Key::Escape || keyEv->code == Keyboard::Key::Enter) {
+                detailVisible = false;
                 return;
             }
+        }
+        return;
+    }
+
+    // 3. XỬ LÝ CLICK CHUỘT TRÊN MÀN HÌNH CHÍNH
+    if (const auto* mouseBtn = event.getIf<Event::MouseButtonPressed>()) {
+        if (mouseBtn->button == Mouse::Button::Left) {
+            Vector2f mousePos = win.mapPixelToCoords(Mouse::getPosition(win));
 
             // Toolbar buttons
             float barY = position.y + 104.f;
             FloatRect btnViewRect({position.x + 30.f, barY}, {135.f, 38.f});
             FloatRect btnDeleteRect({position.x + 175.f, barY}, {95.f, 38.f});
-            FloatRect searchRect({position.x + 280.f, barY}, {260.f, 38.f});
+            FloatRect searchRect({position.x + 280.f, barY}, {300.f, 38.f});
             FloatRect btnReloadRect({position.x + width - 75.f, barY}, {45.f, 38.f});
 
             if (btnViewRect.contains(mousePos)) {
@@ -148,7 +217,13 @@ void TicketPanel::handleEvent(const Event& event, const RenderWindow& win) {
             }
 
             if (btnDeleteRect.contains(mousePos)) {
-                deleteSelectedTicket();
+                if (selectedRow >= 0 && selectedRow < (int)filteredTickets.size()) {
+                    deleteConfirmVisible = true;
+                } else {
+                    notificationMessage = "Vui lòng chọn vé cần xóa!";
+                    notificationClock.restart();
+                    notificationVisible = true;
+                }
                 return;
             }
 
@@ -162,7 +237,13 @@ void TicketPanel::handleEvent(const Event& event, const RenderWindow& win) {
             }
 
             if (searchRect.contains(mousePos)) {
+                // Nếu click vào dấu X xóa nhanh bên phải ô tìm kiếm
+                if (!searchQuery.empty() && mousePos.x >= position.x + 550.f) {
+                    searchQuery.clear();
+                    applySearch();
+                }
                 searchActive = true;
+                return;
             } else {
                 searchActive = false;
             }
@@ -170,43 +251,68 @@ void TicketPanel::handleEvent(const Event& event, const RenderWindow& win) {
             // Click vào các dòng của bảng
             float tableY = position.y + 158.f;
             float rowH = 42.f;
-            int count = min((int)filteredTickets.size() - scrollOffset, maxVisibleRows);
+            int count = max(0, min((int)filteredTickets.size() - scrollOffset, maxVisibleRows));
 
             for (int r = 0; r < count; ++r) {
                 float rY = tableY + 46.f + r * rowH;
                 FloatRect rowRect({position.x + 30.f, rY}, {width - 60.f, rowH});
 
                 if (rowRect.contains(mousePos)) {
-                    selectedRow = scrollOffset + r;
+                    int clickedIdx = scrollOffset + r;
+                    if (selectedRow == clickedIdx) {
+                        // Click lần 2 vào dòng đã chọn sẽ mở luôn chi tiết vé
+                        currentDetailTicket = filteredTickets[clickedIdx];
+                        detailVisible = true;
+                    } else {
+                        selectedRow = clickedIdx;
+                    }
                     return;
                 }
             }
         }
     }
 
-    // Xử lý cuộn chuột
+    // 4. XỬ LÝ CUỘN CHUỘT
     if (const auto* wheel = event.getIf<Event::MouseWheelScrolled>()) {
-        if (!detailVisible) {
-            if (wheel->delta > 0) {
-                if (scrollOffset > 0) scrollOffset--;
-            } else if (wheel->delta < 0) {
-                if (scrollOffset + maxVisibleRows < (int)filteredTickets.size()) scrollOffset++;
-            }
+        if (wheel->delta > 0) {
+            if (scrollOffset > 0) scrollOffset--;
+        } else if (wheel->delta < 0) {
+            if (scrollOffset + maxVisibleRows < (int)filteredTickets.size()) scrollOffset++;
         }
     }
 
-    // Nhập tìm kiếm
-    if (const auto* textEv = event.getIf<Event::TextEntered>()) {
-        if (searchActive && !detailVisible) {
-            char32_t c = textEv->unicode;
-            if (c == 8) { // Backspace
+    // 5. XỬ LÝ BÀN PHÍM CHO Ô TÌM KIẾM VÉ (Hỗ trợ đầy đủ Unicode & Tiếng Việt)
+    if (const auto* keyEv = event.getIf<Event::KeyPressed>()) {
+        if (searchActive) {
+            if (keyEv->code == Keyboard::Key::Backspace) {
                 if (!searchQuery.empty()) {
                     searchQuery.pop_back();
                     applySearch();
                 }
-            } else if (c >= 32 && c != 127) {
-                if (searchQuery.size() < 30) {
-                    searchQuery.push_back((char)c);
+                return;
+            }
+            if (keyEv->code == Keyboard::Key::Escape) {
+                searchQuery.clear();
+                searchActive = false;
+                applySearch();
+                return;
+            }
+            if (keyEv->code == Keyboard::Key::Enter) {
+                if (selectedRow >= 0 && selectedRow < (int)filteredTickets.size()) {
+                    currentDetailTicket = filteredTickets[selectedRow];
+                    detailVisible = true;
+                }
+                return;
+            }
+        }
+    }
+
+    if (const auto* textEv = event.getIf<Event::TextEntered>()) {
+        if (searchActive) {
+            char32_t c = textEv->unicode;
+            if (c >= 32 && c != 127) {
+                if (searchQuery.size() < 40) {
+                    searchQuery += static_cast<wchar_t>(c);
                     applySearch();
                 }
             }
@@ -280,11 +386,11 @@ void TicketPanel::render(RenderWindow& win) {
     win.draw(delTxt);
 
     // Ô Input Tìm kiếm: Tìm theo ID vé, Email...
-    drawRoundedCard(win, {position.x + 280.f, barY}, {260.f, 38.f}, 6.f, Color::White, searchActive ? 1.5f : 1.f, searchActive ? Color(2, 132, 199) : Color(203, 213, 225));
+    drawRoundedCard(win, {position.x + 280.f, barY}, {300.f, 38.f}, 6.f, Color::White, searchActive ? 1.8f : 1.f, searchActive ? Color(2, 132, 199) : Color(203, 213, 225));
 
     // Ký hiệu kính lúp tìm kiếm vẽ bằng SFML shapes chuẩn sắc nét
     Vector2f iconPos(position.x + 293.f, barY + 12.f);
-    Color icCol(148, 163, 184);
+    Color icCol = searchActive ? Color(2, 132, 199) : Color(148, 163, 184);
     CircleShape lens(5.f, 16);
     lens.setFillColor(Color::Transparent);
     lens.setOutlineThickness(1.6f);
@@ -298,11 +404,26 @@ void TicketPanel::render(RenderWindow& win) {
     stem.setPosition({iconPos.x + 8.f, iconPos.y + 8.f});
     win.draw(stem);
 
-    wstring sDisplay = searchQuery.empty() ? L"T\u00ecm theo ID v\u00e9, Email..." : s2ws(searchQuery) + (searchActive ? L"|" : L"");
-    Text searchTxt(font, sDisplay, 12);
-    searchTxt.setFillColor(searchQuery.empty() ? Color(148, 163, 184) : Color(15, 23, 42));
+    wstring sDisplay = searchQuery.empty()
+        ? (searchActive ? L"|" : L"T\u00ecm theo ID v\u00e9, Email, Phim...")
+        : (searchQuery + (searchActive ? L"|" : L""));
+    Text searchTxt(font, sDisplay, 12.5f);
+    searchTxt.setFillColor(searchQuery.empty() && !searchActive ? Color(148, 163, 184) : Color(15, 23, 42));
     searchTxt.setPosition({position.x + 314.f, barY + 10.f});
     win.draw(searchTxt);
+
+    if (!searchQuery.empty()) {
+        Text clearBtn(boldFont, L"\u2715", 12);
+        clearBtn.setFillColor(Color(148, 163, 184));
+        clearBtn.setPosition({position.x + 558.f, barY + 11.f});
+        win.draw(clearBtn);
+    }
+
+    // Badge hiển thị tổng số kết quả tìm được
+    Text cntBadge(boldFont, L"K\u1ebft qu\u1ea3: " + to_wstring(filteredTickets.size()) + L" v\u00e9", 12);
+    cntBadge.setFillColor(Color(100, 116, 139));
+    cntBadge.setPosition({position.x + 595.f, barY + 11.f});
+    win.draw(cntBadge);
 
     // Nút Reload góc phải
     float relX = position.x + width - 75.f;
@@ -445,6 +566,50 @@ void TicketPanel::render(RenderWindow& win) {
         FloatRect bctb = btnClTxt.getLocalBounds();
         btnClTxt.setPosition({popX + (popW - 140.f) / 2.f + (140.f - bctb.size.x) / 2.f - bctb.position.x, popY + popH - 52.f + (36.f - bctb.size.y) / 2.f - bctb.position.y});
         win.draw(btnClTxt);
+    }
+
+    // ==========================================
+    // 6B. MODAL POPUP: XÁC NHẬN XÓA VÉ
+    // ==========================================
+    if (deleteConfirmVisible && selectedRow >= 0 && selectedRow < (int)filteredTickets.size()) {
+        RectangleShape overlay({width, height});
+        overlay.setPosition(position);
+        overlay.setFillColor(Color(15, 23, 42, 150));
+        win.draw(overlay);
+
+        float popW = 420.f;
+        float popH = 210.f;
+        float popX = position.x + (width - popW) / 2.f;
+        float popY = position.y + (height - popH) / 2.f - 20.f;
+
+        drawRoundedCard(win, {popX, popY}, {popW, popH}, 12.f, Color::White);
+
+        Text pTitle(boldFont, L"X\u00e1c nh\u1eadn h\u1ee7y / x\u00f3a v\u00e9", 17);
+        pTitle.setFillColor(Color(220, 38, 38));
+        pTitle.setPosition({popX + 28.f, popY + 22.f});
+        win.draw(pTitle);
+
+        wstring tIdW = s2ws(filteredTickets[selectedRow].ticketId);
+        wstring msgW = L"B\u1ea1n c\u00f3 ch\u1eafc ch\u1eafn mu\u1ed1n x\u00f3a v\u00e9 [" + tIdW + L"]\nkh\u1ecfi h\u1ec7 th\u1ed1ng? Thao t\u00e1c n\u00e0y kh\u00f4ng th\u1ec3 ho\u00e0n t\u00e1c.";
+        Text pMsg(font, msgW, 13);
+        pMsg.setFillColor(Color(51, 65, 85));
+        pMsg.setPosition({popX + 28.f, popY + 62.f});
+        win.draw(pMsg);
+
+        // Nút Xác nhận xóa & Hủy bỏ
+        drawRoundedCard(win, {popX + 55.f, popY + 145.f}, {145.f, 38.f}, 6.f, Color(220, 38, 38));
+        Text cfmTxt(boldFont, L"X\u00e1c nh\u1eadn x\u00f3a", 13);
+        cfmTxt.setFillColor(Color::White);
+        FloatRect cfb = cfmTxt.getLocalBounds();
+        cfmTxt.setPosition({popX + 55.f + (145.f - cfb.size.x) / 2.f - cfb.position.x, popY + 145.f + (38.f - cfb.size.y) / 2.f - cfb.position.y});
+        win.draw(cfmTxt);
+
+        drawRoundedCard(win, {popX + 220.f, popY + 145.f}, {145.f, 38.f}, 6.f, Color(241, 245, 249), 1.f, Color(203, 213, 225));
+        Text canTxt(boldFont, L"H\u1ee7y b\u1ecf", 13);
+        canTxt.setFillColor(Color(71, 85, 105));
+        FloatRect cab = canTxt.getLocalBounds();
+        canTxt.setPosition({popX + 220.f + (145.f - cab.size.x) / 2.f - cab.position.x, popY + 145.f + (38.f - cab.size.y) / 2.f - cab.position.y});
+        win.draw(canTxt);
     }
 
     // ==========================================

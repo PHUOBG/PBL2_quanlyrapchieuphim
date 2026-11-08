@@ -326,18 +326,15 @@ void RoomPanel::handleEvent(const Event& event, const RenderWindow& win) {
                 return;
             }
 
-            // 4. Form Cột trái: Click chọn dropdown phòng chiếu
-            FloatRect ddRoomBounds({position.x + 50.f, position.y + 282.f}, {320.f, 38.f});
-            if (ddRoomBounds.contains(mousePos)) {
-                roomDropdownOpen = !roomDropdownOpen;
-                statusDropdownOpen = false;
-                seatTypeDropdownOpen = false;
-                return;
-            }
+            float cardY = position.y + 204.f;
+            float leftCardW = 370.f;
+            float cardH = height - 230.f;
 
+            // Ưu tiên kiểm tra danh sách dropdown đang mở trước để không click xuyên xuống các ô bên dưới
             if (roomDropdownOpen) {
+                float ddY = cardY + 120.f;
                 for (size_t i = 0; i < rooms.size(); ++i) {
-                    FloatRect itemB({position.x + 50.f, position.y + 322.f + i * 36.f}, {320.f, 36.f});
+                    FloatRect itemB({position.x + 50.f, ddY + i * 36.f}, {leftCardW - 40.f, 36.f});
                     if (itemB.contains(mousePos)) {
                         selectedRoomIndex = (int)i;
                         inputRoomName = rooms[i].name;
@@ -349,21 +346,14 @@ void RoomPanel::handleEvent(const Event& event, const RenderWindow& win) {
                     }
                 }
                 roomDropdownOpen = false;
-            }
-
-            // Click ô loại ghế cần gán
-            FloatRect ddSeatTypeBounds({position.x + 50.f, position.y + 512.f}, {320.f, 38.f});
-            if (ddSeatTypeBounds.contains(mousePos)) {
-                seatTypeDropdownOpen = !seatTypeDropdownOpen;
-                roomDropdownOpen = false;
-                statusDropdownOpen = false;
                 return;
             }
 
             if (seatTypeDropdownOpen) {
                 SeatType types[4] = {SeatType::STANDARD, SeatType::VIP, SeatType::SWEETBOX, SeatType::MAINTENANCE};
+                float ddY = cardY + 408.f;
                 for (int i = 0; i < 4; ++i) {
-                    FloatRect itmB({position.x + 50.f, position.y + 552.f + i * 36.f}, {320.f, 36.f});
+                    FloatRect itmB({position.x + 50.f, ddY + i * 36.f}, {leftCardW - 40.f, 36.f});
                     if (itmB.contains(mousePos)) {
                         currentAssignType = types[i];
                         seatTypeDropdownOpen = false;
@@ -371,26 +361,61 @@ void RoomPanel::handleEvent(const Event& event, const RenderWindow& win) {
                     }
                 }
                 seatTypeDropdownOpen = false;
+                return;
+            }
+
+            // 4. Form Cột trái: Click chọn dropdown phòng chiếu
+            FloatRect ddRoomBounds({position.x + 50.f, cardY + 80.f}, {leftCardW - 40.f, 38.f});
+            if (ddRoomBounds.contains(mousePos)) {
+                roomDropdownOpen = !roomDropdownOpen;
+                statusDropdownOpen = false;
+                seatTypeDropdownOpen = false;
+                activeInputBox = -1;
+                return;
+            }
+
+            // Click ô Trạng thái phòng chiếu (chuyển đổi Bình thường / Đang bảo trì)
+            FloatRect boxStatus({position.x + 50.f, cardY + 296.f}, {leftCardW - 40.f, 38.f});
+            if (boxStatus.contains(mousePos)) {
+                if (inputStatus.find(L"B\u00ecnh th\u01b0\u1eddng") != wstring::npos || inputStatus.empty()) {
+                    inputStatus = L"\u0110ang b\u1ea3o tr\u00ec k\u1ef9 thu\u1eadt";
+                } else {
+                    inputStatus = L"B\u00ecnh th\u01b0\u1eddng (\u0110ang \u0111\u00f3n kh\u00e1ch)";
+                }
+                activeInputBox = -1;
+                return;
+            }
+
+            // Click ô loại ghế cần gán
+            FloatRect ddSeatTypeBounds({position.x + 50.f, cardY + 368.f}, {leftCardW - 40.f, 38.f});
+            if (ddSeatTypeBounds.contains(mousePos)) {
+                seatTypeDropdownOpen = !seatTypeDropdownOpen;
+                roomDropdownOpen = false;
+                statusDropdownOpen = false;
+                activeInputBox = -1;
+                return;
             }
 
             // Click ô Input Name / Rows / Cols
-            FloatRect boxName({position.x + 50.f, position.y + 354.f}, {320.f, 38.f});
-            FloatRect boxRows({position.x + 50.f, position.y + 424.f}, {150.f, 38.f});
-            FloatRect boxCols({position.x + 220.f, position.y + 424.f}, {150.f, 38.f});
+            FloatRect boxName({position.x + 50.f, cardY + 152.f}, {leftCardW - 40.f, 38.f});
+            FloatRect boxRows({position.x + 50.f, cardY + 224.f}, {155.f, 38.f});
+            FloatRect boxCols({position.x + 225.f, cardY + 224.f}, {155.f, 38.f});
 
             if (boxName.contains(mousePos)) { activeInputBox = 0; return; }
             if (boxRows.contains(mousePos)) { activeInputBox = 1; return; }
             if (boxCols.contains(mousePos)) { activeInputBox = 2; return; }
             activeInputBox = -1;
 
-            // Nút LƯU và HỦY BỎ
-            FloatRect btnSave({position.x + 50.f, position.y + 790.f}, {150.f, 40.f});
-            FloatRect btnCancel({position.x + 220.f, position.y + 790.f}, {150.f, 40.f});
+            // Nút LƯU và HỦY BỎ (khớp tọa độ render: actBtnY = cardY + cardH - 58.f)
+            float actBtnY = cardY + cardH - 58.f;
+            FloatRect btnSave({position.x + 50.f, actBtnY}, {155.f, 40.f});
+            FloatRect btnCancel({position.x + 225.f, actBtnY}, {155.f, 40.f});
 
             if (btnSave.contains(mousePos)) {
                 if (selectedRoomIndex >= 0 && selectedRoomIndex < (int)rooms.size()) {
                     auto& r = rooms[selectedRoomIndex];
                     if (!inputRoomName.empty()) r.name = inputRoomName;
+                    if (!inputStatus.empty()) r.status = inputStatus;
                     try {
                         int nr = stoi(inputRows);
                         int nc = stoi(inputCols);
@@ -415,6 +440,7 @@ void RoomPanel::handleEvent(const Event& event, const RenderWindow& win) {
                     inputRoomName = rooms[selectedRoomIndex].name;
                     inputRows = to_string(rooms[selectedRoomIndex].rows);
                     inputCols = to_string(rooms[selectedRoomIndex].cols);
+                    inputStatus = rooms[selectedRoomIndex].status;
                     notificationMessage = "Đã hoàn tác thay đổi!";
                     notificationClock.restart();
                     notificationVisible = true;
@@ -459,25 +485,36 @@ void RoomPanel::handleEvent(const Event& event, const RenderWindow& win) {
         }
     }
 
+    // Xử lý phím điều hướng và xóa khi đang active input box
+    if (const auto* keyEv = event.getIf<Event::KeyPressed>()) {
+        if (activeInputBox >= 0) {
+            if (keyEv->code == Keyboard::Key::Tab) {
+                activeInputBox = (activeInputBox + 1) % 3;
+                return;
+            } else if (keyEv->code == Keyboard::Key::Escape) {
+                activeInputBox = -1;
+                return;
+            } else if (keyEv->code == Keyboard::Key::Backspace) {
+                if (activeInputBox == 0 && !inputRoomName.empty()) inputRoomName.pop_back();
+                else if (activeInputBox == 1 && !inputRows.empty()) inputRows.pop_back();
+                else if (activeInputBox == 2 && !inputCols.empty()) inputCols.pop_back();
+                return;
+            }
+        }
+    }
+
     // Xử lý gõ phím khi đang active input box
     if (const auto* textEv = event.getIf<Event::TextEntered>()) {
         char32_t c = textEv->unicode;
+        if (c < 32 || c == 127) return;
         if (activeInputBox == 0) { // Tên phòng
-            if (c == 8) { // Backspace
-                if (!inputRoomName.empty()) inputRoomName.pop_back();
-            } else if (c >= 32 && c != 127) {
-                if (inputRoomName.size() < 24) inputRoomName.push_back((wchar_t)c);
-            }
-        } else if (activeInputBox == 1) { // Hàng ghế (chỉ số 2-10)
-            if (c == 8) {
-                if (!inputRows.empty()) inputRows.pop_back();
-            } else if (c >= '2' && c <= '9') {
+            if (inputRoomName.size() < 28) inputRoomName.push_back((wchar_t)c);
+        } else if (activeInputBox == 1) { // Hàng ghế (2-10)
+            if (c >= '0' && c <= '9') {
                 if (inputRows.size() < 2) inputRows.push_back((char)c);
             }
-        } else if (activeInputBox == 2) { // Cột ghế (chỉ số 2-12)
-            if (c == 8) {
-                if (!inputCols.empty()) inputCols.pop_back();
-            } else if (c >= '2' && c <= '9') {
+        } else if (activeInputBox == 2) { // Cột ghế (2-12)
+            if (c >= '0' && c <= '9') {
                 if (inputCols.size() < 2) inputCols.push_back((char)c);
             }
         }

@@ -5,6 +5,7 @@
 #include <memory>
 #include "repositories/booking/TicketRepository.h"
 #include "repositories/admin/AdminTicketRepository.h"
+#include "data-structures/HashTable.h"
 
 using namespace sf;
 using namespace std;
@@ -20,9 +21,10 @@ private:
     AdminTicketRepository repository;
     vector<Ticket> allTickets;
     vector<Ticket> filteredTickets;
+    HashTable<string, int> ticketIndexMap; // O(1) lookup by normalized Ticket ID
 
     // Filter & Search
-    string searchQuery;
+    wstring searchQuery;
     bool searchActive = false;
 
     // Table selection & scrolling
@@ -36,8 +38,9 @@ private:
     bool btnDeleteHover = false;
     bool btnReloadHover = false;
 
-    // Detail popup
+    // Detail & Delete Confirmation popups
     bool detailVisible = false;
+    bool deleteConfirmVisible = false;
     Ticket currentDetailTicket;
 
     // Toast notification

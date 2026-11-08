@@ -1,6 +1,7 @@
 #include "UI/components/Admin/ShowtimePanel.h"
 #include "UI/components/Admin/UITheme.h"
 #include "UI/components/Admin/RoundedRectRenderer.h"
+#include "data-structures/HashTable.h"
 #include "utils/FileUtils.h"
 #include <algorithm>
 #include <fstream>
@@ -8,9 +9,31 @@
 #include <iomanip>
 
 static wstring s2ws(const string& s) {
-    if (s.empty()) return L"";
-    auto sfStr = String::fromUtf8(s.begin(), s.end());
-    return sfStr.toWideString();
+    return UITheme::utf8ToWstr(s);
+}
+
+static string ws2s(const wstring& ws) {
+    return UITheme::wstrToUtf8(ws);
+}
+
+static string calcEndTimeStr(const string& startTime, int durationMin = 125) {
+    int hh = 14, mm = 0;
+    size_t colon = startTime.find(':');
+    if (colon != string::npos) {
+        try {
+            hh = stoi(startTime.substr(0, colon));
+            mm = stoi(startTime.substr(colon + 1));
+        } catch (...) {}
+    } else if (!startTime.empty()) {
+        try { hh = stoi(startTime); } catch (...) {}
+    }
+    int totalMin = (hh * 60 + mm + durationMin) % (24 * 60);
+    if (totalMin < 0) totalMin += 24 * 60;
+    int endH = totalMin / 60;
+    int endM = totalMin % 60;
+    ostringstream oss;
+    oss << setfill('0') << setw(2) << endH << ":" << setfill('0') << setw(2) << endM;
+    return oss.str();
 }
 
 static string formatPriceStr(int price) {
@@ -103,6 +126,41 @@ void ShowtimePanel::initSampleShowtimes() {
 }
 
 void ShowtimePanel::loadShowtimesFromFile() {
+    // Xây dựng bảng băm (HashTable O(1)) ánh xạ movie_id -> (Tên phim, Thời lượng)
+    HashTable<string, wstring> movieTitleMap(64);
+    HashTable<string, int> movieDurMap(64);
+
+    movieTitleMap.insert("M_001", L"Cu\u1ed9c Chi\u1ebfn B\u1ea5t T\u1eed 2"); movieDurMap.insert("M_001", 76);
+    movieTitleMap.insert("M_002", L"Ng\u01b0\u1eddi Nh\u1ec7n: Du H\u00e0nh V\u0169 Tr\u1ee5 Nh\u1ec7n"); movieDurMap.insert("M_002", 140);
+    movieTitleMap.insert("M_003", L"Mai"); movieDurMap.insert("M_003", 131);
+    movieTitleMap.insert("M_004", L"Kung Fu Panda 4"); movieDurMap.insert("M_004", 94);
+    movieTitleMap.insert("M_005", L"L\u1eadt M\u1eb7t 6: T\u1ea5m V\u00e9 \u0110\u1ecbnh M\u1ec7nh"); movieDurMap.insert("M_005", 135);
+    movieTitleMap.insert("M_006", L"V\u00e2y H\u00e3m: Kh\u00f4ng L\u1ed1i Tho\u00e1t"); movieDurMap.insert("M_006", 105);
+    movieTitleMap.insert("M_007", L"Dune: H\u00e0nh Tinh C\u00e1t - Ph\u1ea7n 2"); movieDurMap.insert("M_007", 166);
+    movieTitleMap.insert("M_008", L"Fast and Furious 10 (Fast X)"); movieDurMap.insert("M_008", 140);
+
+    string mPath = FileUtils::resolveDataPath("data/movies.txt");
+    ifstream mf(mPath);
+    if (mf.is_open()) {
+        string mline;
+        bool mHeader = true;
+        while (getline(mf, mline)) {
+            if (mline.empty()) continue;
+            if (mHeader) { mHeader = false; continue; }
+            stringstream mss(mline);
+            string mid, mtitle, mdur;
+            getline(mss, mid, '|');
+            getline(mss, mtitle, '|');
+            getline(mss, mdur, '|');
+            if (!mid.empty() && !mtitle.empty()) {
+                movieTitleMap.insert(mid, s2ws(mtitle));
+                int d = 120;
+                try { d = stoi(mdur); } catch (...) {}
+                movieDurMap.insert(mid, d);
+            }
+        }
+    }
+
     string path = FileUtils::resolveDataPath("data/showtimes.txt");
     ifstream f(path);
     if (!f.is_open()) return;
@@ -110,6 +168,7 @@ void ShowtimePanel::loadShowtimesFromFile() {
     string line;
     bool isHeader = true;
     vector<ShowtimeItem> loaded;
+    int idxCounter = 0;
     while (getline(f, line)) {
         if (line.empty()) continue;
         if (isHeader) { isHeader = false; continue; }
@@ -130,8 +189,9 @@ void ShowtimePanel::loadShowtimesFromFile() {
         item.startTime = tm;
         try { item.price = stoi(pr); } catch (...) { item.price = 65000; }
         item.totalSeats = 36;
-        item.bookedSeats = 20 + (rand() % 16);
-        // Tên phòng
+        item.bookedSeats = 18 + ((idxCounter * 7 + 5) % 19);
+        idxCounter++;
+
         if (rId == "PHONG_001") item.roomName = L"Ph\u00f2ng Chi\u1ebfu 1";
         else if (rId == "PHONG_002") item.roomName = L"Ph\u00f2ng Chi\u1ebfu 2";
         else if (rId == "PHONG_003") item.roomName = L"Ph\u00f2ng Chi\u1ebfu 3";
@@ -139,12 +199,12 @@ void ShowtimePanel::loadShowtimesFromFile() {
         else if (rId == "PHONG_005") item.roomName = L"Ph\u00f2ng Chi\u1ebfu 5";
         else item.roomName = L"Ph\u00f2ng Chi\u1ebfu 6";
 
-        // Tên phim
-        item.movieTitle = L"Phim Chi\u1ebfu R\u1ea1p";
-        item.endTime = "13:00";
+        wstring* foundTitle = movieTitleMap.find(mId);
+        int* foundDur = movieDurMap.find(mId);
+        item.movieTitle = foundTitle ? *foundTitle : s2ws(mId);
+        item.endTime = calcEndTimeStr(tm, foundDur ? *foundDur : 120);
         loaded.push_back(item);
     }
-    // Giữ sample nếu file ít dữ liệu để hiển thị đẹp mắt như ảnh
     if (loaded.size() >= 15) {
         allShowtimes = loaded;
     }
@@ -164,10 +224,6 @@ void ShowtimePanel::saveShowtimesToFile() {
 void ShowtimePanel::applyFilter() {
     filteredShowtimes.clear();
     for (const auto& itm : allShowtimes) {
-        // Lọc ngày
-        if (!selectedDate.empty() && itm.date != selectedDate) {
-            // Cho phép hiển thị nếu ngày trùng
-        }
         // Lọc phòng
         if (selectedRoom != L"T\u1ea5t c\u1ea3 ph\u00f2ng" && itm.roomName != selectedRoom) {
             continue;
@@ -176,11 +232,21 @@ void ShowtimePanel::applyFilter() {
         if (selectedStatus == L"\u0110\u00e3 h\u1ebft v\u00e9" && itm.bookedSeats < itm.totalSeats) {
             continue;
         }
+        if (selectedStatus == L"\u0110ang m\u1edf b\u00e1n" && itm.bookedSeats >= itm.totalSeats) {
+            continue;
+        }
+        if (selectedStatus == L"S\u1eafp chi\u1ebfu" && itm.startTime < "17:00") {
+            continue;
+        }
+        // Tìm kiếm theo từ khóa (Tên phim, Phòng, Giờ chiếu, Mã suất) hỗ trợ tiếng Việt không dấu
+        if (!searchQuery.empty()) {
+            bool match = UITheme::matchesViQuery(itm.movieTitle, searchQuery) ||
+                         UITheme::matchesViQuery(itm.roomName, searchQuery) ||
+                         UITheme::matchesViQuery(s2ws(itm.startTime), searchQuery) ||
+                         UITheme::matchesViQuery(s2ws(itm.id), searchQuery);
+            if (!match) continue;
+        }
         filteredShowtimes.push_back(itm);
-    }
-
-    if (filteredShowtimes.empty()) {
-        filteredShowtimes = allShowtimes;
     }
 
     totalPages = max(1, (int)((filteredShowtimes.size() + pageSize - 1) / pageSize));
@@ -189,8 +255,13 @@ void ShowtimePanel::applyFilter() {
 }
 
 void ShowtimePanel::autoScheduleShowtimes() {
-    // Thuật toán xếp lịch tự động cách 15-20 phút
     initSampleShowtimes();
+    // Sắp xếp nhanh (std::sort / IntroSort O(N log N)) theo giờ bắt đầu tăng dần
+    std::sort(allShowtimes.begin(), allShowtimes.end(), [](const ShowtimeItem& a, const ShowtimeItem& b) {
+        if (a.startTime != b.startTime) return a.startTime < b.startTime;
+        return a.roomId < b.roomId;
+    });
+    saveShowtimesToFile();
     applyFilter();
     notificationMessage = "Đã xếp lịch tự động giãn cách 15-20 phút thành công!";
     notificationClock.restart();
@@ -202,17 +273,246 @@ void ShowtimePanel::drawRoundedCard(RenderWindow& win, Vector2f pos, Vector2f sz
 }
 
 void ShowtimePanel::handleEvent(const Event& event, const RenderWindow& win) {
+    // 1. ƯU TIÊN XỬ LÝ POPUP THÊM / SỬA SUẤT CHIẾU (MODAL BLOCKING)
+    if (showAddPopup) {
+        float popW = 450.f;
+        float popH = 300.f;
+        float popX = position.x + (width - popW) / 2.f;
+        float popY = position.y + (height - popH) / 2.f - 30.f;
+
+        auto commitSavePopup = [&]() {
+            if (popupMovieTitle.empty()) popupMovieTitle = L"Phim Chi\u1ebfu M\u1edbi";
+            if (popupStartTime.empty()) popupStartTime = "14:00";
+            int parsedPrice = 70000;
+            try { if (!popupPrice.empty()) parsedPrice = stoi(popupPrice); } catch (...) { parsedPrice = 70000; }
+
+            string rId = "PHONG_001";
+            if (popupRoomName == L"Ph\u00f2ng Chi\u1ebfu 2") rId = "PHONG_002";
+            else if (popupRoomName == L"Ph\u00f2ng Chi\u1ebfu 3") rId = "PHONG_003";
+            else if (popupRoomName == L"Ph\u00f2ng Chi\u1ebfu 4") rId = "PHONG_004";
+            else if (popupRoomName == L"Ph\u00f2ng Chi\u1ebfu 5") rId = "PHONG_005";
+            else if (popupRoomName == L"Ph\u00f2ng Chi\u1ebfu 6") rId = "PHONG_006";
+
+            if (editingIndex >= 0 && editingIndex < (int)filteredShowtimes.size()) {
+                string targetId = filteredShowtimes[editingIndex].id;
+                for (auto& st : allShowtimes) {
+                    if (st.id == targetId) {
+                        st.movieTitle = popupMovieTitle;
+                        st.roomName = popupRoomName;
+                        st.roomId = rId;
+                        st.startTime = popupStartTime;
+                        st.endTime = calcEndTimeStr(popupStartTime, 125);
+                        st.price = parsedPrice;
+                        break;
+                    }
+                }
+            } else {
+                ShowtimeItem ni;
+                ni.id = "ST_" + to_string(allShowtimes.size() + 101);
+                ni.movieId = "M_001";
+                ni.movieTitle = popupMovieTitle;
+                ni.roomId = rId;
+                ni.roomName = popupRoomName;
+                ni.date = selectedDate;
+                ni.startTime = popupStartTime;
+                ni.endTime = calcEndTimeStr(popupStartTime, 125);
+                ni.price = parsedPrice;
+                ni.bookedSeats = 0;
+                ni.totalSeats = 36;
+                allShowtimes.insert(allShowtimes.begin(), ni);
+                currentPage = 1;
+            }
+            saveShowtimesToFile();
+            applyFilter();
+            showAddPopup = false;
+            notificationMessage = (editingIndex >= 0) ? "Đã cập nhật suất chiếu thành công!" : "Đã thêm suất chiếu mới thành công!";
+            notificationClock.restart();
+            notificationVisible = true;
+        };
+
+        if (const auto* mouseBtn = event.getIf<Event::MouseButtonPressed>()) {
+            if (mouseBtn->button == Mouse::Button::Left) {
+                Vector2f mousePos = win.mapPixelToCoords(Mouse::getPosition(win));
+
+                FloatRect boxTitle({popX + 30.f, popY + 80.f}, {popW - 60.f, 36.f});
+                FloatRect boxTime({popX + 30.f, popY + 145.f}, {180.f, 36.f});
+                FloatRect boxPrice({popX + 230.f, popY + 145.f}, {190.f, 36.f});
+                FloatRect btnRoomCycle({popX + popW - 155.f, popY + 20.f}, {125.f, 28.f});
+                FloatRect btnPopSave({popX + 60.f, popY + 230.f}, {150.f, 38.f});
+                FloatRect btnPopCancel({popX + 240.f, popY + 230.f}, {150.f, 38.f});
+
+                if (boxTitle.contains(mousePos)) {
+                    popupActiveField = 0;
+                    if (editingIndex < 0 && popupMovieTitle == L"Phim Chi\u1ebfu M\u1edbi") popupMovieTitle.clear();
+                    return;
+                }
+                if (boxTime.contains(mousePos)) {
+                    popupActiveField = 1;
+                    return;
+                }
+                if (boxPrice.contains(mousePos)) {
+                    popupActiveField = 2;
+                    return;
+                }
+                if (btnRoomCycle.contains(mousePos)) {
+                    // Đổi phòng chiếu khi click vào badge phòng ở góc trên popup
+                    int curR = 1;
+                    for (size_t i = 1; i < roomList.size(); ++i) {
+                        if (roomList[i] == popupRoomName) { curR = (int)i; break; }
+                    }
+                    int nextR = (curR % ((int)roomList.size() - 1)) + 1;
+                    popupRoomName = roomList[nextR];
+                    return;
+                }
+                if (btnPopSave.contains(mousePos)) {
+                    commitSavePopup();
+                    return;
+                }
+                if (btnPopCancel.contains(mousePos)) {
+                    showAddPopup = false;
+                    return;
+                }
+                // Click ngoài popup thì đóng
+                if (!FloatRect({popX, popY}, {popW, popH}).contains(mousePos)) {
+                    showAddPopup = false;
+                    return;
+                }
+            }
+            return;
+        }
+
+        if (const auto* keyEv = event.getIf<Event::KeyPressed>()) {
+            if (keyEv->code == Keyboard::Key::Escape) {
+                showAddPopup = false;
+                return;
+            }
+            if (keyEv->code == Keyboard::Key::Tab) {
+                popupActiveField = (popupActiveField + 1) % 3;
+                return;
+            }
+            if (keyEv->code == Keyboard::Key::Enter) {
+                commitSavePopup();
+                return;
+            }
+            if (keyEv->code == Keyboard::Key::Backspace) {
+                if (popupActiveField == 0 && !popupMovieTitle.empty()) popupMovieTitle.pop_back();
+                else if (popupActiveField == 1 && !popupStartTime.empty()) popupStartTime.pop_back();
+                else if (popupActiveField == 2 && !popupPrice.empty()) popupPrice.pop_back();
+                return;
+            }
+        }
+
+        if (const auto* txtEv = event.getIf<Event::TextEntered>()) {
+            char32_t u = txtEv->unicode;
+            if (u >= 32 && u != 127) {
+                if (popupActiveField == 0) {
+                    if (popupMovieTitle.size() < 45) popupMovieTitle += static_cast<wchar_t>(u);
+                } else if (popupActiveField == 1) {
+                    if (((u >= '0' && u <= '9') || u == ':') && popupStartTime.size() < 5)
+                        popupStartTime += static_cast<char>(u);
+                } else if (popupActiveField == 2) {
+                    if (u >= '0' && u <= '9' && popupPrice.size() < 8)
+                        popupPrice += static_cast<char>(u);
+                }
+            }
+            return;
+        }
+        return;
+    }
+
+    // 2. XỬ LÝ BÀN PHÍM CHO Ô TÌM KIẾM SUẤT CHIẾU
+    if (searchFocused) {
+        if (const auto* keyEv = event.getIf<Event::KeyPressed>()) {
+            if (keyEv->code == Keyboard::Key::Escape) {
+                searchQuery.clear();
+                searchFocused = false;
+                currentPage = 1;
+                applyFilter();
+                return;
+            }
+            if (keyEv->code == Keyboard::Key::Backspace) {
+                if (!searchQuery.empty()) {
+                    searchQuery.pop_back();
+                    currentPage = 1;
+                    applyFilter();
+                }
+                return;
+            }
+        }
+        if (const auto* txtEv = event.getIf<Event::TextEntered>()) {
+            char32_t u = txtEv->unicode;
+            if (u >= 32 && u != 127 && searchQuery.size() < 35) {
+                searchQuery += static_cast<wchar_t>(u);
+                currentPage = 1;
+                applyFilter();
+            }
+            return;
+        }
+    }
+
+    // 3. XỬ LÝ CLICK CHUỘT TRÊN MÀN HÌNH CHÍNH
     if (const auto* mouseBtn = event.getIf<Event::MouseButtonPressed>()) {
         if (mouseBtn->button == Mouse::Button::Left) {
             Vector2f mousePos = win.mapPixelToCoords(Mouse::getPosition(win));
+            float fCardY = position.y + 144.f;
+
+            // Ưu tiên kiểm tra danh sách Dropdown đang mở trước khi kiểm tra bảng bên dưới
+            if (roomDropdownOpen) {
+                float ddY = fCardY + 76.f;
+                for (size_t i = 0; i < roomList.size(); ++i) {
+                    FloatRect itmB({position.x + 310.f, ddY + i * 34.f}, {230.f, 34.f});
+                    if (itmB.contains(mousePos)) {
+                        selectedRoom = roomList[i];
+                        roomDropdownOpen = false;
+                        currentPage = 1;
+                        applyFilter();
+                        return;
+                    }
+                }
+                roomDropdownOpen = false;
+                return;
+            }
+
+            if (statusDropdownOpen) {
+                float ddY = fCardY + 144.f;
+                for (size_t i = 0; i < statusList.size(); ++i) {
+                    FloatRect itmB({position.x + 50.f, ddY + i * 34.f}, {230.f, 34.f});
+                    if (itmB.contains(mousePos)) {
+                        selectedStatus = statusList[i];
+                        statusDropdownOpen = false;
+                        currentPage = 1;
+                        applyFilter();
+                        return;
+                    }
+                }
+                statusDropdownOpen = false;
+                return;
+            }
+
+            // Ô tìm kiếm nhanh trong thẻ Filter
+            FloatRect searchBoxRect({position.x + 310.f, fCardY + 108.f}, {230.f, 36.f});
+            if (searchBoxRect.contains(mousePos)) {
+                if (!searchQuery.empty() && mousePos.x >= position.x + 512.f) {
+                    searchQuery.clear();
+                    currentPage = 1;
+                    applyFilter();
+                }
+                searchFocused = true;
+                return;
+            } else {
+                searchFocused = false;
+            }
 
             // Nút Header: Làm mới, Xếp lịch tự động, + Thêm suất chiếu mới
             float btnY = position.y + 78.f;
             FloatRect btnRef({position.x + width - 470.f, btnY}, {110.f, 38.f});
-            FloatRect btnAuto({position.x + width - 345.f, btnY}, {165.f, 38.f});
-            FloatRect btnAdd({position.x + width - 165.f, btnY}, {135.f, 38.f});
+            FloatRect btnAuto({position.x + width - 350.f, btnY}, {170.f, 38.f});
+            FloatRect btnAdd({position.x + width - 170.f, btnY}, {140.f, 38.f});
 
             if (btnRef.contains(mousePos)) {
+                selectedRoom = L"T\u1ea5t c\u1ea3 ph\u00f2ng";
+                selectedStatus = L"T\u1ea5t c\u1ea3 tr\u1ea1ng th\u00e1i";
+                searchQuery.clear();
                 loadShowtimesFromFile();
                 applyFilter();
                 notificationMessage = "Đã làm mới dữ liệu suất chiếu!";
@@ -222,9 +522,11 @@ void ShowtimePanel::handleEvent(const Event& event, const RenderWindow& win) {
             }
 
             // Nút Làm mới (Dấu xoay vòng cạnh KPI Summary)
-            float fCardY_ev = position.y + 144.f;
-            FloatRect btnReloadKpi({position.x + width - 85.f, fCardY_ev + 51.f}, {48.f, 48.f});
+            FloatRect btnReloadKpi({position.x + width - 85.f, fCardY + 51.f}, {48.f, 48.f});
             if (btnReloadKpi.contains(mousePos)) {
+                selectedRoom = L"T\u1ea5t c\u1ea3 ph\u00f2ng";
+                selectedStatus = L"T\u1ea5t c\u1ea3 tr\u1ea1ng th\u00e1i";
+                searchQuery.clear();
                 loadShowtimesFromFile();
                 applyFilter();
                 notificationMessage = "Đã làm mới danh sách suất chiếu!";
@@ -241,60 +543,35 @@ void ShowtimePanel::handleEvent(const Event& event, const RenderWindow& win) {
             if (btnAdd.contains(mousePos)) {
                 showAddPopup = true;
                 editingIndex = -1;
-                popupMovieTitle = L"Phim Chi\u1ebfu M\u1edbi";
-                popupRoomName = L"Ph\u00f2ng Chi\u1ebfu 1";
+                popupActiveField = 0;
+                popupMovieTitle = L"";
+                popupRoomName = (selectedRoom != L"T\u1ea5t c\u1ea3 ph\u00f2ng") ? selectedRoom : L"Ph\u00f2ng Chi\u1ebfu 1";
                 popupStartTime = "14:00";
                 popupPrice = "70000";
                 return;
             }
 
-            // Dropdown Phòng chiếu
-            FloatRect ddRoomB({position.x + 310.f, position.y + 198.f}, {210.f, 38.f});
+            // Dropdown Phòng chiếu (khớp tọa độ render: fCardY + 38.f, rộng 230.f)
+            FloatRect ddRoomB({position.x + 310.f, fCardY + 38.f}, {230.f, 38.f});
             if (ddRoomB.contains(mousePos)) {
                 roomDropdownOpen = !roomDropdownOpen;
                 statusDropdownOpen = false;
                 return;
             }
 
-            if (roomDropdownOpen) {
-                for (size_t i = 0; i < roomList.size(); ++i) {
-                    FloatRect itmB({position.x + 310.f, position.y + 238.f + i * 34.f}, {210.f, 34.f});
-                    if (itmB.contains(mousePos)) {
-                        selectedRoom = roomList[i];
-                        roomDropdownOpen = false;
-                        applyFilter();
-                        return;
-                    }
-                }
-                roomDropdownOpen = false;
-            }
-
-            // Dropdown Trạng thái
-            FloatRect ddStatB({position.x + 50.f, position.y + 258.f}, {230.f, 38.f});
+            // Dropdown Trạng thái (khớp tọa độ render: fCardY + 108.f, rộng 230.f)
+            FloatRect ddStatB({position.x + 50.f, fCardY + 108.f}, {230.f, 36.f});
             if (ddStatB.contains(mousePos)) {
                 statusDropdownOpen = !statusDropdownOpen;
                 roomDropdownOpen = false;
                 return;
             }
 
-            if (statusDropdownOpen) {
-                for (size_t i = 0; i < statusList.size(); ++i) {
-                    FloatRect itmB({position.x + 50.f, position.y + 298.f + i * 34.f}, {230.f, 34.f});
-                    if (itmB.contains(mousePos)) {
-                        selectedStatus = statusList[i];
-                        statusDropdownOpen = false;
-                        applyFilter();
-                        return;
-                    }
-                }
-                statusDropdownOpen = false;
-            }
-
-            // Thao tác trên từng dòng bảng (Sửa, Ghế, Xóa)
+            // Thao tác trên từng dòng bảng (Sửa, Xóa)
             float tableY = position.y + 316.f;
             float rowH = 46.f;
             int startIdx = (currentPage - 1) * pageSize;
-            int count = min((int)filteredShowtimes.size() - startIdx, pageSize);
+            int count = max(0, min((int)filteredShowtimes.size() - startIdx, pageSize));
 
             for (int r = 0; r < count; ++r) {
                 float rY = tableY + 44.f + r * rowH;
@@ -306,6 +583,7 @@ void ShowtimePanel::handleEvent(const Event& event, const RenderWindow& win) {
                 if (btnEdit.contains(mousePos)) {
                     int realIdx = startIdx + r;
                     editingIndex = realIdx;
+                    popupActiveField = 0;
                     popupMovieTitle = filteredShowtimes[realIdx].movieTitle;
                     popupRoomName = filteredShowtimes[realIdx].roomName;
                     popupStartTime = filteredShowtimes[realIdx].startTime;
@@ -316,8 +594,12 @@ void ShowtimePanel::handleEvent(const Event& event, const RenderWindow& win) {
 
                 if (btnDel.contains(mousePos)) {
                     int realIdx = startIdx + r;
-                    filteredShowtimes.erase(filteredShowtimes.begin() + realIdx);
-                    allShowtimes = filteredShowtimes;
+                    string delId = filteredShowtimes[realIdx].id;
+                    allShowtimes.erase(
+                        remove_if(allShowtimes.begin(), allShowtimes.end(),
+                                  [&](const ShowtimeItem& s) { return s.id == delId; }),
+                        allShowtimes.end()
+                    );
                     saveShowtimesToFile();
                     applyFilter();
                     notificationMessage = "Đã xóa suất chiếu thành công!";
@@ -340,48 +622,6 @@ void ShowtimePanel::handleEvent(const Event& event, const RenderWindow& win) {
             if (btnP1.contains(mousePos)) { currentPage = 1; return; }
             if (btnP2.contains(mousePos) && totalPages >= 2) { currentPage = 2; return; }
             if (btnP3.contains(mousePos) && totalPages >= 3) { currentPage = 3; return; }
-
-            // Popup save/cancel
-            if (showAddPopup) {
-                float popX = position.x + (width - 450.f) / 2.f;
-                float popY = position.y + 250.f;
-                FloatRect btnPopSave({popX + 60.f, popY + 230.f}, {150.f, 38.f});
-                FloatRect btnPopCancel({popX + 240.f, popY + 230.f}, {150.f, 38.f});
-
-                if (btnPopSave.contains(mousePos)) {
-                    if (editingIndex >= 0 && editingIndex < (int)filteredShowtimes.size()) {
-                        filteredShowtimes[editingIndex].movieTitle = popupMovieTitle;
-                        filteredShowtimes[editingIndex].startTime = popupStartTime;
-                        try { filteredShowtimes[editingIndex].price = stoi(popupPrice); } catch (...) {}
-                    } else {
-                        ShowtimeItem ni;
-                        ni.id = "ST_" + to_string(allShowtimes.size() + 1);
-                        ni.movieId = "M_001";
-                        ni.movieTitle = popupMovieTitle;
-                        ni.roomId = "PHONG_001";
-                        ni.roomName = popupRoomName;
-                        ni.date = selectedDate;
-                        ni.startTime = popupStartTime;
-                        ni.endTime = "15:00";
-                        try { ni.price = stoi(popupPrice); } catch (...) { ni.price = 70000; }
-                        ni.bookedSeats = 0;
-                        ni.totalSeats = 36;
-                        allShowtimes.push_back(ni);
-                    }
-                    saveShowtimesToFile();
-                    applyFilter();
-                    showAddPopup = false;
-                    notificationMessage = "Đã lưu thông tin suất chiếu!";
-                    notificationClock.restart();
-                    notificationVisible = true;
-                    return;
-                }
-
-                if (btnPopCancel.contains(mousePos)) {
-                    showAddPopup = false;
-                    return;
-                }
-            }
         }
     }
 }
@@ -490,6 +730,26 @@ void ShowtimePanel::render(RenderWindow& win) {
     Text valStat(font, selectedStatus, 13); valStat.setFillColor(Color(15, 23, 42)); valStat.setPosition({position.x + 62.f, fCardY + 116.f}); win.draw(valStat);
     Text arrStat(boldFont, L"\u25bc", 11); arrStat.setFillColor(Color(100, 116, 139)); arrStat.setPosition({position.x + 250.f, fCardY + 119.f}); win.draw(arrStat);
 
+    // Ô tìm kiếm nhanh suất chiếu (Tên phim, Phòng, Giờ)
+    Text lblSearch(boldFont, L"T\u00ecm ki\u1ebfm su\u1ea5t chi\u1ebfu", 12); lblSearch.setFillColor(Color(71, 85, 105)); lblSearch.setPosition({position.x + 310.f, fCardY + 88.f}); win.draw(lblSearch);
+    drawRoundedCard(win, {position.x + 310.f, fCardY + 108.f}, {230.f, 36.f}, 8.f,
+                    searchFocused ? Color::White : Color(248, 250, 252),
+                    searchFocused ? 1.8f : 1.f,
+                    searchFocused ? Color(2, 132, 199) : Color(203, 213, 225));
+    wstring dispSearch = searchQuery.empty()
+        ? (searchFocused ? L"|" : L"T\u00ecm phim, ph\u00f2ng, gi\u1edd...")
+        : (searchQuery + (searchFocused ? L"|" : L""));
+    Text valSearch(font, dispSearch, 12.5f);
+    valSearch.setFillColor(searchQuery.empty() && !searchFocused ? Color(148, 163, 184) : Color(15, 23, 42));
+    valSearch.setPosition({position.x + 322.f, fCardY + 117.f});
+    win.draw(valSearch);
+    if (!searchQuery.empty()) {
+        Text clearBtn(boldFont, L"\u2715", 11);
+        clearBtn.setFillColor(Color(148, 163, 184));
+        clearBtn.setPosition({position.x + 518.f, fCardY + 118.f});
+        win.draw(clearBtn);
+    }
+
     // Thẻ KPI Summary: Tách làm 2 ô màu khác nhau bên trong 1 ô card bao ngoài
     float kpiOuterW = 285.f;
     float kpiOuterH = 94.f;
@@ -521,32 +781,32 @@ void ShowtimePanel::render(RenderWindow& win) {
     win.draw(kpiNum);
     win.draw(kpiUnit);
 
-    // 3. Ô phải (Màu 2 - Xanh đen Navy đậm #0F172A): Thông tin ngày & phòng chiếu
+    // 3. Ô phải (Màu 2 - Xám nhạt thanh lịch #E8EEF5): Thông tin ngày & phòng chiếu
     float b2X = b1X + b1W + 6.f;
     float b2Y = kpiOuterY + 7.f;
     float b2W = 140.f;
     float b2H = 80.f;
-    drawRoundedCard(win, {b2X, b2Y}, {b2W, b2H}, 8.f, Color(15, 23, 42));
+    drawRoundedCard(win, {b2X, b2Y}, {b2W, b2H}, 8.f, Color(232, 238, 245), 1.f, Color(203, 213, 225));
 
     float textPadX = b2X + 12.f;
 
     Text kpiDateLbl(font, L"Ng\u00e0y: ", 11.5f);
-    kpiDateLbl.setFillColor(Color(148, 163, 184));
+    kpiDateLbl.setFillColor(Color(100, 116, 139));
     kpiDateLbl.setPosition({std::floor(textPadX), std::floor(b2Y + 16.f)});
     win.draw(kpiDateLbl);
 
     Text kpiDateVal(boldFont, L"2026-10-27", 11.5f);
-    kpiDateVal.setFillColor(Color::White);
+    kpiDateVal.setFillColor(Color(15, 23, 42));
     kpiDateVal.setPosition({std::floor(textPadX + kpiDateLbl.getGlobalBounds().size.x), std::floor(b2Y + 16.f)});
     win.draw(kpiDateVal);
 
     Text kpiRoomLbl(font, L"Ph\u00f2ng: ", 11.5f);
-    kpiRoomLbl.setFillColor(Color(148, 163, 184));
+    kpiRoomLbl.setFillColor(Color(100, 116, 139));
     kpiRoomLbl.setPosition({std::floor(textPadX), std::floor(b2Y + 44.f)});
     win.draw(kpiRoomLbl);
 
     Text kpiRoomVal(boldFont, selectedRoom, 11.5f);
-    kpiRoomVal.setFillColor(Color(56, 189, 248));
+    kpiRoomVal.setFillColor(Color(2, 132, 199));
     kpiRoomVal.setPosition({std::floor(textPadX + kpiRoomLbl.getGlobalBounds().size.x), std::floor(b2Y + 44.f)});
     win.draw(kpiRoomVal);
 
@@ -737,17 +997,61 @@ void ShowtimePanel::render(RenderWindow& win) {
         pTitle.setPosition({popX + 30.f, popY + 20.f});
         win.draw(pTitle);
 
+        // Nút chọn nhanh Phòng chiếu ở góc trên phải của Popup
+        drawRoundedCard(win, {popX + popW - 155.f, popY + 20.f}, {125.f, 28.f}, 6.f, Color(224, 242, 254), 1.f, Color(186, 230, 253));
+        Text rBadge(boldFont, popupRoomName + L" \u25be", 11.5f);
+        rBadge.setFillColor(Color(2, 132, 199));
+        FloatRect rbb = rBadge.getLocalBounds();
+        rBadge.setPosition({
+            popX + popW - 155.f + (125.f - rbb.size.x) / 2.f - rbb.position.x,
+            popY + 20.f + (28.f - rbb.size.y) / 2.f - rbb.position.y - 1.f
+        });
+        win.draw(rBadge);
+
+        // Trường 0: Tên phim
+        bool f0Act = (popupActiveField == 0);
         Text l1(boldFont, L"T\u00ean phim:", 12); l1.setFillColor(Color(71, 85, 105)); l1.setPosition({popX + 30.f, popY + 60.f}); win.draw(l1);
-        drawRoundedCard(win, {popX + 30.f, popY + 80.f}, {popW - 60.f, 36.f}, 6.f, Color(248, 250, 252), 1.f, Color(203, 213, 225));
-        Text v1(font, popupMovieTitle, 12); v1.setFillColor(Color(15, 23, 42)); v1.setPosition({popX + 40.f, popY + 89.f}); win.draw(v1);
+        drawRoundedCard(win, {popX + 30.f, popY + 80.f}, {popW - 60.f, 36.f}, 6.f,
+                        f0Act ? Color::White : Color(248, 250, 252),
+                        f0Act ? 1.8f : 1.f,
+                        f0Act ? Color(2, 132, 199) : Color(203, 213, 225));
+        wstring dispTitle = popupMovieTitle.empty()
+            ? (f0Act ? L"|" : L"Nh\u1eadp t\u00ean phim chi\u1ebfu...")
+            : (popupMovieTitle + (f0Act ? L"|" : L""));
+        Text v1(font, dispTitle, 12.5f);
+        v1.setFillColor(popupMovieTitle.empty() && !f0Act ? Color(148, 163, 184) : Color(15, 23, 42));
+        v1.setPosition({popX + 40.f, popY + 89.f});
+        win.draw(v1);
 
+        // Trường 1: Giờ bắt đầu
+        bool f1Act = (popupActiveField == 1);
         Text l2(boldFont, L"Gi\u1edd b\u1eaft \u0111\u1ea7u (HH:mm):", 12); l2.setFillColor(Color(71, 85, 105)); l2.setPosition({popX + 30.f, popY + 125.f}); win.draw(l2);
-        drawRoundedCard(win, {popX + 30.f, popY + 145.f}, {180.f, 36.f}, 6.f, Color(248, 250, 252), 1.f, Color(203, 213, 225));
-        Text v2(font, s2ws(popupStartTime), 12); v2.setFillColor(Color(15, 23, 42)); v2.setPosition({popX + 40.f, popY + 154.f}); win.draw(v2);
+        drawRoundedCard(win, {popX + 30.f, popY + 145.f}, {180.f, 36.f}, 6.f,
+                        f1Act ? Color::White : Color(248, 250, 252),
+                        f1Act ? 1.8f : 1.f,
+                        f1Act ? Color(2, 132, 199) : Color(203, 213, 225));
+        Text v2(font, s2ws(popupStartTime) + (f1Act ? L"|" : L""), 12.5f);
+        v2.setFillColor(Color(15, 23, 42));
+        v2.setPosition({popX + 40.f, popY + 154.f});
+        win.draw(v2);
 
+        // Trường 2: Giá vé
+        bool f2Act = (popupActiveField == 2);
         Text l3(boldFont, L"Gi\u00e1 v\u00e9 (\u0111):", 12); l3.setFillColor(Color(71, 85, 105)); l3.setPosition({popX + 230.f, popY + 125.f}); win.draw(l3);
-        drawRoundedCard(win, {popX + 230.f, popY + 145.f}, {190.f, 36.f}, 6.f, Color(248, 250, 252), 1.f, Color(203, 213, 225));
-        Text v3(font, s2ws(popupPrice), 12); v3.setFillColor(Color(15, 23, 42)); v3.setPosition({popX + 240.f, popY + 154.f}); win.draw(v3);
+        drawRoundedCard(win, {popX + 230.f, popY + 145.f}, {190.f, 36.f}, 6.f,
+                        f2Act ? Color::White : Color(248, 250, 252),
+                        f2Act ? 1.8f : 1.f,
+                        f2Act ? Color(2, 132, 199) : Color(203, 213, 225));
+        Text v3(font, s2ws(popupPrice) + (f2Act ? L"|" : L""), 12.5f);
+        v3.setFillColor(Color(15, 23, 42));
+        v3.setPosition({popX + 240.f, popY + 154.f});
+        win.draw(v3);
+
+        // Gợi ý phím tắt
+        Text hintTxt(font, L"Nh\u1ea5n Tab \u0111\u1ec3 chuy\u1ec3n \u00f4 \u2022 Enter \u0111\u1ec3 l\u01b0u \u2022 Esc \u0111\u1ec3 h\u1ee7y", 11);
+        hintTxt.setFillColor(Color(148, 163, 184));
+        hintTxt.setPosition({popX + 30.f, popY + 195.f});
+        win.draw(hintTxt);
 
         // Buttons
         drawRoundedCard(win, {popX + 60.f, popY + 230.f}, {150.f, 38.f}, 6.f, Color(2, 132, 199));

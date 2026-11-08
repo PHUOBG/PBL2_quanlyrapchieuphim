@@ -1,5 +1,6 @@
 #include "UI/components/Admin/AdminProfilePanel.h"
 #include "UI/components/Admin/RoundedRectRenderer.h"
+#include "UI/components/Admin/UITheme.h"
 #include "utils/PasswordHasher.h"
 #include "utils/FileUtils.h"
 
@@ -107,24 +108,24 @@ void AdminProfilePanel::changePassword() {
     toastMessage = L"Đã cập nhật mật khẩu mới thành công!";
 }
 
-void AdminProfilePanel::handleEvent(const Event& event, const RenderWindow& /*window*/) {
+void AdminProfilePanel::handleEvent(const Event& event, const RenderWindow& window) {
     if (showDeleteConfirm) {
         if (auto mousePress = event.getIf<Event::MouseButtonPressed>()) {
             if (mousePress->button == Mouse::Button::Left) {
-                Vector2f mPos(static_cast<float>(mousePress->position.x), static_cast<float>(mousePress->position.y));
+                Vector2f mPos = window.mapPixelToCoords(Mouse::getPosition(window));
                 float dW = 460.f;
                 float dH = 220.f;
                 Vector2f dPos(position.x + (width - dW) / 2.f, position.y + (height - dH) / 2.f);
 
-                // Cancel button
-                FloatRect cancelRect({dPos.x + 220.f, dPos.y + dH - 50.f}, {100.f, 36.f});
+                // Cancel button (khớp drawDeleteModal: dPos.x + dW - 220.f, dPos.y + dH - 52.f)
+                FloatRect cancelRect({dPos.x + dW - 220.f, dPos.y + dH - 52.f}, {95.f, 36.f});
                 if (cancelRect.contains(mPos)) {
                     showDeleteConfirm = false;
                     return;
                 }
 
-                // Confirm delete button
-                FloatRect confirmRect({dPos.x + 330.f, dPos.y + dH - 50.f}, {110.f, 36.f});
+                // Confirm delete button (khớp drawDeleteModal: dPos.x + dW - 110.f, dPos.y + dH - 52.f)
+                FloatRect confirmRect({dPos.x + dW - 110.f, dPos.y + dH - 52.f}, {95.f, 36.f});
                 if (confirmRect.contains(mPos)) {
                     showDeleteConfirm = false;
                     toastActive = true;
@@ -133,61 +134,64 @@ void AdminProfilePanel::handleEvent(const Event& event, const RenderWindow& /*wi
                     return;
                 }
             }
+        } else if (const auto* keyEv = event.getIf<Event::KeyPressed>()) {
+            if (keyEv->code == Keyboard::Key::Escape) {
+                showDeleteConfirm = false;
+            }
         }
         return;
     }
 
     if (auto mousePress = event.getIf<Event::MouseButtonPressed>()) {
         if (mousePress->button == Mouse::Button::Left) {
-            Vector2f mPos(static_cast<float>(mousePress->position.x), static_cast<float>(mousePress->position.y));
+            Vector2f mPos = window.mapPixelToCoords(Mouse::getPosition(window));
 
-            // 1. Delete Account button: x = position.x + width - 240, y = 74, w = 210, h = 42
-            FloatRect delRect({position.x + width - 240.f, position.y + 74.f}, {210.f, 42.f});
+            // 1. Delete Account button (khớp drawHeaderBanner: cardX + cardW - 230.f, cardY + 52.f)
+            FloatRect delRect({position.x + width - 250.f, position.y + 72.f}, {210.f, 42.f});
             if (delRect.contains(mPos)) {
                 showDeleteConfirm = true;
                 return;
             }
 
-            // 2. Left Card Form Inputs
+            // 2. Left Card Form Inputs (khớp drawPersonalInfoCard: cardY = position.y + 184.f, bPos.y = y + 20.f)
             float leftCardX = position.x + 20.f;
-            float leftCardY = position.y + 186.f;
+            float leftCardY = position.y + 184.f;
             float inW = 310.f;
             float inH = 40.f;
 
             // Row 1: Họ tên (Field 1) & Ngày sinh (Field 2)
-            FloatRect f1Rect({leftCardX + 24.f, leftCardY + 115.f}, {inW, inH});
+            FloatRect f1Rect({leftCardX + 24.f, leftCardY + 94.f}, {inW, inH});
             if (f1Rect.contains(mPos)) { activeField = 1; return; }
 
-            FloatRect f2Rect({leftCardX + 24.f + inW + 14.f, leftCardY + 115.f}, {inW, inH});
+            FloatRect f2Rect({leftCardX + 24.f + inW + 18.f, leftCardY + 94.f}, {inW, inH});
             if (f2Rect.contains(mPos)) { activeField = 2; return; }
 
             // Row 2: Số điện thoại (Field 3)
-            FloatRect f3Rect({leftCardX + 24.f, leftCardY + 195.f}, {inW, inH});
+            FloatRect f3Rect({leftCardX + 24.f, leftCardY + 174.f}, {inW, inH});
             if (f3Rect.contains(mPos)) { activeField = 3; return; }
 
             // Row 3: Chức vụ (Field 4) & Cơ sở (Field 5)
-            FloatRect f4Rect({leftCardX + 24.f, leftCardY + 275.f}, {inW, inH});
+            FloatRect f4Rect({leftCardX + 24.f, leftCardY + 254.f}, {inW, inH});
             if (f4Rect.contains(mPos)) { activeField = 4; return; }
 
-            FloatRect f5Rect({leftCardX + 24.f + inW + 14.f, leftCardY + 275.f}, {inW, inH});
+            FloatRect f5Rect({leftCardX + 24.f + inW + 18.f, leftCardY + 254.f}, {inW, inH});
             if (f5Rect.contains(mPos)) { activeField = 5; return; }
 
-            // Save Info Button: x = leftCardX + 24, y = leftCardY + 410, w = 160, h = 42
-            FloatRect saveRect({leftCardX + 24.f, leftCardY + 410.f}, {160.f, 42.f});
+            // Save Info Button: x = leftCardX + 24, y = leftCardY + 400, w = 170, h = 42
+            FloatRect saveRect({leftCardX + 24.f, leftCardY + 400.f}, {170.f, 42.f});
             if (saveRect.contains(mPos)) {
                 saveUserData();
                 return;
             }
 
-            // 3. Right Card Password Inputs
+            // 3. Right Card Password Inputs (khớp drawPasswordCard: cardY = position.y + 184.f, bPos.y = y + 20.f)
             float rightCardX = position.x + 20.f + 695.f + 18.f;
-            float rightCardY = position.y + 186.f;
+            float rightCardY = position.y + 184.f;
             float passW = 647.f;
 
-            // Field 6: Mật khẩu cũ
-            FloatRect f6Rect({rightCardX + 24.f, rightCardY + 105.f}, {passW, inH});
+            // Field 6: Mật khẩu cũ (y = cardY + 74, box at cardY + 94)
+            FloatRect f6Rect({rightCardX + 24.f, rightCardY + 94.f}, {passW, inH});
             if (f6Rect.contains(mPos)) {
-                // Check if eye icon clicked: x = rightCardX + 24 + passW - 35
                 if (mPos.x > rightCardX + 24.f + passW - 40.f) {
                     showOldPass = !showOldPass;
                 } else {
@@ -196,8 +200,8 @@ void AdminProfilePanel::handleEvent(const Event& event, const RenderWindow& /*wi
                 return;
             }
 
-            // Field 7: Mật khẩu mới
-            FloatRect f7Rect({rightCardX + 24.f, rightCardY + 175.f}, {passW, inH});
+            // Field 7: Mật khẩu mới (y = cardY + 144, box at cardY + 164)
+            FloatRect f7Rect({rightCardX + 24.f, rightCardY + 164.f}, {passW, inH});
             if (f7Rect.contains(mPos)) {
                 if (mPos.x > rightCardX + 24.f + passW - 40.f) {
                     showNewPass = !showNewPass;
@@ -207,8 +211,8 @@ void AdminProfilePanel::handleEvent(const Event& event, const RenderWindow& /*wi
                 return;
             }
 
-            // Field 8: Xác thực mật khẩu
-            FloatRect f8Rect({rightCardX + 24.f, rightCardY + 265.f}, {passW, inH});
+            // Field 8: Xác thực mật khẩu (y = cardY + 244, box at cardY + 264)
+            FloatRect f8Rect({rightCardX + 24.f, rightCardY + 264.f}, {passW, inH});
             if (f8Rect.contains(mPos)) {
                 if (mPos.x > rightCardX + 24.f + passW - 40.f) {
                     showConfirmPass = !showConfirmPass;
@@ -218,48 +222,68 @@ void AdminProfilePanel::handleEvent(const Event& event, const RenderWindow& /*wi
                 return;
             }
 
-            // Change Password Button: x = rightCardX + 24, y = rightCardY + 410, w = 160, h = 42
-            FloatRect chgRect({rightCardX + 24.f, rightCardY + 410.f}, {160.f, 42.f});
+            // Change Password Button: x = rightCardX + 24, y = rightCardY + 400, w = 165, h = 42
+            FloatRect chgRect({rightCardX + 24.f, rightCardY + 400.f}, {165.f, 42.f});
             if (chgRect.contains(mPos)) {
                 changePassword();
                 return;
             }
+
+            activeField = 0;
+        }
+    }
+
+    if (const auto* keyEv = event.getIf<Event::KeyPressed>()) {
+        if (keyEv->code == Keyboard::Key::Backspace) {
+            auto popUtf8 = [](string& s) {
+                while (!s.empty() && (static_cast<unsigned char>(s.back()) & 0xC0) == 0x80) s.pop_back();
+                if (!s.empty()) s.pop_back();
+            };
+            if (activeField == 1) popUtf8(fullName);
+            else if (activeField == 2) popUtf8(birthDate);
+            else if (activeField == 3) popUtf8(phone);
+            else if (activeField == 4) popUtf8(department);
+            else if (activeField == 5) popUtf8(location);
+            else if (activeField == 6 && !oldPass.empty()) oldPass.pop_back();
+            else if (activeField == 7 && !newPass.empty()) newPass.pop_back();
+            else if (activeField == 8 && !confirmPass.empty()) confirmPass.pop_back();
+        } else if (keyEv->code == Keyboard::Key::Tab) {
+            if (activeField >= 1 && activeField <= 8) activeField = (activeField % 8) + 1;
+        } else if (keyEv->code == Keyboard::Key::Escape) {
+            activeField = 0;
+        } else if (keyEv->code == Keyboard::Key::Enter) {
+            if (activeField >= 1 && activeField <= 5) saveUserData();
+            else if (activeField >= 6 && activeField <= 8) changePassword();
         }
     }
 
     if (auto textEvt = event.getIf<Event::TextEntered>()) {
-        if (textEvt->unicode == 8) { // Backspace
-            if (activeField == 1 && !fullName.empty()) fullName.pop_back();
-            else if (activeField == 2 && !birthDate.empty()) birthDate.pop_back();
-            else if (activeField == 3 && !phone.empty()) phone.pop_back();
-            else if (activeField == 4 && !department.empty()) department.pop_back();
-            else if (activeField == 5 && !location.empty()) location.pop_back();
-            else if (activeField == 6 && !oldPass.empty()) oldPass.pop_back();
-            else if (activeField == 7 && !newPass.empty()) newPass.pop_back();
-            else if (activeField == 8 && !confirmPass.empty()) confirmPass.pop_back();
-        } else if (textEvt->unicode >= 32 && textEvt->unicode < 127) {
-            char c = static_cast<char>(textEvt->unicode);
-            if (activeField == 1 && fullName.size() < 30) fullName.push_back(c);
-            else if (activeField == 2 && birthDate.size() < 12) birthDate.push_back(c);
-            else if (activeField == 3 && phone.size() < 15) phone.push_back(c);
-            else if (activeField == 4 && department.size() < 40) department.push_back(c);
-            else if (activeField == 5 && location.size() < 40) location.push_back(c);
-            else if (activeField == 6 && oldPass.size() < 30) oldPass.push_back(c);
-            else if (activeField == 7 && newPass.size() < 30) newPass.push_back(c);
-            else if (activeField == 8 && confirmPass.size() < 30) confirmPass.push_back(c);
+        if (textEvt->unicode >= 32 && textEvt->unicode != 127) {
+            string u8 = UITheme::wstrToUtf8(wstring(1, static_cast<wchar_t>(textEvt->unicode)));
+            if (activeField == 1 && fullName.size() < 60) fullName += u8;
+            else if (activeField == 2 && birthDate.size() < 15) birthDate += u8;
+            else if (activeField == 3 && phone.size() < 18) phone += u8;
+            else if (activeField == 4 && department.size() < 60) department += u8;
+            else if (activeField == 5 && location.size() < 60) location += u8;
+            else if (textEvt->unicode < 127) {
+                char c = static_cast<char>(textEvt->unicode);
+                if (activeField == 6 && oldPass.size() < 30) oldPass.push_back(c);
+                else if (activeField == 7 && newPass.size() < 30) newPass.push_back(c);
+                else if (activeField == 8 && confirmPass.size() < 30) confirmPass.push_back(c);
+            }
         }
     }
 }
 
 void AdminProfilePanel::update(const Vector2f& mousePos, bool /*mouseDown*/) {
     // Delete button hover
-    deleteHovered = FloatRect({position.x + width - 240.f, position.y + 74.f}, {210.f, 42.f}).contains(mousePos);
+    deleteHovered = FloatRect({position.x + width - 250.f, position.y + 72.f}, {210.f, 42.f}).contains(mousePos);
 
     // Save button hover
-    saveInfoHovered = FloatRect({position.x + 44.f, position.y + 186.f + 410.f}, {160.f, 42.f}).contains(mousePos);
+    saveInfoHovered = FloatRect({position.x + 44.f, position.y + 184.f + 400.f}, {170.f, 42.f}).contains(mousePos);
 
     // Change pass button hover
-    changePassHovered = FloatRect({position.x + 20.f + 695.f + 18.f + 24.f, position.y + 186.f + 410.f}, {160.f, 42.f}).contains(mousePos);
+    changePassHovered = FloatRect({position.x + 20.f + 695.f + 18.f + 24.f, position.y + 184.f + 400.f}, {165.f, 42.f}).contains(mousePos);
 
     if (toastActive) {
         toastTimer -= 0.016f;
@@ -459,7 +483,7 @@ void AdminProfilePanel::drawPersonalInfoCard(RenderTarget& target) const {
 
         float textOffset = icon.empty() ? 12.f : 34.f;
         Text vTxt(boldFont);
-        vTxt.setString(s2ws(val));
+        vTxt.setString(s2ws(val) + (isAct ? L"|" : L""));
         vTxt.setCharacterSize(13.f);
         vTxt.setFillColor(Color(15, 23, 42));
         vTxt.setPosition({bPos.x + textOffset, bPos.y + 11.f});
@@ -562,17 +586,17 @@ void AdminProfilePanel::drawPasswordCard(RenderTarget& target) const {
         // Display string (masked or plain)
         wstring displayStr;
         if (val.empty()) {
-            displayStr = placeholder;
+            displayStr = isAct ? L"|" : placeholder;
         } else if (showEye) {
-            displayStr = s2ws(val);
+            displayStr = s2ws(val) + (isAct ? L"|" : L"");
         } else {
-            displayStr = wstring(val.size(), L'●');
+            displayStr = wstring(val.size(), L'●') + (isAct ? L"|" : L"");
         }
 
-        Text vTxt(val.empty() ? font : boldFont);
+        Text vTxt((val.empty() && !isAct) ? font : boldFont);
         vTxt.setString(displayStr);
         vTxt.setCharacterSize(12.f);
-        vTxt.setFillColor(val.empty() ? Color(148, 163, 184) : Color(15, 23, 42));
+        vTxt.setFillColor((val.empty() && !isAct) ? Color(148, 163, 184) : Color(15, 23, 42));
         vTxt.setPosition({bPos.x + 36.f, bPos.y + 11.f});
         target.draw(vTxt);
 

@@ -34,7 +34,7 @@ private:
     vector<ComboItem> filteredCombos;
 
     // Filters & Search
-    string searchQuery;
+    wstring searchQuery;
     bool searchActive = false;
     int activeFilterIndex = 0; // 0: Tất cả, 1: Nước lẻ, 2: Bắp đơn, 3: Combo 1 Người, 4: Combo Nhóm
 

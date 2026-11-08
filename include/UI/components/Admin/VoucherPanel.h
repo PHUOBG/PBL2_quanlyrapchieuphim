@@ -43,11 +43,11 @@ private:
     vector<RecipientItem> filteredRecipients;
 
     // Filter & Search
-    string searchVoucherQuery;
+    wstring searchVoucherQuery;
     bool searchVoucherActive = false;
     int voucherFilterType = 0; // 0: Tất cả, 1: Giảm %, 2: Giảm tiền
 
-    string searchRecipientQuery;
+    wstring searchRecipientQuery;
     bool searchRecipientActive = false;
 
     // Pagination
@@ -67,6 +67,7 @@ private:
     // Popup Add / Edit Voucher
     bool showAddPopup = false;
     int editingIndex = -1;
+    int popupActiveField = 0;
     string popupCode;
     wstring popupSub;
     int popupType = 2;

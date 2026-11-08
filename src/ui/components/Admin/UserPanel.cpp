@@ -1,5 +1,6 @@
 #include "UI/components/Admin/UserPanel.h"
 #include "UI/components/Admin/RoundedRectRenderer.h"
+#include "UI/components/Admin/UITheme.h"
 #include "utils/FileUtils.h"
 
 #include <algorithm>
@@ -155,9 +156,7 @@ void UserPanel::calculateCustomerStats() {
 
 void UserPanel::applyFilter() {
     filteredCustomers.clear();
-
-    string lowerSearch = searchText;
-    transform(lowerSearch.begin(), lowerSearch.end(), lowerSearch.begin(), ::tolower);
+    wstring wSearch = s2ws(searchText);
 
     for (auto& c : allCustomers) {
         // Tier filter
@@ -165,29 +164,29 @@ void UserPanel::applyFilter() {
         if (tierFilterIndex == 2 && c.tier != CustomerTier::SILVER) continue;
         if (tierFilterIndex == 3 && c.tier != CustomerTier::STANDARD) continue;
 
-        // Search text filter
-        if (!lowerSearch.empty()) {
-            string nameLow = c.fullName;
-            transform(nameLow.begin(), nameLow.end(), nameLow.begin(), ::tolower);
-            string emailLow = c.email;
-            transform(emailLow.begin(), emailLow.end(), emailLow.begin(), ::tolower);
-
-            if (nameLow.find(lowerSearch) == string::npos &&
-                emailLow.find(lowerSearch) == string::npos &&
-                c.phone.find(lowerSearch) == string::npos) {
-                continue;
-            }
+        // Search text filter (hỗ trợ tiếng Việt có dấu & không dấu)
+        if (!wSearch.empty()) {
+            bool match = UITheme::matchesViQuery(c.displayFullName, wSearch) ||
+                         UITheme::matchesViQuery(s2ws(c.email), wSearch) ||
+                         UITheme::matchesViQuery(s2ws(c.phone), wSearch) ||
+                         UITheme::matchesViQuery(s2ws(c.uid), wSearch);
+            if (!match) continue;
         }
 
         filteredCustomers.push_back(&c);
     }
 
-    if (selectedIndex >= (int)filteredCustomers.size()) {
+    page = 0;
+    if (!wSearch.empty() && !filteredCustomers.empty()) {
+        selectedIndex = 0;
+    } else if (selectedIndex >= (int)filteredCustomers.size()) {
         selectedIndex = -1;
     }
 }
 
 void UserPanel::refreshData() {
+    searchText.clear();
+    tierFilterIndex = 0;
     loadData();
     applyFilter();
     toastActive = true;
@@ -195,89 +194,188 @@ void UserPanel::refreshData() {
     toastMessage = L"Đã làm mới danh sách khách hàng & hạng thẻ!";
 }
 
-void UserPanel::handleEvent(const Event& event, const RenderWindow& /*window*/) {
+void UserPanel::handleEvent(const Event& event, const RenderWindow& window) {
+    // 1. ƯU TIÊN XỬ LÝ DIALOG (VIEW / EDIT / DELETE_CONFIRM / ADD_NEW)
     if (activeDialog != DialogType::NONE) {
+        float dW = 480.f;
+        float dH = 340.f;
+        Vector2f dPos(position.x + (width - dW) / 2.f, position.y + (height - dH) / 2.f);
+
+        auto commitDialogAction = [&]() {
+            if (activeDialog == DialogType::VIEW) {
+                activeDialog = DialogType::NONE;
+                return;
+            }
+            if (activeDialog == DialogType::DELETE_CONFIRM && dialogUserIndex >= 0 && dialogUserIndex < (int)filteredCustomers.size()) {
+                string delEmail = filteredCustomers[dialogUserIndex]->email;
+                allCustomers.erase(remove_if(allCustomers.begin(), allCustomers.end(),
+                    [&](const CustomerItem& it) { return it.email == delEmail; }), allCustomers.end());
+                repository->deleteUser(delEmail);
+                applyFilter();
+                calculateCustomerStats();
+                toastActive = true;
+                toastTimer = 3.f;
+                toastMessage = L"Đã xóa tài khoản hội viên thành công!";
+            } else if (activeDialog == DialogType::ADD_NEW) {
+                string finalName = inputName.empty() ? "Khách Hàng Mới" : inputName;
+                string finalEmail = inputEmail.empty() ? ("khachhang" + to_string(allCustomers.size() + 1) + "@gmail.com") : inputEmail;
+                CustomerItem newItem;
+                newItem.email = finalEmail;
+                newItem.fullName = finalName;
+                newItem.displayFullName = s2ws(finalName);
+                newItem.phone = inputPhone.empty() ? "0912345699" : inputPhone;
+                newItem.registeredDate = "27/10/2026";
+                newItem.uid = "CXN-2610" + to_string(allCustomers.size() + 10);
+                newItem.tier = CustomerTier::STANDARD;
+                newItem.ticketsBought = 0;
+                newItem.totalSpent = 0;
+                newItem.avatarBg = Color(207, 250, 254);
+                newItem.initials = L"HV";
+                allCustomers.insert(allCustomers.begin(), newItem);
+                applyFilter();
+                calculateCustomerStats();
+                toastActive = true;
+                toastTimer = 3.f;
+                toastMessage = L"Đã thêm hội viên CineCore Rewards mới thành công!";
+            } else if (activeDialog == DialogType::EDIT && dialogUserIndex >= 0 && dialogUserIndex < (int)filteredCustomers.size()) {
+                CustomerItem* target = filteredCustomers[dialogUserIndex];
+                if (!inputName.empty()) {
+                    target->fullName = inputName;
+                    target->displayFullName = s2ws(inputName);
+                }
+                if (!inputEmail.empty()) target->email = inputEmail;
+                if (!inputPhone.empty()) target->phone = inputPhone;
+                applyFilter();
+                toastActive = true;
+                toastTimer = 3.f;
+                toastMessage = L"Đã cập nhật hồ sơ khách hàng thành công!";
+            }
+            activeDialog = DialogType::NONE;
+        };
+
         if (auto mousePress = event.getIf<Event::MouseButtonPressed>()) {
             if (mousePress->button == Mouse::Button::Left) {
-                Vector2f mPos(static_cast<float>(mousePress->position.x), static_cast<float>(mousePress->position.y));
+                Vector2f mPos = window.mapPixelToCoords(Mouse::getPosition(window));
 
-                // Dialog close or confirm
-                float dW = 460.f;
-                float dH = 320.f;
-                Vector2f dPos(position.x + (width - dW) / 2.f, position.y + (height - dH) / 2.f);
-
-                // Cancel button: x = dPos.x + 220, y = dPos.y + dH - 50, w = 100, h = 36
-                FloatRect cancelRect({dPos.x + 220.f, dPos.y + dH - 50.f}, {100.f, 36.f});
-                if (cancelRect.contains(mPos)) {
-                    activeDialog = DialogType::NONE;
+                if (activeDialog == DialogType::VIEW) {
+                    FloatRect closeBtn({dPos.x + dW - 130.f, dPos.y + dH - 50.f}, {105.f, 36.f});
+                    if (closeBtn.contains(mPos) || !FloatRect(dPos, {dW, dH}).contains(mPos)) {
+                        activeDialog = DialogType::NONE;
+                    }
                     return;
                 }
 
-                // Confirm button: x = dPos.x + 330, y = dPos.y + dH - 50, w = 110, h = 36
-                FloatRect confirmRect({dPos.x + 330.f, dPos.y + dH - 50.f}, {110.f, 36.f});
-                if (confirmRect.contains(mPos)) {
-                    if (activeDialog == DialogType::DELETE_CONFIRM && dialogUserIndex >= 0 && dialogUserIndex < (int)filteredCustomers.size()) {
-                        string delEmail = filteredCustomers[dialogUserIndex]->email;
-                        allCustomers.erase(remove_if(allCustomers.begin(), allCustomers.end(),
-                            [&](const CustomerItem& it) { return it.email == delEmail; }), allCustomers.end());
-                        repository->deleteUser(delEmail);
-                        applyFilter();
-                        calculateCustomerStats();
-                        toastActive = true;
-                        toastTimer = 3.f;
-                        toastMessage = L"Đã xóa tài khoản hội viên thành công!";
-                    } else if (activeDialog == DialogType::ADD_NEW) {
-                        if (!inputEmail.empty() && !inputName.empty()) {
-                            CustomerItem newItem;
-                            newItem.email = inputEmail;
-                            newItem.fullName = inputName;
-                            newItem.displayFullName = s2ws(inputName);
-                            newItem.phone = inputPhone.empty() ? "0912345699" : inputPhone;
-                            newItem.registeredDate = "27/10/2026";
-                            newItem.uid = "CXN-261027";
-                            newItem.tier = CustomerTier::STANDARD;
-                            newItem.ticketsBought = 0;
-                            newItem.totalSpent = 0;
-                            newItem.avatarBg = Color(207, 250, 254);
-                            newItem.initials = L"HV";
-                            allCustomers.insert(allCustomers.begin(), newItem);
-                            applyFilter();
-                            calculateCustomerStats();
-                            toastActive = true;
-                            toastTimer = 3.f;
-                            toastMessage = L"Đã thêm hội viên CineCore Rewards mới thành công!";
+                if (activeDialog == DialogType::ADD_NEW || activeDialog == DialogType::EDIT) {
+                    float inY = dPos.y + 65.f;
+                    for (int f = 0; f < 3; ++f) {
+                        FloatRect boxR({dPos.x + 24.f, inY + 18.f + f * 60.f}, {dW - 48.f, 34.f});
+                        if (boxR.contains(mPos)) {
+                            activeInputField = f;
+                            return;
                         }
                     }
+                }
+
+                FloatRect cancelRect({dPos.x + dW - 230.f, dPos.y + dH - 50.f}, {95.f, 36.f});
+                if (cancelRect.contains(mPos) || !FloatRect(dPos, {dW, dH}).contains(mPos)) {
                     activeDialog = DialogType::NONE;
                     return;
                 }
+
+                FloatRect confirmRect({dPos.x + dW - 120.f, dPos.y + dH - 50.f}, {95.f, 36.f});
+                if (confirmRect.contains(mPos)) {
+                    commitDialogAction();
+                    return;
+                }
+            }
+            return;
+        }
+
+        if (auto keyEvt = event.getIf<Event::KeyPressed>()) {
+            if (keyEvt->code == Keyboard::Key::Escape) {
+                activeDialog = DialogType::NONE;
+                return;
+            }
+            if (keyEvt->code == Keyboard::Key::Enter) {
+                commitDialogAction();
+                return;
+            }
+            if (keyEvt->code == Keyboard::Key::Tab && (activeDialog == DialogType::ADD_NEW || activeDialog == DialogType::EDIT)) {
+                activeInputField = (activeInputField + 1) % 3;
+                return;
+            }
+            if (keyEvt->code == Keyboard::Key::Backspace && (activeDialog == DialogType::ADD_NEW || activeDialog == DialogType::EDIT)) {
+                auto popUtf8 = [](string& s) {
+                    if (s.empty()) return;
+                    wstring ws = s2ws(s);
+                    if (!ws.empty()) ws.pop_back();
+                    s = UITheme::wstrToUtf8(ws);
+                };
+                if (activeInputField == 0) popUtf8(inputName);
+                else if (activeInputField == 1) popUtf8(inputEmail);
+                else if (activeInputField == 2) popUtf8(inputPhone);
+                return;
             }
         }
 
         if (auto textEvt = event.getIf<Event::TextEntered>()) {
-            if (activeDialog == DialogType::ADD_NEW) {
-                if (textEvt->unicode == 8) { // Backspace
-                    if (activeInputField == 0 && !inputName.empty()) inputName.pop_back();
-                    else if (activeInputField == 1 && !inputEmail.empty()) inputEmail.pop_back();
-                    else if (activeInputField == 2 && !inputPhone.empty()) inputPhone.pop_back();
-                } else if (textEvt->unicode >= 32 && textEvt->unicode < 127) {
-                    char c = static_cast<char>(textEvt->unicode);
-                    if (activeInputField == 0 && inputName.size() < 30) inputName.push_back(c);
-                    else if (activeInputField == 1 && inputEmail.size() < 30) inputEmail.push_back(c);
-                    else if (activeInputField == 2 && inputPhone.size() < 15) inputPhone.push_back(c);
+            if (activeDialog == DialogType::ADD_NEW || activeDialog == DialogType::EDIT) {
+                char32_t u = textEvt->unicode;
+                if (u >= 32 && u != 127) {
+                    if (activeInputField == 0) {
+                        wstring ws = s2ws(inputName);
+                        if (ws.size() < 32) { ws += static_cast<wchar_t>(u); inputName = UITheme::wstrToUtf8(ws); }
+                    } else if (activeInputField == 1 && u < 127 && inputEmail.size() < 35) {
+                        inputEmail.push_back(static_cast<char>(u));
+                    } else if (activeInputField == 2 && u >= '0' && u <= '9' && inputPhone.size() < 12) {
+                        inputPhone.push_back(static_cast<char>(u));
+                    }
                 }
             }
         }
         return;
     }
 
+    // 2. XỬ LÝ BÀN PHÍM CHO Ô TÌM KIẾM KHÁCH HÀNG
+    if (searchActive) {
+        if (auto keyEvt = event.getIf<Event::KeyPressed>()) {
+            if (keyEvt->code == Keyboard::Key::Escape) {
+                searchText.clear();
+                searchActive = false;
+                applyFilter();
+                return;
+            }
+            if (keyEvt->code == Keyboard::Key::Backspace) {
+                if (!searchText.empty()) {
+                    wstring ws = s2ws(searchText);
+                    if (!ws.empty()) ws.pop_back();
+                    searchText = UITheme::wstrToUtf8(ws);
+                    applyFilter();
+                }
+                return;
+            }
+        }
+        if (auto textEvt = event.getIf<Event::TextEntered>()) {
+            char32_t u = textEvt->unicode;
+            if (u >= 32 && u != 127) {
+                wstring ws = s2ws(searchText);
+                if (ws.size() < 30) {
+                    ws += static_cast<wchar_t>(u);
+                    searchText = UITheme::wstrToUtf8(ws);
+                    applyFilter();
+                }
+            }
+            return;
+        }
+    }
+
+    // 3. XỬ LÝ CLICK CHUỘT TRÊN MÀN HÌNH CHÍNH
     if (auto mousePress = event.getIf<Event::MouseButtonPressed>()) {
         if (mousePress->button == Mouse::Button::Left) {
-            Vector2f mPos(static_cast<float>(mousePress->position.x), static_cast<float>(mousePress->position.y));
+            Vector2f mPos = window.mapPixelToCoords(Mouse::getPosition(window));
 
-            // 1. Header Buttons
-            // Xuất Excel: x = position.x + width - 240, y = 16, w = 96, h = 36
-            FloatRect expRect({position.x + width - 240.f, position.y + 16.f}, {96.f, 36.f});
+            // 1. Header Buttons (khớp drawHeader: topY = position.y + 14.f, y = topY + 12.f = position.y + 26.f)
+            FloatRect expRect({position.x + width - 275.f, position.y + 26.f}, {110.f, 36.f});
             if (expRect.contains(mPos)) {
                 toastActive = true;
                 toastTimer = 3.f;
@@ -285,8 +383,7 @@ void UserPanel::handleEvent(const Event& event, const RenderWindow& /*window*/) 
                 return;
             }
 
-            // + Thêm hội viên mới: x = position.x + width - 134, y = 16, w = 145, h = 36
-            FloatRect addRect({position.x + width - 134.f, position.y + 16.f}, {145.f, 36.f});
+            FloatRect addRect({position.x + width - 155.f, position.y + 26.f}, {150.f, 36.f});
             if (addRect.contains(mPos)) {
                 activeDialog = DialogType::ADD_NEW;
                 inputName = "";
@@ -296,16 +393,22 @@ void UserPanel::handleEvent(const Event& event, const RenderWindow& /*window*/) 
                 return;
             }
 
-            // Reload: x = position.x + width + 20 (or next to add)
-            FloatRect relRect({position.x + width + 18.f, position.y + 16.f}, {36.f, 36.f});
-            if (relRect.contains(mPos)) {
-                refreshData();
-                return;
-            }
-
-            // 2. Toolbar Action Buttons
+            // 2. Toolbar Action Buttons (khớp drawActionToolbar: actY = position.y + 192.f)
             float actX = position.x + 20.f;
-            float actY = position.y + 196.f;
+            float actY = position.y + 192.f;
+
+            // Ô tìm kiếm khách hàng
+            FloatRect searchRect({position.x + width - 580.f, actY}, {255.f, 34.f});
+            if (searchRect.contains(mPos)) {
+                if (!searchText.empty() && mPos.x >= position.x + width - 350.f) {
+                    searchText.clear();
+                    applyFilter();
+                }
+                searchActive = true;
+                return;
+            } else {
+                searchActive = false;
+            }
 
             // Xem thông tin
             FloatRect viewRect({actX, actY}, {125.f, 34.f});
@@ -327,6 +430,10 @@ void UserPanel::handleEvent(const Event& event, const RenderWindow& /*window*/) 
                 if (selectedIndex >= 0 && selectedIndex < (int)filteredCustomers.size()) {
                     activeDialog = DialogType::EDIT;
                     dialogUserIndex = selectedIndex;
+                    activeInputField = 0;
+                    inputName = filteredCustomers[selectedIndex]->fullName;
+                    inputEmail = filteredCustomers[selectedIndex]->email;
+                    inputPhone = filteredCustomers[selectedIndex]->phone;
                 } else {
                     toastActive = true;
                     toastTimer = 2.5f;
@@ -364,11 +471,17 @@ void UserPanel::handleEvent(const Event& event, const RenderWindow& /*window*/) 
                 return;
             }
 
-            // Tier dropdown filter
-            FloatRect tierRect({position.x + width - 310.f, actY}, {140.f, 34.f});
+            // Tier dropdown filter & Reload button on toolbar
+            FloatRect tierRect({position.x + width - 315.f, actY}, {145.f, 34.f});
             if (tierRect.contains(mPos)) {
                 tierFilterIndex = (tierFilterIndex + 1) % 4;
                 applyFilter();
+                return;
+            }
+
+            FloatRect relToolbarRect({position.x + width - 160.f, actY}, {140.f, 34.f});
+            if (relToolbarRect.contains(mPos)) {
+                refreshData();
                 return;
             }
 
@@ -381,25 +494,27 @@ void UserPanel::handleEvent(const Event& event, const RenderWindow& /*window*/) 
                 int rowIdx = i - startIdx;
                 float ry = tTop + rowIdx * 52.f;
 
-                // Row selection
                 FloatRect rRect({position.x + 20.f, ry}, {width - 40.f, 50.f});
                 if (rRect.contains(mPos)) {
                     selectedIndex = i;
                     filteredCustomers[i]->selected = !filteredCustomers[i]->selected;
 
-                    // Check if clicked action icons on the right:
                     float actionX = position.x + width - 120.f;
-                    if (FloatRect({actionX, ry + 12.f}, {24.f, 24.f}).contains(mPos)) {
+                    if (FloatRect({actionX, ry + 12.f}, {26.f, 26.f}).contains(mPos)) {
                         activeDialog = DialogType::VIEW;
                         dialogUserIndex = i;
                         return;
                     }
-                    if (FloatRect({actionX + 28.f, ry + 12.f}, {24.f, 24.f}).contains(mPos)) {
+                    if (FloatRect({actionX + 28.f, ry + 12.f}, {26.f, 26.f}).contains(mPos)) {
                         activeDialog = DialogType::EDIT;
                         dialogUserIndex = i;
+                        activeInputField = 0;
+                        inputName = filteredCustomers[i]->fullName;
+                        inputEmail = filteredCustomers[i]->email;
+                        inputPhone = filteredCustomers[i]->phone;
                         return;
                     }
-                    if (FloatRect({actionX + 56.f, ry + 12.f}, {24.f, 24.f}).contains(mPos)) {
+                    if (FloatRect({actionX + 56.f, ry + 12.f}, {26.f, 26.f}).contains(mPos)) {
                         activeDialog = DialogType::DELETE_CONFIRM;
                         dialogUserIndex = i;
                         return;
@@ -415,7 +530,7 @@ void UserPanel::handleEvent(const Event& event, const RenderWindow& /*window*/) 
                 page--;
                 return;
             }
-            FloatRect nextRect({position.x + width - 36.f, pageY}, {32.f, 32.f});
+            FloatRect nextRect({position.x + width - 40.f, pageY}, {32.f, 32.f});
             if (nextRect.contains(mPos) && (page + 1) * rowsPerPage < (int)filteredCustomers.size()) {
                 page++;
                 return;
@@ -729,11 +844,11 @@ void UserPanel::drawActionToolbar(RenderTarget& target) const {
     // Right Filters:
     // 1. Search Box
     Vector2f searchPos(position.x + width - 580.f, actY);
-    RoundedRectRenderer::draw(target, searchPos, {255.f, 34.f}, 6.f, Color::White, 1.f, Color(203, 213, 225));
+    RoundedRectRenderer::draw(target, searchPos, {255.f, 34.f}, 6.f, Color::White, searchActive ? 1.8f : 1.f, searchActive ? Color(2, 132, 199) : Color(203, 213, 225));
 
     // Kính lúp tìm kiếm
     Vector2f uIconPos(searchPos.x + 10.f, searchPos.y + 10.f);
-    Color uIcCol(148, 163, 184);
+    Color uIcCol = searchActive ? Color(2, 132, 199) : Color(148, 163, 184);
     CircleShape uLens(5.f, 16);
     uLens.setFillColor(Color::Transparent);
     uLens.setOutlineThickness(1.6f);
@@ -748,9 +863,12 @@ void UserPanel::drawActionToolbar(RenderTarget& target) const {
     target.draw(uStem);
 
     Text sTxt(font);
-    sTxt.setString(searchText.empty() ? L"Tìm theo Tên, Email, SĐT..." : s2ws(searchText));
+    wstring dispS = searchText.empty()
+        ? (searchActive ? L"|" : L"Tìm theo Tên, Email, SĐT...")
+        : (s2ws(searchText) + (searchActive ? L"|" : L""));
+    sTxt.setString(dispS);
     sTxt.setCharacterSize(12.5f);
-    sTxt.setFillColor(searchText.empty() ? Color(148, 163, 184) : Color(15, 23, 42));
+    sTxt.setFillColor(searchText.empty() && !searchActive ? Color(148, 163, 184) : Color(15, 23, 42));
     sTxt.setPosition({searchPos.x + 28.f, searchPos.y + 8.f});
     target.draw(sTxt);
 
@@ -978,26 +1096,40 @@ void UserPanel::drawDialog(RenderTarget& target) const {
         Vector2f delP(dPos.x + dW - 120.f, dPos.y + dH - 50.f);
         RoundedRectRenderer::draw(target, delP, {95.f, 36.f}, 6.f, Color(239, 68, 68));
         Text dT(boldFont); dT.setString(L"Xác nhận"); dT.setCharacterSize(12.5f); dT.setFillColor(Color::White); dT.setPosition({delP.x + 18.f, delP.y + 8.f}); target.draw(dT);
-    } else if (activeDialog == DialogType::ADD_NEW) {
+    } else if (activeDialog == DialogType::ADD_NEW || activeDialog == DialogType::EDIT) {
         Text dTitle(boldFont);
-        dTitle.setString(L"Thêm hội viên CineCore Rewards mới");
+        dTitle.setString(activeDialog == DialogType::EDIT ? L"Chỉnh sửa hồ sơ hội viên" : L"Thêm hội viên CineCore Rewards mới");
         dTitle.setCharacterSize(16);
         dTitle.setFillColor(Color(15, 23, 42));
         dTitle.setPosition({dPos.x + 24.f, dPos.y + 20.f});
         target.draw(dTitle);
 
         float inY = dPos.y + 65.f;
-        auto drawInput = [&](const wstring& lbl, const string& val) {
+        int fIdx = 0;
+        auto drawInput = [&](const wstring& lbl, const string& val, const wstring& placeholder) {
+            bool isAct = (activeInputField == fIdx);
             Text fl(boldFont); fl.setString(lbl); fl.setCharacterSize(12.5f); fl.setFillColor(Color(71, 85, 105)); fl.setPosition({dPos.x + 24.f, inY}); target.draw(fl);
             Vector2f boxP(dPos.x + 24.f, inY + 18.f);
-            RoundedRectRenderer::draw(target, boxP, {dW - 48.f, 34.f}, 4.f, Color::White, 1.f, Color(203, 213, 225));
-            Text fv(font); fv.setString(s2ws(val)); fv.setCharacterSize(13); fv.setFillColor(Color(15, 23, 42)); fv.setPosition({boxP.x + 10.f, boxP.y + 7.f}); target.draw(fv);
+            RoundedRectRenderer::draw(target, boxP, {dW - 48.f, 34.f}, 4.f,
+                                      isAct ? Color::White : Color(248, 250, 252),
+                                      isAct ? 1.8f : 1.f,
+                                      isAct ? Color(2, 132, 199) : Color(203, 213, 225));
+            wstring disp = val.empty()
+                ? (isAct ? L"|" : placeholder)
+                : (s2ws(val) + (isAct ? L"|" : L""));
+            Text fv(font);
+            fv.setString(disp);
+            fv.setCharacterSize(13);
+            fv.setFillColor(val.empty() && !isAct ? Color(148, 163, 184) : Color(15, 23, 42));
+            fv.setPosition({boxP.x + 10.f, boxP.y + 7.f});
+            target.draw(fv);
             inY += 60.f;
+            fIdx++;
         };
 
-        drawInput(L"Họ và tên khách hàng *", inputName.empty() ? "Ví dụ: Trần Văn Nam" : inputName);
-        drawInput(L"Email tài khoản *", inputEmail.empty() ? "namtran@gmail.com" : inputEmail);
-        drawInput(L"Số điện thoại *", inputPhone.empty() ? "0912345678" : inputPhone);
+        drawInput(L"Họ và tên khách hàng *", inputName, L"Ví dụ: Trần Văn Nam");
+        drawInput(L"Email tài khoản *", inputEmail, L"namtran@gmail.com");
+        drawInput(L"Số điện thoại *", inputPhone, L"0912345678");
 
         Vector2f cancelP(dPos.x + dW - 230.f, dPos.y + dH - 50.f);
         RoundedRectRenderer::draw(target, cancelP, {95.f, 36.f}, 6.f, Color::White, 1.f, Color(203, 213, 225));
@@ -1005,7 +1137,12 @@ void UserPanel::drawDialog(RenderTarget& target) const {
 
         Vector2f okP(dPos.x + dW - 120.f, dPos.y + dH - 50.f);
         RoundedRectRenderer::draw(target, okP, {95.f, 36.f}, 6.f, Color(2, 132, 199));
-        Text okT(boldFont); okT.setString(L"Thêm mới"); okT.setCharacterSize(12.5f); okT.setFillColor(Color::White); okT.setPosition({okP.x + 18.f, okP.y + 8.f}); target.draw(okT);
+        Text okT(boldFont);
+        okT.setString(activeDialog == DialogType::EDIT ? L"Lưu lại" : L"Thêm mới");
+        okT.setCharacterSize(12.5f);
+        okT.setFillColor(Color::White);
+        okT.setPosition({okP.x + (activeDialog == DialogType::EDIT ? 22.f : 18.f), okP.y + 8.f});
+        target.draw(okT);
     }
 }
 

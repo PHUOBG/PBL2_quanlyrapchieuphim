@@ -262,4 +262,85 @@ namespace UITheme {
         s.setPosition({pos.x + 18.f, pos.y + size.y - 28.f});
         target.draw(s);
     }
+
+    // ==========================================
+    // 5. VIETNAMESE UNICODE & DSA SEARCH HELPERS
+    // ==========================================
+    inline wstring utf8ToWstr(const string& str) {
+        if (str.empty()) return L"";
+        return sf::String::fromUtf8(str.begin(), str.end()).toWideString();
+    }
+
+    inline string wstrToUtf8(const wstring& wstr) {
+        if (wstr.empty()) return "";
+        auto u8 = sf::String(wstr).toUtf8();
+        return string(u8.begin(), u8.end());
+    }
+
+    inline wchar_t stripViAccent(wchar_t c) {
+        if (c >= L'A' && c <= L'Z') return c + (L'a' - L'A');
+        switch (c) {
+            case L'à': case L'á': case L'ả': case L'ã': case L'ạ':
+            case L'ă': case L'ằ': case L'ắ': case L'ẳ': case L'ẵ': case L'ặ':
+            case L'â': case L'ầ': case L'ấ': case L'ẩ': case L'ẫ': case L'ậ':
+            case L'À': case L'Á': case L'Ả': case L'Ã': case L'Ạ':
+            case L'Ă': case L'Ằ': case L'Ắ': case L'Ẳ': case L'Ẵ': case L'Ặ':
+            case L'Â': case L'Ầ': case L'Ấ': case L'Ẩ': case L'Ẫ': case L'Ậ':
+                return L'a';
+            case L'đ': case L'Đ':
+                return L'd';
+            case L'è': case L'é': case L'ẻ': case L'ẽ': case L'ẹ':
+            case L'ê': case L'ề': case L'ế': case L'ể': case L'ễ': case L'ệ':
+            case L'È': case L'É': case L'Ẻ': case L'Ẽ': case L'Ẹ':
+            case L'Ê': case L'Ề': case L'Ế': case L'Ể': case L'Ễ': case L'Ệ':
+                return L'e';
+            case L'ì': case L'í': case L'ỉ': case L'ĩ': case L'ị':
+            case L'Ì': case L'Í': case L'Ỉ': case L'Ĩ': case L'Ị':
+                return L'i';
+            case L'ò': case L'ó': case L'ỏ': case L'õ': case L'ọ':
+            case L'ô': case L'ồ': case L'ố': case L'ổ': case L'ỗ': case L'ộ':
+            case L'ơ': case L'ờ': case L'ớ': case L'ở': case L'ỡ': case L'ợ':
+            case L'Ò': case L'Ó': case L'Ỏ': case L'Õ': case L'Ọ':
+            case L'Ô': case L'Ồ': case L'Ố': case L'Ổ': case L'Ỗ': case L'Ộ':
+            case L'Ơ': case L'Ờ': case L'Ớ': case L'Ở': case L'Ỡ': case L'Ợ':
+                return L'o';
+            case L'ù': case L'ú': case L'ủ': case L'ũ': case L'ụ':
+            case L'ư': case L'ừ': case L'ứ': case L'ử': case L'ữ': case L'ự':
+            case L'Ù': case L'Ú': case L'Ủ': case L'Ũ': case L'Ụ':
+            case L'Ư': case L'Ừ': case L'Ứ': case L'Ử': case L'Ữ': case L'Ự':
+                return L'u';
+            case L'ỳ': case L'ý': case L'ỷ': case L'ỹ': case L'ỵ':
+            case L'Ỳ': case L'Ý': case L'Ỷ': case L'Ỹ': case L'Ỵ':
+                return L'y';
+            default:
+                return c;
+        }
+    }
+
+    inline wstring normalizeVi(const wstring& s) {
+        wstring out;
+        out.reserve(s.size());
+        for (wchar_t c : s) {
+            out.push_back(stripViAccent(c));
+        }
+        return out;
+    }
+
+    inline string normalizeViUtf8(const string& s) {
+        wstring ws = utf8ToWstr(s);
+        wstring norm = normalizeVi(ws);
+        return wstrToUtf8(norm);
+    }
+
+    inline bool matchesViQuery(const wstring& text, const wstring& query) {
+        if (query.empty()) return true;
+        wstring normText = normalizeVi(text);
+        wstring normQuery = normalizeVi(query);
+        // Trim leading/trailing spaces in query
+        size_t first = normQuery.find_first_not_of(L" \t");
+        if (first == wstring::npos) return true;
+        size_t last = normQuery.find_last_not_of(L" \t");
+        normQuery = normQuery.substr(first, last - first + 1);
+        return normText.find(normQuery) != wstring::npos;
+    }
 }

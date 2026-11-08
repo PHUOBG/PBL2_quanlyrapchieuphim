@@ -165,8 +165,6 @@ void ComboPanel::saveCombosToFile() {
 
 void ComboPanel::applyFilter() {
     filteredCombos.clear();
-    string q = searchQuery;
-    for (auto& c : q) c = (char)tolower(c);
 
     for (const auto& itm : allCombos) {
         // Lọc theo tabs phân loại
@@ -175,21 +173,19 @@ void ComboPanel::applyFilter() {
         if (activeFilterIndex == 3 && itm.category != L"Combo \u0110\u01a1n") continue;
         if (activeFilterIndex == 4 && itm.category != L"Combo Nh\u00f3m") continue;
 
-        // Lọc theo search box
-        if (!q.empty()) {
-            string idLower = itm.id;
-            string nameLower = ws2s(itm.name);
-            for (auto& c : idLower) c = (char)tolower(c);
-            for (auto& c : nameLower) c = (char)tolower(c);
-            if (idLower.find(q) == string::npos && nameLower.find(q) == string::npos) {
-                continue;
-            }
+        // Lọc theo search box hỗ trợ tiếng Việt có dấu & không dấu
+        if (!searchQuery.empty()) {
+            bool match = UITheme::matchesViQuery(s2ws(itm.id), searchQuery) ||
+                         UITheme::matchesViQuery(itm.name, searchQuery) ||
+                         UITheme::matchesViQuery(itm.subtitle, searchQuery) ||
+                         UITheme::matchesViQuery(itm.category, searchQuery);
+            if (!match) continue;
         }
 
         filteredCombos.push_back(itm);
     }
 
-    selectedRow = -1;
+    selectedRow = (!searchQuery.empty() && !filteredCombos.empty()) ? 0 : -1;
     scrollOffset = 0;
 }
 
@@ -198,55 +194,123 @@ void ComboPanel::drawRoundedCard(RenderWindow& win, Vector2f pos, Vector2f sz, f
 }
 
 void ComboPanel::handleEvent(const Event& event, const RenderWindow& win) {
-    if (const auto* mouseBtn = event.getIf<Event::MouseButtonPressed>()) {
-        if (mouseBtn->button == Mouse::Button::Left) {
-            Vector2f mousePos = win.mapPixelToCoords(Mouse::getPosition(win));
+    // 1. ƯU TIÊN XỬ LÝ POPUP THÊM / SỬA COMBO (MODAL BLOCKING)
+    if (showPopup) {
+        float popW = 500.f;
+        float popH = 340.f;
+        float popX = position.x + (width - popW) / 2.f;
+        float popY = position.y + (height - popH) / 2.f - 20.f;
 
-            // Popup save/cancel
-            if (showPopup) {
-                float popW = 500.f;
-                float popH = 340.f;
-                float popX = position.x + (width - popW) / 2.f;
-                float popY = position.y + (height - popH) / 2.f - 20.f;
+        auto commitSaveCombo = [&]() {
+            if (popupName.empty()) popupName = L"Combo M\u1edbi";
+            if (popupSub.empty()) popupSub = L"1x B\u1eafp + 1x N\u01b0\u1edbc ng\u1ecdt";
+            int parsedPr = 65000;
+            try { if (!popupPrice.empty()) parsedPr = stoi(popupPrice); } catch (...) { parsedPr = 65000; }
 
+            if (editingIndex >= 0 && editingIndex < (int)allCombos.size()) {
+                allCombos[editingIndex].name = popupName;
+                allCombos[editingIndex].subtitle = popupSub;
+                allCombos[editingIndex].category = popupCat.empty() ? L"Combo \u0110\u01a1n" : popupCat;
+                allCombos[editingIndex].price = parsedPr;
+            } else {
+                ComboItem ni;
+                int nextNum = (int)allCombos.size() + 1;
+                ni.id = popupId.empty() ? ((nextNum < 10 ? "CB0" : "CB") + to_string(nextNum)) : popupId;
+                ni.name = popupName;
+                ni.subtitle = popupSub;
+                ni.category = popupCat.empty() ? L"Combo \u0110\u01a1n" : popupCat;
+                ni.price = parsedPr;
+                allCombos.push_back(ni);
+            }
+            saveCombosToFile();
+            applyFilter();
+            showPopup = false;
+            notificationMessage = "Đã lưu thông tin combo thành công!";
+            notificationClock.restart();
+            notificationVisible = true;
+        };
+
+        if (const auto* mouseBtn = event.getIf<Event::MouseButtonPressed>()) {
+            if (mouseBtn->button == Mouse::Button::Left) {
+                Vector2f mousePos = win.mapPixelToCoords(Mouse::getPosition(win));
+
+                FloatRect boxName({popX + 30.f, popY + 85.f}, {popW - 60.f, 36.f});
+                FloatRect boxSub({popX + 30.f, popY + 150.f}, {popW - 60.f, 36.f});
+                FloatRect boxPrice({popX + 30.f, popY + 215.f}, {popW - 60.f, 36.f});
+                FloatRect btnCatCycle({popX + popW - 150.f, popY + 20.f}, {120.f, 28.f});
                 FloatRect btnPopSave({popX + 70.f, popY + 270.f}, {160.f, 38.f});
                 FloatRect btnPopCancel({popX + 270.f, popY + 270.f}, {160.f, 38.f});
 
-                if (btnPopSave.contains(mousePos)) {
-                    if (editingIndex >= 0 && editingIndex < (int)allCombos.size()) {
-                        allCombos[editingIndex].name = popupName;
-                        allCombos[editingIndex].subtitle = popupSub;
-                        try { allCombos[editingIndex].price = stoi(popupPrice); } catch (...) {}
-                    } else {
-                        ComboItem ni;
-                        ni.id = popupId.empty() ? ("CB" + to_string(allCombos.size() + 1)) : popupId;
-                        ni.name = popupName;
-                        ni.subtitle = popupSub;
-                        ni.category = popupCat.empty() ? L"Combo \u0110\u01a1n" : popupCat;
-                        try { ni.price = stoi(popupPrice); } catch (...) { ni.price = 50000; }
-                        allCombos.push_back(ni);
+                if (boxName.contains(mousePos)) {
+                    popupActiveField = 0;
+                    if (editingIndex < 0 && popupName == L"Combo M\u1edbi") popupName.clear();
+                    return;
+                }
+                if (boxSub.contains(mousePos)) {
+                    popupActiveField = 1;
+                    if (editingIndex < 0 && popupSub == L"Quy chu\u1ea9n chi ti\u1ebft combo...") popupSub.clear();
+                    return;
+                }
+                if (boxPrice.contains(mousePos)) {
+                    popupActiveField = 2;
+                    return;
+                }
+                if (btnCatCycle.contains(mousePos)) {
+                    vector<wstring> cats = {L"Combo \u0110\u01a1n", L"Combo Nh\u00f3m", L"\u0110\u1ed3 u\u1ed1ng", L"B\u1eafp ng\u1ecdt", L"B\u1eafp m\u1eb7n"};
+                    int curIdx = 0;
+                    for (size_t i = 0; i < cats.size(); ++i) {
+                        if (cats[i] == popupCat) { curIdx = (int)i; break; }
                     }
-                    saveCombosToFile();
-                    applyFilter();
-                    showPopup = false;
-                    notificationMessage = "Đã lưu thông tin combo thành công!";
-                    notificationClock.restart();
-                    notificationVisible = true;
+                    popupCat = cats[(curIdx + 1) % cats.size()];
                     return;
                 }
+                if (btnPopSave.contains(mousePos)) {
+                    commitSaveCombo();
+                    return;
+                }
+                if (btnPopCancel.contains(mousePos) || !FloatRect({popX, popY}, {popW, popH}).contains(mousePos)) {
+                    showPopup = false;
+                    return;
+                }
+            }
+            return;
+        }
 
-                if (btnPopCancel.contains(mousePos)) {
-                    showPopup = false;
-                    return;
-                }
+        if (const auto* keyEv = event.getIf<Event::KeyPressed>()) {
+            if (keyEv->code == Keyboard::Key::Escape) { showPopup = false; return; }
+            if (keyEv->code == Keyboard::Key::Tab) { popupActiveField = (popupActiveField + 1) % 3; return; }
+            if (keyEv->code == Keyboard::Key::Enter) { commitSaveCombo(); return; }
+            if (keyEv->code == Keyboard::Key::Backspace) {
+                if (popupActiveField == 0 && !popupName.empty()) popupName.pop_back();
+                else if (popupActiveField == 1 && !popupSub.empty()) popupSub.pop_back();
+                else if (popupActiveField == 2 && !popupPrice.empty()) popupPrice.pop_back();
                 return;
             }
+        }
+
+        if (const auto* txtEv = event.getIf<Event::TextEntered>()) {
+            char32_t u = txtEv->unicode;
+            if (u >= 32 && u != 127) {
+                if (popupActiveField == 0 && popupName.size() < 45) popupName += static_cast<wchar_t>(u);
+                else if (popupActiveField == 1 && popupSub.size() < 65) popupSub += static_cast<wchar_t>(u);
+                else if (popupActiveField == 2 && u >= '0' && u <= '9' && popupPrice.size() < 8) popupPrice += static_cast<char>(u);
+            }
+            return;
+        }
+        return;
+    }
+
+    if (const auto* mouseBtn = event.getIf<Event::MouseButtonPressed>()) {
+        if (mouseBtn->button == Mouse::Button::Left) {
+            Vector2f mousePos = win.mapPixelToCoords(Mouse::getPosition(win));
 
             // Nút Header: Reload, Xuất Excel
             FloatRect btnRel({position.x + width - 170.f, position.y + 76.f}, {40.f, 38.f});
             FloatRect btnExp({position.x + width - 120.f, position.y + 76.f}, {90.f, 38.f});
 
             if (btnRel.contains(mousePos)) {
+                searchQuery.clear();
+                activeFilterIndex = 0;
                 loadCombosFromFile();
                 applyFilter();
                 notificationMessage = "Đã làm mới dữ liệu combo bắp nước!";
@@ -272,9 +336,11 @@ void ComboPanel::handleEvent(const Event& event, const RenderWindow& win) {
             if (btnAdd.contains(mousePos)) {
                 showPopup = true;
                 editingIndex = -1;
-                popupId = "CB" + to_string(allCombos.size() + 1);
-                popupName = L"Combo M\u1edbi";
-                popupSub = L"Quy chu\u1ea9n chi ti\u1ebft combo...";
+                popupActiveField = 0;
+                int nextNum = (int)allCombos.size() + 1;
+                popupId = (nextNum < 10 ? "CB0" : "CB") + to_string(nextNum);
+                popupName = L"";
+                popupSub = L"1x B\u1eafp ng\u1ecdt + 1x CocaCola 22oz";
                 popupCat = L"Combo \u0110\u01a1n";
                 popupPrice = "85000";
                 return;
@@ -286,6 +352,7 @@ void ComboPanel::handleEvent(const Event& event, const RenderWindow& win) {
                     for (size_t i = 0; i < allCombos.size(); ++i) {
                         if (allCombos[i].id == selId) {
                             editingIndex = (int)i;
+                            popupActiveField = 0;
                             popupId = allCombos[i].id;
                             popupName = allCombos[i].name;
                             popupSub = allCombos[i].subtitle;
@@ -335,15 +402,24 @@ void ComboPanel::handleEvent(const Event& event, const RenderWindow& win) {
             // Search box click
             float fltY = position.y + 296.f;
             FloatRect searchBox({position.x + 30.f, fltY}, {300.f, 36.f});
-            searchActive = searchBox.contains(mousePos);
+            if (searchBox.contains(mousePos)) {
+                if (!searchQuery.empty() && mousePos.x >= position.x + 305.f) {
+                    searchQuery.clear();
+                    applyFilter();
+                }
+                searchActive = true;
+                return;
+            } else {
+                searchActive = false;
+            }
 
-            // Filter pills: Tất cả (10), Nước lẻ, Bắp đơn, Combo 1 Người, Combo Nhóm
+            // Filter pills (khớp chính xác pX = position.x + 390.f trong render)
             vector<pair<float, float>> pillRects = {
-                {400.f, 80.f},   // Tất cả
-                {490.f, 75.f},   // Nước lẻ
-                {575.f, 75.f},   // Bắp đơn
-                {660.f, 110.f},  // Combo 1 Người
-                {780.f, 150.f}   // Combo Nhóm / Cặp đôi
+                {390.f, 80.f},   // Tất cả
+                {480.f, 75.f},   // Nước lẻ
+                {565.f, 75.f},   // Bắp đơn
+                {650.f, 110.f},  // Combo 1 Người
+                {770.f, 150.f}   // Combo Nhóm / Cặp đôi
             };
 
             for (size_t i = 0; i < pillRects.size(); ++i) {
@@ -355,10 +431,10 @@ void ComboPanel::handleEvent(const Event& event, const RenderWindow& win) {
                 }
             }
 
-            // Table Row Click & Actions
-            float tableY = position.y + 350.f;
+            // Table Row Click & Actions (khớp tableY = position.y + 346.f trong render)
+            float tableY = position.y + 346.f;
             float rowH = 72.f;
-            int count = min((int)filteredCombos.size() - scrollOffset, maxVisibleRows);
+            int count = max(0, min((int)filteredCombos.size() - scrollOffset, maxVisibleRows));
 
             for (int r = 0; r < count; ++r) {
                 float rY = tableY + 44.f + r * rowH;
@@ -381,6 +457,7 @@ void ComboPanel::handleEvent(const Event& event, const RenderWindow& win) {
                         for (size_t i = 0; i < allCombos.size(); ++i) {
                             if (allCombos[i].id == selId) {
                                 editingIndex = (int)i;
+                                popupActiveField = 0;
                                 popupId = allCombos[i].id;
                                 popupName = allCombos[i].name;
                                 popupSub = allCombos[i].subtitle;
@@ -427,20 +504,29 @@ void ComboPanel::handleEvent(const Event& event, const RenderWindow& win) {
         }
     }
 
-    // Search typing
+    // Search typing (hỗ trợ đầy đủ tiếng Việt Unicode)
+    if (const auto* keyEv = event.getIf<Event::KeyPressed>()) {
+        if (searchActive && !showPopup) {
+            if (keyEv->code == Keyboard::Key::Backspace && !searchQuery.empty()) {
+                searchQuery.pop_back();
+                applyFilter();
+                return;
+            }
+            if (keyEv->code == Keyboard::Key::Escape) {
+                searchQuery.clear();
+                searchActive = false;
+                applyFilter();
+                return;
+            }
+        }
+    }
+
     if (const auto* textEv = event.getIf<Event::TextEntered>()) {
         if (searchActive && !showPopup) {
             char32_t c = textEv->unicode;
-            if (c == 8) {
-                if (!searchQuery.empty()) {
-                    searchQuery.pop_back();
-                    applyFilter();
-                }
-            } else if (c >= 32 && c != 127) {
-                if (searchQuery.size() < 30) {
-                    searchQuery.push_back((char)c);
-                    applyFilter();
-                }
+            if (c >= 32 && c != 127 && searchQuery.size() < 35) {
+                searchQuery += static_cast<wchar_t>(c);
+                applyFilter();
             }
         }
     }
@@ -616,11 +702,19 @@ void ComboPanel::render(RenderWindow& win) {
     sHandle.setRotation(degrees(45.f));
     win.draw(sHandle);
 
-    wstring sPrompt = searchQuery.empty() ? L"T\u00ecm theo m\u00e3 combo (CB01...) ho\u1eb7c t\u00ean s\u1ea3n ph\u1ea9m..." : s2ws(searchQuery) + (searchActive ? L"|" : L"");
+    wstring sPrompt = searchQuery.empty()
+        ? (searchActive ? L"|" : L"T\u00ecm theo m\u00e3 combo (CB01...) ho\u1eb7c t\u00ean s\u1ea3n ph\u1ea9m...")
+        : (searchQuery + (searchActive ? L"|" : L""));
     Text sTxt(font, sPrompt, 12);
-    sTxt.setFillColor(searchQuery.empty() ? Color(148, 163, 184) : Color(15, 23, 42));
+    sTxt.setFillColor(searchQuery.empty() && !searchActive ? Color(148, 163, 184) : Color(15, 23, 42));
     sTxt.setPosition({position.x + 62.f, fltY + 9.f});
     win.draw(sTxt);
+    if (!searchQuery.empty()) {
+        Text clrTxt(boldFont, L"\u2715", 11);
+        clrTxt.setFillColor(Color(148, 163, 184));
+        clrTxt.setPosition({position.x + 312.f, fltY + 10.f});
+        win.draw(clrTxt);
+    }
 
     Text locLbl(boldFont, L"L\u1eccC:", 12); locLbl.setFillColor(Color(100, 116, 139)); locLbl.setPosition({position.x + 350.f, fltY + 9.f}); win.draw(locLbl);
 
@@ -790,17 +884,32 @@ void ComboPanel::render(RenderWindow& win) {
         pTitle.setPosition({popX + 30.f, popY + 22.f});
         win.draw(pTitle);
 
+        // Nút chọn phân loại combo ở góc trên phải
+        drawRoundedCard(win, {popX + popW - 150.f, popY + 20.f}, {120.f, 28.f}, 6.f, Color(224, 242, 254), 1.f, Color(186, 230, 253));
+        Text catBadge(boldFont, (popupCat.empty() ? L"Combo \u0110\u01a1n" : popupCat) + L" \u25be", 11.5f);
+        catBadge.setFillColor(Color(2, 132, 199));
+        FloatRect cbb = catBadge.getLocalBounds();
+        catBadge.setPosition({popX + popW - 150.f + (120.f - cbb.size.x) / 2.f - cbb.position.x, popY + 20.f + (28.f - cbb.size.y) / 2.f - cbb.position.y - 1.f});
+        win.draw(catBadge);
+
+        bool f0Act = (popupActiveField == 0);
         Text l1(boldFont, L"T\u00ean combo:", 12); l1.setFillColor(Color(71, 85, 105)); l1.setPosition({popX + 30.f, popY + 65.f}); win.draw(l1);
-        drawRoundedCard(win, {popX + 30.f, popY + 85.f}, {popW - 60.f, 36.f}, 6.f, Color(248, 250, 252), 1.f, Color(203, 213, 225));
-        Text v1(font, popupName, 12); v1.setFillColor(Color(15, 23, 42)); v1.setPosition({popX + 40.f, popY + 94.f}); win.draw(v1);
+        drawRoundedCard(win, {popX + 30.f, popY + 85.f}, {popW - 60.f, 36.f}, 6.f,
+                        f0Act ? Color::White : Color(248, 250, 252), f0Act ? 1.8f : 1.f, f0Act ? Color(2, 132, 199) : Color(203, 213, 225));
+        wstring dispN = popupName.empty() ? (f0Act ? L"|" : L"Nh\u1eadp t\u00ean combo...") : (popupName + (f0Act ? L"|" : L""));
+        Text v1(font, dispN, 12.5f); v1.setFillColor(popupName.empty() && !f0Act ? Color(148, 163, 184) : Color(15, 23, 42)); v1.setPosition({popX + 40.f, popY + 94.f}); win.draw(v1);
 
+        bool f1Act = (popupActiveField == 1);
         Text l2(boldFont, L"Quy chu\u1ea9n chi ti\u1ebft:", 12); l2.setFillColor(Color(71, 85, 105)); l2.setPosition({popX + 30.f, popY + 130.f}); win.draw(l2);
-        drawRoundedCard(win, {popX + 30.f, popY + 150.f}, {popW - 60.f, 36.f}, 6.f, Color(248, 250, 252), 1.f, Color(203, 213, 225));
-        Text v2(font, popupSub, 12); v2.setFillColor(Color(15, 23, 42)); v2.setPosition({popX + 40.f, popY + 159.f}); win.draw(v2);
+        drawRoundedCard(win, {popX + 30.f, popY + 150.f}, {popW - 60.f, 36.f}, 6.f,
+                        f1Act ? Color::White : Color(248, 250, 252), f1Act ? 1.8f : 1.f, f1Act ? Color(2, 132, 199) : Color(203, 213, 225));
+        Text v2(font, popupSub + (f1Act ? L"|" : L""), 12.5f); v2.setFillColor(Color(15, 23, 42)); v2.setPosition({popX + 40.f, popY + 159.f}); win.draw(v2);
 
+        bool f2Act = (popupActiveField == 2);
         Text l3(boldFont, L"Gi\u00e1 ni\u00eam y\u1ebft (\u0111):", 12); l3.setFillColor(Color(71, 85, 105)); l3.setPosition({popX + 30.f, popY + 195.f}); win.draw(l3);
-        drawRoundedCard(win, {popX + 30.f, popY + 215.f}, {popW - 60.f, 36.f}, 6.f, Color(248, 250, 252), 1.f, Color(203, 213, 225));
-        Text v3(font, s2ws(popupPrice), 12); v3.setFillColor(Color(15, 23, 42)); v3.setPosition({popX + 40.f, popY + 224.f}); win.draw(v3);
+        drawRoundedCard(win, {popX + 30.f, popY + 215.f}, {popW - 60.f, 36.f}, 6.f,
+                        f2Act ? Color::White : Color(248, 250, 252), f2Act ? 1.8f : 1.f, f2Act ? Color(2, 132, 199) : Color(203, 213, 225));
+        Text v3(font, s2ws(popupPrice) + (f2Act ? L"|" : L""), 12.5f); v3.setFillColor(Color(15, 23, 42)); v3.setPosition({popX + 40.f, popY + 224.f}); win.draw(v3);
 
         // Nút Lưu và Hủy
         drawRoundedCard(win, {popX + 70.f, popY + 270.f}, {160.f, 38.f}, 6.f, Color(5, 150, 105));

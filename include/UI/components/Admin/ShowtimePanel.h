@@ -39,6 +39,8 @@ private:
     string selectedDate = "2026-10-27";
     wstring selectedRoom = L"T\u1ea5t c\u1ea3 ph\u00f2ng";
     wstring selectedStatus = L"T\u1ea5t c\u1ea3 tr\u1ea1ng th\u00e1i";
+    wstring searchQuery = L"";
+    bool searchFocused = false;
 
     // Dropdowns
     bool roomDropdownOpen = false;

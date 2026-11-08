@@ -114,50 +114,49 @@ void MoviePanel::refreshData() {
 
 void MoviePanel::applyFilter() {
     filteredIndices.clear();
-    wstring q = toLowerW(searchQuery);
 
     for (size_t i = 0; i < allMovies.size(); ++i) {
         const auto& row = allMovies[i];
         if (row.size() < 8) continue;
 
+        string idStr = row[0];
         string title = row[1];
         string country = row[3];
         string genres = row[5];
         string director = (row.size() > 9) ? row[9] : "";
+        string actors = (row.size() > 10) ? row[10] : "";
         string status = (row.size() >= 14) ? row[13] : "Đang chiếu";
         if (status.empty()) status = "Đang chiếu";
 
-        // 1. Text search
-        if (!q.empty()) {
-            wstring wt = toLowerW(s2ws(title));
-            wstring wc = toLowerW(s2ws(country));
-            wstring wd = toLowerW(s2ws(director));
-            wstring wg = toLowerW(s2ws(genres));
-            if (wt.find(q) == wstring::npos &&
-                wc.find(q) == wstring::npos &&
-                wd.find(q) == wstring::npos &&
-                wg.find(q) == wstring::npos) {
-                continue;
-            }
+        // 1. Tìm kiếm đa trường hỗ trợ tiếng Việt có dấu & không dấu (ID, Tên phim, Đạo diễn, Quốc gia, Thể loại, Diễn viên)
+        if (!searchQuery.empty()) {
+            bool match = UITheme::matchesViQuery(s2ws(idStr), searchQuery) ||
+                         UITheme::matchesViQuery(s2ws(title), searchQuery) ||
+                         UITheme::matchesViQuery(s2ws(director), searchQuery) ||
+                         UITheme::matchesViQuery(s2ws(country), searchQuery) ||
+                         UITheme::matchesViQuery(s2ws(genres), searchQuery) ||
+                         UITheme::matchesViQuery(s2ws(actors), searchQuery);
+            if (!match) continue;
         }
 
-        // 2. Genre filter
+        // 2. Lọc thể loại (hỗ trợ so khớp chuẩn hóa tiếng Việt)
         if (selectedGenre != "all") {
-            wstring wg = toLowerW(s2ws(genres));
-            wstring targetG = toLowerW(s2ws(selectedGenre));
-            if (wg.find(targetG) == wstring::npos) continue;
+            if (!UITheme::matchesViQuery(s2ws(genres), s2ws(selectedGenre))) continue;
         }
 
-        // 3. Status filter
+        // 3. Lọc trạng thái
         if (selectedStatus != "all") {
-            if (selectedStatus == "dang_chieu" && status != "Đang chiếu") continue;
-            if (selectedStatus == "sap_chieu" && status != "Sắp chiếu") continue;
+            if (selectedStatus == "dang_chieu" && !UITheme::matchesViQuery(s2ws(status), L"Đang chiếu")) continue;
+            if (selectedStatus == "sap_chieu" && !UITheme::matchesViQuery(s2ws(status), L"Sắp chiếu")) continue;
         }
 
         filteredIndices.push_back(static_cast<int>(i));
     }
 
-    if (selectedRow >= static_cast<int>(filteredIndices.size())) {
+    scrollOffset = 0;
+    if (!searchQuery.empty() && !filteredIndices.empty()) {
+        selectedRow = 0;
+    } else if (selectedRow >= static_cast<int>(filteredIndices.size())) {
         selectedRow = -1;
     }
 }
@@ -445,7 +444,50 @@ void MoviePanel::handleEvent(const Event& event, const RenderWindow& window) {
         caretClock.restart();
     }
 
+    // 1. ƯU TIÊN XỬ LÝ POPUP MODAL (ADD / EDIT / DELETE_CONFIRM)
     if (currentPopup != NONE) {
+        const float popupW = 680.f;
+        const float popupH = (currentPopup == DELETE_CONFIRM) ? 240.f : 530.f;
+        const float popupX = (1728.f - popupW) / 2.f;
+        const float popupY = (972.f - popupH) / 2.f;
+
+        if (const auto* mouseBtn = event.getIf<Event::MouseButtonPressed>()) {
+            if (mouseBtn->button == Mouse::Button::Left) {
+                Vector2f mouse = window.mapPixelToCoords(Mouse::getPosition(window));
+                if (currentPopup == DELETE_CONFIRM) {
+                    FloatRect cancelBtn({popupX + 40.f, popupY + 160.f}, {280.f, 44.f});
+                    FloatRect okBtn({popupX + 360.f, popupY + 160.f}, {280.f, 44.f});
+                    if (cancelBtn.contains(mouse)) { closePopupModal(); return; }
+                    if (okBtn.contains(mouse)) { confirmDelete(); return; }
+                    if (!FloatRect({popupX, popupY}, {popupW, popupH}).contains(mouse)) { closePopupModal(); return; }
+                } else {
+                    const float leftX = popupX + 40.f;
+                    const float rightX = popupX + 360.f;
+                    const float startY = popupY + 75.f;
+                    const float gapY = 68.f;
+
+                    for (int c = 0; c < 4; ++c) {
+                        FloatRect lb({leftX, startY + c * gapY + 20.f}, {280.f, 40.f});
+                        FloatRect rb({rightX, startY + c * gapY + 20.f}, {280.f, 40.f});
+                        if (lb.contains(mouse)) { activeInputBox = c; return; }
+                        if (rb.contains(mouse)) {
+                            if (c + 4 == 7 && activeInputBox == 7) {
+                                inputStatus = (inputStatus == L"Đang chiếu") ? L"Sắp chiếu" : L"Đang chiếu";
+                            }
+                            activeInputBox = c + 4;
+                            return;
+                        }
+                    }
+
+                    FloatRect cancelBtn({leftX, popupY + 450.f}, {280.f, 44.f});
+                    FloatRect saveBtn({rightX, popupY + 450.f}, {280.f, 44.f});
+                    if (cancelBtn.contains(mouse)) { closePopupModal(); return; }
+                    if (saveBtn.contains(mouse)) { saveMovie(); return; }
+                }
+            }
+            return;
+        }
+
         if (const auto* keyEvent = event.getIf<Event::KeyPressed>()) {
             if (keyEvent->code == Keyboard::Key::Escape) {
                 closePopupModal();
@@ -460,6 +502,7 @@ void MoviePanel::handleEvent(const Event& event, const RenderWindow& window) {
                 if (currentPopup != DELETE_CONFIRM) {
                     activeInputBox = (activeInputBox + 1) % 8;
                 }
+                return;
             }
             if (keyEvent->code == Keyboard::Key::Backspace) {
                 if (activeInputBox == 0 && !inputTitle.empty()) inputTitle.pop_back();
@@ -470,6 +513,7 @@ void MoviePanel::handleEvent(const Event& event, const RenderWindow& window) {
                 else if (activeInputBox == 5 && !inputDuration.empty()) inputDuration.pop_back();
                 else if (activeInputBox == 6 && !inputReleaseDate.empty()) inputReleaseDate.pop_back();
                 else if (activeInputBox == 7 && !inputStatus.empty()) inputStatus.pop_back();
+                return;
             }
         }
         if (const auto* textEvent = event.getIf<Event::TextEntered>()) {
@@ -484,19 +528,156 @@ void MoviePanel::handleEvent(const Event& event, const RenderWindow& window) {
                 else if (activeInputBox == 6 && inputReleaseDate.size() < 20) inputReleaseDate.push_back((wchar_t)uc);
                 else if (activeInputBox == 7 && inputStatus.size() < 20) inputStatus.push_back((wchar_t)uc);
             }
+            return;
         }
         return;
     }
 
-    // Search input typing
+    // 2. XỬ LÝ CLICK CHUỘT TRÊN MÀN HÌNH CHÍNH QUẢN LÝ PHIM
+    if (const auto* mouseBtn = event.getIf<Event::MouseButtonPressed>()) {
+        if (mouseBtn->button == Mouse::Button::Left) {
+            Vector2f mouse = window.mapPixelToCoords(Mouse::getPosition(window));
+            const float startX = position.x + 102.f;
+            const float toolY = 252.f;
+
+            // Ưu tiên kiểm tra danh sách Dropdown đang mở trước khi kiểm tra bảng bên dưới
+            if (genreDropdownOpen) {
+                vector<string> genres = {"Tất cả thể loại", "Hành động", "Hoạt hình", "Tội phạm", "Viễn tưởng", "Tâm lý"};
+                for (size_t g = 0; g < genres.size(); ++g) {
+                    FloatRect gb({startX + 375.f, toolY + 46.f + g * 36.f}, {160.f, 36.f});
+                    if (gb.contains(mouse)) {
+                        selectedGenre = (g == 0) ? "all" : genres[g];
+                        genreDropdownOpen = false;
+                        applyFilter();
+                        return;
+                    }
+                }
+                genreDropdownOpen = false;
+                return;
+            }
+
+            if (statusDropdownOpen) {
+                vector<pair<string, string>> statuses = {{"all", "Trạng thái: Tất cả"}, {"dang_chieu", "Đang chiếu"}, {"sap_chieu", "Sắp chiếu"}};
+                for (size_t s = 0; s < statuses.size(); ++s) {
+                    FloatRect sb({startX + 550.f, toolY + 46.f + s * 36.f}, {160.f, 36.f});
+                    if (sb.contains(mouse)) {
+                        selectedStatus = statuses[s].first;
+                        statusDropdownOpen = false;
+                        applyFilter();
+                        return;
+                    }
+                }
+                statusDropdownOpen = false;
+                return;
+            }
+
+            FloatRect searchBox({startX, toolY}, {360.f, 44.f});
+            FloatRect genreBtn({startX + 375.f, toolY}, {160.f, 44.f});
+            FloatRect statusBtn({startX + 550.f, toolY}, {160.f, 44.f});
+            FloatRect reloadBtn({startX + 725.f, toolY}, {44.f, 44.f});
+            FloatRect editBtn({startX + 779.f, toolY}, {150.f, 44.f});
+            FloatRect deleteBtn({startX + 941.f, toolY}, {125.f, 44.f});
+            FloatRect addBtn({startX + 1079.f, toolY}, {165.f, 44.f});
+
+            if (searchBox.contains(mouse)) {
+                if (!searchQuery.empty() && mouse.x >= startX + 328.f) {
+                    searchQuery.clear();
+                    applyFilter();
+                }
+                searchActive = true;
+                genreDropdownOpen = false;
+                statusDropdownOpen = false;
+                return;
+            } else {
+                searchActive = false;
+            }
+
+            if (genreBtn.contains(mouse)) {
+                genreDropdownOpen = !genreDropdownOpen;
+                statusDropdownOpen = false;
+                return;
+            }
+
+            if (statusBtn.contains(mouse)) {
+                statusDropdownOpen = !statusDropdownOpen;
+                genreDropdownOpen = false;
+                return;
+            }
+
+            if (reloadBtn.contains(mouse)) {
+                searchQuery = L"";
+                selectedGenre = "all";
+                selectedStatus = "all";
+                refreshData();
+                showToast(L"Đã làm mới dữ liệu!");
+                return;
+            }
+
+            if (addBtn.contains(mouse)) {
+                openAddModal();
+                return;
+            }
+
+            if (editBtn.contains(mouse)) {
+                if (selectedRow >= 0 && selectedRow < static_cast<int>(filteredIndices.size())) {
+                    openEditModal(filteredIndices[selectedRow]);
+                } else {
+                    showToast(L"Vui lòng chọn 1 phim để sửa!", Color(245, 158, 11));
+                }
+                return;
+            }
+
+            if (deleteBtn.contains(mouse)) {
+                if (selectedRow >= 0 && selectedRow < static_cast<int>(filteredIndices.size())) {
+                    openDeleteModal(filteredIndices[selectedRow]);
+                } else {
+                    showToast(L"Vui lòng chọn 1 phim để xóa!", Color(239, 68, 68));
+                }
+                return;
+            }
+
+            // Click trên các dòng của bảng phim
+            const float tableY = 352.f;
+            const float hdrH = 48.f;
+            const float rowH = 80.f;
+            const float tableW = 1244.f;
+            const float col8X = startX + 1125.f;
+
+            int displayCount = max(0, min(5, static_cast<int>(filteredIndices.size()) - scrollOffset));
+            for (int r = 0; r < displayCount; ++r) {
+                int idx = scrollOffset + r;
+                float rY = tableY + hdrH + r * rowH;
+                FloatRect rBounds({startX, rY}, {tableW, rowH});
+                FloatRect editIconBtn({col8X + 8.f, rY + 23.f}, {34.f, 34.f});
+                FloatRect delIconBtn({col8X + 50.f, rY + 23.f}, {34.f, 34.f});
+
+                if (rBounds.contains(mouse)) {
+                    if (editIconBtn.contains(mouse)) {
+                        openEditModal(filteredIndices[idx]);
+                    } else if (delIconBtn.contains(mouse)) {
+                        openDeleteModal(filteredIndices[idx]);
+                    } else {
+                        selectedRow = (selectedRow == idx) ? -1 : idx;
+                    }
+                    return;
+                }
+            }
+        }
+    }
+
+    // 3. NHẬP TÌM KIẾM TỪ BÀN PHÍM (HỖ TRỢ TIẾNG VIỆT UNICODE)
     if (const auto* keyEvent = event.getIf<Event::KeyPressed>()) {
         if (searchActive) {
             if (keyEvent->code == Keyboard::Key::Backspace && !searchQuery.empty()) {
                 searchQuery.pop_back();
                 applyFilter();
+                return;
             }
             if (keyEvent->code == Keyboard::Key::Escape) {
+                searchQuery.clear();
                 searchActive = false;
+                applyFilter();
+                return;
             }
         }
     }
@@ -510,7 +691,7 @@ void MoviePanel::handleEvent(const Event& event, const RenderWindow& window) {
         }
     }
 
-    // Mouse wheel scroll for table
+    // 4. CUỘN CHUỘT TRÊN BẢNG PHIM
     if (const auto* wheel = event.getIf<Event::MouseWheelScrolled>()) {
         if (wheel->delta > 0 && scrollOffset > 0) {
             scrollOffset--;
@@ -520,7 +701,7 @@ void MoviePanel::handleEvent(const Event& event, const RenderWindow& window) {
     }
 }
 
-void MoviePanel::update(Vector2f mouse, bool mousePressed) {
+void MoviePanel::update(Vector2f mouse, bool /*mousePressed*/) {
     if (currentPopup != NONE) {
         const float popupW = 680.f;
         const float popupH = (currentPopup == DELETE_CONFIRM) ? 240.f : 530.f;
@@ -532,41 +713,16 @@ void MoviePanel::update(Vector2f mouse, bool mousePressed) {
             FloatRect okBtn({popupX + 360.f, popupY + 160.f}, {280.f, 44.f});
             btnDeleteCancelHover = cancelBtn.contains(mouse);
             btnDeleteOkHover = okBtn.contains(mouse);
-
-            if (mousePressed) {
-                if (btnDeleteCancelHover) closePopupModal();
-                else if (btnDeleteOkHover) confirmDelete();
-            }
         } else {
-            // Input box bounds (2 columns: left: 0,1,2,3 - right: 4,5,6,7)
-            const float leftX = popupX + 40.f;
-            const float rightX = popupX + 360.f;
-            const float startY = popupY + 95.f;
-            const float gapY = 68.f;
-
-            if (mousePressed) {
-                for (int c = 0; c < 4; ++c) {
-                    FloatRect lb({leftX, startY + c * gapY + 22.f}, {280.f, 40.f});
-                    FloatRect rb({rightX, startY + c * gapY + 22.f}, {280.f, 40.f});
-                    if (lb.contains(mouse)) activeInputBox = c;
-                    if (rb.contains(mouse)) activeInputBox = c + 4;
-                }
-            }
-
             FloatRect cancelBtn({popupX + 40.f, popupY + 450.f}, {280.f, 44.f});
             FloatRect saveBtn({popupX + 360.f, popupY + 450.f}, {280.f, 44.f});
             btnPopupCancelHover = cancelBtn.contains(mouse);
             btnPopupSaveHover = saveBtn.contains(mouse);
-
-            if (mousePressed) {
-                if (btnPopupCancelHover) closePopupModal();
-                else if (btnPopupSaveHover) saveMovie();
-            }
         }
         return;
     }
 
-    const float startX = position.x + 102.f; // Centered inside 1448px panel width (102px left, 102px right)
+    const float startX = position.x + 102.f;
     const float toolY = 252.f;
 
     FloatRect searchBox({startX, toolY}, {360.f, 44.f});
@@ -585,129 +741,44 @@ void MoviePanel::update(Vector2f mouse, bool mousePressed) {
     btnDeleteHover = deleteBtn.contains(mouse);
     btnAddHover = addBtn.contains(mouse);
 
-    // Dropdown open interaction
     if (genreDropdownOpen) {
-        vector<string> genres = {"Tất cả thể loại", "Hành động", "Hoạt hình", "Tội phạm", "Viễn tưởng", "Tâm lý"};
         hoveredGenreIndex = -1;
-        for (size_t g = 0; g < genres.size(); ++g) {
-            FloatRect gb({startX + 375.f, toolY + 46.f + g * 34.f}, {160.f, 34.f});
-            if (gb.contains(mouse)) {
-                hoveredGenreIndex = static_cast<int>(g);
-                if (mousePressed) {
-                    selectedGenre = (g == 0) ? "all" : genres[g];
-                    genreDropdownOpen = false;
-                    applyFilter();
-                    return;
-                }
-            }
-        }
-        if (mousePressed && !genreBtn.contains(mouse)) {
-            genreDropdownOpen = false;
+        for (size_t g = 0; g < 6; ++g) {
+            FloatRect gb({startX + 375.f, toolY + 46.f + g * 36.f}, {160.f, 36.f});
+            if (gb.contains(mouse)) hoveredGenreIndex = static_cast<int>(g);
         }
     }
 
     if (statusDropdownOpen) {
-        vector<pair<string, string>> statuses = {{"all", "Trạng thái: Tất cả"}, {"dang_chieu", "Đang chiếu"}, {"sap_chieu", "Sắp chiếu"}};
         hoveredStatusIndex = -1;
-        for (size_t s = 0; s < statuses.size(); ++s) {
-            FloatRect sb({startX + 550.f, toolY + 46.f + s * 34.f}, {160.f, 34.f});
-            if (sb.contains(mouse)) {
-                hoveredStatusIndex = static_cast<int>(s);
-                if (mousePressed) {
-                    selectedStatus = statuses[s].first;
-                    statusDropdownOpen = false;
-                    applyFilter();
-                    return;
-                }
-            }
-        }
-        if (mousePressed && !statusBtn.contains(mouse)) {
-            statusDropdownOpen = false;
+        for (size_t s = 0; s < 3; ++s) {
+            FloatRect sb({startX + 550.f, toolY + 46.f + s * 36.f}, {160.f, 36.f});
+            if (sb.contains(mouse)) hoveredStatusIndex = static_cast<int>(s);
         }
     }
 
-    if (mousePressed) {
-        if (btnSearchHover) {
-            searchActive = true;
-            genreDropdownOpen = false;
-            statusDropdownOpen = false;
-        } else {
-            searchActive = false;
-        }
-
-        if (btnGenreHover) {
-            genreDropdownOpen = !genreDropdownOpen;
-            statusDropdownOpen = false;
-        }
-
-        if (btnStatusHover) {
-            statusDropdownOpen = !statusDropdownOpen;
-            genreDropdownOpen = false;
-        }
-
-        if (btnReloadHover) {
-            searchQuery = L"";
-            selectedGenre = "all";
-            selectedStatus = "all";
-            refreshData();
-            showToast(L"Đã làm mới dữ liệu!");
-        }
-
-        if (btnAddHover) {
-            openAddModal();
-        }
-
-        if (btnEditHover) {
-            if (selectedRow >= 0 && selectedRow < static_cast<int>(filteredIndices.size())) {
-                openEditModal(filteredIndices[selectedRow]);
-            } else {
-                showToast(L"Vui lòng chọn 1 phim để sửa!", Color(245, 158, 11));
-            }
-        }
-
-        if (btnDeleteHover) {
-            if (selectedRow >= 0 && selectedRow < static_cast<int>(filteredIndices.size())) {
-                openDeleteModal(filteredIndices[selectedRow]);
-            } else {
-                showToast(L"Vui lòng chọn 1 phim để xóa!", Color(239, 68, 68));
-            }
-        }
-    }
-
-    // Table rows hover & interaction
+    // Table rows hover
     const float tableY = 352.f;
     const float hdrH = 48.f;
     const float rowH = 80.f;
     const float tableW = 1244.f;
+    const float col8X = startX + 1125.f;
 
     hoveredRow = -1;
     hoveredEditRow = -1;
     hoveredDeleteRow = -1;
 
-    int displayCount = min(5, static_cast<int>(filteredIndices.size()) - scrollOffset);
+    int displayCount = max(0, min(5, static_cast<int>(filteredIndices.size()) - scrollOffset));
     for (int r = 0; r < displayCount; ++r) {
         int idx = scrollOffset + r;
         float rY = tableY + hdrH + r * rowH;
         FloatRect rBounds({startX, rY}, {tableW, rowH});
-
-        FloatRect editIconBtn({startX + tableW - 80.f, rY + 24.f}, {32.f, 32.f});
-        FloatRect delIconBtn({startX + tableW - 40.f, rY + 24.f}, {32.f, 32.f});
+        FloatRect editIconBtn({col8X + 8.f, rY + 23.f}, {34.f, 34.f});
+        FloatRect delIconBtn({col8X + 50.f, rY + 23.f}, {34.f, 34.f});
 
         if (editIconBtn.contains(mouse)) hoveredEditRow = idx;
         if (delIconBtn.contains(mouse)) hoveredDeleteRow = idx;
-
-        if (rBounds.contains(mouse)) {
-            hoveredRow = idx;
-            if (mousePressed) {
-                if (editIconBtn.contains(mouse)) {
-                    openEditModal(filteredIndices[idx]);
-                } else if (delIconBtn.contains(mouse)) {
-                    openDeleteModal(filteredIndices[idx]);
-                } else {
-                    selectedRow = (selectedRow == idx) ? -1 : idx;
-                }
-            }
-        }
+        if (rBounds.contains(mouse)) hoveredRow = idx;
     }
 }
 
@@ -769,14 +840,20 @@ void MoviePanel::render(RenderWindow& window) {
 
     // Search Input
     Color searchBorder = searchActive ? Color(2, 132, 199) : Color(203, 213, 225);
-    RoundedRectRenderer::draw(window, {startX, toolY}, {360.f, 44.f}, 10.f, Color::White, 1.2f, searchBorder);
-    drawSearchIcon(window, {startX + 14.f, toolY + 14.f}, Color(100, 116, 139));
+    RoundedRectRenderer::draw(window, {startX, toolY}, {360.f, 44.f}, 10.f, Color::White, searchActive ? 1.8f : 1.2f, searchBorder);
+    drawSearchIcon(window, {startX + 14.f, toolY + 14.f}, searchActive ? Color(2, 132, 199) : Color(100, 116, 139));
 
     if (searchQuery.empty()) {
         Text ph(boldFont, L"T\u00ecm t\u00ean phim, \u0111\u1ea1o di\u1ec5n, qu\u1ed1c gia...", 13);
         ph.setFillColor(Color(100, 116, 139));
         ph.setPosition({startX + 38.f, toolY + 12.f});
         window.draw(ph);
+        if (searchActive && caretVisible) {
+            RectangleShape caret({2.f, 20.f});
+            caret.setFillColor(Color(2, 132, 199));
+            caret.setPosition({startX + 38.f, toolY + 12.f});
+            window.draw(caret);
+        }
     } else {
         Text val(boldFont, searchQuery, 14);
         val.setFillColor(Color(15, 23, 42));
@@ -789,6 +866,11 @@ void MoviePanel::render(RenderWindow& window) {
             caret.setPosition({startX + 40.f + val.getLocalBounds().size.x, toolY + 12.f});
             window.draw(caret);
         }
+
+        Text clrTxt(boldFont, L"\u2715", 13);
+        clrTxt.setFillColor(Color(148, 163, 184));
+        clrTxt.setPosition({startX + 335.f, toolY + 12.f});
+        window.draw(clrTxt);
     }
 
     // Genre Dropdown Button
@@ -1165,27 +1247,31 @@ void MoviePanel::render(RenderWindow& window) {
 
             for (int i = 0; i < 4; ++i) {
                 // Left
+                bool lAct = (activeInputBox == leftFields[i].idx);
                 Text lbl1(boldFont, leftFields[i].label, 12);
                 lbl1.setFillColor(Color(30, 41, 59));
                 lbl1.setPosition({leftX, startY + i * gapY});
                 window.draw(lbl1);
 
-                Color b1 = (activeInputBox == leftFields[i].idx) ? Color(2, 132, 199) : Color(203, 213, 225);
-                RoundedRectRenderer::draw(window, {leftX, startY + i * gapY + 20.f}, {280.f, 40.f}, 8.f, Color(248, 250, 252), 1.2f, b1);
-                Text v1(boldFont, *leftFields[i].val, 13);
+                Color b1 = lAct ? Color(2, 132, 199) : Color(203, 213, 225);
+                RoundedRectRenderer::draw(window, {leftX, startY + i * gapY + 20.f}, {280.f, 40.f}, 8.f,
+                                          lAct ? Color::White : Color(248, 250, 252), lAct ? 1.8f : 1.2f, b1);
+                Text v1(boldFont, *leftFields[i].val + (lAct ? L"|" : L""), 13);
                 v1.setFillColor(Color(15, 23, 42));
                 v1.setPosition({leftX + 10.f, startY + i * gapY + 29.f});
                 window.draw(v1);
 
                 // Right
+                bool rAct = (activeInputBox == rightFields[i].idx);
                 Text lbl2(boldFont, rightFields[i].label, 12);
                 lbl2.setFillColor(Color(30, 41, 59));
                 lbl2.setPosition({rightX, startY + i * gapY});
                 window.draw(lbl2);
 
-                Color b2 = (activeInputBox == rightFields[i].idx) ? Color(2, 132, 199) : Color(203, 213, 225);
-                RoundedRectRenderer::draw(window, {rightX, startY + i * gapY + 20.f}, {280.f, 40.f}, 8.f, Color(248, 250, 252), 1.2f, b2);
-                Text v2(boldFont, *rightFields[i].val, 13);
+                Color b2 = rAct ? Color(2, 132, 199) : Color(203, 213, 225);
+                RoundedRectRenderer::draw(window, {rightX, startY + i * gapY + 20.f}, {280.f, 40.f}, 8.f,
+                                          rAct ? Color::White : Color(248, 250, 252), rAct ? 1.8f : 1.2f, b2);
+                Text v2(boldFont, *rightFields[i].val + (rAct ? L"|" : L""), 13);
                 v2.setFillColor(Color(15, 23, 42));
                 v2.setPosition({rightX + 10.f, startY + i * gapY + 29.f});
                 window.draw(v2);
