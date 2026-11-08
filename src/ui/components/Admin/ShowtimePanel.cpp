@@ -139,7 +139,7 @@ void ShowtimePanel::loadShowtimesFromFile() {
     movieTitleMap.insert("M_007", L"Dune: H\u00e0nh Tinh C\u00e1t - Ph\u1ea7n 2"); movieDurMap.insert("M_007", 166);
     movieTitleMap.insert("M_008", L"Fast and Furious 10 (Fast X)"); movieDurMap.insert("M_008", 140);
 
-    string mPath = FileUtils::resolveDataPath("data/movies.txt");
+    string mPath = FileUtils::resolveDataPath("data/movies.csv");
     ifstream mf(mPath);
     if (mf.is_open()) {
         string mline;
@@ -161,7 +161,7 @@ void ShowtimePanel::loadShowtimesFromFile() {
         }
     }
 
-    string path = FileUtils::resolveDataPath("data/showtimes.txt");
+    string path = FileUtils::resolveDataPath("data/showtimes.csv");
     ifstream f(path);
     if (!f.is_open()) return;
 
@@ -211,7 +211,7 @@ void ShowtimePanel::loadShowtimesFromFile() {
 }
 
 void ShowtimePanel::saveShowtimesToFile() {
-    string path = FileUtils::resolveDataPath("data/showtimes.txt");
+    string path = FileUtils::resolveDataPath("data/showtimes.csv");
     ofstream f(path);
     if (!f.is_open()) return;
 

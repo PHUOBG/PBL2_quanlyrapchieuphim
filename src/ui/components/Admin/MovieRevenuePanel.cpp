@@ -27,9 +27,9 @@ MovieRevenuePanel::MovieRevenuePanel(Font& fontRef, float w, float h)
       width(w),
       height(h),
       position(280.f, 0.f),
-      ticketsFilePath(resolveDataPath("data/tickets.txt")),
-      showtimesFilePath(resolveDataPath("data/showtimes.txt")),
-      combosFilePath(resolveDataPath("data/combo.txt"))
+      ticketsFilePath(FileUtils::resolveDataPath("data/tickets.csv")),
+      showtimesFilePath(FileUtils::resolveDataPath("data/showtimes.csv")),
+      combosFilePath(FileUtils::resolveDataPath("data/combo.csv"))
 {
     initDefaultStats();
     loadData();
@@ -165,7 +165,7 @@ void MovieRevenuePanel::loadShowtimePrices() {
         }
     };
     consume(showtimesFilePath);
-    consume(resolveDataPath("data/showtimes_history.txt"));
+    consume(FileUtils::resolveDataPath("data/showtimes_history.csv"));
 }
 
 void MovieRevenuePanel::loadComboPrices() {

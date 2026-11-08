@@ -39,9 +39,9 @@ struct VoucherUserInfo {
 class AdminVoucherRepository {
 public:
     AdminVoucherRepository(
-        const std::string& defPath = "../data/voucher_defs.txt",
-        const std::string& walletPath = "../data/user_wallets.txt",
-        const std::string& usersPath = "../data/users.txt"
+        const std::string& defPath = "../data/voucher_defs.csv",
+        const std::string& walletPath = "../data/user_wallets.csv",
+        const std::string& usersPath = "../data/users.csv"
     );
 
     void reload();

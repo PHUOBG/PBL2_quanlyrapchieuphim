@@ -30,10 +30,10 @@ OverviewPanel::OverviewPanel(Font& fontRef, float w, float h)
       width(w),
       height(h),
       position(280.f, 0.f),
-      ticketsFilePath(resolveDataPath("data/tickets.txt")),
-      usersFilePath(resolveDataPath("data/users.txt")),
-      showtimesFilePath(resolveDataPath("data/showtimes.txt")),
-      combosFilePath(resolveDataPath("data/combo.txt"))
+      ticketsFilePath(FileUtils::resolveDataPath("data/tickets.csv")),
+      usersFilePath(FileUtils::resolveDataPath("data/users.csv")),
+      showtimesFilePath(FileUtils::resolveDataPath("data/showtimes.csv")),
+      combosFilePath(FileUtils::resolveDataPath("data/combo.csv"))
 {
     loadData();
 }
@@ -155,7 +155,7 @@ void OverviewPanel::loadShowtimePrices() {
         }
     };
     consume(showtimesFilePath);
-    consume(resolveDataPath("data/showtimes_history.txt"));
+    consume(FileUtils::resolveDataPath("data/showtimes_history.csv"));
 }
 
 void OverviewPanel::loadComboPrices() {

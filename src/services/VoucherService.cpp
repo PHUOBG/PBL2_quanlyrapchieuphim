@@ -157,7 +157,7 @@ void VoucherService::saveDefinitions() {
 void VoucherService::loadAutoProvisionConfigs() {
     autoProvisionConfigs.clear();
     
-    string configPath = "../data/voucher_auto_provision.txt";
+    string configPath = "../data/voucher_auto_provision.csv";
     ifstream file(configPath);
     if (!file.is_open()) return;
     
@@ -182,7 +182,7 @@ void VoucherService::loadAutoProvisionConfigs() {
 }
 
 void VoucherService::saveAutoProvisionConfigs() {
-    string configPath = "../data/voucher_auto_provision.txt";
+    string configPath = "../data/voucher_auto_provision.csv";
     ofstream file(configPath);
     if (!file.is_open()) return;
     

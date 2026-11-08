@@ -17,7 +17,7 @@ private:
     string serializeLine(const User& user) const;
 
 public:
-    UserRepository(const string& filepath = "../data/users.txt");
+    UserRepository(const string& filepath = "../data/users.csv");
     ~UserRepository();
 
     void loadFromFile();

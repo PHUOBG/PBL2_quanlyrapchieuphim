@@ -36,9 +36,9 @@ App::App()
         window.setIcon(appIcon.getSize(), appIcon.getPixelsPtr());
     }
 
-    ShowtimeCleanupService::maintainShowtimes("../data/showtimes.txt", 6);
+    ShowtimeCleanupService::maintainShowtimes("../data/showtimes.csv", 6);
 
-    authService = make_unique<AuthService>("../data/users.txt");
+    authService = make_unique<AuthService>("../data/users.csv");
 
     loginScreen = make_unique<LoginScreen>(font, *authService);
     registerScreen = make_unique<RegisterScreen>(font, *authService);

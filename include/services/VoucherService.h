@@ -16,9 +16,9 @@ struct AutoProvisionConfig {
 
 class VoucherService : public IAppEventObserver, public enable_shared_from_this<VoucherService> {
 public:
-    VoucherService(const string& defPath = "../data/voucher_defs.txt",
-                   const string& walletPath = "../data/user_wallets.txt",
-                   const string& usersPath = "../data/users.txt");
+    VoucherService(const string& defPath = "../data/voucher_defs.csv",
+                   const string& walletPath = "../data/user_wallets.csv",
+                   const string& usersPath = "../data/users.csv");
     
     ~VoucherService() override;
     void initialize();

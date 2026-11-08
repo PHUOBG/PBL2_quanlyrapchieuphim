@@ -32,8 +32,8 @@ struct VoucherDisplay {
 
 class VoucherManager {
 public:
-    VoucherManager(const std::string& defPath = "../data/voucher_defs.txt",
-                   const std::string& walletPath = "../data/user_wallets.txt");
+    VoucherManager(const std::string& defPath = "../data/voucher_defs.csv",
+                   const std::string& walletPath = "../data/user_wallets.csv");
 
     void loadData();
     void giveVoucher(const std::string& email, const std::string& code, int daysToExpire, int quantity = 1);

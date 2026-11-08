@@ -30,7 +30,7 @@ private:
     string getCurrentTime();
 
 public:
-    TicketRepository(const string& filepath = "../data/tickets.txt");
+    TicketRepository(const string& filepath = "../data/tickets.csv");
 
     Ticket createTicket(
         const string& showtimeId,

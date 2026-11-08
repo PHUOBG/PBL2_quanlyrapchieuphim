@@ -53,9 +53,9 @@ private:
     ShowtimeSeatRepository seatRepository;
 
 public:
-    BookingService(const string& usersPath = "../data/users.txt",
-                   const string& ticketsPath = "../data/tickets.txt",
-                   const string& seatsPath = "../data/RoomStatusAtShowtime.txt");
+    BookingService(const string& usersPath = "../data/users.csv",
+                   const string& ticketsPath = "../data/tickets.csv",
+                   const string& seatsPath = "../data/RoomStatusAtShowtime.csv");
     
     void getUserInfo(const string& email, string& fullName, string& phone);
     double applyVoucher(const string& email, const string& voucherCode, 

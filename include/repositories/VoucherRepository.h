@@ -149,8 +149,8 @@ private:
 
 public:
     explicit VoucherRepository(
-        const std::string& voucherPath = "../data/vouchers.txt",
-        const std::string& userVoucherPath = "../data/user_vouchers.txt")
+        const std::string& voucherPath = "../data/vouchers.csv",
+        const std::string& userVoucherPath = "../data/user_vouchers.csv")
         : voucherFilePath(voucherPath), userVoucherFilePath(userVoucherPath) {
         loadFromFile();
         loadUserVouchers();

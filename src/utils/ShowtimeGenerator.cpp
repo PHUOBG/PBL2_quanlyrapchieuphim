@@ -145,8 +145,8 @@ int ShowtimeGenerator::getPriceByTime(int hour) {
 
 void ShowtimeGenerator::generateShowtimesFile(const string& outputPath, int numDays) {
     // Load data
-    vector<MovieInfo> movies = loadMovies(FileUtils::resolveDataPath("data/movies.txt"));
-    vector<string> rooms = loadRooms("../data/rooms.txt");
+    vector<MovieInfo> movies = loadMovies(FileUtils::resolveDataPath("data/movies.csv"));
+    vector<string> rooms = loadRooms(FileUtils::resolveDataPath("data/rooms.csv"));
     
     if (movies.empty()) {
         return;

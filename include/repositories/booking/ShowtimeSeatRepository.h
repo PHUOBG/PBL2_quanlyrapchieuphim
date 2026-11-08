@@ -27,7 +27,7 @@ private:
     string formatBookedSeats(const DLL<string>& seats);
 
 public:
-    ShowtimeSeatRepository(const string& path = "../data/RoomStatusAtShowtime.txt");
+    ShowtimeSeatRepository(const string& path = "../data/RoomStatusAtShowtime.csv");
     void loadFromFile();
     DLL<string> getBookedSeats(const string& showtimeId, const string& roomId);
     void addBookedSeats(const string& showtimeId, const string& roomId, const DLL<string>& newSeats);

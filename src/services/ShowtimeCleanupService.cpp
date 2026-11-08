@@ -49,10 +49,10 @@ void ShowtimeCleanupService::maintainShowtimes(const string& showtimesPath, int 
     // Admin wants 6-day scheduling window; Booking UI still shows only 5 days.
     const int windowDays = max(1, min(daysToGenerate, 6));
 
-    const string moviesPath = FileUtils::resolveDataPath("data/movies.txt");
-    const string ticketsPath = FileUtils::resolveDataPath("data/tickets.txt");
-    const string roomsPath = FileUtils::resolveDataPath("data/rooms.txt");
-    const string roomCachePath = FileUtils::resolveDataPath("data/room_schedule_cache.txt");
+    const string moviesPath = FileUtils::resolveDataPath("data/movies.csv");
+    const string ticketsPath = FileUtils::resolveDataPath("data/tickets.csv");
+    const string roomsPath = FileUtils::resolveDataPath("data/rooms.csv");
+    const string roomCachePath = FileUtils::resolveDataPath("data/room_schedule_cache.csv");
 
     // Cleanup expired movies first so they won't be considered for (re)generation.
     purgeExpiredMoviesFromFile(moviesPath);
@@ -323,7 +323,7 @@ void ShowtimeCleanupService::maintainShowtimes(const string& showtimesPath, int 
     const bool changed = (kept.size() != originalCount);
     if (changed) {
         // Clear RoomPanel cache to avoid stale schedule display.
-        remove(FileUtils::resolveDataPath("data/room_schedule_cache.txt").c_str());
+        remove(FileUtils::resolveDataPath("data/room_schedule_cache.csv").c_str());
     }
 
     saveShowtimes(showtimesPath, kept);
@@ -475,11 +475,11 @@ bool ShowtimeCleanupService::isReleaseOnOrBeforeShowDate(const string& releaseDa
 
 void ShowtimeCleanupService::forceRegenerate(const string& showtimesPath, int daysToGenerate) {
     // Xóa cache cũ của RoomPanel để tránh conflict
-    remove(FileUtils::resolveDataPath("data/room_schedule_cache.txt").c_str());
+    remove(FileUtils::resolveDataPath("data/room_schedule_cache.csv").c_str());
     
     // Load movies and rooms
-    vector<MovieData> movies = loadMovies(FileUtils::resolveDataPath("data/movies.txt"));
-    vector<string> rooms = loadRooms(FileUtils::resolveDataPath("data/rooms.txt"));
+    vector<MovieData> movies = loadMovies(FileUtils::resolveDataPath("data/movies.csv"));
+    vector<string> rooms = loadRooms(FileUtils::resolveDataPath("data/rooms.csv"));
     
     if (movies.empty()) {
         return;
@@ -822,8 +822,8 @@ void ShowtimeCleanupService::addNewShowtimes(const string& showtimesPath, int da
     // If we have less than 3 days of future showtimes, generate more
     if (daysDiff < 3) {
         // Load movies and rooms
-        vector<MovieData> movies = loadMovies(FileUtils::resolveDataPath("data/movies.txt"));
-        vector<string> rooms = loadRooms(FileUtils::resolveDataPath("data/rooms.txt"));
+        vector<MovieData> movies = loadMovies(FileUtils::resolveDataPath("data/movies.csv"));
+        vector<string> rooms = loadRooms(FileUtils::resolveDataPath("data/rooms.csv"));
         
         if (movies.empty() || rooms.empty()) {
             return;

@@ -14,7 +14,7 @@ namespace {
 static std::unordered_map<std::string, std::string> loadComboIdToName() {
     std::unordered_map<std::string, std::string> out;
 
-    std::ifstream file("../data/combo.txt", std::ios::binary);
+    std::ifstream file("../data/combo.csv", std::ios::binary);
     if (!file.is_open()) return out;
 
     std::string data((std::istreambuf_iterator<char>(file)), {});

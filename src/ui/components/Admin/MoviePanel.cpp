@@ -34,7 +34,7 @@ MoviePanel::MoviePanel(Font& fontRef, float w, float h)
         !boldFont.openFromFile("../assets/fonts/segoeuib.ttf")) {
         boldFont.openFromFile("C:/Windows/Fonts/segoeuib.ttf");
     }
-    repository = make_unique<AdminMovieRepository>(FileUtils::resolveDataPath("data/movies.txt"));
+    repository = make_unique<AdminMovieRepository>(FileUtils::resolveDataPath("data/movies.csv"));
     refreshData();
 }
 

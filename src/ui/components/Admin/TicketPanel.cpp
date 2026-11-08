@@ -33,7 +33,7 @@ TicketPanel::TicketPanel(Font& fontRef, float w, float h)
     : font(fontRef),
       boldFont("../assets/fonts/segoeuib.ttf"),
       width(w), height(h), position(280.f, 0.f),
-      repository(FileUtils::resolveDataPath("data/tickets.txt"))
+      repository(FileUtils::resolveDataPath("data/tickets.csv"))
 {
     if (reloadTex.loadFromFile("assets/elements/reload.png") ||
         reloadTex.loadFromFile("../assets/elements/reload.png")) {

@@ -75,7 +75,7 @@ private:
     }
 
 public:
-    explicit ShowtimeRepository(const std::string& path = "../data/showtimes.txt")
+    explicit ShowtimeRepository(const std::string& path = "../data/showtimes.csv")
         : filePath(path) {
         loadFromFile();
     }
