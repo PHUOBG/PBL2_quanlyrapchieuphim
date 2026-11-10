@@ -74,6 +74,27 @@ private:
     std::vector<MovieStatItem> topMoviesList;
     std::vector<MonthStatItem> monthlyStatsList;
 
+    // Bo loc & Tim kiem tren thanh Header
+    bool searchFocused = false;
+    bool searchHovered = false;
+    std::wstring searchQuery;
+    float cursorBlinkTimer = 0.f;
+    bool showCursor = true;
+
+    bool dateDropdownOpen = false;
+    bool dateHovered = false;
+    int selectedDateIndex = 0;
+    int hoveredDateOption = -1;
+    std::vector<std::wstring> dateOptions;
+    std::vector<std::string> dateFilterKeys;
+
+    bool roomDropdownOpen = false;
+    bool roomHovered = false;
+    int selectedRoomIndex = 0;
+    int hoveredRoomOption = -1;
+    std::vector<std::wstring> roomOptions;
+    std::vector<std::string> roomFilterKeys;
+
     // UI state
     int hoveredMovieRow = -1;
     int hoveredMonthRow = -1;
@@ -83,13 +104,21 @@ private:
     float toastTimer = 0.f;
     std::wstring toastMessage;
 
+    // Report modal preview
+    bool reportModalOpen = false;
+    bool modalOpenExcelHovered = false;
+    bool modalCloseHovered = false;
+
     std::string resolveDataPath(const std::string& relative) const;
+    void initFilterOptions();
     void loadData();
     void loadTickets();
     void loadRegistrations();
     void loadShowtimePrices();
     void loadComboPrices();
     void calculateStats();
+    bool exportReportToCsv();
+    void openExportedFile(const std::string& path) const;
 
     int countSeats(const std::string& seatList) const;
     std::string trim(const std::string& text) const;
@@ -100,6 +129,7 @@ private:
 
     // Ve giao dien chi tiet theo thiet ke
     void drawHeader(sf::RenderTarget& target) const;
+    void drawDropdownPopups(sf::RenderTarget& target) const;
     void drawKpiCards(sf::RenderTarget& target) const;
     void drawTopLeftChart(sf::RenderTarget& target) const;
     void drawTopRightTable(sf::RenderTarget& target) const;
@@ -107,6 +137,7 @@ private:
     void drawBottomRightTable(sf::RenderTarget& target) const;
     void drawBottomBar(sf::RenderTarget& target) const;
     void drawToast(sf::RenderTarget& target) const;
+    void drawReportModal(sf::RenderTarget& target) const;
 
 public:
     OverviewPanel(sf::Font& fontRef, float w, float h);

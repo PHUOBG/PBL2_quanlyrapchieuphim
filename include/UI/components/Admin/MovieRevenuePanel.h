@@ -89,12 +89,19 @@ private:
     float toastTimer = 0.f;
     std::wstring toastMessage;
 
+    // Report modal preview
+    bool reportModalOpen = false;
+    bool modalOpenExcelHovered = false;
+    bool modalCloseHovered = false;
+
     std::string resolveDataPath(const std::string& relative) const;
     void loadData();
     void loadTickets();
     void loadShowtimePrices();
     void loadComboPrices();
     void initDefaultStats();
+    bool exportRevenueReportToCsv();
+    void openExportedFile(const std::string& path) const;
 
     int countSeats(const std::string& seatList) const;
     std::string trim(const std::string& text) const;
@@ -115,6 +122,7 @@ private:
 
     void drawBottomBar(sf::RenderTarget& target) const;
     void drawToast(sf::RenderTarget& target) const;
+    void drawReportModal(sf::RenderTarget& target) const;
 
 public:
     MovieRevenuePanel(sf::Font& fontRef, float w, float h);

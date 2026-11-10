@@ -15,6 +15,11 @@
 #include <iomanip>
 #include <sstream>
 
+#ifdef _WIN32
+#include <windows.h>
+#include <shellapi.h>
+#endif
+
 using namespace sf;
 using namespace std;
 
@@ -35,7 +40,44 @@ OverviewPanel::OverviewPanel(Font& fontRef, float w, float h)
       showtimesFilePath(FileUtils::resolveDataPath("data/showtimes.csv")),
       combosFilePath(FileUtils::resolveDataPath("data/combo.csv"))
 {
+    initFilterOptions();
     loadData();
+}
+
+void OverviewPanel::initFilterOptions() {
+    dateOptions = {
+        L"Toàn kỳ (09/2025 - 12/2025)",
+        L"Tháng 12/2025 (01/12 - 31/12)",
+        L"Tháng 11/2025 (01/11 - 30/11)",
+        L"Tháng 10/2025 (01/10 - 31/10)",
+        L"Tháng 09/2025 (01/09 - 30/09)"
+    };
+    dateFilterKeys = {
+        "",
+        "2025-12",
+        "2025-11",
+        "2025-10",
+        "2025-09"
+    };
+
+    roomOptions = {
+        L"Tất cả phòng chiếu (Hall 01-06)",
+        L"Phòng Chiếu 1 (Hall 01)",
+        L"Phòng Chiếu 2 (Hall 02)",
+        L"Phòng Chiếu 3 (Hall 03)",
+        L"Phòng Chiếu 4 (Hall 04)",
+        L"Phòng Chiếu 5 (Hall 05)",
+        L"Phòng Chiếu 6 (Hall 06)"
+    };
+    roomFilterKeys = {
+        "",
+        "Phòng Chiếu 1",
+        "Phòng Chiếu 2",
+        "Phòng Chiếu 3",
+        "Phòng Chiếu 4",
+        "Phòng Chiếu 5",
+        "Phòng Chiếu 6"
+    };
 }
 
 void OverviewPanel::setPosition(const Vector2f& pos) {
@@ -217,42 +259,108 @@ void OverviewPanel::loadTickets() {
 }
 
 void OverviewPanel::calculateStats() {
-    // Top 8 movies default baseline from the approved design
-    topMoviesList = {
+    // Danh mục phim gốc để tra cứu tên rút gọn hiển thị trên biểu đồ cột
+    struct BaselineMovie {
+        string title;
+        wstring displayTitle;
+        wstring shortTitle;
+        int baseTickets;
+        long long baseRevenue;
+    };
+    const vector<BaselineMovie> baselineMovies = {
         {"TỬ CHIẾN TRÊN KHÔNG", L"TỬ CHIẾN TRÊN KHÔNG", L"TỬ CHIẾN..", 31, 3890000},
         {"DUNE: PART TWO", L"DUNE: PART TWO", L"DUNE 2", 15, 1995000},
         {"INSIDE OUT 2", L"INSIDE OUT 2", L"INSIDE OUT", 12, 1287500},
-        {"GODZILLA X KONG: NEW EMPIRE", L"GODZILLA X KONG: NEW EMPIRE", L"GODZILLA..", 11, 1565000},
+        {"GODZILLA X KONG: THE NEW EMPIRE", L"GODZILLA X KONG: THE NEW EMPIRE", L"GODZILLA..", 11, 1565000},
         {"ĐÀO, PHỞ VÀ PIANO", L"ĐÀO, PHỞ VÀ PIANO", L"ĐÀO, PHỞ..", 11, 1060000},
         {"BỐ GIÀ (REMASTERED)", L"BỐ GIÀ (REMASTERED)", L"BỐ GIÀ", 9, 860000},
         {"LẬT MẶT: 48H", L"LẬT MẶT: 48H", L"LẬT MẶT", 8, 775000},
         {"MAI", L"MAI", L"MAI", 4, 410000}
     };
 
-    // Monthly stats default baseline
-    monthlyStatsList = {
-        {"09/2025", L"09/2025", 1675000, L"Khởi điểm", Color(241, 245, 249), Color(100, 116, 139), false},
-        {"10/2025", L"10/2025", 2915000, L"+74.0%", Color(220, 252, 231), Color(22, 163, 74), false},
-        {"11/2025", L"11/2025", 4305000, L"+47.7%", Color(220, 252, 231), Color(22, 163, 74), true},
-        {"12/2025", L"12/2025", 2947500, L"-31.5%", Color(255, 228, 230), Color(225, 29, 72), false}
-    };
+    unordered_map<string, wstring> shortTitleMap;
+    for (const auto& bm : baselineMovies) {
+        shortTitleMap[bm.title] = bm.shortTitle;
+    }
+    shortTitleMap["GODZILLA X KONG: NEW EMPIRE"] = L"GODZILLA..";
 
-    // Dynamic extraction if tickets exist in data
+    string activeDateKey = (selectedDateIndex >= 0 && selectedDateIndex < (int)dateFilterKeys.size())
+                           ? dateFilterKeys[selectedDateIndex] : "";
+    string activeRoomKey = (selectedRoomIndex >= 0 && selectedRoomIndex < (int)roomFilterKeys.size())
+                           ? roomFilterKeys[selectedRoomIndex] : "";
+    bool hasFilter = !searchQuery.empty() || !activeDateKey.empty() || !activeRoomKey.empty();
+
     unordered_map<string, int> movieTickets;
     unordered_map<string, long long> movieRevenue;
+    unordered_map<string, long long> monthRevMap = {
+        {"09/2025", 0}, {"10/2025", 0}, {"11/2025", 0}, {"12/2025", 0}
+    };
+
     long long totalRev = 0;
     long long movieRev = 0;
     long long comboRev = 0;
     int ticketsCount = 0;
+    int stdSeats = 0;
+    int vipSeats = 0;
 
     Node<Ticket>* node = ticketsCache.getHead();
     while (node) {
         const Ticket& t = node->data;
-        int seats = max(1, countSeats(t.booked));
+
+        // 1. Lọc theo phòng chiếu
+        if (!activeRoomKey.empty() && trim(t.roomName) != activeRoomKey) {
+            node = node->next;
+            continue;
+        }
+
+        // 2. Lọc theo từ khóa tìm kiếm (tên phim, mã vé, combo, tên khách hàng)
+        if (!searchQuery.empty()) {
+            bool match = UITheme::matchesViQuery(s2ws(t.title), searchQuery) ||
+                         UITheme::matchesViQuery(s2ws(t.ticketId), searchQuery) ||
+                         UITheme::matchesViQuery(s2ws(t.comboName), searchQuery) ||
+                         UITheme::matchesViQuery(s2ws(t.roomName), searchQuery) ||
+                         UITheme::matchesViQuery(s2ws(t.fullName), searchQuery);
+            if (!match) {
+                node = node->next;
+                continue;
+            }
+        }
+
+        // Cộng dồn dữ liệu theo tháng (phục vụ biểu đồ xu hướng 4 tháng)
+        string mKey = "";
+        if (t.date.rfind("2025-09", 0) == 0 || t.bookedDate.find("/09/2025") != string::npos) mKey = "09/2025";
+        else if (t.date.rfind("2025-10", 0) == 0 || t.bookedDate.find("/10/2025") != string::npos) mKey = "10/2025";
+        else if (t.date.rfind("2025-11", 0) == 0 || t.bookedDate.find("/11/2025") != string::npos) mKey = "11/2025";
+        else if (t.date.rfind("2025-12", 0) == 0 || t.bookedDate.find("/12/2025") != string::npos) mKey = "12/2025";
+
         long long ticketTotal = static_cast<long long>(t.price);
+        if (!mKey.empty()) {
+            monthRevMap[mKey] += ticketTotal;
+        }
+
+        // 3. Lọc theo kỳ thời gian (tháng)
+        if (!activeDateKey.empty()) {
+            // activeDateKey dạng "2025-12" -> kiểm tra t.date hoặc t.bookedDate
+            string slashMonth = "/" + activeDateKey.substr(5, 2) + "/" + activeDateKey.substr(0, 4);
+            bool dateMatch = (t.date.rfind(activeDateKey, 0) == 0) ||
+                             (t.bookedDate.find(slashMonth) != string::npos);
+            if (!dateMatch) {
+                node = node->next;
+                continue;
+            }
+        }
+
+        int seats = max(1, countSeats(t.booked));
         long long cPart = computeComboRevenue(t.comboName);
         if (cPart > ticketTotal) cPart = ticketTotal;
         long long mPart = ticketTotal - cPart;
+
+        // Phân loại ghế Standard (A-C) và VIP (D-I)
+        if (!t.booked.empty() && (t.booked[0] >= 'D' && t.booked[0] <= 'I')) {
+            vipSeats += seats;
+        } else {
+            stdSeats += seats;
+        }
 
         movieTickets[t.title] += seats;
         movieRevenue[t.title] += ticketTotal;
@@ -264,60 +372,390 @@ void OverviewPanel::calculateStats() {
         node = node->next;
     }
 
-    if (ticketsCount > 0) {
-        totalTicketsThisMonth = ticketsCount;
-        standardTicketsCount = (int)(totalTicketsThisMonth * 0.67f);
-        vipTicketsCount = totalTicketsThisMonth - standardTicketsCount;
-    }
-    if (totalRev > 0) {
-        totalRevenueThisMonth = totalRev;
-        movieRevenueThisMonth = movieRev;
-        comboRevenueThisMonth = comboRev;
+    // Xây dựng danh sách Top Movies
+    topMoviesList.clear();
+    if (!hasFilter && movieTickets.empty()) {
+        for (const auto& bm : baselineMovies) {
+            topMoviesList.push_back({bm.title, bm.displayTitle, bm.shortTitle, bm.baseTickets, bm.baseRevenue});
+        }
+    } else {
+        for (const auto& kv : movieTickets) {
+            const string& title = kv.first;
+            int tks = kv.second;
+            long long rev = movieRevenue[title];
+            wstring wTitle = s2ws(title);
+            wstring wShort = wTitle;
+            auto it = shortTitleMap.find(title);
+            if (it != shortTitleMap.end()) {
+                wShort = it->second;
+            } else if (wShort.size() > 10) {
+                wShort = wShort.substr(0, 9) + L"..";
+            }
+            topMoviesList.push_back({title, wTitle, wShort, tks, rev});
+        }
+        // Sắp xếp giảm dần theo số vé, nếu bằng nhau thì theo doanh thu
+        sort(topMoviesList.begin(), topMoviesList.end(), [](const MovieStatItem& a, const MovieStatItem& b) {
+            if (a.tickets != b.tickets) return a.tickets > b.tickets;
+            return a.revenue > b.revenue;
+        });
     }
 
-    // New customers
+    // Cập nhật chỉ số KPI
+    totalTicketsThisMonth = ticketsCount;
+    standardTicketsCount = stdSeats;
+    vipTicketsCount = vipSeats;
+    totalRevenueThisMonth = totalRev;
+    movieRevenueThisMonth = movieRev;
+    comboRevenueThisMonth = comboRev;
+    dailyRevenue = (totalRev > 0) ? max(140000LL, totalRev / 7) : 0;
+
     if (!registrationTimes.empty()) {
         newCustomersThisMonth = (int)registrationTimes.size();
     }
+
+    // Cập nhật thống kê 4 tháng động
+    const array<string, 4> mOrder = {"09/2025", "10/2025", "11/2025", "12/2025"};
+    monthlyStatsList.clear();
+    long long accRev = 0;
+    long long maxMonthRev = 0;
+    int maxMonthIdx = -1;
+
+    for (int i = 0; i < 4; ++i) {
+        long long r = monthRevMap[mOrder[i]];
+        accRev += r;
+        if (r > maxMonthRev) {
+            maxMonthRev = r;
+            maxMonthIdx = i;
+        }
+
+        wstring badge = L"Khởi điểm";
+        Color bBg(241, 245, 249);
+        Color bTxt(100, 116, 139);
+
+        if (i > 0) {
+            long long prev = monthRevMap[mOrder[i - 1]];
+            if (prev > 0) {
+                double pct = ((double)(r - prev) * 100.0) / (double)prev;
+                wstringstream wss;
+                wss << fixed << setprecision(1) << (pct >= 0 ? L"+" : L"") << pct << L"%";
+                badge = wss.str();
+                if (pct >= 0) {
+                    bBg = Color(220, 252, 231);
+                    bTxt = Color(22, 163, 74);
+                } else {
+                    bBg = Color(255, 228, 230);
+                    bTxt = Color(225, 29, 72);
+                }
+            } else if (r > 0) {
+                badge = L"+100%";
+                bBg = Color(220, 252, 231);
+                bTxt = Color(22, 163, 74);
+            } else {
+                badge = L"0.0%";
+            }
+        }
+
+        monthlyStatsList.push_back({
+            mOrder[i],
+            s2ws(mOrder[i]),
+            r,
+            badge,
+            bBg,
+            bTxt,
+            false
+        });
+    }
+
+    if (maxMonthIdx >= 0 && maxMonthRev > 0) {
+        monthlyStatsList[maxMonthIdx].isRecord = true;
+    }
+    totalAccumulatedRevenue = accRev;
+}
+
+void OverviewPanel::openExportedFile(const string& path) const {
+#ifdef _WIN32
+    ShellExecuteA(NULL, "open", path.c_str(), NULL, NULL, SW_SHOWNORMAL);
+#else
+    system(("start \"\" \"" + path + "\"").c_str());
+#endif
+}
+
+bool OverviewPanel::exportReportToCsv() {
+    string outPath = FileUtils::resolveDataPath("data/overview_report.csv");
+    ofstream out(outPath, ios::binary);
+    if (!out.is_open()) {
+        outPath = "overview_report.csv";
+        out.open(outPath, ios::binary);
+        if (!out.is_open()) return false;
+    }
+
+    // UTF-8 BOM để mở trực tiếp trên Microsoft Excel không bị lỗi font tiếng Việt
+    const unsigned char bom[] = {0xEF, 0xBB, 0xBF};
+    out.write(reinterpret_cast<const char*>(bom), sizeof(bom));
+
+    string periodStr = (selectedDateIndex >= 0 && selectedDateIndex < (int)dateOptions.size())
+                       ? UITheme::wstrToUtf8(dateOptions[selectedDateIndex]) : "Toàn kỳ";
+    string roomStr = (selectedRoomIndex >= 0 && selectedRoomIndex < (int)roomOptions.size())
+                     ? UITheme::wstrToUtf8(roomOptions[selectedRoomIndex]) : "Tất cả phòng";
+    string queryStr = searchQuery.empty() ? "Không có" : UITheme::wstrToUtf8(searchQuery);
+
+    out << "BÁO CÁO TỔNG QUAN DOANH THU & VẬN HÀNH RẠP CINECORE\n";
+    out << "Kỳ báo cáo," << periodStr << "\n";
+    out << "Phòng chiếu," << roomStr << "\n";
+    out << "Từ khóa lọc," << queryStr << "\n\n";
+
+    out << "CHỈ SỐ KPI,GIÁ TRỊ\n";
+    out << "Tổng doanh thu kỳ chọn," << totalRevenueThisMonth << "\n";
+    out << "Doanh thu vé phim," << movieRevenueThisMonth << "\n";
+    out << "Doanh thu combo F&B," << comboRevenueThisMonth << "\n";
+    out << "Tổng số vé bán ra," << totalTicketsThisMonth << " (Standard: " << standardTicketsCount << " - VIP: " << vipTicketsCount << ")\n";
+    out << "Khách hàng đăng ký," << newCustomersThisMonth << "\n\n";
+
+    out << "HẠNG,TÊN PHIM,SỐ VÉ BÁN,DOANH THU PHIM (VNĐ)\n";
+    for (size_t i = 0; i < topMoviesList.size(); ++i) {
+        out << (i + 1) << ",\"" << topMoviesList[i].title << "\"," << topMoviesList[i].tickets << "," << topMoviesList[i].revenue << "\n";
+    }
+
+    out << "\nTHÁNG,BIẾN ĐỘNG,DOANH THU (VNĐ)\n";
+    for (const auto& m : monthlyStatsList) {
+        out << m.month << ",\"" << UITheme::wstrToUtf8(m.changeBadge) << "\"," << m.revenue << "\n";
+    }
+    out.close();
+
+    // Tự động mở file trực tiếp bằng ứng dụng mặc định của hệ điều hành (Excel/WPS/Notepad)
+    openExportedFile(outPath);
+    reportModalOpen = true;
+    return true;
 }
 
 void OverviewPanel::refresh() {
+    searchQuery.clear();
+    searchFocused = false;
+    dateDropdownOpen = false;
+    roomDropdownOpen = false;
+    selectedDateIndex = 0;
+    selectedRoomIndex = 0;
+    reportModalOpen = false;
     loadData();
     toastActive = true;
     toastTimer = 2.5f;
-    toastMessage = L"Đã làm mới dữ liệu thời gian thực thành công!";
+    toastMessage = L"Đã làm mới toàn bộ dữ liệu và đặt lại bộ lọc thành công!";
 }
 
 void OverviewPanel::handleEvent(const Event& event, const RenderWindow& /*window*/) {
+    // 0. Xử lý click trên Modal Báo cáo nếu đang mở
+    if (reportModalOpen) {
+        float mw = 760.f, mh = 530.f;
+        float mx = position.x + (width - mw) / 2.f;
+        float my = position.y + (height - mh) / 2.f;
+
+        if (auto mousePress = event.getIf<Event::MouseButtonPressed>()) {
+            if (mousePress->button == Mouse::Button::Left) {
+                Vector2f mPos(static_cast<float>(mousePress->position.x), static_cast<float>(mousePress->position.y));
+
+                // Nút đóng (X) góc trên phải
+                FloatRect closeXRect({mx + mw - 38.f, my + 14.f}, {24.f, 24.f});
+                if (closeXRect.contains(mPos)) {
+                    reportModalOpen = false;
+                    return;
+                }
+
+                // Nút "Mở file Excel / Ứng dụng ngoài"
+                FloatRect btnExcel({mx + mw - 340.f, my + mh - 50.f}, {210.f, 36.f});
+                if (btnExcel.contains(mPos)) {
+                    openExportedFile(FileUtils::resolveDataPath("data/overview_report.csv"));
+                    return;
+                }
+
+                // Nút "Đóng"
+                FloatRect btnClose({mx + mw - 115.f, my + mh - 50.f}, {100.f, 36.f});
+                if (btnClose.contains(mPos)) {
+                    reportModalOpen = false;
+                    return;
+                }
+
+                // Click ra ngoài modal -> đóng modal
+                FloatRect modalRect({mx, my}, {mw, mh});
+                if (!modalRect.contains(mPos)) {
+                    reportModalOpen = false;
+                    return;
+                }
+            }
+        }
+        return; // Chặn sự kiện truyền xuống các thành phần bên dưới khi modal đang mở
+    }
+
+    float topY = position.y + 16.f;
+    FloatRect searchRect({position.x + width - 801.f, topY}, {220.f, 36.f});
+    FloatRect clearSearchRect({searchRect.position.x + searchRect.size.x - 26.f, topY + 6.f}, {22.f, 24.f});
+    FloatRect dateRect({position.x + width - 571.f, topY}, {185.f, 36.f});
+    FloatRect roomRect({position.x + width - 376.f, topY}, {185.f, 36.f});
+    FloatRect exportRect({position.x + width - 181.f, topY}, {115.f, 36.f});
+    FloatRect reloadRect({position.x + width - 56.f, topY}, {36.f, 36.f});
+
     if (auto mousePress = event.getIf<Event::MouseButtonPressed>()) {
         if (mousePress->button == Mouse::Button::Left) {
             Vector2f mPos(static_cast<float>(mousePress->position.x), static_cast<float>(mousePress->position.y));
-            
-            // Xuất báo cáo button
-            FloatRect exportRect({position.x + width - 181.f, position.y + 16.f}, {115.f, 36.f});
-            if (exportRect.contains(mPos)) {
-                toastActive = true;
-                toastTimer = 3.f;
-                toastMessage = L"Đã xuất báo cáo tổng quan thành công (Excel / CSV)!";
+
+            // 1. Kiểm tra click vào menu xổ xuống Chọn Kỳ (nếu đang mở)
+            if (dateDropdownOpen) {
+                float menuW = 215.f;
+                float itemH = 34.f;
+                FloatRect menuRect({dateRect.position.x, dateRect.position.y + 40.f},
+                                   {menuW, (float)dateOptions.size() * itemH + 8.f});
+                if (menuRect.contains(mPos)) {
+                    int idx = static_cast<int>((mPos.y - (dateRect.position.y + 44.f)) / itemH);
+                    if (idx >= 0 && idx < (int)dateOptions.size()) {
+                        selectedDateIndex = idx;
+                        dateDropdownOpen = false;
+                        calculateStats();
+                        toastActive = true;
+                        toastTimer = 2.2f;
+                        toastMessage = L"Đã lọc theo kỳ: " + dateOptions[idx];
+                        return;
+                    }
+                }
             }
 
-            // Reload button
-            FloatRect reloadRect({position.x + width - 56.f, position.y + 16.f}, {36.f, 36.f});
+            // 2. Kiểm tra click vào menu xổ xuống Chọn Phòng Chiếu (nếu đang mở)
+            if (roomDropdownOpen) {
+                float menuW = 215.f;
+                float itemH = 34.f;
+                FloatRect menuRect({roomRect.position.x, roomRect.position.y + 40.f},
+                                   {menuW, (float)roomOptions.size() * itemH + 8.f});
+                if (menuRect.contains(mPos)) {
+                    int idx = static_cast<int>((mPos.y - (roomRect.position.y + 44.f)) / itemH);
+                    if (idx >= 0 && idx < (int)roomOptions.size()) {
+                        selectedRoomIndex = idx;
+                        roomDropdownOpen = false;
+                        calculateStats();
+                        toastActive = true;
+                        toastTimer = 2.2f;
+                        toastMessage = L"Đã lọc theo: " + roomOptions[idx];
+                        return;
+                    }
+                }
+            }
+
+            // 3. Click nút xóa nhanh trong ô tìm kiếm
+            if (!searchQuery.empty() && clearSearchRect.contains(mPos)) {
+                searchQuery.clear();
+                searchFocused = true;
+                calculateStats();
+                return;
+            }
+
+            // 4. Click vào ô Tìm kiếm
+            if (searchRect.contains(mPos)) {
+                searchFocused = true;
+                dateDropdownOpen = false;
+                roomDropdownOpen = false;
+                return;
+            } else {
+                searchFocused = false;
+            }
+
+            // 5. Click vào nút Dropdown Kỳ thời gian
+            if (dateRect.contains(mPos)) {
+                dateDropdownOpen = !dateDropdownOpen;
+                roomDropdownOpen = false;
+                return;
+            }
+
+            // 6. Click vào nút Dropdown Phòng chiếu
+            if (roomRect.contains(mPos)) {
+                roomDropdownOpen = !roomDropdownOpen;
+                dateDropdownOpen = false;
+                return;
+            }
+
+            // Đóng dropdown nếu click ra ngoài
+            dateDropdownOpen = false;
+            roomDropdownOpen = false;
+
+            // 7. Click nút Xuất báo cáo
+            if (exportRect.contains(mPos)) {
+                bool ok = exportReportToCsv();
+                toastActive = true;
+                toastTimer = 3.f;
+                toastMessage = ok ? L"Đã xuất báo cáo và mở trong Excel / CSV thành công!"
+                                  : L"Đã xuất báo cáo tổng quan thành công (Excel / CSV)!";
+                return;
+            }
+
+            // 8. Click nút Làm mới (Reload)
             if (reloadRect.contains(mPos)) {
                 refresh();
+                return;
+            }
+        }
+    }
+
+    // Xử lý gõ phím vào ô tìm kiếm (hỗ trợ đầy đủ tiếng Việt Unicode)
+    if (searchFocused) {
+        if (auto textEv = event.getIf<Event::TextEntered>()) {
+            char32_t u = textEv->unicode;
+            if (u == 8) { // Backspace
+                if (!searchQuery.empty()) {
+                    searchQuery.pop_back();
+                    calculateStats();
+                }
+            } else if (u == 13 || u == 27) { // Enter hoặc Esc
+                searchFocused = false;
+            } else if (u >= 32 && u != 127) {
+                if (searchQuery.size() < 30) {
+                    searchQuery.push_back(static_cast<wchar_t>(u));
+                    calculateStats();
+                }
             }
         }
     }
 }
 
 void OverviewPanel::update(const Vector2f& mousePos, bool /*mouseDown*/) {
-    // Export hover
-    FloatRect exportRect({position.x + width - 181.f, position.y + 16.f}, {115.f, 36.f});
-    exportHovered = exportRect.contains(mousePos);
+    float topY = position.y + 16.f;
+    FloatRect searchRect({position.x + width - 801.f, topY}, {220.f, 36.f});
+    FloatRect dateRect({position.x + width - 571.f, topY}, {185.f, 36.f});
+    FloatRect roomRect({position.x + width - 376.f, topY}, {185.f, 36.f});
+    FloatRect exportRect({position.x + width - 181.f, topY}, {115.f, 36.f});
+    FloatRect reloadRect({position.x + width - 56.f, topY}, {36.f, 36.f});
 
-    // Reload hover
-    FloatRect reloadRect({position.x + width - 56.f, position.y + 16.f}, {36.f, 36.f});
+    searchHovered = searchRect.contains(mousePos);
+    dateHovered = dateRect.contains(mousePos);
+    roomHovered = roomRect.contains(mousePos);
+    exportHovered = exportRect.contains(mousePos);
     reloadHovered = reloadRect.contains(mousePos);
+
+    hoveredDateOption = -1;
+    if (dateDropdownOpen) {
+        float itemH = 34.f;
+        for (int i = 0; i < (int)dateOptions.size(); ++i) {
+            FloatRect r({dateRect.position.x, dateRect.position.y + 44.f + i * itemH}, {215.f, itemH});
+            if (r.contains(mousePos)) {
+                hoveredDateOption = i;
+                break;
+            }
+        }
+    }
+
+    hoveredRoomOption = -1;
+    if (roomDropdownOpen) {
+        float itemH = 34.f;
+        for (int i = 0; i < (int)roomOptions.size(); ++i) {
+            FloatRect r({roomRect.position.x, roomRect.position.y + 44.f + i * itemH}, {215.f, itemH});
+            if (r.contains(mousePos)) {
+                hoveredRoomOption = i;
+                break;
+            }
+        }
+    }
+
+    // Nhấp nháy con trỏ ô tìm kiếm
+    cursorBlinkTimer += 0.016f;
+    if (cursorBlinkTimer >= 0.5f) {
+        cursorBlinkTimer = 0.f;
+        showCursor = !showCursor;
+    }
 
     // Movie table hover
     hoveredMovieRow = -1;
@@ -349,6 +787,15 @@ void OverviewPanel::update(const Vector2f& mousePos, bool /*mouseDown*/) {
             toastActive = false;
         }
     }
+
+    // Modal button hovers
+    if (reportModalOpen) {
+        float mw = 760.f, mh = 530.f;
+        float mx = position.x + (width - mw) / 2.f;
+        float my = position.y + (height - mh) / 2.f;
+        modalOpenExcelHovered = FloatRect({mx + mw - 340.f, my + mh - 50.f}, {210.f, 36.f}).contains(mousePos);
+        modalCloseHovered = FloatRect({mx + mw - 115.f, my + mh - 50.f}, {100.f, 36.f}).contains(mousePos);
+    }
 }
 
 void OverviewPanel::render(RenderTarget& target) const {
@@ -373,7 +820,15 @@ void OverviewPanel::render(RenderTarget& target) const {
     // 5. Bottom Engine Status Bar
     drawBottomBar(target);
 
-    // 6. Toast Notification
+    // 6. Dropdown Popups (vẽ trên cùng để không bị thẻ KPI che khuất)
+    drawDropdownPopups(target);
+
+    // 7. Modal Báo cáo tổng quan (Hiển thị trực tiếp trên giao diện)
+    if (reportModalOpen) {
+        drawReportModal(target);
+    }
+
+    // 8. Toast Notification
     if (toastActive) {
         drawToast(target);
     }
@@ -404,20 +859,23 @@ void OverviewPanel::drawHeader(RenderTarget& target) const {
 
     // Subtitle
     Text subText(font);
-    subText.setString(L"Dữ liệu thời gian thực rạp CineCore Đà Nẵng - Cập nhật lần cuối: 18:42, 27/10/2026");
+    subText.setString(L"Dữ liệu thời gian thực rạp CineCore Đà Nẵng - Cập nhật tự động từ CSV");
     subText.setCharacterSize(12.5f);
     subText.setFillColor(Color(100, 116, 139)); // Slate-500
     subText.setPosition({position.x + 20.f, topY + 30.f});
     target.draw(subText);
 
     // Right Controls
-    // 1. Search Box
-    Vector2f searchPos(position.x + width - 781.f, topY);
-    RoundedRectRenderer::draw(target, searchPos, {200.f, 36.f}, 6.f, Color::White, 1.f, Color(203, 213, 225));
+    // 1. Search Box (rộng 220px, hỗ trợ nhập tiếng Việt & nút xóa nhanh)
+    Vector2f searchPos(position.x + width - 801.f, topY);
+    Color searchBorder = searchFocused ? Color(2, 132, 199)
+                                       : (searchHovered ? Color(148, 163, 184) : Color(203, 213, 225));
+    float searchOutline = searchFocused ? 1.6f : 1.f;
+    RoundedRectRenderer::draw(target, searchPos, {220.f, 36.f}, 6.f, Color::White, searchOutline, searchBorder);
 
     // Kính lúp tìm kiếm
     Vector2f oIconPos(searchPos.x + 10.f, topY + 11.f);
-    Color oIcCol(148, 163, 184);
+    Color oIcCol = searchFocused ? Color(2, 132, 199) : Color(148, 163, 184);
     CircleShape oLens(5.f, 16);
     oLens.setFillColor(Color::Transparent);
     oLens.setOutlineThickness(1.6f);
@@ -431,48 +889,72 @@ void OverviewPanel::drawHeader(RenderTarget& target) const {
     oStem.setPosition({oIconPos.x + 8.f, oIconPos.y + 8.f});
     target.draw(oStem);
 
-    Text searchPlaceholder(font);
-    searchPlaceholder.setString(L"Tìm kiếm phim, mã vé, combo...");
-    searchPlaceholder.setCharacterSize(12.f);
-    searchPlaceholder.setFillColor(Color(148, 163, 184));
-    searchPlaceholder.setPosition({searchPos.x + 28.f, searchPos.y + 9.f});
-    target.draw(searchPlaceholder);
+    if (searchQuery.empty() && !searchFocused) {
+        Text searchPlaceholder(font);
+        searchPlaceholder.setString(L"Tìm phim, mã vé, combo...");
+        searchPlaceholder.setCharacterSize(12.f);
+        searchPlaceholder.setFillColor(Color(148, 163, 184));
+        searchPlaceholder.setPosition({searchPos.x + 28.f, searchPos.y + 9.f});
+        target.draw(searchPlaceholder);
+    } else {
+        wstring dispSearch = searchQuery;
+        Text searchTxt(font, dispSearch, 12);
+        while (!dispSearch.empty() && searchTxt.getLocalBounds().size.x > 158.f) {
+            dispSearch.erase(0, 1);
+            searchTxt.setString(dispSearch);
+        }
+        searchTxt.setFillColor(Color(15, 23, 42));
+        searchTxt.setPosition({searchPos.x + 28.f, searchPos.y + 9.f});
+        target.draw(searchTxt);
 
-    // 2. Date Filter
+        if (searchFocused && showCursor) {
+            float curX = searchPos.x + 28.f + searchTxt.getGlobalBounds().size.x + 2.f;
+            RectangleShape caret({1.5f, 16.f});
+            caret.setFillColor(Color(2, 132, 199));
+            caret.setPosition({curX, searchPos.y + 10.f});
+            target.draw(caret);
+        }
+
+        if (!searchQuery.empty()) {
+            UITheme::drawCloseIcon(target, {searchPos.x + 204.f, searchPos.y + 18.f}, 8.5f, Color(148, 163, 184), 1.6f);
+        }
+    }
+
+    // 2. Date Filter Dropdown
     Vector2f datePos(position.x + width - 571.f, topY);
-    RoundedRectRenderer::draw(target, datePos, {185.f, 36.f}, 6.f, Color::White, 1.f, Color(203, 213, 225));
-    Text dateText(font);
-    dateText.setString(L"Tháng 10/2026 (01/10 - 31/10)");
-    dateText.setCharacterSize(11.5f);
-    dateText.setFillColor(Color(51, 65, 85));
-    dateText.setPosition({datePos.x + 10.f, datePos.y + 9.f});
+    Color dateBorder = dateDropdownOpen ? Color(2, 132, 199)
+                                        : (dateHovered ? Color(148, 163, 184) : Color(203, 213, 225));
+    RoundedRectRenderer::draw(target, datePos, {185.f, 36.f}, 6.f, Color::White, dateDropdownOpen ? 1.5f : 1.f, dateBorder);
+
+    wstring curDateLabel = (selectedDateIndex >= 0 && selectedDateIndex < (int)dateOptions.size())
+                           ? dateOptions[selectedDateIndex] : L"Toàn kỳ (09/2025 - 12/2025)";
+    Text dateText(font, curDateLabel, 11);
+    while (!curDateLabel.empty() && dateText.getLocalBounds().size.x > 148.f) {
+        curDateLabel.pop_back();
+        dateText.setString(curDateLabel + L"..");
+    }
+    dateText.setFillColor(selectedDateIndex == 0 ? Color(51, 65, 85) : Color(2, 132, 199));
+    dateText.setPosition({datePos.x + 10.f, datePos.y + 10.f});
     target.draw(dateText);
+    UITheme::drawChevronDown(target, {datePos.x + 170.f, datePos.y + 18.f}, 4.2f, Color(100, 116, 139));
 
-    ConvexShape dateChev;
-    dateChev.setPointCount(3);
-    dateChev.setPoint(0, {datePos.x + 165.f, datePos.y + 16.f});
-    dateChev.setPoint(1, {datePos.x + 173.f, datePos.y + 16.f});
-    dateChev.setPoint(2, {datePos.x + 169.f, datePos.y + 21.f});
-    dateChev.setFillColor(Color(100, 116, 139));
-    target.draw(dateChev);
-
-    // 3. Room Filter
+    // 3. Room Filter Dropdown
     Vector2f roomPos(position.x + width - 376.f, topY);
-    RoundedRectRenderer::draw(target, roomPos, {185.f, 36.f}, 6.f, Color::White, 1.f, Color(203, 213, 225));
-    Text roomText(font);
-    roomText.setString(L"Tất cả phòng chiếu (Hall 01-08)");
-    roomText.setCharacterSize(11.5f);
-    roomText.setFillColor(Color(51, 65, 85));
-    roomText.setPosition({roomPos.x + 8.f, roomPos.y + 9.f});
-    target.draw(roomText);
+    Color roomBorder = roomDropdownOpen ? Color(2, 132, 199)
+                                        : (roomHovered ? Color(148, 163, 184) : Color(203, 213, 225));
+    RoundedRectRenderer::draw(target, roomPos, {185.f, 36.f}, 6.f, Color::White, roomDropdownOpen ? 1.5f : 1.f, roomBorder);
 
-    ConvexShape roomChev;
-    roomChev.setPointCount(3);
-    roomChev.setPoint(0, {roomPos.x + 165.f, roomPos.y + 16.f});
-    roomChev.setPoint(1, {roomPos.x + 173.f, roomPos.y + 16.f});
-    roomChev.setPoint(2, {roomPos.x + 169.f, roomPos.y + 21.f});
-    roomChev.setFillColor(Color(100, 116, 139));
-    target.draw(roomChev);
+    wstring curRoomLabel = (selectedRoomIndex >= 0 && selectedRoomIndex < (int)roomOptions.size())
+                           ? roomOptions[selectedRoomIndex] : L"Tất cả phòng chiếu";
+    Text roomText(font, curRoomLabel, 11);
+    while (!curRoomLabel.empty() && roomText.getLocalBounds().size.x > 148.f) {
+        curRoomLabel.pop_back();
+        roomText.setString(curRoomLabel + L"..");
+    }
+    roomText.setFillColor(selectedRoomIndex == 0 ? Color(51, 65, 85) : Color(2, 132, 199));
+    roomText.setPosition({roomPos.x + 10.f, roomPos.y + 10.f});
+    target.draw(roomText);
+    UITheme::drawChevronDown(target, {roomPos.x + 170.f, roomPos.y + 18.f}, 4.2f, Color(100, 116, 139));
 
     // 4. Export Report Button
     Vector2f exportPos(position.x + width - 181.f, topY);
@@ -488,9 +970,51 @@ void OverviewPanel::drawHeader(RenderTarget& target) const {
 
     // 5. Reload Button
     Vector2f reloadPos(position.x + width - 56.f, topY);
-    Color reloadBg = reloadHovered ? Color(241, 245, 249) : Color::White;
-    RoundedRectRenderer::draw(target, reloadPos, {36.f, 36.f}, 6.f, reloadBg, 1.f, Color(203, 213, 225));
-    UITheme::drawReloadIcon(target, {reloadPos.x + 18.f, reloadPos.y + 18.f}, 18.f, Color(71, 85, 105));
+    Color reloadBg = reloadHovered ? Color(224, 242, 254) : Color::White;
+    Color reloadBorder = reloadHovered ? Color(2, 132, 199) : Color(203, 213, 225);
+    Color reloadIconCol = reloadHovered ? Color(2, 132, 199) : Color(51, 65, 85);
+    RoundedRectRenderer::draw(target, reloadPos, {36.f, 36.f}, 6.f, reloadBg, 1.f, reloadBorder);
+    UITheme::drawReloadIcon(target, {reloadPos.x + 18.f, reloadPos.y + 18.f}, 18.f, reloadIconCol);
+}
+
+void OverviewPanel::drawDropdownPopups(RenderTarget& target) const {
+    float topY = position.y + 16.f;
+    float menuW = 215.f;
+    float itemH = 34.f;
+
+    auto drawPopupMenu = [&](Vector2f anchorPos, const vector<wstring>& options, int selectedIdx, int hoveredIdx) {
+        float menuH = (float)options.size() * itemH + 8.f;
+        // Đổ bóng nhẹ dưới menu
+        RoundedRectRenderer::draw(target, {anchorPos.x + 2.f, anchorPos.y + 42.f}, {menuW, menuH}, 8.f, Color(15, 23, 42, 28));
+        RoundedRectRenderer::draw(target, {anchorPos.x, anchorPos.y + 40.f}, {menuW, menuH}, 8.f, Color::White, 1.2f, Color(203, 213, 225));
+
+        for (int i = 0; i < (int)options.size(); ++i) {
+            Vector2f itemPos(anchorPos.x + 4.f, anchorPos.y + 44.f + i * itemH);
+            bool isSel = (i == selectedIdx);
+            bool isHov = (i == hoveredIdx);
+
+            if (isSel || isHov) {
+                Color rowBg = isSel ? Color(224, 242, 254) : Color(241, 245, 249);
+                RoundedRectRenderer::draw(target, itemPos, {menuW - 8.f, itemH - 2.f}, 5.f, rowBg);
+            }
+
+            Text optTxt(isSel ? boldFont : font, options[i], 11.5f);
+            optTxt.setFillColor(isSel ? Color(2, 132, 199) : Color(30, 41, 59));
+            optTxt.setPosition({itemPos.x + 10.f, itemPos.y + 8.f});
+            target.draw(optTxt);
+
+            if (isSel) {
+                UITheme::drawCheckmark(target, {itemPos.x + menuW - 22.f, itemPos.y + 15.f}, 0.85f, Color(2, 132, 199), 2.f);
+            }
+        }
+    };
+
+    if (dateDropdownOpen) {
+        drawPopupMenu({position.x + width - 571.f, topY}, dateOptions, selectedDateIndex, hoveredDateOption);
+    }
+    if (roomDropdownOpen) {
+        drawPopupMenu({position.x + width - 376.f, topY}, roomOptions, selectedRoomIndex, hoveredRoomOption);
+    }
 }
 
 void OverviewPanel::drawKpiCards(RenderTarget& target) const {
@@ -514,6 +1038,11 @@ void OverviewPanel::drawKpiCards(RenderTarget& target) const {
         lbl.setString(label);
         lbl.setCharacterSize(13);
         lbl.setFillColor(Color(100, 116, 139));
+        // Tự động thu nhỏ cỡ chữ nếu tiêu đề dài để không bao giờ đè lên huy hiệu F&B / Icon góc phải
+        float maxLabelW = cardW - 54.f;
+        if (lbl.getLocalBounds().size.x > maxLabelW) {
+            lbl.setCharacterSize(11);
+        }
         lbl.setPosition({cardPos.x + 14.f, cardPos.y + 12.f});
         target.draw(lbl);
 
@@ -525,13 +1054,7 @@ void OverviewPanel::drawKpiCards(RenderTarget& target) const {
         target.draw(iconCircle);
 
         if (iconChar == L"PLAY") {
-            ConvexShape tri;
-            tri.setPointCount(3);
-            tri.setPoint(0, {iconPos.x + 10.5f, iconPos.y + 8.5f});
-            tri.setPoint(1, {iconPos.x + 17.5f, iconPos.y + 13.f});
-            tri.setPoint(2, {iconPos.x + 10.5f, iconPos.y + 17.5f});
-            tri.setFillColor(iconColor);
-            target.draw(tri);
+            UITheme::drawPlayIcon(target, {iconPos.x + 13.f, iconPos.y + 13.f}, 11.f, iconColor);
         } else {
             Text iconTxt(boldFont);
             iconTxt.setString(iconChar);
@@ -788,8 +1311,8 @@ void OverviewPanel::drawKpiCards(RenderTarget& target) const {
                      L"8 phim đang công chiếu", L"Chiếm 70.0%", Color(37, 99, 235), L"tổng doanh thu",
                      Color(219, 234, 254), L"PLAY", Color(37, 99, 235));
 
-    // 6. Doanh thu combo bắp nước
-    drawStandardCard(5, L"Doanh thu combo bắp nước", s2ws(toCurrency(comboRevenueThisMonth)), L"",
+    // 6. Doanh thu combo F&B (Rút gọn tên để cân đối hoàn hảo, không chạm vào huy hiệu F&B)
+    drawStandardCard(5, L"Doanh thu combo F&B", s2ws(toCurrency(comboRevenueThisMonth)), L"",
                      L"Bắp Caramel / Phô mai", L"Chiếm 30.0%", Color(225, 29, 72), L"+18.2% vs T9",
                      Color(255, 228, 230), L"F&B", Color(225, 29, 72));
 }
@@ -1370,4 +1893,178 @@ void OverviewPanel::drawToast(RenderTarget& target) const {
     RoundedRectRenderer::draw(target, tPos, {tw, th}, 19.f, Color(15, 23, 42, 235), 1.f, Color(51, 65, 85));
     toast.setPosition({tPos.x + 18.f, tPos.y + 9.f});
     target.draw(toast);
+}
+
+void OverviewPanel::drawReportModal(RenderTarget& target) const {
+    // 1. Phông nền tối mờ toàn màn hình
+    RectangleShape dimBg(Vector2f(width + 300.f, height + 100.f));
+    dimBg.setPosition({position.x - 300.f, position.y - 50.f});
+    dimBg.setFillColor(Color(15, 23, 42, 175));
+    target.draw(dimBg);
+
+    // 2. Thân Modal (Rộng 760px, Cao 530px)
+    float mw = 760.f;
+    float mh = 530.f;
+    Vector2f mPos(position.x + (width - mw) / 2.f, position.y + (height - mh) / 2.f);
+
+    RoundedRectRenderer::draw(target, mPos, {mw, mh}, 12.f, Color::White, 1.2f, Color(203, 213, 225));
+
+    // Header Modal: Tiêu đề + Huy hiệu thành công
+    Text mTitle(boldFont);
+    mTitle.setString(L"BÁO CÁO TỔNG QUAN DOANH THU & VẬN HÀNH");
+    mTitle.setCharacterSize(16);
+    mTitle.setFillColor(Color(15, 23, 42));
+    mTitle.setPosition({mPos.x + 24.f, mPos.y + 20.f});
+    target.draw(mTitle);
+
+    float titleW = mTitle.getGlobalBounds().size.x;
+    Vector2f badgePos(mPos.x + 24.f + titleW + 12.f, mPos.y + 20.f);
+    RoundedRectRenderer::draw(target, badgePos, {130.f, 22.f}, 11.f, Color(220, 252, 231), 1.f, Color(167, 243, 208));
+    Text badgeTxt(boldFont);
+    badgeTxt.setString(L"• ĐÃ XUẤT CSV");
+    badgeTxt.setCharacterSize(11);
+    badgeTxt.setFillColor(Color(5, 150, 105));
+    badgeTxt.setPosition({badgePos.x + 12.f, badgePos.y + 3.f});
+    target.draw(badgeTxt);
+
+    // Nút đóng (X)
+    UITheme::drawCloseIcon(target, {mPos.x + mw - 26.f, mPos.y + 26.f}, 12.f, Color(100, 116, 139), 2.f);
+
+    // Subtitle
+    string periodStr = (selectedDateIndex >= 0 && selectedDateIndex < (int)dateOptions.size())
+                       ? UITheme::wstrToUtf8(dateOptions[selectedDateIndex]) : "Toàn kỳ";
+    string roomStr = (selectedRoomIndex >= 0 && selectedRoomIndex < (int)roomOptions.size())
+                     ? UITheme::wstrToUtf8(roomOptions[selectedRoomIndex]) : "Tất cả phòng";
+    wstring subInfo = L"Kỳ: " + s2ws(periodStr) + L"  •  " + s2ws(roomStr) + L"  •  Cập nhật thời gian thực";
+    Text mSub(font, subInfo, 12);
+    mSub.setFillColor(Color(100, 116, 139));
+    mSub.setPosition({mPos.x + 24.f, mPos.y + 44.f});
+    target.draw(mSub);
+
+    // Đường kẻ phân cách
+    RectangleShape sep1(Vector2f(mw - 48.f, 1.f));
+    sep1.setPosition({mPos.x + 24.f, mPos.y + 68.f});
+    sep1.setFillColor(Color(226, 232, 240));
+    target.draw(sep1);
+
+    // 3. 4 Mini KPI Cards trong Modal
+    float kpiY = mPos.y + 80.f;
+    float kpiW = (mw - 48.f - 30.f) / 4.f; // ~170px
+    float kpiH = 68.f;
+
+    auto drawMiniKpi = [&](int idx, const wstring& lbl, const wstring& val, Color valCol) {
+        Vector2f kp(mPos.x + 24.f + idx * (kpiW + 10.f), kpiY);
+        RoundedRectRenderer::draw(target, kp, {kpiW, kpiH}, 6.f, Color(248, 250, 252), 1.f, Color(226, 232, 240));
+        Text l(font, lbl, 11.5f);
+        l.setFillColor(Color(100, 116, 139));
+        l.setPosition({kp.x + 12.f, kp.y + 8.f});
+        target.draw(l);
+
+        Text v(boldFont, val, 14.5f);
+        v.setFillColor(valCol);
+        v.setPosition({kp.x + 12.f, kp.y + 32.f});
+        target.draw(v);
+    };
+
+    drawMiniKpi(0, L"TỔNG DOANH THU", s2ws(toCurrency(totalRevenueThisMonth)), Color(15, 23, 42));
+    drawMiniKpi(1, L"DOANH THU PHIM", s2ws(toCurrency(movieRevenueThisMonth)), Color(37, 99, 235));
+    drawMiniKpi(2, L"DOANH THU F&B", s2ws(toCurrency(comboRevenueThisMonth)), Color(217, 119, 6));
+    drawMiniKpi(3, L"TỔNG VÉ XUẤT", to_wstring(totalTicketsThisMonth) + L" vé", Color(5, 150, 105));
+
+    // 4. Bảng Chi tiết Top 5 Phim trong Modal
+    float tblY = mPos.y + 162.f;
+    Text tblHead(boldFont, L"BẢNG ĐỐI CHIẾU DOANH THU CÁC PHIM HÀNG ĐẦU (TOP 5)", 12.5f);
+    tblHead.setFillColor(Color(15, 23, 42));
+    tblHead.setPosition({mPos.x + 24.f, tblY});
+    target.draw(tblHead);
+
+    float thY = tblY + 24.f;
+    RoundedRectRenderer::draw(target, {mPos.x + 24.f, thY}, {mw - 48.f, 32.f}, 4.f, Color(241, 245, 249));
+
+    float c1X = mPos.x + 36.f;
+    float c2X = mPos.x + 85.f;
+    float c3X = mPos.x + 460.f;
+    float c4X = mPos.x + mw - 36.f;
+
+    Text th1(boldFont, L"#", 11.5f); th1.setFillColor(Color(100, 116, 139)); th1.setPosition({c1X, thY + 7.f}); target.draw(th1);
+    Text th2(boldFont, L"TÊN PHIM CHIẾU", 11.5f); th2.setFillColor(Color(100, 116, 139)); th2.setPosition({c2X, thY + 7.f}); target.draw(th2);
+    Text th3(boldFont, L"SỐ VÉ BÁN", 11.5f); th3.setFillColor(Color(100, 116, 139)); th3.setPosition({c3X, thY + 7.f}); target.draw(th3);
+    Text th4(boldFont, L"DOANH THU PHIM", 11.5f); th4.setFillColor(Color(100, 116, 139));
+    FloatRect th4b = th4.getLocalBounds();
+    th4.setPosition({c4X - th4b.size.x, thY + 7.f}); target.draw(th4);
+
+    // 5 dòng phim
+    float rowTop = thY + 34.f;
+    float rowH = 36.f;
+    int showN = min(5, (int)topMoviesList.size());
+    for (int i = 0; i < showN; ++i) {
+        float ry = rowTop + i * rowH;
+        if (i % 2 == 1) {
+            RoundedRectRenderer::draw(target, {mPos.x + 24.f, ry}, {mw - 48.f, rowH}, 0.f, Color(248, 250, 252));
+        }
+
+        // Rank
+        Color rCol = (i == 0) ? Color(245, 158, 11) : (i == 1 ? Color(148, 163, 184) : Color(217, 119, 6));
+        CircleShape rCir(8.f);
+        rCir.setPosition({c1X - 2.f, ry + 9.f});
+        rCir.setFillColor(i < 3 ? rCol : Color(241, 245, 249));
+        target.draw(rCir);
+
+        Text rTxt(boldFont, to_wstring(i + 1), 10.5f);
+        rTxt.setFillColor(i < 3 ? Color::White : Color(100, 116, 139));
+        FloatRect rtb = rTxt.getLocalBounds();
+        rTxt.setPosition({c1X + 6.f - rtb.size.x / 2.f - rtb.position.x, ry + 10.f});
+        target.draw(rTxt);
+
+        // Tên phim
+        Text mTitleTxt(boldFont, topMoviesList[i].displayTitle, 12);
+        mTitleTxt.setFillColor(Color(15, 23, 42));
+        mTitleTxt.setPosition({c2X, ry + 9.f});
+        target.draw(mTitleTxt);
+
+        // Số vé
+        Text tksTxt(boldFont, to_wstring(topMoviesList[i].tickets) + L" vé", 12);
+        tksTxt.setFillColor(Color(37, 99, 235));
+        tksTxt.setPosition({c3X, ry + 9.f});
+        target.draw(tksTxt);
+
+        // Doanh thu
+        Text revTxt(boldFont, s2ws(toCurrency(topMoviesList[i].revenue)), 12.5f);
+        revTxt.setFillColor(Color(225, 29, 72));
+        FloatRect revB = revTxt.getLocalBounds();
+        revTxt.setPosition({c4X - revB.size.x, ry + 9.f});
+        target.draw(revTxt);
+    }
+
+    // Đường kẻ phân cách trước nút điều khiển
+    RectangleShape sep2(Vector2f(mw - 48.f, 1.f));
+    sep2.setPosition({mPos.x + 24.f, mPos.y + mh - 66.f});
+    sep2.setFillColor(Color(226, 232, 240));
+    target.draw(sep2);
+
+    // File path info
+    Text pathTxt(font, L"Vị trí lưu file: data/overview_report.csv (Mở tự động bằng Excel)", 11.5f);
+    pathTxt.setFillColor(Color(100, 116, 139));
+    pathTxt.setPosition({mPos.x + 24.f, mPos.y + mh - 42.f});
+    target.draw(pathTxt);
+
+    // Nút "Mở file Excel / Ứng dụng ngoài"
+    Vector2f btnExPos(mPos.x + mw - 340.f, mPos.y + mh - 50.f);
+    Color exBg = modalOpenExcelHovered ? Color(3, 105, 161) : Color(2, 132, 199);
+    RoundedRectRenderer::draw(target, btnExPos, {210.f, 36.f}, 6.f, exBg);
+    Text btnExTxt(boldFont, L"Mở bằng Excel / CSV", 12);
+    btnExTxt.setFillColor(Color::White);
+    FloatRect exb = btnExTxt.getLocalBounds();
+    btnExTxt.setPosition({btnExPos.x + (210.f - exb.size.x) / 2.f - exb.position.x, btnExPos.y + 9.f});
+    target.draw(btnExTxt);
+
+    // Nút "Đóng"
+    Vector2f btnClPos(mPos.x + mw - 115.f, mPos.y + mh - 50.f);
+    Color clBg = modalCloseHovered ? Color(226, 232, 240) : Color(241, 245, 249);
+    RoundedRectRenderer::draw(target, btnClPos, {100.f, 36.f}, 6.f, clBg, 1.f, Color(203, 213, 225));
+    Text btnClTxt(boldFont, L"Đóng", 12);
+    btnClTxt.setFillColor(Color(51, 65, 85));
+    FloatRect clb = btnClTxt.getLocalBounds();
+    btnClTxt.setPosition({btnClPos.x + (100.f - clb.size.x) / 2.f - clb.position.x, btnClPos.y + 9.f});
+    target.draw(btnClTxt);
 }

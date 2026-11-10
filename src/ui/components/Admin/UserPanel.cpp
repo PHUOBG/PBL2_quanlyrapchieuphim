@@ -11,6 +11,11 @@
 #include <iomanip>
 #include <sstream>
 
+#ifdef _WIN32
+#include <windows.h>
+#include <shellapi.h>
+#endif
+
 using namespace sf;
 using namespace std;
 
@@ -377,9 +382,37 @@ void UserPanel::handleEvent(const Event& event, const RenderWindow& window) {
             // 1. Header Buttons (khớp drawHeader: topY = position.y + 14.f, y = topY + 12.f = position.y + 26.f)
             FloatRect expRect({position.x + width - 275.f, position.y + 26.f}, {110.f, 36.f});
             if (expRect.contains(mPos)) {
+                string outPath = FileUtils::resolveDataPath("data/khach_hang_report.csv");
+                ofstream out(outPath, ios::binary);
+                if (!out.is_open()) {
+                    outPath = "khach_hang_report.csv";
+                    out.open(outPath, ios::binary);
+                }
+                if (out.is_open()) {
+                    const unsigned char bom[] = {0xEF, 0xBB, 0xBF};
+                    out.write(reinterpret_cast<const char*>(bom), sizeof(bom));
+                    out << "DANH SÁCH KHÁCH HÀNG & HỘI VIÊN RẠP CINECORE\n\n";
+                    out << "STT,Mã khách hàng,Họ và tên,Email,Số điện thoại,Hạng thẻ,Ngày đăng ký,Số vé đã mua,Tổng chi tiêu (VNĐ)\n";
+                    for (size_t i = 0; i < allCustomers.size(); ++i) {
+                        string tName = (allCustomers[i].tier == CustomerTier::GOLD) ? "Hạng Vàng" :
+                                       (allCustomers[i].tier == CustomerTier::SILVER ? "Hạng Bạc" : "Tiêu chuẩn");
+                        out << (i + 1) << "," << allCustomers[i].uid << ",\"" << allCustomers[i].fullName << "\","
+                            << allCustomers[i].email << ",\"" << allCustomers[i].phone << "\",\""
+                            << tName << "\"," << allCustomers[i].registeredDate << ","
+                            << allCustomers[i].ticketsBought << "," << allCustomers[i].totalSpent << "\n";
+                    }
+                    out.close();
+
+#ifdef _WIN32
+                    ShellExecuteA(NULL, "open", outPath.c_str(), NULL, NULL, SW_SHOWNORMAL);
+#else
+                    system(("start \"\" \"" + outPath + "\"").c_str());
+#endif
+                }
+
                 toastActive = true;
                 toastTimer = 3.f;
-                toastMessage = L"Đã xuất dữ liệu danh sách khách hàng ra Excel thành công!";
+                toastMessage = L"Đã xuất dữ liệu và mở file danh sách khách hàng trong Excel!";
                 return;
             }
 

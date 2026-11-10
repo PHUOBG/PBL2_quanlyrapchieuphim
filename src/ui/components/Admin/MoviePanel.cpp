@@ -276,47 +276,19 @@ void MoviePanel::confirmDelete() {
 
 // Vector Icon Helpers
 void MoviePanel::drawPlayIcon(RenderTarget& target, Vector2f pos, Color col) {
-    ConvexShape tri(3);
-    tri.setPoint(0, {pos.x, pos.y});
-    tri.setPoint(1, {pos.x + 9.f, pos.y + 5.5f});
-    tri.setPoint(2, {pos.x, pos.y + 11.f});
-    tri.setFillColor(col);
-    target.draw(tri);
+    UITheme::drawPlayIcon(target, {pos.x + 5.f, pos.y + 5.5f}, 12.f, col);
 }
 
 void MoviePanel::drawCalendarIcon(RenderTarget& target, Vector2f pos, Color col) {
-    RoundedRectRenderer::draw(target, pos, {14.f, 13.f}, 2.f, Color::Transparent, 1.4f, col);
-    RectangleShape bar({14.f, 3.f});
-    bar.setFillColor(col);
-    bar.setPosition(pos);
-    target.draw(bar);
+    UITheme::drawCalendarIcon(target, {pos.x + 7.f, pos.y + 6.5f}, 15.f, col);
 }
 
 void MoviePanel::drawClockIcon(RenderTarget& target, Vector2f pos, Color col) {
-    CircleShape c(7.f, 16);
-    c.setFillColor(Color::Transparent);
-    c.setOutlineThickness(1.4f);
-    c.setOutlineColor(col);
-    c.setPosition(pos);
-    target.draw(c);
-
-    RectangleShape h({4.f, 1.4f});
-    h.setFillColor(col);
-    h.setPosition({pos.x + 7.f, pos.y + 7.f});
-    target.draw(h);
-
-    RectangleShape m({1.4f, 5.f});
-    m.setFillColor(col);
-    m.setPosition({pos.x + 7.f, pos.y + 3.f});
-    target.draw(m);
+    UITheme::drawClockIcon(target, {pos.x + 7.f, pos.y + 7.f}, 7.5f, col);
 }
 
 void MoviePanel::drawFilmIcon(RenderTarget& target, Vector2f pos, Color col) {
-    RoundedRectRenderer::draw(target, pos, {15.f, 12.f}, 2.f, Color::Transparent, 1.4f, col);
-    RectangleShape l({3.f, 6.f});
-    l.setFillColor(col);
-    l.setPosition({pos.x + 6.f, pos.y + 3.f});
-    target.draw(l);
+    UITheme::drawFilmIcon(target, {pos.x + 7.5f, pos.y + 6.f}, 16.f, col);
 }
 
 void MoviePanel::drawSearchIcon(RenderTarget& target, Vector2f pos, Color col) {
@@ -812,28 +784,28 @@ void MoviePanel::render(RenderWindow& window) {
     UITheme::drawKpiCard(window, {startX, cardY}, {cardW, cardH},
                          L"Phim đang chiếu", to_wstring(countActive), L"Đang tạo doanh thu",
                          UITheme::SuccessLight, UITheme::SuccessDark, boldFont);
-    drawPlayIcon(window, {startX + cardW - 36.f, cardY + 28.f}, UITheme::SuccessDark);
+    UITheme::drawPlayIcon(window, {startX + cardW - 29.f, cardY + 33.f}, 13.f, UITheme::SuccessDark);
 
     // Card 2: Phim sắp khởi chiếu
     float c2X = startX + cardW + cardGap;
     UITheme::drawKpiCard(window, {c2X, cardY}, {cardW, cardH},
                          L"Phim sắp khởi chiếu", to_wstring(countUpcoming), L"Đã mở bán sớm",
                          UITheme::InfoLight, UITheme::InfoDark, boldFont);
-    drawCalendarIcon(window, {c2X + cardW - 38.f, cardY + 27.f}, UITheme::InfoDark);
+    UITheme::drawCalendarIcon(window, {c2X + cardW - 29.f, cardY + 33.f}, 17.f, UITheme::InfoDark);
 
     // Card 3: Tổng suất hôm nay
     float c3X = c2X + cardW + cardGap;
     UITheme::drawKpiCard(window, {c3X, cardY}, {cardW, cardH},
                          L"Tổng suất hôm nay", L"42", L"12 phòng chiếu full",
                          Color(243, 232, 255), Color(126, 34, 206), boldFont);
-    drawClockIcon(window, {c3X + cardW - 38.f, cardY + 26.f}, Color(126, 34, 206));
+    UITheme::drawClockIcon(window, {c3X + cardW - 29.f, cardY + 33.f}, 8.5f, Color(126, 34, 206));
 
     // Card 4: Tổng phim quản lý
     float c4X = c3X + cardW + cardGap;
     UITheme::drawKpiCard(window, {c4X, cardY}, {cardW, cardH},
                          L"Tổng phim quản lý", to_wstring(allMovies.size()), L"Kho dữ liệu CineCore",
                          UITheme::SurfaceSubtle, UITheme::TextSecondary, boldFont);
-    drawFilmIcon(window, {c4X + cardW - 38.f, cardY + 27.f}, UITheme::TextSecondary);
+    UITheme::drawFilmIcon(window, {c4X + cardW - 29.f, cardY + 33.f}, 18.f, UITheme::TextSecondary);
 
     // 5. TOOLBAR (Search & Filters & Actions)
     const float toolY = 252.f;

@@ -1,5 +1,6 @@
 #include "UI/components/Admin/MovieRevenuePanel.h"
 #include "UI/components/Admin/RoundedRectRenderer.h"
+#include "UI/components/Admin/UITheme.h"
 #include "repositories/booking/ComboRepository.h"
 #include "repositories/booking/ShowtimeRepository.h"
 #include "utils/FileUtils.h"
@@ -11,6 +12,11 @@
 #include <fstream>
 #include <iomanip>
 #include <sstream>
+
+#ifdef _WIN32
+#include <windows.h>
+#include <shellapi.h>
+#endif
 
 using namespace sf;
 using namespace std;
@@ -226,7 +232,67 @@ void MovieRevenuePanel::loadTickets() {
     }
 }
 
+void MovieRevenuePanel::openExportedFile(const string& path) const {
+#ifdef _WIN32
+    ShellExecuteA(NULL, "open", path.c_str(), NULL, NULL, SW_SHOWNORMAL);
+#else
+    system(("start \"\" \"" + path + "\"").c_str());
+#endif
+}
+
+bool MovieRevenuePanel::exportRevenueReportToCsv() {
+    string outPath = FileUtils::resolveDataPath("data/doanh_thu_report.csv");
+    ofstream out(outPath, ios::binary);
+    if (!out.is_open()) {
+        outPath = "doanh_thu_report.csv";
+        out.open(outPath, ios::binary);
+        if (!out.is_open()) return false;
+    }
+
+    // UTF-8 BOM để Excel mở trực tiếp tiếng Việt không lỗi font
+    const unsigned char bom[] = {0xEF, 0xBB, 0xBF};
+    out.write(reinterpret_cast<const char*>(bom), sizeof(bom));
+
+    out << "BÁO CÁO DOANH THU & QUYẾT TOÁN TÀI CHÍNH RẠP CINECORE\n";
+    out << "Thời gian kết xuất,24/12/2025\n\n";
+
+    out << "CHỈ SỐ TỔNG QUAN,GIÁ TRỊ\n";
+    out << "Tổng doanh thu toàn rạp," << totalRevenue << " VNĐ\n";
+    out << "Doanh thu vé phim," << movieRevenue << " VNĐ (Chiếm 59.1%)\n";
+    out << "Doanh thu combo F&B," << comboRevenue << " VNĐ (Chiếm 40.9%)\n";
+    out << "Tổng số vé đã xuất," << totalTickets << " vé\n";
+    out << "Tổng sản phẩm combo," << totalCombos << " combo\n\n";
+
+    out << "DOANH THU CHI TIẾT THEO PHIM\n";
+    out << "Hạng,Mã phim,Tên phim,Thể loại,Suất chiếu,Số vé bán,Doanh thu (VNĐ),Tỷ trọng\n";
+    for (size_t i = 0; i < moviesList.size(); ++i) {
+        out << (i + 1) << "," << moviesList[i].id << ",\"" << UITheme::wstrToUtf8(moviesList[i].title) << "\",\""
+            << UITheme::wstrToUtf8(moviesList[i].genre) << "\"," << moviesList[i].showtimes << ","
+            << moviesList[i].tickets << "," << moviesList[i].revenue << "," << moviesList[i].share << "%\n";
+    }
+
+    out << "\nTĂNG TRƯỞNG THEO THÁNG\n";
+    out << "Tháng,Doanh thu vé (VNĐ),Doanh thu combo (VNĐ),Tổng doanh thu (VNĐ),Biến động\n";
+    for (const auto& m : monthsList) {
+        out << m.month << "," << m.ticketRev << "," << m.comboRev << "," << m.totalRev << ",\""
+            << UITheme::wstrToUtf8(m.growth) << "\"\n";
+    }
+
+    out << "\nTOP COMBO F&B BÁN CHẠY\n";
+    out << "Mã combo,Tên combo,Đơn giá (VNĐ),Số lượng,Doanh thu (VNĐ),Tỷ trọng\n";
+    for (const auto& c : combosList) {
+        out << c.code << ",\"" << UITheme::wstrToUtf8(c.name) << "\"," << c.unitPrice << ","
+            << c.quantity << "," << c.revenue << "," << c.share << "%\n";
+    }
+    out.close();
+
+    openExportedFile(outPath);
+    reportModalOpen = true;
+    return true;
+}
+
 void MovieRevenuePanel::refresh() {
+    reportModalOpen = false;
     loadData();
     toastActive = true;
     toastTimer = 2.5f;
@@ -234,6 +300,48 @@ void MovieRevenuePanel::refresh() {
 }
 
 void MovieRevenuePanel::handleEvent(const Event& event, const RenderWindow& /*window*/) {
+    // 0. Xử lý click Modal Báo cáo Doanh thu nếu đang mở
+    if (reportModalOpen) {
+        float mw = 760.f, mh = 530.f;
+        float mx = position.x + (width - mw) / 2.f;
+        float my = position.y + (height - mh) / 2.f;
+
+        if (auto mousePress = event.getIf<Event::MouseButtonPressed>()) {
+            if (mousePress->button == Mouse::Button::Left) {
+                Vector2f mPos(static_cast<float>(mousePress->position.x), static_cast<float>(mousePress->position.y));
+
+                // Nút đóng (X)
+                FloatRect closeXRect({mx + mw - 38.f, my + 14.f}, {24.f, 24.f});
+                if (closeXRect.contains(mPos)) {
+                    reportModalOpen = false;
+                    return;
+                }
+
+                // Nút "Mở bằng Excel / CSV"
+                FloatRect btnExcel({mx + mw - 340.f, my + mh - 50.f}, {210.f, 36.f});
+                if (btnExcel.contains(mPos)) {
+                    openExportedFile(FileUtils::resolveDataPath("data/doanh_thu_report.csv"));
+                    return;
+                }
+
+                // Nút "Đóng"
+                FloatRect btnClose({mx + mw - 115.f, my + mh - 50.f}, {100.f, 36.f});
+                if (btnClose.contains(mPos)) {
+                    reportModalOpen = false;
+                    return;
+                }
+
+                // Click ra ngoài modal -> đóng
+                FloatRect modalRect({mx, my}, {mw, mh});
+                if (!modalRect.contains(mPos)) {
+                    reportModalOpen = false;
+                    return;
+                }
+            }
+        }
+        return;
+    }
+
     if (auto mousePress = event.getIf<Event::MouseButtonPressed>()) {
         if (mousePress->button == Mouse::Button::Left) {
             Vector2f mPos(static_cast<float>(mousePress->position.x), static_cast<float>(mousePress->position.y));
@@ -279,9 +387,11 @@ void MovieRevenuePanel::handleEvent(const Event& event, const RenderWindow& /*wi
 
             FloatRect exportRect({position.x + width - 120.f, position.y + 16.f}, {100.f, 36.f});
             if (exportRect.contains(mPos)) {
+                bool ok = exportRevenueReportToCsv();
                 toastActive = true;
                 toastTimer = 3.f;
-                toastMessage = L"Đã xuất báo cáo doanh thu Excel thành công!";
+                toastMessage = ok ? L"Đã xuất báo cáo và mở trong Excel / CSV thành công!"
+                                  : L"Đã xuất báo cáo doanh thu Excel thành công!";
                 return;
             }
         }
@@ -301,6 +411,14 @@ void MovieRevenuePanel::update(const Vector2f& mousePos, bool /*mouseDown*/) {
     // Button hovers
     reloadHovered = FloatRect({position.x + width - 230.f, position.y + 16.f}, {100.f, 36.f}).contains(mousePos);
     exportHovered = FloatRect({position.x + width - 120.f, position.y + 16.f}, {100.f, 36.f}).contains(mousePos);
+
+    if (reportModalOpen) {
+        float mw = 760.f, mh = 530.f;
+        float mx = position.x + (width - mw) / 2.f;
+        float my = position.y + (height - mh) / 2.f;
+        modalOpenExcelHovered = FloatRect({mx + mw - 340.f, my + mh - 50.f}, {210.f, 36.f}).contains(mousePos);
+        modalCloseHovered = FloatRect({mx + mw - 115.f, my + mh - 50.f}, {100.f, 36.f}).contains(mousePos);
+    }
 
     if (toastActive) {
         toastTimer -= 0.016f;
@@ -343,7 +461,12 @@ void MovieRevenuePanel::render(RenderTarget& target) const {
     // 6. Bottom Engine Status Bar
     drawBottomBar(target);
 
-    // 7. Toast Notification
+    // 7. Modal Báo cáo doanh thu (Hiển thị ngay trên màn hình khi nhấn xuất báo cáo)
+    if (reportModalOpen) {
+        drawReportModal(target);
+    }
+
+    // 8. Toast Notification
     if (toastActive) {
         drawToast(target);
     }
@@ -1000,36 +1123,97 @@ void MovieRevenuePanel::drawTab2TotalRevenue(RenderTarget& target) const {
         sub.setPosition({cPos.x + 16.f, cPos.y + 34.f});
         target.draw(sub);
 
-        // Donut Chart Representation
-        Vector2f donutCenter(cPos.x + 130.f, cPos.y + 135.f);
-        CircleShape outer(55.f);
-        outer.setPosition({donutCenter.x - 55.f, donutCenter.y - 55.f});
-        outer.setFillColor(Color(37, 99, 235)); // Vé phim (59.1%)
-        target.draw(outer);
+        // 1. Biểu đồ tròn Donut 2 múi màu cân đối (Vé phim 59.1% & Combo 40.9%)
+        Vector2f donutCenter(cPos.x + 120.f, cPos.y + 132.f);
+        float R = 54.f;  // Bán kính ngoài
+        float r = 35.f;  // Bán kính trong
+        const float PI = 3.14159265f;
 
-        CircleShape inner(36.f);
-        inner.setPosition({donutCenter.x - 36.f, donutCenter.y - 36.f});
-        inner.setFillColor(Color::White);
-        target.draw(inner);
+        // Tỷ lệ phân bổ thực tế: Vé phim (59.1%) và Combo (40.9%)
+        float movieShare = 0.591f;
+        float sepGap = 0.035f; // Khoảng hở phân cách trắng giữa 2 múi
 
+        auto drawDonutSegment = [&](float startA, float endA, Color col) {
+            int steps = max(10, static_cast<int>((endA - startA) * 24.f));
+            VertexArray strip(PrimitiveType::TriangleStrip, (steps + 1) * 2);
+            for (int i = 0; i <= steps; ++i) {
+                float a = startA + (endA - startA) * (static_cast<float>(i) / steps);
+                float ca = cos(a);
+                float sa = sin(a);
+                strip[i * 2].position = Vector2f(donutCenter.x + R * ca, donutCenter.y + R * sa);
+                strip[i * 2].color = col;
+                strip[i * 2 + 1].position = Vector2f(donutCenter.x + r * ca, donutCenter.y + r * sa);
+                strip[i * 2 + 1].color = col;
+            }
+            target.draw(strip);
+        };
+
+        // Múi 1: Doanh thu vé phim (Xanh dương #2563EB)
+        float a0 = -PI / 2.f + sepGap;
+        float a1 = -PI / 2.f + 2.f * PI * movieShare - sepGap;
+        drawDonutSegment(a0, a1, Color(37, 99, 235));
+
+        // Múi 2: Doanh thu combo bắp nước (Cam hổ phách #F59E0B)
+        float a2 = -PI / 2.f + 2.f * PI * movieShare + sepGap;
+        float a3 = 3.f * PI / 2.f - sepGap;
+        drawDonutSegment(a2, a3, Color(245, 158, 11));
+
+        // Lỗ tròn trắng bên trong (60 đỉnh siêu mượt, loại bỏ hoàn toàn viền đa giác thô)
+        CircleShape innerHole(r - 0.5f, 60);
+        innerHole.setPosition({donutCenter.x - r + 0.5f, donutCenter.y - r + 0.5f});
+        innerHole.setFillColor(Color::White);
+        target.draw(innerHole);
+
+        // Văn bản tâm biểu đồ tròn: Căn giữa tuyệt đối cả chiều ngang và chiều dọc
         Text dTitle(boldFont);
         dTitle.setString(L"TỔNG CỘNG");
-        dTitle.setCharacterSize(11.f);
+        dTitle.setCharacterSize(10.5f);
         dTitle.setFillColor(Color(148, 163, 184));
-        dTitle.setPosition({donutCenter.x - 28.f, donutCenter.y - 12.f});
+        FloatRect dtb = dTitle.getLocalBounds();
+        dTitle.setPosition({
+            donutCenter.x - dtb.size.x / 2.f - dtb.position.x,
+            donutCenter.y - 13.f - dtb.position.y
+        });
         target.draw(dTitle);
 
         Text dVal(boldFont);
         dVal.setString(L"11.84M");
-        dVal.setCharacterSize(13);
+        dVal.setCharacterSize(14.5f);
         dVal.setFillColor(Color(15, 23, 42));
-        dVal.setPosition({donutCenter.x - 24.f, donutCenter.y + 1.f});
+        FloatRect dvb = dVal.getLocalBounds();
+        dVal.setPosition({
+            donutCenter.x - dvb.size.x / 2.f - dvb.position.x,
+            donutCenter.y + 2.f - dvb.position.y
+        });
         target.draw(dVal);
 
-        // Right side legend
-        Vector2f legPos(cPos.x + 250.f, cPos.y + 105.f);
-        Text l1(boldFont); l1.setString(L"● Vé phim (59.1%)\n   7.000.000 đ"); l1.setCharacterSize(12.5f); l1.setFillColor(Color(37, 99, 235)); l1.setPosition(legPos); target.draw(l1);
-        Text l2(boldFont); l2.setString(L"● Combo bắp nước (40.9%)\n   4.842.500 đ"); l2.setCharacterSize(12.5f); l2.setFillColor(Color(217, 119, 6)); l2.setPosition({legPos.x, legPos.y + 44.f}); target.draw(l2);
+        // 2. Chú thích màu sắc (Legend) bên phải Donut
+        Vector2f legPos(cPos.x + 220.f, cPos.y + 94.f);
+
+        // Mục 1: Vé phim
+        RoundedRectRenderer::draw(target, {legPos.x, legPos.y + 3.f}, {12.f, 12.f}, 3.f, Color(37, 99, 235));
+        Text l1Title(boldFont, L"Vé phim (59.1%)", 12.5f);
+        l1Title.setFillColor(Color(15, 23, 42));
+        l1Title.setPosition({legPos.x + 20.f, legPos.y});
+        target.draw(l1Title);
+
+        Text l1Val(boldFont, s2ws(toCurrency(movieRevenue)), 13.5f);
+        l1Val.setFillColor(Color(37, 99, 235));
+        l1Val.setPosition({legPos.x + 20.f, legPos.y + 18.f});
+        target.draw(l1Val);
+
+        // Mục 2: Combo bắp nước
+        float leg2Y = legPos.y + 46.f;
+        RoundedRectRenderer::draw(target, {legPos.x, leg2Y + 3.f}, {12.f, 12.f}, 3.f, Color(245, 158, 11));
+        Text l2Title(boldFont, L"Combo bắp nước (40.9%)", 12.5f);
+        l2Title.setFillColor(Color(15, 23, 42));
+        l2Title.setPosition({legPos.x + 20.f, leg2Y});
+        target.draw(l2Title);
+
+        Text l2Val(boldFont, s2ws(toCurrency(comboRevenue)), 13.5f);
+        l2Val.setFillColor(Color(217, 119, 6));
+        l2Val.setPosition({legPos.x + 20.f, leg2Y + 18.f});
+        target.draw(l2Val);
 
         // Bottom 3 mini stats
         float pillY = cPos.y + 225.f;
@@ -1406,4 +1590,177 @@ void MovieRevenuePanel::drawToast(RenderTarget& target) const {
     RoundedRectRenderer::draw(target, tPos, {tw, th}, 19.f, Color(15, 23, 42, 235), 1.f, Color(51, 65, 85));
     toast.setPosition({tPos.x + 18.f, tPos.y + 9.f});
     target.draw(toast);
+}
+
+void MovieRevenuePanel::drawReportModal(RenderTarget& target) const {
+    // 1. Phông nền tối mờ toàn màn hình
+    RectangleShape dimBg(Vector2f(width + 300.f, height + 100.f));
+    dimBg.setPosition({position.x - 300.f, position.y - 50.f});
+    dimBg.setFillColor(Color(15, 23, 42, 175));
+    target.draw(dimBg);
+
+    // 2. Khung Modal (Rộng 760px, Cao 530px)
+    float mw = 760.f;
+    float mh = 530.f;
+    Vector2f mPos(position.x + (width - mw) / 2.f, position.y + (height - mh) / 2.f);
+
+    RoundedRectRenderer::draw(target, mPos, {mw, mh}, 12.f, Color::White, 1.2f, Color(203, 213, 225));
+
+    // Header Modal
+    Text mTitle(boldFont);
+    mTitle.setString(L"BÁO CÁO TÀI CHÍNH & DOANH THU CHI TIẾT");
+    mTitle.setCharacterSize(16);
+    mTitle.setFillColor(Color(15, 23, 42));
+    mTitle.setPosition({mPos.x + 24.f, mPos.y + 20.f});
+    target.draw(mTitle);
+
+    float titleW = mTitle.getGlobalBounds().size.x;
+    Vector2f badgePos(mPos.x + 24.f + titleW + 12.f, mPos.y + 20.f);
+    RoundedRectRenderer::draw(target, badgePos, {130.f, 22.f}, 11.f, Color(220, 252, 231), 1.f, Color(167, 243, 208));
+    Text badgeTxt(boldFont);
+    badgeTxt.setString(L"• ĐÃ XUẤT CSV");
+    badgeTxt.setCharacterSize(11);
+    badgeTxt.setFillColor(Color(5, 150, 105));
+    badgeTxt.setPosition({badgePos.x + 12.f, badgePos.y + 3.f});
+    target.draw(badgeTxt);
+
+    // Nút đóng (X)
+    UITheme::drawCloseIcon(target, {mPos.x + mw - 26.f, mPos.y + 26.f}, 12.f, Color(100, 116, 139), 2.f);
+
+    // Subtitle
+    Text mSub(font, L"Niên độ Q3 & Q4/2025  •  Rạp CineCore Đà Nẵng  •  Đã kiểm toán định dạng UTF-8 Excel", 12);
+    mSub.setFillColor(Color(100, 116, 139));
+    mSub.setPosition({mPos.x + 24.f, mPos.y + 44.f});
+    target.draw(mSub);
+
+    // Đường kẻ phân cách
+    RectangleShape sep1(Vector2f(mw - 48.f, 1.f));
+    sep1.setPosition({mPos.x + 24.f, mPos.y + 68.f});
+    sep1.setFillColor(Color(226, 232, 240));
+    target.draw(sep1);
+
+    // 3. 3 Thẻ thống kê tổng quan bên trong Modal
+    float kpiY = mPos.y + 80.f;
+    float kpiW = (mw - 48.f - 20.f) / 3.f; // ~230px
+    float kpiH = 68.f;
+
+    auto drawMiniKpi = [&](int idx, const wstring& lbl, const wstring& val, const wstring& note, Color valCol) {
+        Vector2f kp(mPos.x + 24.f + idx * (kpiW + 10.f), kpiY);
+        RoundedRectRenderer::draw(target, kp, {kpiW, kpiH}, 6.f, Color(248, 250, 252), 1.f, Color(226, 232, 240));
+        Text l(font, lbl, 11.5f);
+        l.setFillColor(Color(100, 116, 139));
+        l.setPosition({kp.x + 12.f, kp.y + 8.f});
+        target.draw(l);
+
+        Text v(boldFont, val, 14.5f);
+        v.setFillColor(valCol);
+        v.setPosition({kp.x + 12.f, kp.y + 28.f});
+        target.draw(v);
+
+        Text n(font, note, 10.5f);
+        n.setFillColor(Color(148, 163, 184));
+        n.setPosition({kp.x + 12.f, kp.y + 48.f});
+        target.draw(n);
+    };
+
+    drawMiniKpi(0, L"TỔNG DOANH THU TOÀN RẠP", s2ws(toCurrency(totalRevenue)), L"+18.4% so với quý trước", Color(15, 23, 42));
+    drawMiniKpi(1, L"DOANH THU VÉ PHIM", s2ws(toCurrency(movieRevenue)), to_wstring(totalTickets) + L" vé đã xuất (59.1%)", Color(37, 99, 235));
+    drawMiniKpi(2, L"DOANH THU COMBO F&B", s2ws(toCurrency(comboRevenue)), to_wstring(totalCombos) + L" Combo & Nước (40.9%)", Color(217, 119, 6));
+
+    // 4. Bảng dữ liệu Top 5 Doanh thu Phim
+    float tblY = mPos.y + 162.f;
+    Text tblHead(boldFont, L"BẢNG ĐỐI CHIẾU DOANH THU & SỐ LƯỢNG VÉ THEO PHIM (TOP 5)", 12.5f);
+    tblHead.setFillColor(Color(15, 23, 42));
+    tblHead.setPosition({mPos.x + 24.f, tblY});
+    target.draw(tblHead);
+
+    float thY = tblY + 24.f;
+    RoundedRectRenderer::draw(target, {mPos.x + 24.f, thY}, {mw - 48.f, 32.f}, 4.f, Color(241, 245, 249));
+
+    float c1X = mPos.x + 36.f;
+    float c2X = mPos.x + 85.f;
+    float c3X = mPos.x + 460.f;
+    float c4X = mPos.x + mw - 36.f;
+
+    Text th1(boldFont, L"#", 11.5f); th1.setFillColor(Color(100, 116, 139)); th1.setPosition({c1X, thY + 7.f}); target.draw(th1);
+    Text th2(boldFont, L"TÊN PHIM CHIẾU", 11.5f); th2.setFillColor(Color(100, 116, 139)); th2.setPosition({c2X, thY + 7.f}); target.draw(th2);
+    Text th3(boldFont, L"SỐ VÉ BÁN", 11.5f); th3.setFillColor(Color(100, 116, 139)); th3.setPosition({c3X, thY + 7.f}); target.draw(th3);
+    Text th4(boldFont, L"DOANH THU PHIM", 11.5f); th4.setFillColor(Color(100, 116, 139));
+    FloatRect th4b = th4.getLocalBounds();
+    th4.setPosition({c4X - th4b.size.x, thY + 7.f}); target.draw(th4);
+
+    // 5 dòng phim
+    float rowTop = thY + 34.f;
+    float rowH = 36.f;
+    int showN = min(5, (int)moviesList.size());
+    for (int i = 0; i < showN; ++i) {
+        float ry = rowTop + i * rowH;
+        if (i % 2 == 1) {
+            RoundedRectRenderer::draw(target, {mPos.x + 24.f, ry}, {mw - 48.f, rowH}, 0.f, Color(248, 250, 252));
+        }
+
+        // Rank
+        Color rCol = (i == 0) ? Color(245, 158, 11) : (i == 1 ? Color(148, 163, 184) : Color(217, 119, 6));
+        CircleShape rCir(8.f);
+        rCir.setPosition({c1X - 2.f, ry + 9.f});
+        rCir.setFillColor(i < 3 ? rCol : Color(241, 245, 249));
+        target.draw(rCir);
+
+        Text rTxt(boldFont, to_wstring(i + 1), 10.5f);
+        rTxt.setFillColor(i < 3 ? Color::White : Color(100, 116, 139));
+        FloatRect rtb = rTxt.getLocalBounds();
+        rTxt.setPosition({c1X + 6.f - rtb.size.x / 2.f - rtb.position.x, ry + 10.f});
+        target.draw(rTxt);
+
+        // Tên phim
+        Text mTitleTxt(boldFont, moviesList[i].title, 12);
+        mTitleTxt.setFillColor(Color(15, 23, 42));
+        mTitleTxt.setPosition({c2X, ry + 9.f});
+        target.draw(mTitleTxt);
+
+        // Số vé
+        Text tksTxt(boldFont, to_wstring(moviesList[i].tickets) + L" vé", 12);
+        tksTxt.setFillColor(Color(37, 99, 235));
+        tksTxt.setPosition({c3X, ry + 9.f});
+        target.draw(tksTxt);
+
+        // Doanh thu
+        Text revTxt(boldFont, s2ws(toCurrency(moviesList[i].revenue)), 12.5f);
+        revTxt.setFillColor(Color(225, 29, 72));
+        FloatRect revB = revTxt.getLocalBounds();
+        revTxt.setPosition({c4X - revB.size.x, ry + 9.f});
+        target.draw(revTxt);
+    }
+
+    // Đường kẻ phân cách trước nút điều khiển
+    RectangleShape sep2(Vector2f(mw - 48.f, 1.f));
+    sep2.setPosition({mPos.x + 24.f, mPos.y + mh - 66.f});
+    sep2.setFillColor(Color(226, 232, 240));
+    target.draw(sep2);
+
+    // File path info
+    Text pathTxt(font, L"Vị trí lưu file: data/doanh_thu_report.csv (Mở tự động bằng Excel)", 11.5f);
+    pathTxt.setFillColor(Color(100, 116, 139));
+    pathTxt.setPosition({mPos.x + 24.f, mPos.y + mh - 42.f});
+    target.draw(pathTxt);
+
+    // Nút "Mở bằng Excel / CSV"
+    Vector2f btnExPos(mPos.x + mw - 340.f, mPos.y + mh - 50.f);
+    Color exBg = modalOpenExcelHovered ? Color(3, 105, 161) : Color(2, 132, 199);
+    RoundedRectRenderer::draw(target, btnExPos, {210.f, 36.f}, 6.f, exBg);
+    Text btnExTxt(boldFont, L"Mở bằng Excel / CSV", 12);
+    btnExTxt.setFillColor(Color::White);
+    FloatRect exb = btnExTxt.getLocalBounds();
+    btnExTxt.setPosition({btnExPos.x + (210.f - exb.size.x) / 2.f - exb.position.x, btnExPos.y + 9.f});
+    target.draw(btnExTxt);
+
+    // Nút "Đóng"
+    Vector2f btnClPos(mPos.x + mw - 115.f, mPos.y + mh - 50.f);
+    Color clBg = modalCloseHovered ? Color(226, 232, 240) : Color(241, 245, 249);
+    RoundedRectRenderer::draw(target, btnClPos, {100.f, 36.f}, 6.f, clBg, 1.f, Color(203, 213, 225));
+    Text btnClTxt(boldFont, L"Đóng", 12);
+    btnClTxt.setFillColor(Color(51, 65, 85));
+    FloatRect clb = btnClTxt.getLocalBounds();
+    btnClTxt.setPosition({btnClPos.x + (100.f - clb.size.x) / 2.f - clb.position.x, btnClPos.y + 9.f});
+    target.draw(btnClTxt);
 }
