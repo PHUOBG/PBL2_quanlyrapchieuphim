@@ -562,6 +562,10 @@ void VoucherPanel::handleEvent(const Event& event, const RenderWindow& win) {
                     for (size_t i = 0; i < filteredVouchers.size(); ++i) {
                         filteredVouchers[i].isChecked = ((int)i == selectedVoucherIndex);
                     }
+                    currentRecipientPage = 1;
+                    searchRecipientQuery.clear();
+                    searchRecipientActive = false;
+                    applyRecipientFilter();
                     return;
                 }
             }
@@ -588,9 +592,15 @@ void VoucherPanel::handleEvent(const Event& event, const RenderWindow& win) {
             FloatRect btnRevoke({rightX + 225.f, rActY}, {80.f, 32.f});
 
             if (btnBack.contains(mousePos)) {
+                currentRecipientPage = 1;
                 searchRecipientQuery.clear();
+                searchRecipientActive = false;
+                selectedVoucherIndex = 0;
+                for (size_t i = 0; i < filteredVouchers.size(); ++i) {
+                    filteredVouchers[i].isChecked = (i == 0);
+                }
                 applyRecipientFilter();
-                notificationMessage = "Đã quay lại danh sách tổng quan!";
+                notificationMessage = "Đã quay lại danh sách tổng quan (Trang 1)!";
                 notificationClock.restart();
                 notificationVisible = true;
                 return;
@@ -702,6 +712,9 @@ void VoucherPanel::update(Vector2f mousePos, bool) {
     hoveredVoucherRow = -1;
     hoveredEditBtnRow = -1;
     hoveredRecipientRow = -1;
+    hoveredBackBtn = false;
+    hoveredAddUserBtn = false;
+    hoveredRevokeBtn = false;
 
     if (!showAddPopup && !showAddRecipientPopup) {
         float tableY = position.y + 356.f;
@@ -724,6 +737,14 @@ void VoucherPanel::update(Vector2f mousePos, bool) {
         // Cột phải hover
         float rightX = position.x + 700.f;
         float rightW = width - 730.f;
+        float rActY = position.y + 300.f;
+        FloatRect btnBack({rightX + 16.f, rActY}, {85.f, 32.f});
+        FloatRect btnAddUser({rightX + 108.f, rActY}, {110.f, 32.f});
+        FloatRect btnRevoke({rightX + 225.f, rActY}, {80.f, 32.f});
+        hoveredBackBtn = btnBack.contains(mousePos);
+        hoveredAddUserBtn = btnAddUser.contains(mousePos);
+        hoveredRevokeBtn = btnRevoke.contains(mousePos);
+
         float rTblY = position.y + 384.f;
         float rRowH = 58.f;
         int rStartIdx = (currentRecipientPage - 1) * recipientPageSize;
@@ -1086,14 +1107,28 @@ void VoucherPanel::render(RenderWindow& win) {
 
     // Hàng nút Cột Phải: Quay lại, + Thêm người, Thu hồi
     float rActY = position.y + 300.f;
-    drawRoundedCard(win, {rightX + 16.f, rActY}, {85.f, 32.f}, 6.f, Color::White, 1.f, Color(203, 213, 225));
-    Text bBack(boldFont, L"\u2190 Quay l\u1ea1i", 12.5f); bBack.setFillColor(Color(71, 85, 105)); bBack.setPosition({rightX + 22.f, rActY + 8.f}); win.draw(bBack);
+    drawRoundedCard(win, {rightX + 16.f, rActY}, {85.f, 32.f}, 6.f,
+                    hoveredBackBtn ? Color(241, 245, 249) : Color::White,
+                    1.f, hoveredBackBtn ? Color(2, 132, 199) : Color(203, 213, 225));
+    Text bBack(boldFont, L"\u2190 Quay l\u1ea1i", 12.5f);
+    bBack.setFillColor(hoveredBackBtn ? Color(2, 132, 199) : Color(71, 85, 105));
+    bBack.setPosition({rightX + 22.f, rActY + 8.f});
+    win.draw(bBack);
 
-    drawRoundedCard(win, {rightX + 108.f, rActY}, {110.f, 32.f}, 6.f, Color(5, 150, 105));
-    Text bAddU(boldFont, L"+ Th\u00eam ng\u01b0\u1eddi", 12.5f); bAddU.setFillColor(Color::White); bAddU.setPosition({rightX + 118.f, rActY + 8.f}); win.draw(bAddU);
+    drawRoundedCard(win, {rightX + 108.f, rActY}, {110.f, 32.f}, 6.f,
+                    hoveredAddUserBtn ? Color(4, 120, 87) : Color(5, 150, 105));
+    Text bAddU(boldFont, L"+ Th\u00eam ng\u01b0\u1eddi", 12.5f);
+    bAddU.setFillColor(Color::White);
+    bAddU.setPosition({rightX + 118.f, rActY + 8.f});
+    win.draw(bAddU);
 
-    drawRoundedCard(win, {rightX + 225.f, rActY}, {80.f, 32.f}, 6.f, Color(254, 242, 242), 1.f, Color(254, 202, 202));
-    Text bRev(boldFont, L"Thu h\u1ed3i", 12.5f); bRev.setFillColor(Color(220, 38, 38)); bRev.setPosition({rightX + 238.f, rActY + 8.f}); win.draw(bRev);
+    drawRoundedCard(win, {rightX + 225.f, rActY}, {80.f, 32.f}, 6.f,
+                    hoveredRevokeBtn ? Color(254, 226, 226) : Color(254, 242, 242),
+                    1.f, Color(254, 202, 202));
+    Text bRev(boldFont, L"Thu h\u1ed3i", 12.5f);
+    bRev.setFillColor(Color(220, 38, 38));
+    bRev.setPosition({rightX + 238.f, rActY + 8.f});
+    win.draw(bRev);
 
     // Tìm kiếm người nhận
     float rFltY = position.y + 342.f;

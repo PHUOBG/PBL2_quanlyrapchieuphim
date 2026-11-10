@@ -63,6 +63,9 @@ private:
     int hoveredVoucherRow = -1;
     int hoveredEditBtnRow = -1;
     int hoveredRecipientRow = -1;
+    bool hoveredBackBtn = false;
+    bool hoveredAddUserBtn = false;
+    bool hoveredRevokeBtn = false;
 
     // Toast
     string notificationMessage;
