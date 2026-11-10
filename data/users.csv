@@ -1,18 +1,49 @@
 email|passwordHash|fullName|birthDate|phone|registeredAt|role
-vnkhoa@gmail.com|828b089f383f8554|Võ Như Khoa|05/05/2006|0912345677|1759042500|customer
-ndklinh@gmail.com|2a2643e0f57d27fc|Nguyễn Đỗ Khánh Linh|09/09/2006|0912345676|1763473500|customer
-thdung@gmail.com|876047a2c958ad2f|Trần Hữu Dũng|28/02/2005|0912345680|1765327800|customer
-vnny@gmail.com|fb1c18e3a3a59bf2|Văn Ngọc Như Ý|21/10/2006|0912345671|1756869120|customer
 admin@cinema.com|875ac6e8ba98644b|Quản Trị Viên|01/01/2000|0900000000|1756692000|admin
-nvvu@gmail.com|8bf171e729b2987d|Nguyễn Văn Vũ|14/03/2006|0912345672|1757937900|customer
-pvlong@gmail.com|edbd90aecf94c63c|Phan Vũ Long|30/01/2004|0912345675|1762309500|customer
-vvhieu@gmail.com|94c8468f6d234f0d|Võ Văn Hiếu|11/06/2006|0912345681|1762931100|customer
 admin@cinexine.vn|875ac6e8ba98644b|ADMIN|12/02/2006|0898234406|1756692000|admin
-plman@gmail.com|224b730bc9ada6c|Phạm Lê Minh An|17/12/2005|0912345678|1764133200|customer
-ntctuyen@gmail.com|17120e13a8b2a45|Nguyễn Thị Cẩm Tuyền|09/07/2006|0898234406|1760232600|customer
-tthnhu@gmail.com|60408af37b3983ab|Trần Thị Hoài Như|26/09/2006|0912345683|1761794400|customer
-ltdhoa@gmail.com|fbf811f4a28e3571|Lê Thị Diệu Hòa|23/07/2004|0912345679|1764674100|customer
-htluc@gmail.com|5e7a5678d2ae27f5|Huỳnh Tấn Lực|19/08/2005|0912345674|1760951400|customer
-ttttrinh@gmail.com|9899d5d92adf32d3|Trần Thị Tuyết Trinh|02/11/2005|0912345673|1759380000|customer
-vanvu41ht1@gmail.com|24f1eba07df13783|Nguyễn Văn Vũ|07/06/2006|0335912027|1757229600|customer
-dtkhoi@gmail.com|2e35975bd669e42|Dương Tấn Khôi|08/04/2005|0912345682|1766068200|customer
+nbanh@gmail.com|8bf171e729b2987d|Nguyễn Bình Anh|12/01/2006|0912345601|1757229600|customer
+ndgbao@gmail.com|8bf171e729b2987d|Ngô Đăng Gia Bảo|15/02/2006|0912345602|1757941500|customer
+httbinh@gmail.com|8bf171e729b2987d|Hồ Thị Thanh Bình|08/03/2006|0912345603|1759049700|customer
+dhcuong@gmail.com|8bf171e729b2987d|Đào Hữu Cường|24/04/2006|0912345604|1759390800|customer
+lmdanh@gmail.com|8bf171e729b2987d|Lê Minh Danh|19/05/2006|0912345605|1760247000|customer
+pvdat@gmail.com|8bf171e729b2987d|Phạm Văn Đạt|11/06/2006|0912345606|1760969400|customer
+tvdieu@gmail.com|8bf171e729b2987d|Trần Vi Diệu|27/07/2006|0912345607|1761816000|customer
+nvkdung@gmail.com|8bf171e729b2987d|Nguyễn Vũ Kim Dung|03/08/2006|0912345608|1762334700|customer
+nvdung@gmail.com|8bf171e729b2987d|Nguyễn Việt Dũng|16/09/2006|0912345609|1762959900|customer
+nmhai@gmail.com|8bf171e729b2987d|Nguyễn Minh Hải|22/10/2006|0912345610|1763505900|customer
+vhhai@gmail.com|8bf171e729b2987d|Vũ Hoàng Hải|05/11/2006|0912345611|1764169200|customer
+lthau@gmail.com|8bf171e729b2987d|Lê Trung Hậu|30/12/2006|0912345612|1764713700|customer
+lthieu@gmail.com|8bf171e729b2987d|Lê Trung Hiếu|14/01/2006|0912345613|1765371000|customer
+hbhhoang@gmail.com|8bf171e729b2987d|Huỳnh Bá Huy Hoàng|20/02/2006|0912345614|1766115000|customer
+nhhoang@gmail.com|8bf171e729b2987d|Nguyễn Huy Hoàng|09/03/2006|0912345615|1757280000|customer
+lkhung@gmail.com|8bf171e729b2987d|Lê Khải Hưng|18/04/2006|0912345616|1757991900|customer
+pnghuy@gmail.com|8bf171e729b2987d|Phạm Nguyễn Gia Huy|25/05/2006|0912345617|1759100100|customer
+tnkhuyen@gmail.com|8bf171e729b2987d|Tôn Nguyễn Khánh Huyền|02/06/2006|0912345618|1759441200|customer
+pqkhanh@gmail.com|8bf171e729b2987d|Phạm Quốc Khánh|17/07/2006|0912345619|1760297400|customer
+pdnkhoa@gmail.com|8bf171e729b2987d|Phan Đình Nhật Khoa|29/08/2006|0912345620|1761019800|customer
+lhlan@gmail.com|8bf171e729b2987d|Lê Hoàng Lân|13/09/2006|0912345621|1761866400|customer
+mhlong@gmail.com|8bf171e729b2987d|Mai Hoàng Long|28/10/2006|0912345622|1762385100|customer
+nhmanh@gmail.com|8bf171e729b2987d|Nguyễn Hữu Mạnh|07/11/2006|0912345623|1763010300|customer
+hqtnghia@gmail.com|8bf171e729b2987d|Huỳnh Quốc Trọng Nghĩa|19/12/2006|0912345624|1763556300|customer
+nqnghia@gmail.com|8bf171e729b2987d|Nguyễn Quang Nghĩa|04/01/2006|0912345625|1764219600|customer
+pvngoc@gmail.com|8bf171e729b2987d|Phạm Văn Ngọc|21/02/2006|0912345626|1764764100|customer
+chnhan@gmail.com|8bf171e729b2987d|Cáp Hữu Nhân|10/03/2006|0912345627|1765421400|customer
+nvnhan@gmail.com|8bf171e729b2987d|Nguyễn Văn Nhân|15/04/2006|0912345628|1766165400|customer
+ntphat@gmail.com|8bf171e729b2987d|Nguyễn Thọ Phát|26/05/2006|0912345629|1757330400|customer
+ttphong@gmail.com|8bf171e729b2987d|Trần Tuấn Phong|08/06/2006|0912345630|1758042300|customer
+ldhphuc@gmail.com|8bf171e729b2987d|Lê Doãn Hồng Phúc|23/07/2006|0912345631|1759150500|customer
+htnphuong@gmail.com|8bf171e729b2987d|Hoàng Thị Ngọc Phương|11/08/2006|0912345632|1759491600|customer
+nnquang@gmail.com|8bf171e729b2987d|Nguyễn Nhật Quang|06/09/2006|0912345633|1760347800|customer
+mxtai@gmail.com|8bf171e729b2987d|Mai Xuân Tài|19/10/2006|0912345634|1761070200|customer
+nqthinh@gmail.com|8bf171e729b2987d|Nguyễn Quốc Thịnh|25/11/2006|0912345635|1761916800|customer
+vttthu@gmail.com|8bf171e729b2987d|Võ Thị Thanh Thu|01/12/2006|0912345636|1762435500|customer
+dtmthuc@gmail.com|8bf171e729b2987d|Đoàn Trần Minh Thức|16/01/2006|0912345637|1763060700|customer
+hvtoan@gmail.com|8bf171e729b2987d|Hồ Văn Toản|22/02/2006|0912345638|1763606700|customer
+ddtri@gmail.com|8bf171e729b2987d|Đỗ Đức Trí|05/03/2006|0912345639|1764270000|customer
+hqtrung@gmail.com|8bf171e729b2987d|Hồ Quang Trung|18/04/2006|0912345640|1764814500|customer
+lvtruong@gmail.com|8bf171e729b2987d|Lê Văn Trường|29/05/2006|0912345641|1765471800|customer
+natuan@gmail.com|8bf171e729b2987d|Nguyễn Anh Tuấn|14/06/2006|0912345642|1766215800|customer
+pttuyen@gmail.com|8bf171e729b2987d|Phạm Thị Tú Uyên|07/07/2006|0912345643|1757380800|customer
+ptviet@gmail.com|8bf171e729b2987d|Phan Thanh Việt|20/08/2006|0912345644|1758092700|customer
+bdtvu@gmail.com|8bf171e729b2987d|Bùi Đức Trường Vũ|12/09/2006|0912345645|1759200900|customer
+pttvy@gmail.com|8bf171e729b2987d|Phạm Thị Trúc Vy|28/10/2006|0912345646|1759542000|customer

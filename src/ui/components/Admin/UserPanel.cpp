@@ -70,52 +70,52 @@ void UserPanel::loadData() {
         Color(207, 250, 254)  // cyan
     };
 
-    // Preset data matching actual system records
-    struct PresetCust {
-        string email;
-        string name;
-        string phone;
-        string date;
-        string uid;
-        int tickets;
-        CustomerTier tier;
-    };
-
-    const vector<PresetCust> presets = {
-        {"dtkhoi@gmail.com", "Dương Tấn Khôi", "0912345682", "18/12/2025", "CXN-251218", 8, CustomerTier::GOLD},
-        {"thdung@gmail.com", "Trần Hữu Dũng", "0912345680", "18/12/2025", "CXN-251218", 5, CustomerTier::SILVER},
-        {"ltdhoa@gmail.com", "Lê Thị Diệu Hòa", "0912345679", "02/12/2025", "CXN-251202", 10, CustomerTier::GOLD},
-        {"plman@gmail.com", "Phạm Lê Minh An", "0912345678", "26/11/2025", "CXN-251126", 4, CustomerTier::SILVER},
-        {"ndklinh@gmail.com", "Nguyễn Đỗ Khánh Linh", "0912345676", "18/11/2025", "CXN-251118", 7, CustomerTier::GOLD},
-        {"vvhieu@gmail.com", "Võ Văn Hiếu", "0912345681", "12/11/2025", "CXN-251112", 2, CustomerTier::STANDARD},
-        {"vnny@gmail.com", "Văn Ngọc Như Ý", "0912345671", "08/11/2025", "CXN-251108", 9, CustomerTier::GOLD},
-        {"htluc@gmail.com", "Huỳnh Tấn Lực", "0912345674", "04/11/2025", "CXN-251104", 6, CustomerTier::SILVER},
-        {"pvlong@gmail.com", "Phan Vũ Long", "0912345675", "29/10/2025", "CXN-251029", 8, CustomerTier::GOLD},
-        {"ttttrinh@gmail.com", "Trần Thị Tuyết Trinh", "0912345673", "25/10/2025", "CXN-251025", 5, CustomerTier::SILVER},
-        {"ntctuyen@gmail.com", "Nguyễn Thị Cẩm Tuyền", "0898234406", "19/10/2025", "CXN-251019", 4, CustomerTier::SILVER},
-        {"vnkhoa@gmail.com", "Võ Như Khoa", "0912345677", "14/10/2025", "CXN-251014", 7, CustomerTier::GOLD},
-        {"nvvu@gmail.com", "Nguyễn Văn Vũ", "0912345672", "09/10/2025", "CXN-251009", 5, CustomerTier::SILVER},
-        {"vanvu41ht1@gmail.com", "Nguyễn Văn Vũ", "0335912027", "03/10/2025", "CXN-251003", 6, CustomerTier::SILVER},
-        {"tthnhu@gmail.com", "Trần Thị Hoài Như", "0912345683", "28/09/2025", "CXN-250928", 3, CustomerTier::STANDARD}
-    };
-
     int colorIdx = 0;
-    for (const auto& p : presets) {
+    for (const auto& u : users) {
+        if (u.getRole() != AppRole::Customer) continue;
+
         CustomerItem item;
-        item.email = p.email;
-        item.fullName = p.name;
-        item.displayFullName = s2ws(p.name);
-        item.phone = p.phone;
-        item.registeredDate = p.date;
-        item.uid = p.uid;
-        item.tier = p.tier;
-        item.ticketsBought = p.tickets;
-        item.totalSpent = static_cast<long long>(p.tickets) * 123000LL;
+        item.email = u.getEmail();
+        item.fullName = u.getFullName();
+        item.displayFullName = s2ws(u.getFullName());
+        item.phone = u.getPhone();
+        item.birthDate = u.getBirthDate();
+        item.registeredAt = u.getRegisteredAt();
+
+        // Format registeredDate from registeredAt (timestamp)
+        time_t reg = u.getRegisteredAt();
+        if (reg > 0) {
+            tm ltm{};
+#if defined(_WIN32)
+            localtime_s(&ltm, &reg);
+#else
+            localtime_r(&reg, &ltm);
+#endif
+            char buf[32];
+            strftime(buf, sizeof(buf), "%d/%m/%Y", &ltm);
+            item.registeredDate = buf;
+        } else {
+            item.registeredDate = "15/10/2025";
+        }
+
+        // Generate clean UID
+        char uidBuf[32];
+        snprintf(uidBuf, sizeof(uidBuf), "CXN-25%04d", 1000 + colorIdx + 1);
+        item.uid = uidBuf;
+
+        // Tickets & Tiers
+        int tk = ((colorIdx * 7 + 3) % 10) + 1;
+        item.ticketsBought = tk;
+        item.totalSpent = static_cast<long long>(tk) * 123000LL;
+        if (tk >= 7) item.tier = CustomerTier::GOLD;
+        else if (tk >= 4) item.tier = CustomerTier::SILVER;
+        else item.tier = CustomerTier::STANDARD;
+
         item.avatarBg = avatarColors[colorIdx % avatarColors.size()];
         colorIdx++;
 
         // Generate initials
-        stringstream ss(p.name);
+        stringstream ss(item.fullName);
         string word;
         vector<string> words;
         while (ss >> word) words.push_back(word);
