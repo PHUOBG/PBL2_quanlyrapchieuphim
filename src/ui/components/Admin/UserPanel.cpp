@@ -986,10 +986,6 @@ void UserPanel::drawCustomerTable(RenderTarget& target) const {
     // Dark Navy Header Bar
     RoundedRectRenderer::draw(target, {tableX, tableY}, {tableW, headerH}, 6.f, Color(15, 23, 42));
 
-    // Master Checkbox
-    Vector2f chkPos(tableX + 16.f, tableY + 14.f);
-    RoundedRectRenderer::draw(target, chkPos, {16.f, 16.f}, 3.f, Color(51, 65, 85));
-
     // Column positions
     float col_stt = tableX + 50.f;
     float col_name = tableX + 100.f;
