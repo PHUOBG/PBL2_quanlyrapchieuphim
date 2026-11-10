@@ -409,6 +409,65 @@ void VoucherPanel::handleEvent(const Event& event, const RenderWindow& win) {
         return;
     }
 
+    // 1c. ƯU TIÊN XỬ LÝ POPUP XÁC NHẬN THU HỒI VOUCHER (MODAL BLOCKING)
+    if (showRevokeConfirmPopup) {
+        float popW = 460.f;
+        float popH = 250.f;
+        float popX = position.x + (width - popW) / 2.f;
+        float popY = position.y + (height - popH) / 2.f - 20.f;
+
+        auto commitRevoke = [&]() {
+            if (selectedRecipientIndex >= 0 && selectedRecipientIndex < (int)filteredRecipients.size()) {
+                string targetEmail = filteredRecipients[selectedRecipientIndex].email;
+                for (auto it = currentRecipients.begin(); it != currentRecipients.end(); ++it) {
+                    if (it->email == targetEmail) {
+                        currentRecipients.erase(it);
+                        break;
+                    }
+                }
+                selectedRecipientIndex = -1;
+                applyRecipientFilter();
+                if (selectedVoucherIndex >= 0 && selectedVoucherIndex < (int)filteredVouchers.size()) {
+                    string selCode = filteredVouchers[selectedVoucherIndex].code;
+                    for (auto& v : allVouchers) {
+                        if (v.code == selCode) { v.recipientCount = (int)currentRecipients.size(); break; }
+                    }
+                    for (auto& v : filteredVouchers) {
+                        if (v.code == selCode) { v.recipientCount = (int)currentRecipients.size(); break; }
+                    }
+                }
+                notificationMessage = "Đã thu hồi voucher của " + targetEmail + "!";
+                notificationClock.restart();
+                notificationVisible = true;
+            }
+            showRevokeConfirmPopup = false;
+        };
+
+        if (const auto* mouseBtn = event.getIf<Event::MouseButtonPressed>()) {
+            if (mouseBtn->button == Mouse::Button::Left) {
+                Vector2f mousePos = win.mapPixelToCoords(Mouse::getPosition(win));
+                FloatRect btnConfirm({popX + 40.f, popY + 180.f}, {170.f, 38.f});
+                FloatRect btnCancel({popX + 240.f, popY + 180.f}, {170.f, 38.f});
+
+                if (btnConfirm.contains(mousePos)) {
+                    commitRevoke();
+                    return;
+                }
+                if (btnCancel.contains(mousePos) || !FloatRect({popX, popY}, {popW, popH}).contains(mousePos)) {
+                    showRevokeConfirmPopup = false;
+                    return;
+                }
+            }
+            return;
+        }
+
+        if (const auto* keyEv = event.getIf<Event::KeyPressed>()) {
+            if (keyEv->code == Keyboard::Key::Escape) { showRevokeConfirmPopup = false; return; }
+            if (keyEv->code == Keyboard::Key::Enter) { commitRevoke(); return; }
+        }
+        return;
+    }
+
     if (const auto* mouseBtn = event.getIf<Event::MouseButtonPressed>()) {
         if (mouseBtn->button == Mouse::Button::Left) {
             Vector2f mousePos = win.mapPixelToCoords(Mouse::getPosition(win));
@@ -616,34 +675,38 @@ void VoucherPanel::handleEvent(const Event& event, const RenderWindow& win) {
             }
 
             if (btnRevoke.contains(mousePos)) {
-                if (!currentRecipients.empty()) {
-                    currentRecipients.pop_back();
-                    applyRecipientFilter();
-                    if (selectedVoucherIndex >= 0 && selectedVoucherIndex < (int)filteredVouchers.size()) {
-                        string selCode = filteredVouchers[selectedVoucherIndex].code;
-                        for (auto& v : allVouchers) {
-                            if (v.code == selCode) {
-                                v.recipientCount = (int)currentRecipients.size();
-                                break;
-                            }
-                        }
-                        for (auto& v : filteredVouchers) {
-                            if (v.code == selCode) {
-                                v.recipientCount = (int)currentRecipients.size();
-                                break;
-                            }
-                        }
-                    }
-                    notificationMessage = "Đã thu hồi 1 voucher của khách hàng!";
+                if (selectedRecipientIndex < 0 || selectedRecipientIndex >= (int)filteredRecipients.size()) {
+                    notificationMessage = "Vui lòng click chọn email khách hàng cần thu hồi voucher!";
                     notificationClock.restart();
                     notificationVisible = true;
+                    return;
                 }
+                showRevokeConfirmPopup = true;
                 return;
             }
 
             // Search Recipient
             FloatRect searchRB({rightX + 16.f, position.y + 342.f}, {rightW - 140.f, 32.f});
             searchRecipientActive = searchRB.contains(mousePos);
+
+            // Click chọn dòng người nhận trong bảng Cột Phải
+            float rTblY = position.y + 384.f;
+            float rRowH = 58.f;
+            int rStartIdx = (currentRecipientPage - 1) * recipientPageSize;
+            int rCount = max(0, min((int)filteredRecipients.size() - rStartIdx, recipientPageSize));
+            for (int r = 0; r < rCount; ++r) {
+                int actualIdx = rStartIdx + r;
+                float curY = rTblY + 36.f + r * rRowH;
+                FloatRect rowRect({rightX + 16.f, curY}, {rightW - 32.f, rRowH});
+                if (rowRect.contains(mousePos)) {
+                    if (selectedRecipientIndex == actualIdx) {
+                        selectedRecipientIndex = -1;
+                    } else {
+                        selectedRecipientIndex = actualIdx;
+                    }
+                    return;
+                }
+            }
 
             // Phân trang Cột Phải (Người nhận)
             float rFootY = pagY + 4.f;
@@ -653,10 +716,12 @@ void VoucherPanel::handleEvent(const Event& event, const RenderWindow& win) {
                 FloatRect rBtnNext({rPagRight - 28.f, rFootY}, {28.f, 28.f});
                 if (rBtnPrev.contains(mousePos) && currentRecipientPage > 1) {
                     currentRecipientPage--;
+                    selectedRecipientIndex = -1;
                     return;
                 }
                 if (rBtnNext.contains(mousePos) && currentRecipientPage < totalRecipientPages) {
                     currentRecipientPage++;
+                    selectedRecipientIndex = -1;
                     return;
                 }
             }
@@ -716,7 +781,7 @@ void VoucherPanel::update(Vector2f mousePos, bool) {
     hoveredAddUserBtn = false;
     hoveredRevokeBtn = false;
 
-    if (!showAddPopup && !showAddRecipientPopup) {
+    if (!showAddPopup && !showAddRecipientPopup && !showRevokeConfirmPopup) {
         float tableY = position.y + 356.f;
         float leftW = 650.f;
         float rowH = 64.f;
@@ -1122,12 +1187,19 @@ void VoucherPanel::render(RenderWindow& win) {
     bAddU.setPosition({rightX + 118.f, rActY + 8.f});
     win.draw(bAddU);
 
-    drawRoundedCard(win, {rightX + 225.f, rActY}, {80.f, 32.f}, 6.f,
-                    hoveredRevokeBtn ? Color(254, 226, 226) : Color(254, 242, 242),
-                    1.f, Color(254, 202, 202));
+    bool hasSel = (selectedRecipientIndex >= 0);
+    Color revBg = hasSel
+        ? (hoveredRevokeBtn ? Color(185, 28, 28) : Color(220, 38, 38))
+        : (hoveredRevokeBtn ? Color(254, 226, 226) : Color(254, 242, 242));
+    Color revFg = hasSel ? Color::White : Color(220, 38, 38);
+    float revOut = hasSel ? 0.f : 1.f;
+    Color revBorder = hasSel ? Color::Transparent : Color(254, 202, 202);
+
+    drawRoundedCard(win, {rightX + 225.f, rActY}, {85.f, 32.f}, 6.f, revBg, revOut, revBorder);
     Text bRev(boldFont, L"Thu h\u1ed3i", 12.5f);
-    bRev.setFillColor(Color(220, 38, 38));
-    bRev.setPosition({rightX + 238.f, rActY + 8.f});
+    bRev.setFillColor(revFg);
+    FloatRect brb = bRev.getLocalBounds();
+    bRev.setPosition({rightX + 225.f + (85.f - brb.size.x) / 2.f - brb.position.x, rActY + (32.f - brb.size.y) / 2.f - brb.position.y});
     win.draw(bRev);
 
     // Tìm kiếm người nhận
@@ -1166,21 +1238,43 @@ void VoucherPanel::render(RenderWindow& win) {
         float curY = rTblY + 36.f + r * rRowH;
         const auto& itm = filteredRecipients[actualIdx];
 
-        // Đường kẻ ngăn cách
-        RectangleShape sep({rightW - 32.f, 1.f});
-        sep.setFillColor(Color(241, 245, 249));
-        sep.setPosition({rightX + 16.f, curY + rRowH - 1.f});
-        win.draw(sep);
+        // Nền dòng khi được chọn hoặc hover
+        bool isSel = (selectedRecipientIndex == actualIdx);
+        bool isHov = (hoveredRecipientRow == actualIdx);
+        if (isSel) {
+            drawRoundedCard(win, {rightX + 16.f, curY + 2.f}, {rightW - 32.f, rRowH - 4.f}, 6.f, Color(254, 242, 242), 1.2f, Color(239, 68, 68));
+        } else if (isHov) {
+            drawRoundedCard(win, {rightX + 16.f, curY + 2.f}, {rightW - 32.f, rRowH - 4.f}, 6.f, Color(248, 250, 252));
+        } else {
+            // Đường kẻ ngăn cách
+            RectangleShape sep({rightW - 32.f, 1.f});
+            sep.setFillColor(Color(241, 245, 249));
+            sep.setPosition({rightX + 16.f, curY + rRowH - 1.f});
+            win.draw(sep);
+        }
 
         // Email & ngày nhận (cột rộng 260px)
-        Text emTxt(boldFont, s2ws(itm.email), 12.5f); emTxt.setFillColor(Color(15, 23, 42)); emTxt.setPosition({rightX + 24.f, curY + 10.f}); win.draw(emTxt);
-        Text recDt(font, L"\u0110\u00e3 nh\u1eadn: " + s2ws(itm.receivedDate), 11.5f); recDt.setFillColor(Color(148, 163, 184)); recDt.setPosition({rightX + 24.f, curY + 30.f}); win.draw(recDt);
+        Text emTxt(boldFont, s2ws(itm.email), 12.5f);
+        emTxt.setFillColor(isSel ? Color(185, 28, 28) : Color(15, 23, 42));
+        emTxt.setPosition({rightX + 24.f, curY + 10.f});
+        win.draw(emTxt);
+
+        Text recDt(font, L"\u0110\u00e3 nh\u1eadn: " + s2ws(itm.receivedDate), 11.5f);
+        recDt.setFillColor(Color(148, 163, 184));
+        recDt.setPosition({rightX + 24.f, curY + 30.f});
+        win.draw(recDt);
 
         // Họ tên (cột rộng 160px bắt đầu tại 290px)
-        Text nmTxt(font, itm.fullName, 12.5f); nmTxt.setFillColor(Color(51, 65, 85)); nmTxt.setPosition({rightX + 290.f, curY + 18.f}); win.draw(nmTxt);
+        Text nmTxt(font, itm.fullName, 12.5f);
+        nmTxt.setFillColor(isSel ? Color(185, 28, 28) : Color(51, 65, 85));
+        nmTxt.setPosition({rightX + 290.f, curY + 18.f});
+        win.draw(nmTxt);
 
         // Số lượng (bắt đầu tại 465px)
-        Text qTxt(boldFont, to_wstring(itm.quantity), 13); qTxt.setFillColor(Color(15, 23, 42)); qTxt.setPosition({rightX + 465.f, curY + 18.f}); win.draw(qTxt);
+        Text qTxt(boldFont, to_wstring(itm.quantity), 13);
+        qTxt.setFillColor(isSel ? Color(185, 28, 28) : Color(15, 23, 42));
+        qTxt.setPosition({rightX + 465.f, curY + 18.f});
+        win.draw(qTxt);
 
         // Trạng thái: Đã dùng hoặc Chưa dùng (bắt đầu tại 530px)
         Color bStBg = itm.isUsed ? Color(220, 252, 231) : Color(224, 242, 254);
@@ -1380,6 +1474,67 @@ void VoucherPanel::render(RenderWindow& win) {
         Text canTxt(boldFont, L"H\u1ee7y b\u1ecf", 13); canTxt.setFillColor(Color(71, 85, 105));
         FloatRect cb = canTxt.getLocalBounds();
         canTxt.setPosition({popX + 260.f + (170.f - cb.size.x) / 2.f - cb.position.x, popY + 272.f + (38.f - cb.size.y) / 2.f - cb.position.y});
+        win.draw(canTxt);
+    }
+
+    // ==========================================
+    // 8c. POPUP XÁC NHẬN THU HỒI VOUCHER
+    // ==========================================
+    if (showRevokeConfirmPopup) {
+        RectangleShape overlay({width, height});
+        overlay.setPosition(position);
+        overlay.setFillColor(Color(15, 23, 42, 160));
+        win.draw(overlay);
+
+        float popW = 460.f;
+        float popH = 250.f;
+        float popX = position.x + (width - popW) / 2.f;
+        float popY = position.y + (height - popH) / 2.f - 20.f;
+
+        drawRoundedCard(win, {popX, popY}, {popW, popH}, 12.f, Color::White);
+
+        // Tiêu đề
+        Text pTitle(boldFont, L"X\u00e1c nh\u1eadn thu h\u1ed3i voucher", 17);
+        pTitle.setFillColor(Color(220, 38, 38));
+        pTitle.setPosition({popX + 30.f, popY + 22.f});
+        win.draw(pTitle);
+
+        Text pSub(font, L"B\u1ea1n c\u00f3 ch\u1eafc ch\u1eafn mu\u1ed1n thu h\u1ed3i voucher c\u1ee7a kh\u00e1ch h\u00e0ng:", 12.5f);
+        pSub.setFillColor(Color(71, 85, 105));
+        pSub.setPosition({popX + 30.f, popY + 54.f});
+        win.draw(pSub);
+
+        // Khung thông tin khách hàng được chọn
+        drawRoundedCard(win, {popX + 30.f, popY + 80.f}, {popW - 60.f, 76.f}, 6.f, Color(254, 242, 242), 1.f, Color(254, 202, 202));
+
+        if (selectedRecipientIndex >= 0 && selectedRecipientIndex < (int)filteredRecipients.size()) {
+            const auto& targetRec = filteredRecipients[selectedRecipientIndex];
+            Text emailTxt(boldFont, s2ws(targetRec.email), 13.5f);
+            emailTxt.setFillColor(Color(15, 23, 42));
+            emailTxt.setPosition({popX + 44.f, popY + 92.f});
+            win.draw(emailTxt);
+
+            wstring detailStr = L"H\u1ecd t\u00ean: " + targetRec.fullName + L"  \u2022  S\u1ed1 l\u01b0\u1ee3ng: " + to_wstring(targetRec.quantity) + L" voucher";
+            Text detTxt(font, detailStr, 12.f);
+            detTxt.setFillColor(Color(100, 116, 139));
+            detTxt.setPosition({popX + 44.f, popY + 118.f});
+            win.draw(detTxt);
+        }
+
+        // Nút Xác nhận thu hồi
+        drawRoundedCard(win, {popX + 40.f, popY + 180.f}, {170.f, 38.f}, 6.f, Color(220, 38, 38));
+        Text cfmTxt(boldFont, L"X\u00e1c nh\u1eadn thu h\u1ed3i", 13);
+        cfmTxt.setFillColor(Color::White);
+        FloatRect cfb = cfmTxt.getLocalBounds();
+        cfmTxt.setPosition({popX + 40.f + (170.f - cfb.size.x) / 2.f - cfb.position.x, popY + 180.f + (38.f - cfb.size.y) / 2.f - cfb.position.y});
+        win.draw(cfmTxt);
+
+        // Nút Hủy bỏ
+        drawRoundedCard(win, {popX + 240.f, popY + 180.f}, {170.f, 38.f}, 6.f, Color(241, 245, 249), 1.f, Color(203, 213, 225));
+        Text canTxt(boldFont, L"H\u1ee7y b\u1ecf", 13);
+        canTxt.setFillColor(Color(71, 85, 105));
+        FloatRect cab = canTxt.getLocalBounds();
+        canTxt.setPosition({popX + 240.f + (170.f - cab.size.x) / 2.f - cab.position.x, popY + 180.f + (38.f - cab.size.y) / 2.f - cab.position.y});
         win.draw(canTxt);
     }
 

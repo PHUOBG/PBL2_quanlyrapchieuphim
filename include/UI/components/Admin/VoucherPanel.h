@@ -89,6 +89,10 @@ private:
     wstring popupRecipientName;
     string popupRecipientQty = "1";
 
+    // Chọn người nhận & Popup Thu hồi
+    int selectedRecipientIndex = -1;
+    bool showRevokeConfirmPopup = false;
+
     void initDefaultData();
     void loadVouchersFromFile();
     void saveVouchersToFile();
