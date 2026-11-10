@@ -547,7 +547,7 @@ void UserPanel::handleEvent(const Event& event, const RenderWindow& window) {
             }
 
             // 3. Table Rows click & row action icons
-            float tTop = position.y + 246.f + 44.f;
+            float tTop = position.y + 242.f + 44.f;
             int startIdx = page * rowsPerPage;
             int endIdx = min((int)filteredCustomers.size(), startIdx + rowsPerPage);
 
@@ -585,14 +585,43 @@ void UserPanel::handleEvent(const Event& event, const RenderWindow& window) {
             }
 
             // Pagination buttons
-            float pageY = position.y + 246.f + 44.f + rowsPerPage * 52.f + 16.f;
-            FloatRect prevRect({position.x + width - 110.f, pageY}, {32.f, 32.f});
+            int totalPages = max(1, (static_cast<int>(filteredCustomers.size()) + rowsPerPage - 1) / rowsPerPage);
+            float pageY = position.y + 242.f + 44.f + rowsPerPage * 52.f + 12.f;
+            float tableW = width - 40.f;
+            float rightEdge = position.x + 20.f + tableW;
+
+            int numPageBtns = min(5, totalPages);
+            int startP = max(0, min(page - 2, totalPages - numPageBtns));
+            int endP = min(totalPages - 1, startP + numPageBtns - 1);
+
+            float btnPrevW = 32.f;
+            float btnNextW = 32.f;
+            float btnPageW = 32.f;
+            float gap = 6.f;
+            float totalBtnsW = btnPrevW + gap + (endP - startP + 1) * (btnPageW + gap) - gap + gap + btnNextW;
+            float curBtnX = rightEdge - totalBtnsW;
+
+            // Nút Prev <
+            FloatRect prevRect({curBtnX, pageY}, {btnPrevW, 30.f});
             if (prevRect.contains(mPos) && page > 0) {
                 page--;
                 return;
             }
-            FloatRect nextRect({position.x + width - 40.f, pageY}, {32.f, 32.f});
-            if (nextRect.contains(mPos) && (page + 1) * rowsPerPage < (int)filteredCustomers.size()) {
+            curBtnX += btnPrevW + gap;
+
+            // Nút các trang
+            for (int p = startP; p <= endP; ++p) {
+                FloatRect btnP({curBtnX, pageY}, {btnPageW, 30.f});
+                if (btnP.contains(mPos)) {
+                    page = p;
+                    return;
+                }
+                curBtnX += btnPageW + gap;
+            }
+
+            // Nút Next >
+            FloatRect nextRect({curBtnX, pageY}, {btnNextW, 30.f});
+            if (nextRect.contains(mPos) && page < totalPages - 1) {
                 page++;
                 return;
             }
@@ -603,7 +632,7 @@ void UserPanel::handleEvent(const Event& event, const RenderWindow& window) {
 void UserPanel::update(const Vector2f& mousePos, bool /*mouseDown*/) {
     // Check row hover
     hoveredRow = -1;
-    float tTop = position.y + 246.f + 44.f;
+    float tTop = position.y + 242.f + 44.f;
     int startIdx = page * rowsPerPage;
     int endIdx = min((int)filteredCustomers.size(), startIdx + rowsPerPage);
 
@@ -1092,24 +1121,69 @@ void UserPanel::drawCustomerTable(RenderTarget& target) const {
     // Pagination Footer
     float pageY = rTop + rowsPerPage * rH + 12.f;
     Text pageInfo(font);
-    pageInfo.setString(L"Hiển thị " + to_wstring(startIdx + 1) + L" - " + to_wstring(endIdx) + L" trên " + to_wstring(filteredCustomers.size()) + L" khách hàng");
+    wstring pageInfoStr = filteredCustomers.empty()
+        ? L"Không có khách hàng nào phù hợp"
+        : (L"Hiển thị " + to_wstring(startIdx + 1) + L" - " + to_wstring(endIdx) + L" trên tổng số " + to_wstring(filteredCustomers.size()) + L" khách hàng");
+    pageInfo.setString(pageInfoStr);
     pageInfo.setCharacterSize(12.5f);
     pageInfo.setFillColor(Color(100, 116, 139));
     pageInfo.setPosition({tableX + 16.f, pageY + 6.f});
     target.draw(pageInfo);
 
-    // Page Buttons: < [1] [2] >
-    Vector2f prevP(position.x + width - 110.f, pageY);
-    RoundedRectRenderer::draw(target, prevP, {30.f, 30.f}, 4.f, Color::White, 1.f, Color(203, 213, 225));
-    Text prevT(boldFont); prevT.setString(L"<"); prevT.setCharacterSize(12.5f); prevT.setFillColor(Color(71, 85, 105)); prevT.setPosition({prevP.x + 10.f, prevP.y + 4.f}); target.draw(prevT);
+    int totalPages = max(1, (static_cast<int>(filteredCustomers.size()) + rowsPerPage - 1) / rowsPerPage);
+    float rightEdge = tableX + tableW;
 
-    Vector2f p1P(position.x + width - 75.f, pageY);
-    RoundedRectRenderer::draw(target, p1P, {30.f, 30.f}, 4.f, (page == 0) ? Color(2, 132, 199) : Color::White, 1.f, (page == 0) ? Color(2, 132, 199) : Color(203, 213, 225));
-    Text p1T(boldFont); p1T.setString(to_string(page + 1)); p1T.setCharacterSize(12.5f); p1T.setFillColor((page == 0) ? Color::White : Color(71, 85, 105)); p1T.setPosition({p1P.x + 10.f, p1P.y + 4.f}); target.draw(p1T);
+    int numPageBtns = min(5, totalPages);
+    int startP = max(0, min(page - 2, totalPages - numPageBtns));
+    int endP = min(totalPages - 1, startP + numPageBtns - 1);
 
-    Vector2f nextP(position.x + width - 40.f, pageY);
-    RoundedRectRenderer::draw(target, nextP, {30.f, 30.f}, 4.f, Color::White, 1.f, Color(203, 213, 225));
-    Text nextT(boldFont); nextT.setString(L">"); nextT.setCharacterSize(12.5f); nextT.setFillColor(Color(71, 85, 105)); nextT.setPosition({nextP.x + 10.f, nextP.y + 4.f}); target.draw(nextT);
+    float btnPrevW = 32.f;
+    float btnNextW = 32.f;
+    float btnPageW = 32.f;
+    float gap = 6.f;
+    float totalBtnsW = btnPrevW + gap + (endP - startP + 1) * (btnPageW + gap) - gap + gap + btnNextW;
+    float curBtnX = rightEdge - totalBtnsW;
+
+    // Prev Button
+    bool canPrev = (page > 0);
+    RoundedRectRenderer::draw(target, {curBtnX, pageY}, {btnPrevW, 30.f}, 4.f, Color::White, 1.f, Color(203, 213, 225));
+    Text prevT(boldFont);
+    prevT.setString(L"<");
+    prevT.setCharacterSize(12.5f);
+    prevT.setFillColor(canPrev ? Color(71, 85, 105) : Color(203, 213, 225));
+    FloatRect prb = prevT.getLocalBounds();
+    prevT.setPosition({curBtnX + (btnPrevW - prb.size.x) / 2.f - prb.position.x, pageY + (30.f - prb.size.y) / 2.f - prb.position.y});
+    target.draw(prevT);
+    curBtnX += btnPrevW + gap;
+
+    // Number Buttons
+    for (int p = startP; p <= endP; ++p) {
+        bool isAct = (p == page);
+        Color pBg = isAct ? Color(2, 132, 199) : Color::White;
+        Color pBorder = isAct ? Color(2, 132, 199) : Color(203, 213, 225);
+        Color pFg = isAct ? Color::White : Color(71, 85, 105);
+
+        RoundedRectRenderer::draw(target, {curBtnX, pageY}, {btnPageW, 30.f}, 4.f, pBg, 1.f, pBorder);
+        Text pTxt(boldFont);
+        pTxt.setString(to_string(p + 1));
+        pTxt.setCharacterSize(12.5f);
+        pTxt.setFillColor(pFg);
+        FloatRect pb = pTxt.getLocalBounds();
+        pTxt.setPosition({curBtnX + (btnPageW - pb.size.x) / 2.f - pb.position.x, pageY + (30.f - pb.size.y) / 2.f - pb.position.y});
+        target.draw(pTxt);
+        curBtnX += btnPageW + gap;
+    }
+
+    // Next Button
+    bool canNext = (page < totalPages - 1);
+    RoundedRectRenderer::draw(target, {curBtnX, pageY}, {btnNextW, 30.f}, 4.f, Color::White, 1.f, Color(203, 213, 225));
+    Text nextT(boldFont);
+    nextT.setString(L">");
+    nextT.setCharacterSize(12.5f);
+    nextT.setFillColor(canNext ? Color(71, 85, 105) : Color(203, 213, 225));
+    FloatRect nxb = nextT.getLocalBounds();
+    nextT.setPosition({curBtnX + (btnNextW - nxb.size.x) / 2.f - nxb.position.x, pageY + (30.f - nxb.size.y) / 2.f - nxb.position.y});
+    target.draw(nextT);
 }
 
 void UserPanel::drawDialog(RenderTarget& target) const {

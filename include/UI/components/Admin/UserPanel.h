@@ -62,7 +62,7 @@ private:
     int selectedIndex = -1;
     int hoveredRow = -1;
     int page = 0;
-    int rowsPerPage = 7;
+    int rowsPerPage = 11;
 
     // Buttons & Dialogs
     bool btnViewHovered = false;
