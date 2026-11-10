@@ -57,6 +57,7 @@ private:
 
     // Hover states
     int hoveredVoucherRow = -1;
+    int hoveredEditBtnRow = -1;
     int hoveredRecipientRow = -1;
 
     // Toast
