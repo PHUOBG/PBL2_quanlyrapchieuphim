@@ -120,11 +120,11 @@ String MovieRevenuePanel::toSfString(const string& text) const {
 void MovieRevenuePanel::initDefaultStats() {
     // 8 Movies
     moviesList = {
-        {"M01", L"Tử Chiến Trên Không", L"Tử Chiến", L"Hành động, Giật gân", 24, 31, 3890000, 30.7f, true},
-        {"M02", L"Dune: Part Two", L"Dune 2", L"Khoa học viễn tưởng", 16, 15, 1995000, 14.8f, false},
-        {"M03", L"Inside Out 2", L"Inside 2", L"Hoạt hình, Gia đình", 14, 12, 1287500, 11.9f, false},
-        {"M04", L"Godzilla x Kong: The New Empire", L"Godzilla", L"Hành động, Quái thú", 12, 11, 1565000, 10.9f, false},
-        {"M05", L"Đào, Phở và Piano", L"Đào, Phở", L"Chiến tranh, Lịch sử", 10, 11, 1060000, 10.9f, false},
+        {"M01", L"Tử Chiến Trên Không", L"Tử Chiến", L"Hành động, Giật gân", 24, 31, 3890000, 32.8f, true},
+        {"M02", L"Dune: Part Two", L"Dune 2", L"Khoa học viễn tưởng", 16, 15, 1995000, 16.8f, false},
+        {"M03", L"Godzilla x Kong: The New Empire", L"Godzilla", L"Hành động, Quái thú", 14, 13, 1565000, 13.2f, false},
+        {"M04", L"Inside Out 2", L"Inside 2", L"Hoạt hình, Gia đình", 12, 11, 1287500, 10.9f, false},
+        {"M05", L"Đào, Phở và Piano", L"Đào, Phở", L"Chiến tranh, Lịch sử", 10, 11, 1060000, 9.0f, false},
         {"M06", L"Bố Già (Remastered)", L"Bố Già", L"Tâm lý, Tình cảm", 8, 9, 860000, 7.3f, false},
         {"M07", L"Lật Mặt: 48H", L"Lật Mặt", L"Hành động, Hài", 7, 8, 775000, 6.5f, false},
         {"M08", L"Mai", L"Mai", L"Tâm lý, Tình cảm", 5, 4, 410000, 3.5f, false}
@@ -1337,8 +1337,14 @@ void MovieRevenuePanel::drawTab3RevenueByMovie(RenderTarget& target) const {
         // 8 Horizontal Progress Bars
         float rTop = cPos.y + 60.f;
         float rH = 34.f;
-        const float maxRev = 4000000.f;
-        const float maxBarW = halfW - 220.f;
+        float maxRev = 4000000.f;
+        for (const auto& m : moviesList) {
+            if ((float)m.revenue > maxRev) maxRev = (float)m.revenue * 1.05f;
+        }
+
+        float barStartX = cPos.x + 200.f;
+        float barEndX = cPos.x + halfW - 110.f;
+        float maxBarW = max(50.f, barEndX - barStartX);
 
         for (size_t i = 0; i < moviesList.size(); ++i) {
             float ry = rTop + i * rH;
@@ -1346,30 +1352,42 @@ void MovieRevenuePanel::drawTab3RevenueByMovie(RenderTarget& target) const {
             // Rank
             Text rTxt(boldFont);
             rTxt.setString(to_string(i + 1));
-            rTxt.setCharacterSize(11.f);
-            rTxt.setFillColor(Color(148, 163, 184));
+            rTxt.setCharacterSize(11.5f);
+            Color rankCol = (i == 0) ? Color(245, 158, 11) : (i == 1 ? Color(100, 116, 139) : (i == 2 ? Color(180, 83, 9) : Color(148, 163, 184)));
+            rTxt.setFillColor(rankCol);
             rTxt.setPosition({cPos.x + 16.f, ry});
             target.draw(rTxt);
 
-            // Movie Name
-            Text mTxt(font);
-            mTxt.setString(moviesList[i].title);
-            mTxt.setCharacterSize(11.f);
+            // Movie Name (cắt gọn nếu quá dài để không đè lên thanh bar)
+            wstring titleStr = moviesList[i].title;
+            Text mTxt(font, titleStr, 11.5f);
             mTxt.setFillColor(Color(51, 65, 85));
+            if (mTxt.getGlobalBounds().size.x > 155.f) {
+                while (!titleStr.empty() && mTxt.getGlobalBounds().size.x > 142.f) {
+                    titleStr.pop_back();
+                    mTxt.setString(titleStr + L"...");
+                }
+                titleStr += L"...";
+                mTxt.setString(titleStr);
+            }
             mTxt.setPosition({cPos.x + 36.f, ry});
             target.draw(mTxt);
 
-            // Progress Bar
-            float barW = ((float)moviesList[i].revenue / maxRev) * maxBarW;
-            Vector2f barPos(cPos.x + 210.f, ry + 4.f);
-            RoundedRectRenderer::draw(target, barPos, {barW, 8.f}, 4.f, Color(56, 189, 248));
+            // Background Track (rãnh màu xám nhạt thể hiện quy mô tối đa)
+            RoundedRectRenderer::draw(target, {barStartX, ry + 4.f}, {maxBarW, 8.f}, 4.f, Color(241, 245, 249));
 
-            // Revenue text
+            // Progress Bar (thanh tiến trình màu xanh với chiều dài không bao giờ vượt quá barEndX)
+            float barW = min(maxBarW, max(4.f, ((float)moviesList[i].revenue / maxRev) * maxBarW));
+            Color barCol = (i == 0) ? Color(2, 132, 199) : (i < 3 ? Color(56, 189, 248) : Color(125, 211, 252));
+            RoundedRectRenderer::draw(target, {barStartX, ry + 4.f}, {barW, 8.f}, 4.f, barCol);
+
+            // Revenue text (căn phải cách lề 16px, luôn có khoảng cách an toàn với thanh bar)
             Text revTxt(boldFont);
             revTxt.setString(s2ws(toCurrency(moviesList[i].revenue)));
-            revTxt.setCharacterSize(11.f);
+            revTxt.setCharacterSize(11.5f);
             revTxt.setFillColor(Color(15, 23, 42));
-            revTxt.setPosition({cPos.x + halfW - 16.f - revTxt.getGlobalBounds().size.x, ry});
+            FloatRect revB = revTxt.getLocalBounds();
+            revTxt.setPosition({cPos.x + halfW - 16.f - revB.size.x, ry});
             target.draw(revTxt);
         }
     }
