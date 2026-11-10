@@ -55,6 +55,10 @@ private:
     const int pageSize = 6;
     int totalVoucherPages = 2;
 
+    int currentRecipientPage = 1;
+    const int recipientPageSize = 6;
+    int totalRecipientPages = 1;
+
     // Hover states
     int hoveredVoucherRow = -1;
     int hoveredEditBtnRow = -1;
@@ -77,8 +81,10 @@ private:
 
     // Popup Thêm người nhận
     bool showAddRecipientPopup = false;
+    int recipientPopupActiveField = 0;
     string popupRecipientEmail;
     wstring popupRecipientName;
+    string popupRecipientQty = "1";
 
     void initDefaultData();
     void loadVouchersFromFile();

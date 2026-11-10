@@ -160,6 +160,10 @@ void VoucherPanel::applyRecipientFilter() {
         }
         filteredRecipients.push_back(r);
     }
+
+    totalRecipientPages = max(1, (int)((filteredRecipients.size() + recipientPageSize - 1) / recipientPageSize));
+    if (currentRecipientPage > totalRecipientPages) currentRecipientPage = totalRecipientPages;
+    if (currentRecipientPage < 1) currentRecipientPage = 1;
 }
 
 void VoucherPanel::drawRoundedCard(RenderWindow& win, Vector2f pos, Vector2f sz, float r, Color fill, float outline, Color outCol) {
@@ -284,6 +288,120 @@ void VoucherPanel::handleEvent(const Event& event, const RenderWindow& win) {
                     popupValue += static_cast<char>(u);
                 } else if (popupActiveField == 4 && u >= '0' && u <= '9' && popupMinBill.size() < 8) {
                     popupMinBill += static_cast<char>(u);
+                }
+            }
+            return;
+        }
+        return;
+    }
+
+    // 1b. ƯU TIÊN XỬ LÝ POPUP THÊM NGƯỜI NHẬN (MODAL BLOCKING)
+    if (showAddRecipientPopup) {
+        float popW = 480.f;
+        float popH = 340.f;
+        float popX = position.x + (width - popW) / 2.f;
+        float popY = position.y + (height - popH) / 2.f - 20.f;
+
+        auto commitAddRecipient = [&]() {
+            if (popupRecipientEmail.empty()) {
+                notificationMessage = "Vui lòng nhập email khách hàng!";
+                notificationClock.restart();
+                notificationVisible = true;
+                return;
+            }
+            RecipientItem nr;
+            nr.email = popupRecipientEmail;
+            nr.fullName = popupRecipientName.empty() ? L"Khách Hàng Mới" : popupRecipientName;
+            nr.receivedDate = "10/11/2026";
+            int q = 1;
+            try {
+                if (!popupRecipientQty.empty()) q = max(1, stoi(popupRecipientQty));
+            } catch (...) { q = 1; }
+            nr.quantity = q;
+            nr.isUsed = false;
+
+            currentRecipients.push_back(nr);
+            applyRecipientFilter();
+            currentRecipientPage = totalRecipientPages;
+
+            if (selectedVoucherIndex >= 0 && selectedVoucherIndex < (int)filteredVouchers.size()) {
+                string selCode = filteredVouchers[selectedVoucherIndex].code;
+                for (auto& v : allVouchers) {
+                    if (v.code == selCode) {
+                        v.recipientCount = (int)currentRecipients.size();
+                        break;
+                    }
+                }
+                for (auto& v : filteredVouchers) {
+                    if (v.code == selCode) {
+                        v.recipientCount = (int)currentRecipients.size();
+                        break;
+                    }
+                }
+            }
+
+            showAddRecipientPopup = false;
+            notificationMessage = "Đã thêm người nhận voucher thành công!";
+            notificationClock.restart();
+            notificationVisible = true;
+        };
+
+        if (const auto* mouseBtn = event.getIf<Event::MouseButtonPressed>()) {
+            if (mouseBtn->button == Mouse::Button::Left) {
+                Vector2f mousePos = win.mapPixelToCoords(Mouse::getPosition(win));
+
+                FloatRect boxEmail({popX + 30.f, popY + 85.f}, {popW - 60.f, 36.f});
+                FloatRect boxName({popX + 30.f, popY + 150.f}, {popW - 60.f, 36.f});
+                FloatRect boxQty({popX + 30.f, popY + 215.f}, {200.f, 36.f});
+                FloatRect btnPopAdd({popX + 50.f, popY + 272.f}, {170.f, 38.f});
+                FloatRect btnPopCancel({popX + 260.f, popY + 272.f}, {170.f, 38.f});
+
+                if (boxEmail.contains(mousePos)) {
+                    recipientPopupActiveField = 0;
+                    return;
+                }
+                if (boxName.contains(mousePos)) {
+                    recipientPopupActiveField = 1;
+                    return;
+                }
+                if (boxQty.contains(mousePos)) {
+                    recipientPopupActiveField = 2;
+                    return;
+                }
+                if (btnPopAdd.contains(mousePos)) {
+                    commitAddRecipient();
+                    return;
+                }
+                if (btnPopCancel.contains(mousePos) || !FloatRect({popX, popY}, {popW, popH}).contains(mousePos)) {
+                    showAddRecipientPopup = false;
+                    return;
+                }
+            }
+            return;
+        }
+
+        if (const auto* keyEv = event.getIf<Event::KeyPressed>()) {
+            if (keyEv->code == Keyboard::Key::Escape) { showAddRecipientPopup = false; return; }
+            if (keyEv->code == Keyboard::Key::Tab) { recipientPopupActiveField = (recipientPopupActiveField + 1) % 3; return; }
+            if (keyEv->code == Keyboard::Key::Enter) { commitAddRecipient(); return; }
+            if (keyEv->code == Keyboard::Key::Backspace) {
+                if (recipientPopupActiveField == 0 && !popupRecipientEmail.empty()) popupRecipientEmail.pop_back();
+                else if (recipientPopupActiveField == 1 && !popupRecipientName.empty()) popupRecipientName.pop_back();
+                else if (recipientPopupActiveField == 2 && !popupRecipientQty.empty()) popupRecipientQty.pop_back();
+                return;
+            }
+        }
+
+        if (const auto* txtEv = event.getIf<Event::TextEntered>()) {
+            char32_t u = txtEv->unicode;
+            if (u >= 32 && u != 127) {
+                if (recipientPopupActiveField == 0 && popupRecipientEmail.size() < 45) {
+                    if ((u >= 'a' && u <= 'z') || (u >= 'A' && u <= 'Z') || (u >= '0' && u <= '9') || u == '@' || u == '.' || u == '_' || u == '-')
+                        popupRecipientEmail += static_cast<char>(u);
+                } else if (recipientPopupActiveField == 1 && popupRecipientName.size() < 40) {
+                    popupRecipientName += static_cast<wchar_t>(u);
+                } else if (recipientPopupActiveField == 2 && u >= '0' && u <= '9' && popupRecipientQty.size() < 4) {
+                    popupRecipientQty += static_cast<char>(u);
                 }
             }
             return;
@@ -479,17 +597,11 @@ void VoucherPanel::handleEvent(const Event& event, const RenderWindow& win) {
             }
 
             if (btnAddUser.contains(mousePos)) {
-                RecipientItem nr;
-                nr.email = "khachhang" + to_string(currentRecipients.size() + 1) + "@gmail.com";
-                nr.fullName = L"Kh\u00e1ch H\u00e0ng M\u1edbi";
-                nr.receivedDate = "27/10/2026";
-                nr.quantity = 1;
-                nr.isUsed = false;
-                currentRecipients.push_back(nr);
-                applyRecipientFilter();
-                notificationMessage = "Đã thêm người nhận voucher!";
-                notificationClock.restart();
-                notificationVisible = true;
+                showAddRecipientPopup = true;
+                popupRecipientEmail.clear();
+                popupRecipientName.clear();
+                popupRecipientQty = "1";
+                recipientPopupActiveField = 0;
                 return;
             }
 
@@ -497,6 +609,21 @@ void VoucherPanel::handleEvent(const Event& event, const RenderWindow& win) {
                 if (!currentRecipients.empty()) {
                     currentRecipients.pop_back();
                     applyRecipientFilter();
+                    if (selectedVoucherIndex >= 0 && selectedVoucherIndex < (int)filteredVouchers.size()) {
+                        string selCode = filteredVouchers[selectedVoucherIndex].code;
+                        for (auto& v : allVouchers) {
+                            if (v.code == selCode) {
+                                v.recipientCount = (int)currentRecipients.size();
+                                break;
+                            }
+                        }
+                        for (auto& v : filteredVouchers) {
+                            if (v.code == selCode) {
+                                v.recipientCount = (int)currentRecipients.size();
+                                break;
+                            }
+                        }
+                    }
                     notificationMessage = "Đã thu hồi 1 voucher của khách hàng!";
                     notificationClock.restart();
                     notificationVisible = true;
@@ -507,6 +634,22 @@ void VoucherPanel::handleEvent(const Event& event, const RenderWindow& win) {
             // Search Recipient
             FloatRect searchRB({rightX + 16.f, position.y + 342.f}, {rightW - 140.f, 32.f});
             searchRecipientActive = searchRB.contains(mousePos);
+
+            // Phân trang Cột Phải (Người nhận)
+            float rFootY = pagY + 4.f;
+            float rPagRight = rightX + rightW - 16.f;
+            if (totalRecipientPages > 1) {
+                FloatRect rBtnPrev({rPagRight - 88.f, rFootY}, {28.f, 28.f});
+                FloatRect rBtnNext({rPagRight - 28.f, rFootY}, {28.f, 28.f});
+                if (rBtnPrev.contains(mousePos) && currentRecipientPage > 1) {
+                    currentRecipientPage--;
+                    return;
+                }
+                if (rBtnNext.contains(mousePos) && currentRecipientPage < totalRecipientPages) {
+                    currentRecipientPage++;
+                    return;
+                }
+            }
         }
     }
 
@@ -560,7 +703,7 @@ void VoucherPanel::update(Vector2f mousePos, bool) {
     hoveredEditBtnRow = -1;
     hoveredRecipientRow = -1;
 
-    if (!showAddPopup) {
+    if (!showAddPopup && !showAddRecipientPopup) {
         float tableY = position.y + 356.f;
         float leftW = 650.f;
         float rowH = 64.f;
@@ -583,10 +726,12 @@ void VoucherPanel::update(Vector2f mousePos, bool) {
         float rightW = width - 730.f;
         float rTblY = position.y + 384.f;
         float rRowH = 58.f;
-        for (size_t r = 0; r < filteredRecipients.size(); ++r) {
+        int rStartIdx = (currentRecipientPage - 1) * recipientPageSize;
+        int rCount = max(0, min((int)filteredRecipients.size() - rStartIdx, recipientPageSize));
+        for (int r = 0; r < rCount; ++r) {
             float curY = rTblY + 36.f + r * rRowH;
             if (FloatRect({rightX + 16.f, curY}, {rightW - 32.f, rRowH}).contains(mousePos)) {
-                hoveredRecipientRow = (int)r;
+                hoveredRecipientRow = rStartIdx + r;
                 break;
             }
         }
@@ -922,7 +1067,19 @@ void VoucherPanel::render(RenderWindow& win) {
     drawRoundedCard(win, {rhb.position.x + rhb.size.x + 10.f, position.y + 248.f}, {85.f, 24.f}, 4.f, Color(224, 242, 254));
     Text vcBadge(boldFont, s2ws(selCode), 12); vcBadge.setFillColor(Color(2, 132, 199)); vcBadge.setPosition({rhb.position.x + rhb.size.x + 16.f, position.y + 252.f}); win.draw(vcBadge);
 
-    Text rSub(font, L"Gi\u1ea3m 20% \u0111\u01a1n h\u00e0ng \u2022 \u0110\u01a1n t\u1ed1i thi\u1ec3u: 0 \u0111", 12.5f);
+    wstring rSubStr = L"";
+    if (selectedVoucherIndex >= 0 && selectedVoucherIndex < (int)filteredVouchers.size()) {
+        const auto& curV = filteredVouchers[selectedVoucherIndex];
+        if (curV.type == 2) {
+            rSubStr = L"Gi\u1ea3m " + to_wstring(curV.value) + L"% \u0111\u01a1n h\u00e0ng";
+        } else {
+            rSubStr = L"Gi\u1ea3m " + s2ws(formatPrice(curV.value)) + L" \u0111\u01a1n h\u00e0ng";
+        }
+        rSubStr += L" \u2022 \u0110\u01a1n t\u1ed1i thi\u1ec3u: " + s2ws(formatPrice(curV.minBill));
+    } else {
+        rSubStr = L"C\u1ea5u h\u00ecnh ng\u01b0\u1eddi nh\u1eadn voucher";
+    }
+    Text rSub(font, rSubStr, 12.5f);
     rSub.setFillColor(Color(100, 116, 139));
     rSub.setPosition({rightX + 16.f, position.y + 276.f});
     win.draw(rSub);
@@ -949,8 +1106,12 @@ void VoucherPanel::render(RenderWindow& win) {
     sRTxt.setPosition({rightX + 24.f, rFltY + 8.f});
     win.draw(sRTxt);
 
-    drawRoundedCard(win, {rightX + rightW - 115.f, rFltY}, {100.f, 32.f}, 6.f, Color(241, 245, 249));
-    Text uTotTxt(boldFont, L"145 t\u00e0i kho\u1ea3n", 12); uTotTxt.setFillColor(Color(5, 150, 105)); uTotTxt.setPosition({rightX + rightW - 110.f, rFltY + 8.f}); win.draw(uTotTxt);
+    drawRoundedCard(win, {rightX + rightW - 120.f, rFltY}, {105.f, 32.f}, 6.f, Color(241, 245, 249));
+    wstring totAccStr = to_wstring(filteredRecipients.size()) + L" t\u00e0i kho\u1ea3n";
+    Text uTotTxt(boldFont, totAccStr, 12); uTotTxt.setFillColor(Color(5, 150, 105));
+    FloatRect utb = uTotTxt.getLocalBounds();
+    uTotTxt.setPosition({rightX + rightW - 120.f + (105.f - utb.size.x) / 2.f - utb.position.x, rFltY + (32.f - utb.size.y) / 2.f - utb.position.y});
+    win.draw(uTotTxt);
 
     // Header Bảng Người Nhận (phân bổ thoáng đãng theo 4 cột)
     float rTblY = position.y + 384.f;
@@ -960,11 +1121,15 @@ void VoucherPanel::render(RenderWindow& win) {
     Text rh3(boldFont, L"SL", 12); rh3.setFillColor(Color(100, 116, 139)); rh3.setPosition({rightX + 460.f, rTblY + 9.f}); win.draw(rh3);
     Text rh4(boldFont, L"TR\u1ea0NG TH\u00c1I", 12); rh4.setFillColor(Color(100, 116, 139)); rh4.setPosition({rightX + 535.f, rTblY + 9.f}); win.draw(rh4);
 
-    // Dòng dữ liệu Người Nhận
+    // Dòng dữ liệu Người Nhận (tối đa pageSize = 6 dòng)
     float rRowH = 58.f;
-    for (size_t r = 0; r < filteredRecipients.size(); ++r) {
+    int rStartIdx = (currentRecipientPage - 1) * recipientPageSize;
+    int rCount = max(0, min((int)filteredRecipients.size() - rStartIdx, recipientPageSize));
+
+    for (int r = 0; r < rCount; ++r) {
+        int actualIdx = rStartIdx + r;
         float curY = rTblY + 36.f + r * rRowH;
-        const auto& itm = filteredRecipients[r];
+        const auto& itm = filteredRecipients[actualIdx];
 
         // Đường kẻ ngăn cách
         RectangleShape sep({rightW - 32.f, 1.f});
@@ -992,15 +1157,51 @@ void VoucherPanel::render(RenderWindow& win) {
 
     // Footer Cột Phải
     float rFootY = pagY + 4.f;
-    Text rUsage(font, L"\u0110\u00e3 s\u1eed d\u1ee5ng: 89/145 (61.4%)", 12.5f);
+    int usedCnt = 0;
+    for (const auto& item : currentRecipients) {
+        if (item.isUsed) usedCnt++;
+    }
+    int totalRec = (int)currentRecipients.size();
+    float pct = totalRec > 0 ? ((float)usedCnt * 100.f / totalRec) : 0.f;
+    stringstream ssPct;
+    ssPct << fixed << setprecision(1) << pct;
+    wstring usageStr = L"\u0110\u00e3 s\u1eed d\u1ee5ng: " + to_wstring(usedCnt) + L"/" + to_wstring(totalRec) + L" (" + s2ws(ssPct.str()) + L"%)";
+    Text rUsage(font, usageStr, 12.5f);
     rUsage.setFillColor(Color(100, 116, 139));
-    rUsage.setPosition({rightX + 16.f, rFootY});
+    rUsage.setPosition({rightX + 16.f, rFootY + 5.f});
     win.draw(rUsage);
 
-    Text rAllLnk(boldFont, L"Xem to\u00e0n b\u1ed9 145 kh\u00e1ch \u2192", 12.5f);
-    rAllLnk.setFillColor(Color(2, 132, 199));
-    rAllLnk.setPosition({rightX + rightW - 170.f, rFootY});
-    win.draw(rAllLnk);
+    float rPagRight = rightX + rightW - 16.f;
+    if (totalRecipientPages > 1) {
+        bool rCanPrev = (currentRecipientPage > 1);
+        drawRoundedCard(win, {rPagRight - 88.f, rFootY}, {28.f, 28.f}, 4.f, Color::White, 1.f, Color(226, 232, 240));
+        Text rPgPrev(boldFont, L"<", 12);
+        rPgPrev.setFillColor(rCanPrev ? Color(100, 116, 139) : Color(203, 213, 225));
+        FloatRect rpb = rPgPrev.getLocalBounds();
+        rPgPrev.setPosition({rPagRight - 88.f + (28.f - rpb.size.x) / 2.f - rpb.position.x, rFootY + (28.f - rpb.size.y) / 2.f - rpb.position.y});
+        win.draw(rPgPrev);
+
+        wstring pStr = to_wstring(currentRecipientPage) + L"/" + to_wstring(totalRecipientPages);
+        Text rPgTxt(boldFont, pStr, 12);
+        rPgTxt.setFillColor(Color(71, 85, 105));
+        FloatRect rptb = rPgTxt.getLocalBounds();
+        rPgTxt.setPosition({rPagRight - 58.f + (28.f - rptb.size.x) / 2.f - rptb.position.x, rFootY + (28.f - rptb.size.y) / 2.f - rptb.position.y});
+        win.draw(rPgTxt);
+
+        bool rCanNext = (currentRecipientPage < totalRecipientPages);
+        drawRoundedCard(win, {rPagRight - 28.f, rFootY}, {28.f, 28.f}, 4.f, Color::White, 1.f, Color(226, 232, 240));
+        Text rPgNext(boldFont, L">", 12);
+        rPgNext.setFillColor(rCanNext ? Color(100, 116, 139) : Color(203, 213, 225));
+        FloatRect rnb = rPgNext.getLocalBounds();
+        rPgNext.setPosition({rPagRight - 28.f + (28.f - rnb.size.x) / 2.f - rnb.position.x, rFootY + (28.f - rnb.size.y) / 2.f - rnb.position.y});
+        win.draw(rPgNext);
+    } else {
+        Text rAllLnk(boldFont, L"Hi\u1ec3n th\u1ecb " + to_wstring(filteredRecipients.size()) + L" ng\u01b0\u1eddi nh\u1eadn", 12.f);
+        rAllLnk.setFillColor(Color(2, 132, 199));
+        FloatRect alb = rAllLnk.getLocalBounds();
+        rAllLnk.setPosition({rPagRight - alb.size.x, rFootY + 5.f});
+        win.draw(rAllLnk);
+    }
 
     // ==========================================
     // 7. BOTTOM STATUS BAR
@@ -1078,6 +1279,73 @@ void VoucherPanel::render(RenderWindow& win) {
 
         drawRoundedCard(win, {popX + 270.f, popY + 270.f}, {160.f, 38.f}, 6.f, Color(241, 245, 249), 1.f, Color(203, 213, 225));
         Text cTxt(boldFont, L"H\u1ee7y b\u1ecf", 13); cTxt.setFillColor(Color(71, 85, 105)); cTxt.setPosition({popX + 325.f, popY + 279.f}); win.draw(cTxt);
+    }
+
+    // ==========================================
+    // 8b. POPUP THÊM NGƯỜI NHẬN VOUCHER
+    // ==========================================
+    if (showAddRecipientPopup) {
+        RectangleShape overlay({width, height});
+        overlay.setPosition(position);
+        overlay.setFillColor(Color(15, 23, 42, 160));
+        win.draw(overlay);
+
+        float popW = 480.f;
+        float popH = 340.f;
+        float popX = position.x + (width - popW) / 2.f;
+        float popY = position.y + (height - popH) / 2.f - 20.f;
+
+        drawRoundedCard(win, {popX, popY}, {popW, popH}, 12.f, Color::White);
+
+        Text pTitle(boldFont, L"Th\u00eam ng\u01b0\u1eddi nh\u1eadn voucher", 18);
+        pTitle.setFillColor(Color(15, 23, 42));
+        pTitle.setPosition({popX + 30.f, popY + 22.f});
+        win.draw(pTitle);
+
+        // Field 0: Email
+        bool f0Act = (recipientPopupActiveField == 0);
+        Text l1(boldFont, L"Email kh\u00e1ch h\u00e0ng:", 13); l1.setFillColor(Color(71, 85, 105)); l1.setPosition({popX + 30.f, popY + 65.f}); win.draw(l1);
+        drawRoundedCard(win, {popX + 30.f, popY + 85.f}, {popW - 60.f, 36.f}, 6.f,
+                        f0Act ? Color::White : Color(248, 250, 252), f0Act ? 1.8f : 1.f, f0Act ? Color(2, 132, 199) : Color(203, 213, 225));
+        wstring dispEmail = popupRecipientEmail.empty() ? (f0Act ? L"|" : L"vd: nguyen.van.a@gmail.com") : (s2ws(popupRecipientEmail) + (f0Act ? L"|" : L""));
+        Text v1(font, dispEmail, 13);
+        v1.setFillColor(popupRecipientEmail.empty() && !f0Act ? Color(148, 163, 184) : Color(15, 23, 42));
+        v1.setPosition({popX + 40.f, popY + 93.f});
+        win.draw(v1);
+
+        // Field 1: Họ và tên
+        bool f1Act = (recipientPopupActiveField == 1);
+        Text l2(boldFont, L"H\u1ecc v\u00e0 t\u00ean kh\u00e1ch h\u00e0ng:", 13); l2.setFillColor(Color(71, 85, 105)); l2.setPosition({popX + 30.f, popY + 130.f}); win.draw(l2);
+        drawRoundedCard(win, {popX + 30.f, popY + 150.f}, {popW - 60.f, 36.f}, 6.f,
+                        f1Act ? Color::White : Color(248, 250, 252), f1Act ? 1.8f : 1.f, f1Act ? Color(2, 132, 199) : Color(203, 213, 225));
+        wstring dispName = popupRecipientName.empty() ? (f1Act ? L"|" : L"vd: Nguy\u1ec5n V\u0103n A") : (popupRecipientName + (f1Act ? L"|" : L""));
+        Text v2(font, dispName, 13);
+        v2.setFillColor(popupRecipientName.empty() && !f1Act ? Color(148, 163, 184) : Color(15, 23, 42));
+        v2.setPosition({popX + 40.f, popY + 158.f});
+        win.draw(v2);
+
+        // Field 2: Số lượng voucher
+        bool f2Act = (recipientPopupActiveField == 2);
+        Text l3(boldFont, L"S\u1ed1 l\u01b0\u1ee3ng voucher c\u1ea5p:", 13); l3.setFillColor(Color(71, 85, 105)); l3.setPosition({popX + 30.f, popY + 195.f}); win.draw(l3);
+        drawRoundedCard(win, {popX + 30.f, popY + 215.f}, {200.f, 36.f}, 6.f,
+                        f2Act ? Color::White : Color(248, 250, 252), f2Act ? 1.8f : 1.f, f2Act ? Color(2, 132, 199) : Color(203, 213, 225));
+        Text v3(font, s2ws(popupRecipientQty) + (f2Act ? L"|" : L""), 13);
+        v3.setFillColor(Color(15, 23, 42));
+        v3.setPosition({popX + 40.f, popY + 223.f});
+        win.draw(v3);
+
+        // Buttons
+        drawRoundedCard(win, {popX + 50.f, popY + 272.f}, {170.f, 38.f}, 6.f, Color(5, 150, 105));
+        Text sTxt(boldFont, L"Th\u00eam ng\u01b0\u1eddi nh\u1eadn", 13); sTxt.setFillColor(Color::White);
+        FloatRect sb = sTxt.getLocalBounds();
+        sTxt.setPosition({popX + 50.f + (170.f - sb.size.x) / 2.f - sb.position.x, popY + 272.f + (38.f - sb.size.y) / 2.f - sb.position.y});
+        win.draw(sTxt);
+
+        drawRoundedCard(win, {popX + 260.f, popY + 272.f}, {170.f, 38.f}, 6.f, Color(241, 245, 249), 1.f, Color(203, 213, 225));
+        Text canTxt(boldFont, L"H\u1ee7y b\u1ecf", 13); canTxt.setFillColor(Color(71, 85, 105));
+        FloatRect cb = canTxt.getLocalBounds();
+        canTxt.setPosition({popX + 260.f + (170.f - cb.size.x) / 2.f - cb.position.x, popY + 272.f + (38.f - cb.size.y) / 2.f - cb.position.y});
+        win.draw(canTxt);
     }
 
     // ==========================================
