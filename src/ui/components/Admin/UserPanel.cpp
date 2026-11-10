@@ -163,11 +163,19 @@ void UserPanel::applyFilter() {
     filteredCustomers.clear();
     wstring wSearch = s2ws(searchText);
 
+    const array<string, 5> timePatterns = {"", "/12/2025", "/11/2025", "/10/2025", "/09/2025"};
+    string activeTimePattern = timePatterns[timeFilterIndex % 5];
+
     for (auto& c : allCustomers) {
         // Tier filter
         if (tierFilterIndex == 1 && c.tier != CustomerTier::GOLD) continue;
         if (tierFilterIndex == 2 && c.tier != CustomerTier::SILVER) continue;
         if (tierFilterIndex == 3 && c.tier != CustomerTier::STANDARD) continue;
+
+        // Time filter
+        if (!activeTimePattern.empty() && c.registeredDate.find(activeTimePattern) == string::npos) {
+            continue;
+        }
 
         // Search text filter (hỗ trợ tiếng Việt có dấu & không dấu)
         if (!wSearch.empty()) {
@@ -192,6 +200,7 @@ void UserPanel::applyFilter() {
 void UserPanel::refreshData() {
     searchText.clear();
     tierFilterIndex = 0;
+    timeFilterIndex = 0;
     loadData();
     applyFilter();
     toastActive = true;
@@ -431,9 +440,9 @@ void UserPanel::handleEvent(const Event& event, const RenderWindow& window) {
             float actY = position.y + 192.f;
 
             // Ô tìm kiếm khách hàng
-            FloatRect searchRect({position.x + width - 580.f, actY}, {255.f, 34.f});
+            FloatRect searchRect({position.x + width - 620.f, actY}, {220.f, 34.f});
             if (searchRect.contains(mPos)) {
-                if (!searchText.empty() && mPos.x >= position.x + width - 350.f) {
+                if (!searchText.empty() && mPos.x >= position.x + width - 425.f) {
                     searchText.clear();
                     applyFilter();
                 }
@@ -504,15 +513,34 @@ void UserPanel::handleEvent(const Event& event, const RenderWindow& window) {
                 return;
             }
 
-            // Tier dropdown filter & Reload button on toolbar
-            FloatRect tierRect({position.x + width - 315.f, actY}, {145.f, 34.f});
+            // Tier dropdown filter
+            FloatRect tierRect({position.x + width - 390.f, actY}, {135.f, 34.f});
             if (tierRect.contains(mPos)) {
                 tierFilterIndex = (tierFilterIndex + 1) % 4;
                 applyFilter();
                 return;
             }
 
-            FloatRect relToolbarRect({position.x + width - 160.f, actY}, {140.f, 34.f});
+            // Time filter dropdown
+            FloatRect timeRect({position.x + width - 245.f, actY}, {180.f, 34.f});
+            if (timeRect.contains(mPos)) {
+                timeFilterIndex = (timeFilterIndex + 1) % 5;
+                applyFilter();
+                const array<wstring, 5> timeLabels = {
+                    L"Thời gian: Cả năm 2025",
+                    L"Kỳ: Tháng 12/2025",
+                    L"Kỳ: Tháng 11/2025",
+                    L"Kỳ: Tháng 10/2025",
+                    L"Kỳ: Tháng 09/2025"
+                };
+                toastActive = true;
+                toastTimer = 2.f;
+                toastMessage = L"Đã lọc: " + timeLabels[timeFilterIndex % 5];
+                return;
+            }
+
+            // Reload button on toolbar
+            FloatRect relToolbarRect({position.x + width - 56.f, actY}, {36.f, 34.f});
             if (relToolbarRect.contains(mPos)) {
                 refreshData();
                 return;
@@ -532,13 +560,13 @@ void UserPanel::handleEvent(const Event& event, const RenderWindow& window) {
                     selectedIndex = i;
                     filteredCustomers[i]->selected = !filteredCustomers[i]->selected;
 
-                    float actionX = position.x + width - 120.f;
-                    if (FloatRect({actionX, ry + 12.f}, {26.f, 26.f}).contains(mPos)) {
+                    float col_act = position.x + 20.f + (width - 40.f) - 130.f;
+                    if (FloatRect({col_act, ry + 12.f}, {34.f, 26.f}).contains(mPos)) {
                         activeDialog = DialogType::VIEW;
                         dialogUserIndex = i;
                         return;
                     }
-                    if (FloatRect({actionX + 28.f, ry + 12.f}, {26.f, 26.f}).contains(mPos)) {
+                    if (FloatRect({col_act + 42.f, ry + 12.f}, {34.f, 26.f}).contains(mPos)) {
                         activeDialog = DialogType::EDIT;
                         dialogUserIndex = i;
                         activeInputField = 0;
@@ -547,7 +575,7 @@ void UserPanel::handleEvent(const Event& event, const RenderWindow& window) {
                         inputPhone = filteredCustomers[i]->phone;
                         return;
                     }
-                    if (FloatRect({actionX + 56.f, ry + 12.f}, {26.f, 26.f}).contains(mPos)) {
+                    if (FloatRect({col_act + 84.f, ry + 12.f}, {34.f, 26.f}).contains(mPos)) {
                         activeDialog = DialogType::DELETE_CONFIRM;
                         dialogUserIndex = i;
                         return;
@@ -884,8 +912,8 @@ void UserPanel::drawActionToolbar(RenderTarget& target) const {
 
     // Right Filters:
     // 1. Search Box
-    Vector2f searchPos(position.x + width - 580.f, actY);
-    RoundedRectRenderer::draw(target, searchPos, {255.f, 34.f}, 6.f, Color::White, searchActive ? 1.8f : 1.f, searchActive ? Color(2, 132, 199) : Color(203, 213, 225));
+    Vector2f searchPos(position.x + width - 620.f, actY);
+    RoundedRectRenderer::draw(target, searchPos, {220.f, 34.f}, 6.f, Color::White, searchActive ? 1.8f : 1.f, searchActive ? Color(2, 132, 199) : Color(203, 213, 225));
 
     // Kính lúp tìm kiếm
     Vector2f uIconPos(searchPos.x + 10.f, searchPos.y + 10.f);
@@ -908,32 +936,45 @@ void UserPanel::drawActionToolbar(RenderTarget& target) const {
         ? (searchActive ? L"|" : L"Tìm theo Tên, Email, SĐT...")
         : (s2ws(searchText) + (searchActive ? L"|" : L""));
     sTxt.setString(dispS);
-    sTxt.setCharacterSize(12.5f);
+    sTxt.setCharacterSize(12.f);
     sTxt.setFillColor(searchText.empty() && !searchActive ? Color(148, 163, 184) : Color(15, 23, 42));
     sTxt.setPosition({searchPos.x + 28.f, searchPos.y + 8.f});
     target.draw(sTxt);
 
     // 2. Tier Dropdown
-    Vector2f tierPos(position.x + width - 315.f, actY);
-    RoundedRectRenderer::draw(target, tierPos, {145.f, 34.f}, 6.f, Color::White, 1.f, Color(203, 213, 225));
+    Vector2f tierPos(position.x + width - 390.f, actY);
+    RoundedRectRenderer::draw(target, tierPos, {135.f, 34.f}, 6.f, Color::White, 1.f, Color(203, 213, 225));
     const array<wstring, 4> tierLabels = {L"Tất cả hạng thẻ", L"Hạng Vàng", L"Hạng Bạc", L"Tiêu chuẩn"};
     Text tTxt(font);
     tTxt.setString(tierLabels[tierFilterIndex % 4]);
     tTxt.setCharacterSize(12.f);
     tTxt.setFillColor(Color(51, 65, 85));
-    tTxt.setPosition({tierPos.x + 12.f, tierPos.y + 8.f});
+    tTxt.setPosition({tierPos.x + 10.f, tierPos.y + 8.f});
     target.draw(tTxt);
-    UITheme::drawChevronDown(target, {tierPos.x + 130.f, tierPos.y + 17.f}, 4.2f, Color(100, 116, 139));
+    UITheme::drawChevronDown(target, {tierPos.x + 120.f, tierPos.y + 17.f}, 4.2f, Color(100, 116, 139));
 
-    // 3. Time Filter
-    Vector2f timePos(position.x + width - 160.f, actY);
-    RoundedRectRenderer::draw(target, timePos, {150.f, 34.f}, 6.f, Color::White, 1.f, Color(203, 213, 225));
+    // 3. Time Filter Dropdown
+    Vector2f timePos(position.x + width - 245.f, actY);
+    RoundedRectRenderer::draw(target, timePos, {180.f, 34.f}, 6.f, Color::White, 1.f, Color(203, 213, 225));
+    const array<wstring, 5> timeLabels = {
+        L"Thời gian: Cả năm 2025",
+        L"Kỳ: Tháng 12/2025",
+        L"Kỳ: Tháng 11/2025",
+        L"Kỳ: Tháng 10/2025",
+        L"Kỳ: Tháng 09/2025"
+    };
     Text tmTxt(font);
-    tmTxt.setString(L"Thời gian: Cả năm 2025");
+    tmTxt.setString(timeLabels[timeFilterIndex % 5]);
     tmTxt.setCharacterSize(12.f);
     tmTxt.setFillColor(Color(51, 65, 85));
-    tmTxt.setPosition({timePos.x + 10.f, timePos.y + 9.f});
+    tmTxt.setPosition({timePos.x + 10.f, timePos.y + 8.f});
     target.draw(tmTxt);
+    UITheme::drawChevronDown(target, {timePos.x + 165.f, timePos.y + 17.f}, 4.2f, Color(100, 116, 139));
+
+    // 4. Reload Button
+    Vector2f relPos(position.x + width - 56.f, actY);
+    RoundedRectRenderer::draw(target, relPos, {36.f, 34.f}, 6.f, Color::White, 1.f, Color(203, 213, 225));
+    UITheme::drawReloadIcon(target, {relPos.x + 18.f, relPos.y + 17.f}, 7.f, Color(71, 85, 105));
 }
 
 void UserPanel::drawCustomerTable(RenderTarget& target) const {
@@ -957,7 +998,7 @@ void UserPanel::drawCustomerTable(RenderTarget& target) const {
     float col_tier = tableX + 740.f;
     float col_date = tableX + 880.f;
     float col_bought = tableX + 1040.f;
-    float col_action = tableX + 1150.f;
+    float col_action = tableX + tableW - 130.f;
 
     float thY = tableY + 13.f;
     Text th_stt(boldFont); th_stt.setString(L"STT"); th_stt.setCharacterSize(12.5f); th_stt.setFillColor(Color::White); th_stt.setPosition({col_stt, thY}); target.draw(th_stt);
@@ -967,7 +1008,7 @@ void UserPanel::drawCustomerTable(RenderTarget& target) const {
     Text th_tier(boldFont); th_tier.setString(L"HẠNG THẺ"); th_tier.setCharacterSize(12.5f); th_tier.setFillColor(Color::White); th_tier.setPosition({col_tier, thY}); target.draw(th_tier);
     Text th_date(boldFont); th_date.setString(L"NGÀY ĐĂNG KÝ"); th_date.setCharacterSize(12.5f); th_date.setFillColor(Color::White); th_date.setPosition({col_date, thY}); target.draw(th_date);
     Text th_bought(boldFont); th_bought.setString(L"ĐÃ MUA"); th_bought.setCharacterSize(12.5f); th_bought.setFillColor(Color::White); th_bought.setPosition({col_bought, thY}); target.draw(th_bought);
-    Text th_action(boldFont); th_action.setString(L"THAO TÁC"); th_action.setCharacterSize(12.5f); th_action.setFillColor(Color::White); th_action.setPosition({col_action, thY}); target.draw(th_action);
+    Text th_action(boldFont); th_action.setString(L"THAO TÁC"); th_action.setCharacterSize(12.5f); th_action.setFillColor(Color::White); th_action.setPosition({col_action + 26.f, thY}); target.draw(th_action);
 
     // Customer Rows
     float rTop = tableY + headerH;
@@ -1032,15 +1073,24 @@ void UserPanel::drawCustomerTable(RenderTarget& target) const {
         // Tickets Bought
         Text tkTxt(boldFont); tkTxt.setString(to_wstring(c->ticketsBought) + L" vé"); tkTxt.setCharacterSize(13.f); tkTxt.setFillColor(Color(2, 132, 199)); tkTxt.setPosition({col_bought + 10.f, ry + 16.f}); target.draw(tkTxt);
 
-        // Action buttons: Xem, Sửa, Xóa
-        RoundedRectRenderer::draw(target, {col_action, ry + 12.f}, {26.f, 24.f}, 4.f, Color(241, 245, 249), 1.f, Color(203, 213, 225));
-        Text aView(boldFont); aView.setString(L"Xem"); aView.setCharacterSize(10); aView.setFillColor(Color(2, 132, 199)); aView.setPosition({col_action + 3.f, ry + 16.f}); target.draw(aView);
+        // Action buttons: Xem, Sửa, Xóa (cách đều 8px, thoáng đãng không dính nhau)
+        RoundedRectRenderer::draw(target, {col_action, ry + 13.f}, {34.f, 26.f}, 4.f, Color(241, 245, 249), 1.f, Color(203, 213, 225));
+        Text aView(boldFont); aView.setString(L"Xem"); aView.setCharacterSize(11); aView.setFillColor(Color(2, 132, 199));
+        FloatRect vb = aView.getLocalBounds();
+        aView.setPosition({col_action + (34.f - vb.size.x) / 2.f - vb.position.x, ry + 13.f + (26.f - vb.size.y) / 2.f - vb.position.y});
+        target.draw(aView);
 
-        RoundedRectRenderer::draw(target, {col_action + 28.f, ry + 12.f}, {26.f, 24.f}, 4.f, Color(254, 243, 199), 1.f, Color(253, 230, 138));
-        Text aEdit(boldFont); aEdit.setString(L"Sửa"); aEdit.setCharacterSize(10); aEdit.setFillColor(Color(180, 83, 9)); aEdit.setPosition({col_action + 32.f, ry + 16.f}); target.draw(aEdit);
+        RoundedRectRenderer::draw(target, {col_action + 42.f, ry + 13.f}, {34.f, 26.f}, 4.f, Color(254, 243, 199), 1.f, Color(253, 230, 138));
+        Text aEdit(boldFont); aEdit.setString(L"S\u1eeda"); aEdit.setCharacterSize(11); aEdit.setFillColor(Color(180, 83, 9));
+        FloatRect eb = aEdit.getLocalBounds();
+        aEdit.setPosition({col_action + 42.f + (34.f - eb.size.x) / 2.f - eb.position.x, ry + 13.f + (26.f - eb.size.y) / 2.f - eb.position.y});
+        target.draw(aEdit);
 
-        RoundedRectRenderer::draw(target, {col_action + 56.f, ry + 12.f}, {26.f, 24.f}, 4.f, Color(254, 242, 242), 1.f, Color(254, 202, 202));
-        Text aDel(boldFont); aDel.setString(L"Xóa"); aDel.setCharacterSize(10); aDel.setFillColor(Color(239, 68, 68)); aDel.setPosition({col_action + 60.f, ry + 16.f}); target.draw(aDel);
+        RoundedRectRenderer::draw(target, {col_action + 84.f, ry + 13.f}, {34.f, 26.f}, 4.f, Color(254, 242, 242), 1.f, Color(254, 202, 202));
+        Text aDel(boldFont); aDel.setString(L"X\u00f3a"); aDel.setCharacterSize(11); aDel.setFillColor(Color(239, 68, 68));
+        FloatRect db = aDel.getLocalBounds();
+        aDel.setPosition({col_action + 84.f + (34.f - db.size.x) / 2.f - db.position.x, ry + 13.f + (26.f - db.size.y) / 2.f - db.position.y});
+        target.draw(aDel);
     }
 
     // Pagination Footer
