@@ -46,10 +46,13 @@ private:
     int hoveredGenreIndex = -1;
     int hoveredStatusIndex = -1;
 
-    // Selection & pagination/scroll
+    // Selection & pagination
     int selectedRow = -1;
     int hoveredRow = -1;
     int scrollOffset = 0;
+    int currentPage = 1;
+    const int moviesPerPage = 5;
+    int totalPages = 1;
     int hoveredEditRow = -1;
     int hoveredDeleteRow = -1;
 

@@ -153,7 +153,10 @@ void MoviePanel::applyFilter() {
         filteredIndices.push_back(static_cast<int>(i));
     }
 
-    scrollOffset = 0;
+    totalPages = max(1, static_cast<int>((filteredIndices.size() + moviesPerPage - 1) / moviesPerPage));
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+    scrollOffset = (currentPage - 1) * moviesPerPage;
     if (!searchQuery.empty() && !filteredIndices.empty()) {
         selectedRow = 0;
     } else if (selectedRow >= static_cast<int>(filteredIndices.size())) {
@@ -615,9 +618,10 @@ void MoviePanel::handleEvent(const Event& event, const RenderWindow& window) {
             const float tableW = 1244.f;
             const float col8X = startX + 1125.f;
 
-            int displayCount = max(0, min(5, static_cast<int>(filteredIndices.size()) - scrollOffset));
+            int startIdx = (currentPage - 1) * moviesPerPage;
+            int displayCount = max(0, min(moviesPerPage, static_cast<int>(filteredIndices.size()) - startIdx));
             for (int r = 0; r < displayCount; ++r) {
-                int idx = scrollOffset + r;
+                int idx = startIdx + r;
                 float rY = tableY + hdrH + r * rowH;
                 FloatRect rBounds({startX, rY}, {tableW, rowH});
                 FloatRect editIconBtn({col8X + 8.f, rY + 23.f}, {34.f, 34.f});
@@ -634,6 +638,50 @@ void MoviePanel::handleEvent(const Event& event, const RenderWindow& window) {
                     return;
                 }
             }
+
+            // Thanh phân trang bảng phim (Pagination)
+            float pagY = tableY + hdrH + moviesPerPage * rowH + 16.f;
+            float rightEdge = startX + tableW;
+            int numPageBtns = min(5, totalPages);
+            int startP = max(1, min(currentPage - 2, totalPages - numPageBtns + 1));
+            int endP = min(totalPages, startP + numPageBtns - 1);
+            float btnPrevW = 64.f;
+            float btnNextW = 64.f;
+            float btnPageW = 34.f;
+            float gap = 6.f;
+            float totalBtnsW = btnPrevW + gap + (endP - startP + 1) * (btnPageW + gap) - gap + gap + btnNextW;
+            float curBtnX = rightEdge - totalBtnsW;
+
+            // Nút Trước
+            FloatRect btnPrev({curBtnX, pagY}, {btnPrevW, 34.f});
+            if (btnPrev.contains(mouse) && currentPage > 1) {
+                currentPage--;
+                selectedRow = -1;
+                scrollOffset = (currentPage - 1) * moviesPerPage;
+                return;
+            }
+            curBtnX += btnPrevW + gap;
+
+            // Các nút số trang 1, 2, 3, ...
+            for (int p = startP; p <= endP; ++p) {
+                FloatRect btnP({curBtnX, pagY}, {btnPageW, 34.f});
+                if (btnP.contains(mouse)) {
+                    currentPage = p;
+                    selectedRow = -1;
+                    scrollOffset = (currentPage - 1) * moviesPerPage;
+                    return;
+                }
+                curBtnX += btnPageW + gap;
+            }
+
+            // Nút Tiếp
+            FloatRect btnNext({curBtnX, pagY}, {btnNextW, 34.f});
+            if (btnNext.contains(mouse) && currentPage < totalPages) {
+                currentPage++;
+                selectedRow = -1;
+                scrollOffset = (currentPage - 1) * moviesPerPage;
+                return;
+            }
         }
     }
 
@@ -642,12 +690,14 @@ void MoviePanel::handleEvent(const Event& event, const RenderWindow& window) {
         if (searchActive) {
             if (keyEvent->code == Keyboard::Key::Backspace && !searchQuery.empty()) {
                 searchQuery.pop_back();
+                currentPage = 1;
                 applyFilter();
                 return;
             }
             if (keyEvent->code == Keyboard::Key::Escape) {
                 searchQuery.clear();
                 searchActive = false;
+                currentPage = 1;
                 applyFilter();
                 return;
             }
@@ -658,17 +708,22 @@ void MoviePanel::handleEvent(const Event& event, const RenderWindow& window) {
             char32_t uc = textEvent->unicode;
             if (uc >= 32 && uc != 127 && searchQuery.size() < 50) {
                 searchQuery.push_back((wchar_t)uc);
+                currentPage = 1;
                 applyFilter();
             }
         }
     }
 
-    // 4. CUỘN CHUỘT TRÊN BẢNG PHIM
+    // 4. CHUYỂN TRANG BẰNG CUỘN CHUỘT
     if (const auto* wheel = event.getIf<Event::MouseWheelScrolled>()) {
-        if (wheel->delta > 0 && scrollOffset > 0) {
-            scrollOffset--;
-        } else if (wheel->delta < 0 && scrollOffset + 5 < static_cast<int>(filteredIndices.size())) {
-            scrollOffset++;
+        if (wheel->delta > 0 && currentPage > 1) {
+            currentPage--;
+            selectedRow = -1;
+            scrollOffset = (currentPage - 1) * moviesPerPage;
+        } else if (wheel->delta < 0 && currentPage < totalPages) {
+            currentPage++;
+            selectedRow = -1;
+            scrollOffset = (currentPage - 1) * moviesPerPage;
         }
     }
 }
@@ -740,9 +795,10 @@ void MoviePanel::update(Vector2f mouse, bool /*mousePressed*/) {
     hoveredEditRow = -1;
     hoveredDeleteRow = -1;
 
-    int displayCount = max(0, min(5, static_cast<int>(filteredIndices.size()) - scrollOffset));
+    int startIdx = (currentPage - 1) * moviesPerPage;
+    int displayCount = max(0, min(moviesPerPage, static_cast<int>(filteredIndices.size()) - startIdx));
     for (int r = 0; r < displayCount; ++r) {
-        int idx = scrollOffset + r;
+        int idx = startIdx + r;
         float rY = tableY + hdrH + r * rowH;
         FloatRect rBounds({startX, rY}, {tableW, rowH});
         FloatRect editIconBtn({col8X + 8.f, rY + 23.f}, {34.f, 34.f});
@@ -902,11 +958,12 @@ void MoviePanel::render(RenderWindow& window) {
     window.draw(subTitle);
 
     // Right count badge
-    wstring countStr = L"\u0110ang hi\u1ec3n th\u1ecb: " + to_wstring(min(5, (int)filteredIndices.size())) + L" tr\u00ean " + to_wstring(allMovies.size()) + L" phim";
+    wstring countStr = L"Trang " + to_wstring(currentPage) + L"/" + to_wstring(totalPages) + L" (" + to_wstring(filteredIndices.size()) + L" phim)";
     RoundedRectRenderer::draw(window, {startX + 1244.f - 210.f, subY - 4.f}, {210.f, 28.f}, 14.f, Color(241, 245, 249), 1.2f, Color(203, 213, 225));
     Text cBadge(boldFont, countStr, 12);
     cBadge.setFillColor(Color(30, 41, 59));
-    cBadge.setPosition({startX + 1244.f - 200.f, subY + 1.f});
+    FloatRect cbb = cBadge.getLocalBounds();
+    cBadge.setPosition({startX + 1244.f - 210.f + (210.f - cbb.size.x) / 2.f - cbb.position.x, subY + 1.f});
     window.draw(cBadge);
 
     // 7. TABLE HEADER (Ocean Blue #0077B6)
@@ -947,10 +1004,11 @@ void MoviePanel::render(RenderWindow& window) {
 
     // 8. TABLE ROWS
     const float rowH = 80.f;
-    int displayCount = min(5, static_cast<int>(filteredIndices.size()) - scrollOffset);
+    int startIdx = (currentPage - 1) * moviesPerPage;
+    int displayCount = max(0, min(moviesPerPage, static_cast<int>(filteredIndices.size()) - startIdx));
 
     for (int r = 0; r < displayCount; ++r) {
-        int idx = scrollOffset + r;
+        int idx = startIdx + r;
         int origIdx = filteredIndices[idx];
         const auto& row = allMovies[origIdx];
         float rY = tblY + hdrH + r * rowH;
@@ -1117,6 +1175,64 @@ void MoviePanel::render(RenderWindow& window) {
         RoundedRectRenderer::draw(window, {col8X + 50.f, rY + 23.f}, {34.f, 34.f}, 8.f, delBg, 1.f, UITheme::BorderLight);
         drawTrashIcon(window, {col8X + 58.f, rY + 31.f}, delIcon);
     }
+
+    // 8b. THANH PHÂN TRANG (PAGINATION BAR)
+    float pagY = tblY + hdrH + moviesPerPage * rowH + 16.f;
+    int fromIdx = filteredIndices.empty() ? 0 : (startIdx + 1);
+    int toIdx = min(static_cast<int>(filteredIndices.size()), startIdx + moviesPerPage);
+    wstring pageInfoStr = filteredIndices.empty()
+        ? L"Không có phim nào phù hợp"
+        : (L"Hiển thị " + to_wstring(fromIdx) + L" – " + to_wstring(toIdx) + L" trên tổng số " + to_wstring(filteredIndices.size()) + L" phim");
+    Text pageInfo(font, pageInfoStr, 12.5f);
+    pageInfo.setFillColor(Color(100, 116, 139));
+    pageInfo.setPosition({startX, pagY + 7.f});
+    window.draw(pageInfo);
+
+    float rightEdge = startX + tblW;
+    int numPageBtns = min(5, totalPages);
+    int startP = max(1, min(currentPage - 2, totalPages - numPageBtns + 1));
+    int endP = min(totalPages, startP + numPageBtns - 1);
+    float btnPrevW = 64.f;
+    float btnNextW = 64.f;
+    float btnPageW = 34.f;
+    float gap = 6.f;
+    float totalBtnsW = btnPrevW + gap + (endP - startP + 1) * (btnPageW + gap) - gap + gap + btnNextW;
+    float curBtnX = rightEdge - totalBtnsW;
+
+    // Nút Trước
+    bool canPrev = (currentPage > 1);
+    RoundedRectRenderer::draw(window, {curBtnX, pagY}, {btnPrevW, 34.f}, 6.f, Color::White, 1.2f, Color(226, 232, 240));
+    Text prTxt(boldFont, L"Trước", 12.5f);
+    prTxt.setFillColor(canPrev ? Color(71, 85, 105) : Color(203, 213, 225));
+    FloatRect prb = prTxt.getLocalBounds();
+    prTxt.setPosition({curBtnX + (btnPrevW - prb.size.x) / 2.f - prb.position.x, pagY + (34.f - prb.size.y) / 2.f - prb.position.y});
+    window.draw(prTxt);
+    curBtnX += btnPrevW + gap;
+
+    // Các nút số trang 1, 2, 3, ...
+    for (int p = startP; p <= endP; ++p) {
+        bool isAct = (p == currentPage);
+        Color pBg = isAct ? Color(0, 119, 182) : Color::White;
+        Color pBorder = isAct ? Color(0, 119, 182) : Color(226, 232, 240);
+        Color pFg = isAct ? Color::White : Color(51, 65, 85);
+
+        RoundedRectRenderer::draw(window, {curBtnX, pagY}, {btnPageW, 34.f}, 6.f, pBg, 1.2f, pBorder);
+        Text pTxt(boldFont, to_wstring(p), 12.5f);
+        pTxt.setFillColor(pFg);
+        FloatRect pb = pTxt.getLocalBounds();
+        pTxt.setPosition({curBtnX + (btnPageW - pb.size.x) / 2.f - pb.position.x, pagY + (34.f - pb.size.y) / 2.f - pb.position.y});
+        window.draw(pTxt);
+        curBtnX += btnPageW + gap;
+    }
+
+    // Nút Tiếp
+    bool canNext = (currentPage < totalPages);
+    RoundedRectRenderer::draw(window, {curBtnX, pagY}, {btnNextW, 34.f}, 6.f, Color::White, 1.2f, Color(226, 232, 240));
+    Text nxTxt(boldFont, L"Tiếp", 12.5f);
+    nxTxt.setFillColor(canNext ? Color(71, 85, 105) : Color(203, 213, 225));
+    FloatRect nxb = nxTxt.getLocalBounds();
+    nxTxt.setPosition({curBtnX + (btnNextW - nxb.size.x) / 2.f - nxb.position.x, pagY + (34.f - nxb.size.y) / 2.f - nxb.position.y});
+    window.draw(nxTxt);
 
     // 9. Dropdown menus (if open)
     if (genreDropdownOpen) {
