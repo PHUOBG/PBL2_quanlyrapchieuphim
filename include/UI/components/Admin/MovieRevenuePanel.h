@@ -85,6 +85,9 @@ private:
     int hoveredRow = -1;
     bool exportHovered = false;
     bool reloadHovered = false;
+    bool dateDropdownOpen = false;
+    int selectedDateFilter = 0;
+    int hoveredDateItem = -1;
     bool toastActive = false;
     float toastTimer = 0.f;
     std::wstring toastMessage;

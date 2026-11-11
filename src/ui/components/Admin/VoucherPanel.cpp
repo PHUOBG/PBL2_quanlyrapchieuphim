@@ -7,6 +7,11 @@
 #include <sstream>
 #include <iomanip>
 
+#ifdef _WIN32
+#include <windows.h>
+#include <shellapi.h>
+#endif
+
 static wstring s2ws(const string& s) {
     if (s.empty()) return L"";
     auto sfStr = String::fromUtf8(s.begin(), s.end());
@@ -119,6 +124,63 @@ void VoucherPanel::saveVouchersToFile() {
     for (const auto& v : allVouchers) {
         f << v.code << "|" << v.type << "|" << v.value << "|" << v.minBill << "|" << ws2s(v.subtitle) << "\n";
     }
+}
+
+void VoucherPanel::openExportedFile(const string& path) const {
+#ifdef _WIN32
+    ShellExecuteA(NULL, "open", path.c_str(), NULL, NULL, SW_SHOWNORMAL);
+#else
+    system(("start \"\" \"" + path + "\"").c_str());
+#endif
+}
+
+bool VoucherPanel::exportToExcel() {
+    string outPath = FileUtils::resolveDataPath("data/voucher_report.csv");
+    ofstream out(outPath, ios::binary);
+    if (!out.is_open()) {
+        outPath = "voucher_report.csv";
+        out.open(outPath, ios::binary);
+    }
+    if (!out.is_open()) return false;
+
+    // UTF-8 BOM so Excel opens with proper Vietnamese characters
+    const unsigned char bom[] = {0xEF, 0xBB, 0xBF};
+    out.write(reinterpret_cast<const char*>(bom), sizeof(bom));
+
+    out << "BÁO CÁO CHI TIẾT HỆ THỐNG VOUCHER & KHÁCH HÀNG NHẬN\n";
+    out << "Tổng số chiến dịch voucher: " << allVouchers.size() << "\n\n";
+
+    out << "MÃ VOUCHER,TÊN CHIẾN DỊCH,LOẠI VOUCHER,GIÁ TRỊ GIẢM,ĐƠN TỐI THIỂU (VNĐ),SỐ NGƯỜI NHẬN,TRẠNG THÁI\n";
+    for (const auto& v : allVouchers) {
+        string typeStr = (v.type == 2) ? "Giảm theo %" : "Giảm tiền trực tiếp";
+        string valStr = (v.type == 2) ? (to_string(v.value) + "%") : (formatPrice(v.value) + " đ");
+        out << "\"" << v.code << "\","
+            << "\"" << ws2s(v.subtitle) << "\","
+            << "\"" << typeStr << "\","
+            << "\"" << valStr << "\","
+            << v.minBill << ","
+            << v.recipientCount << ","
+            << "\"Đang phát hành\"\n";
+    }
+
+    out << "\n\n";
+    string curCode = (selectedVoucherIndex >= 0 && selectedVoucherIndex < (int)filteredVouchers.size()) ? filteredVouchers[selectedVoucherIndex].code : "WELCOME";
+    out << "DANH SÁCH CHI TIẾT KHÁCH HÀNG NHẬN VOUCHER (" << curCode << ")\n";
+    out << "STT,EMAIL KHÁCH HÀNG,HỌ VÀ TÊN,SỐ LƯỢNG,NGÀY CẤP,TRẠNG THÁI\n";
+
+    int stt = 1;
+    for (const auto& r : currentRecipients) {
+        out << stt++ << ","
+            << "\"" << r.email << "\","
+            << "\"" << ws2s(r.fullName) << "\","
+            << r.quantity << ","
+            << "\"" << r.receivedDate << "\","
+            << "\"" << (r.isUsed ? "Đã dùng" : "Chưa dùng") << "\"\n";
+    }
+
+    out.close();
+    openExportedFile(outPath);
+    return true;
 }
 
 void VoucherPanel::applyVoucherFilter() {
@@ -477,13 +539,17 @@ void VoucherPanel::handleEvent(const Event& event, const RenderWindow& win) {
             FloatRect btnGuide({position.x + width - 100.f, position.y + 76.f}, {85.f, 36.f});
 
             if (btnExp.contains(mousePos)) {
-                notificationMessage = "Đã xuất dữ liệu voucher ra file Excel!";
+                if (exportToExcel()) {
+                    notificationMessage = "Đã xuất báo cáo: data/voucher_report.csv (Mở tự động bằng Excel)!";
+                } else {
+                    notificationMessage = "Không thể xuất file báo cáo voucher!";
+                }
                 notificationClock.restart();
                 notificationVisible = true;
                 return;
             }
             if (btnGuide.contains(mousePos)) {
-                notificationMessage = "Đang mở tài liệu hướng dẫn cấu hình voucher!";
+                notificationMessage = "Hướng dẫn: 1. Thêm/Sửa voucher bên trái • 2. Chọn voucher để quản lý người nhận bên phải!";
                 notificationClock.restart();
                 notificationVisible = true;
                 return;
@@ -584,7 +650,7 @@ void VoucherPanel::handleEvent(const Event& event, const RenderWindow& win) {
 
             // Cột Trái - Click chọn dòng hoặc nút Sửa trong bảng Voucher
             float tableY = position.y + 356.f;
-            float leftW = 650.f;
+            float leftW = 710.f;
             float rowH = 64.f;
             int startIdx = (currentVoucherPage - 1) * pageSize;
             int count = max(0, min((int)filteredVouchers.size() - startIdx, pageSize));
@@ -592,7 +658,7 @@ void VoucherPanel::handleEvent(const Event& event, const RenderWindow& win) {
             for (int r = 0; r < count; ++r) {
                 float rY = tableY + 40.f + r * rowH;
                 FloatRect rowRect({position.x + 30.f, rY}, {leftW, rowH});
-                FloatRect rowEditBtn({position.x + 586.f, rY + (rowH - 28.f) / 2.f}, {54.f, 28.f});
+                FloatRect rowEditBtn({position.x + 636.f, rY + (rowH - 28.f) / 2.f}, {56.f, 28.f});
 
                 if (rowEditBtn.contains(mousePos)) {
                     selectedVoucherIndex = startIdx + r;
@@ -643,8 +709,8 @@ void VoucherPanel::handleEvent(const Event& event, const RenderWindow& win) {
             if (btnP2.contains(mousePos) && totalVoucherPages >= 2) { currentVoucherPage = 2; applyVoucherFilter(); return; }
 
             // Cột Phải - Hàng nút: Quay lại, Thêm người, Thu hồi
-            float rightX = position.x + 700.f;
-            float rightW = width - 730.f;
+            float rightX = position.x + 760.f;
+            float rightW = width - 790.f;
             float rActY = position.y + 300.f;
             FloatRect btnBack({rightX + 16.f, rActY}, {85.f, 32.f});
             FloatRect btnAddUser({rightX + 108.f, rActY}, {110.f, 32.f});
@@ -783,14 +849,14 @@ void VoucherPanel::update(Vector2f mousePos, bool) {
 
     if (!showAddPopup && !showAddRecipientPopup && !showRevokeConfirmPopup) {
         float tableY = position.y + 356.f;
-        float leftW = 650.f;
+        float leftW = 710.f;
         float rowH = 64.f;
         int startIdx = (currentVoucherPage - 1) * pageSize;
         int count = min((int)filteredVouchers.size() - startIdx, pageSize);
 
         for (int r = 0; r < count; ++r) {
             float rY = tableY + 40.f + r * rowH;
-            FloatRect rowEditBtn({position.x + 586.f, rY + (rowH - 28.f) / 2.f}, {54.f, 28.f});
+            FloatRect rowEditBtn({position.x + 636.f, rY + (rowH - 28.f) / 2.f}, {56.f, 28.f});
             if (rowEditBtn.contains(mousePos)) {
                 hoveredEditBtnRow = r;
             }
@@ -800,8 +866,8 @@ void VoucherPanel::update(Vector2f mousePos, bool) {
         }
 
         // Cột phải hover
-        float rightX = position.x + 700.f;
-        float rightW = width - 730.f;
+        float rightX = position.x + 760.f;
+        float rightW = width - 790.f;
         float rActY = position.y + 300.f;
         FloatRect btnBack({rightX + 16.f, rActY}, {85.f, 32.f});
         FloatRect btnAddUser({rightX + 108.f, rActY}, {110.f, 32.f});
@@ -912,7 +978,7 @@ void VoucherPanel::render(RenderWindow& win) {
     // ==========================================
     // 5. CỘT TRÁI: DANH SÁCH VOUCHER (MASTER VIEW)
     // ==========================================
-    float leftW = 650.f;
+    float leftW = 710.f;
     Text lHead(boldFont, L"\u2022 Danh s\u00e1ch Voucher", 16);
     lHead.setFillColor(Color(15, 23, 42));
     lHead.setPosition({position.x + 30.f, position.y + 242.f});
@@ -974,11 +1040,11 @@ void VoucherPanel::render(RenderWindow& win) {
     drawRoundedCard(win, {position.x + 30.f, tableY}, {leftW, 40.f}, 4.f, Color(0, 119, 182));
 
     Text vh1(boldFont, L"M\u00c3 VOUCHER", 12.f); vh1.setFillColor(Color::White); vh1.setPosition({position.x + 44.f, tableY + 11.f}); win.draw(vh1);
-    Text vh2(boldFont, L"LO\u1ea0I", 12.f); vh2.setFillColor(Color::White); vh2.setPosition({position.x + 218.f, tableY + 11.f}); win.draw(vh2);
-    Text vh3(boldFont, L"GI\u00c1 TR\u1eca", 12.f); vh3.setFillColor(Color::White); vh3.setPosition({position.x + 298.f, tableY + 11.f}); win.draw(vh3);
-    Text vh4(boldFont, L"\u0110\u01a0N T\u1ed0I THI\u1ec2U", 12.f); vh4.setFillColor(Color::White); vh4.setPosition({position.x + 376.f, tableY + 11.f}); win.draw(vh4);
-    Text vh5(boldFont, L"NG\u01af\u1edcI NH\u1eacN", 12.f); vh5.setFillColor(Color::White); vh5.setPosition({position.x + 478.f, tableY + 11.f}); win.draw(vh5);
-    Text vh6(boldFont, L"THAO T\u00c1C", 12.f); vh6.setFillColor(Color::White); vh6.setPosition({position.x + 582.f, tableY + 11.f}); win.draw(vh6);
+    Text vh2(boldFont, L"LO\u1ea0I", 12.f); vh2.setFillColor(Color::White); vh2.setPosition({position.x + 236.f, tableY + 11.f}); win.draw(vh2);
+    Text vh3(boldFont, L"GI\u00c1 TR\u1eca", 12.f); vh3.setFillColor(Color::White); vh3.setPosition({position.x + 338.f, tableY + 11.f}); win.draw(vh3);
+    Text vh4(boldFont, L"\u0110\u01a0N T\u1ed0I THI\u1ec2U", 12.f); vh4.setFillColor(Color::White); vh4.setPosition({position.x + 430.f, tableY + 11.f}); win.draw(vh4);
+    Text vh5(boldFont, L"NG\u01af\u1edcI NH\u1eacN", 12.f); vh5.setFillColor(Color::White); vh5.setPosition({position.x + 544.f, tableY + 11.f}); win.draw(vh5);
+    Text vh6(boldFont, L"THAO T\u00c1C", 12.f); vh6.setFillColor(Color::White); vh6.setPosition({position.x + 636.f, tableY + 11.f}); win.draw(vh6);
 
     int startIdx = (currentVoucherPage - 1) * pageSize;
     int count = min((int)filteredVouchers.size() - startIdx, pageSize);
@@ -1029,8 +1095,8 @@ void VoucherPanel::render(RenderWindow& win) {
         // Subtitle cắt gọn gàng để không đè lên cột LOẠI
         wstring sub = v.subtitle;
         Text testSub(font, sub, 11.5f);
-        if (testSub.getGlobalBounds().size.x > 120.f) {
-            while (!sub.empty() && testSub.getGlobalBounds().size.x > 110.f) {
+        if (testSub.getGlobalBounds().size.x > 135.f) {
+            while (!sub.empty() && testSub.getGlobalBounds().size.x > 125.f) {
                 sub.pop_back();
                 testSub.setString(sub + L"...");
             }
@@ -1038,13 +1104,13 @@ void VoucherPanel::render(RenderWindow& win) {
         }
         Text subTxt(font, sub, 11.5f); subTxt.setFillColor(Color(100, 116, 139)); subTxt.setPosition({codeX, rY + 36.f}); win.draw(subTxt);
 
-        // Loại Voucher (Badge hiển thị trên 1 hàng)
+        // Loại Voucher (Badge hiển thị trên 1 hàng, cách đều)
         wstring typeLabel = (v.type == 2) ? L"Lo\u1ea1i 2 [%]" : L"Lo\u1ea1i 1 [Ti\u1ec1n]";
         Color typeBg = (v.type == 2) ? Color(253, 242, 248) : Color(238, 242, 255);
         Color typeFg = (v.type == 2) ? Color(219, 39, 119) : Color(79, 70, 229);
         float badgeW = 84.f;
         float badgeH = 26.f;
-        float badgeX = position.x + 193.f;
+        float badgeX = position.x + 218.f;
         float badgeY = rY + (rowH - badgeH) / 2.f;
         drawRoundedCard(win, {badgeX, badgeY}, {badgeW, badgeH}, 6.f, typeBg);
         Text tpTxt(boldFont, typeLabel, 11.f);
@@ -1055,15 +1121,15 @@ void VoucherPanel::render(RenderWindow& win) {
 
         // Giá trị
         wstring valStr = (v.type == 2) ? (to_wstring(v.value) + L"%") : s2ws(formatPrice(v.value));
-        Text valTxt(boldFont, valStr, 13.5f); valTxt.setFillColor(Color(5, 150, 105)); valTxt.setPosition({position.x + 298.f, rY + (rowH - 20.f) / 2.f}); win.draw(valTxt);
+        Text valTxt(boldFont, valStr, 13.5f); valTxt.setFillColor(Color(5, 150, 105)); valTxt.setPosition({position.x + 338.f, rY + (rowH - 20.f) / 2.f}); win.draw(valTxt);
 
         // Đơn tối thiểu
-        Text minTxt(font, s2ws(formatPrice(v.minBill)), 13); minTxt.setFillColor(Color(71, 85, 105)); minTxt.setPosition({position.x + 376.f, rY + (rowH - 20.f) / 2.f}); win.draw(minTxt);
+        Text minTxt(font, s2ws(formatPrice(v.minBill)), 13); minTxt.setFillColor(Color(71, 85, 105)); minTxt.setPosition({position.x + 430.f, rY + (rowH - 20.f) / 2.f}); win.draw(minTxt);
 
         // Người nhận (Badge số lượng)
         float rcPillW = 46.f;
         float rcPillH = 24.f;
-        float rcPillX = position.x + 495.f;
+        float rcPillX = position.x + 550.f;
         float rcPillY = rY + (rowH - rcPillH) / 2.f;
         drawRoundedCard(win, {rcPillX, rcPillY}, {rcPillW, rcPillH}, 12.f, Color(241, 245, 249));
         Text rcTxt(boldFont, to_wstring(v.recipientCount), 12); rcTxt.setFillColor(Color(2, 132, 199));
@@ -1072,9 +1138,9 @@ void VoucherPanel::render(RenderWindow& win) {
         win.draw(rcTxt);
 
         // Thao tác - Nút Sửa trong ô vuông / hộp màu đỏ
-        float editBtnW = 54.f;
+        float editBtnW = 56.f;
         float editBtnH = 28.f;
-        float editBtnX = position.x + 586.f;
+        float editBtnX = position.x + 636.f;
         float editBtnY = rY + (rowH - editBtnH) / 2.f;
         bool isEditHov = (hoveredEditBtnRow == r);
         drawRoundedCard(win, {editBtnX, editBtnY}, {editBtnW, editBtnH}, 5.f, isEditHov ? Color(185, 28, 28) : Color(220, 38, 38));
@@ -1138,8 +1204,8 @@ void VoucherPanel::render(RenderWindow& win) {
     // ==========================================
     // 6. CỘT PHẢI: CHI TIẾT NGƯỜI NHẬN (DETAIL VIEW)
     // ==========================================
-    float rightX = position.x + 700.f;
-    float rightW = width - 730.f;
+    float rightX = position.x + 760.f;
+    float rightW = width - 790.f;
 
     drawRoundedCard(win, {rightX, position.y + 236.f}, {rightW, 595.f}, 12.f, Color::White, 1.f, Color(226, 232, 240));
 

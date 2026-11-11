@@ -42,7 +42,9 @@ private:
     int selectedRow = -1;
     int hoveredRow = -1;
     int scrollOffset = 0;
+    int currentPage = 1;
     const int maxVisibleRows = 6; // Chiều cao mỗi dòng 72px
+    int totalPages = 1;
 
     // Buttons hover states
     bool btnAddHover = false;

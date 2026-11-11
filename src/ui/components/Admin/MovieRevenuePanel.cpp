@@ -394,6 +394,51 @@ void MovieRevenuePanel::handleEvent(const Event& event, const RenderWindow& /*wi
                                   : L"Đã xuất báo cáo doanh thu Excel thành công!";
                 return;
             }
+
+            // 3. Date Range Filter Box & Dropdown
+            FloatRect dateBox({position.x + width - 520.f, position.y + 14.f}, {280.f, 36.f});
+            if (dateBox.contains(mPos)) {
+                dateDropdownOpen = !dateDropdownOpen;
+                return;
+            }
+
+            if (dateDropdownOpen) {
+                float ddX = position.x + width - 520.f;
+                float ddY = position.y + 14.f + 40.f;
+                float itemH = 36.f;
+                for (int i = 0; i < 5; ++i) {
+                    FloatRect itemRect({ddX, ddY + i * itemH}, {280.f, itemH});
+                    if (itemRect.contains(mPos)) {
+                        selectedDateFilter = i;
+                        dateDropdownOpen = false;
+
+                        // Cập nhật số liệu theo kỳ chọn
+                        if (i == 0) {
+                            totalRevenue = 11842500; movieRevenue = 7000000; comboRevenue = 4842500; totalTickets = 101; totalCombos = 89;
+                        } else if (i == 1) { // T12
+                            totalRevenue = 2947500; movieRevenue = 1700000; comboRevenue = 1247500; totalTickets = 25; totalCombos = 22;
+                        } else if (i == 2) { // T11
+                            totalRevenue = 4305000; movieRevenue = 2450000; comboRevenue = 1855000; totalTickets = 37; totalCombos = 33;
+                        } else if (i == 3) { // T10
+                            totalRevenue = 2915000; movieRevenue = 1800000; comboRevenue = 1115000; totalTickets = 25; totalCombos = 21;
+                        } else if (i == 4) { // T09
+                            totalRevenue = 1675000; movieRevenue = 1050000; comboRevenue = 625000; totalTickets = 14; totalCombos = 13;
+                        }
+                        const array<wstring, 5> dateLabels = {
+                            L"Toàn thời gian (01/09/2025 – 24/12/2025)",
+                            L"Kỳ: Tháng 12/2025",
+                            L"Kỳ: Tháng 11/2025",
+                            L"Kỳ: Tháng 10/2025",
+                            L"Kỳ: Tháng 09/2025"
+                        };
+                        toastMessage = L"Đã lọc thống kê theo: " + dateLabels[i];
+                        toastTimer = 2.5f;
+                        toastActive = true;
+                        return;
+                    }
+                }
+                dateDropdownOpen = false;
+            }
         }
     }
 }
@@ -411,6 +456,19 @@ void MovieRevenuePanel::update(const Vector2f& mousePos, bool /*mouseDown*/) {
     // Button hovers
     reloadHovered = FloatRect({position.x + width - 230.f, position.y + 16.f}, {100.f, 36.f}).contains(mousePos);
     exportHovered = FloatRect({position.x + width - 120.f, position.y + 16.f}, {100.f, 36.f}).contains(mousePos);
+
+    hoveredDateItem = -1;
+    if (dateDropdownOpen) {
+        float ddX = position.x + width - 520.f;
+        float ddY = position.y + 14.f + 40.f;
+        float itemH = 36.f;
+        for (int i = 0; i < 5; ++i) {
+            if (FloatRect({ddX, ddY + i * itemH}, {280.f, itemH}).contains(mousePos)) {
+                hoveredDateItem = i;
+                break;
+            }
+        }
+    }
 
     if (reportModalOpen) {
         float mw = 760.f, mh = 530.f;
@@ -460,6 +518,35 @@ void MovieRevenuePanel::render(RenderTarget& target) const {
 
     // 6. Bottom Engine Status Bar
     drawBottomBar(target);
+
+    // 6b. Dropdown chọn kỳ doanh thu
+    if (dateDropdownOpen) {
+        float topY = position.y + 14.f;
+        float ddX = position.x + width - 520.f;
+        float ddY = topY + 40.f;
+        float ddW = 280.f;
+        float itemH = 36.f;
+        const array<wstring, 5> dateLabels = {
+            L"Toàn thời gian (01/09 – 24/12/2025)",
+            L"Kỳ: Tháng 12/2025",
+            L"Kỳ: Tháng 11/2025",
+            L"Kỳ: Tháng 10/2025",
+            L"Kỳ: Tháng 09/2025"
+        };
+        RoundedRectRenderer::draw(target, {ddX, ddY}, {ddW, 5 * itemH}, 8.f, Color::White, 1.2f, Color(203, 213, 225));
+        for (int i = 0; i < 5; ++i) {
+            Color itemBg = (i == hoveredDateItem) ? Color(241, 245, 249) : (i == selectedDateFilter ? Color(224, 242, 254) : Color::White);
+            Color itemFg = (i == selectedDateFilter) ? Color(2, 132, 199) : Color(51, 65, 85);
+            RoundedRectRenderer::draw(target, {ddX + 2.f, ddY + i * itemH + 2.f}, {ddW - 4.f, itemH - 4.f}, 4.f, itemBg);
+            Text itTxt(i == selectedDateFilter ? boldFont : font, dateLabels[i], 12.f);
+            itTxt.setFillColor(itemFg);
+            itTxt.setPosition({ddX + 16.f, ddY + i * itemH + 9.f});
+            target.draw(itTxt);
+            if (i == selectedDateFilter) {
+                UITheme::drawCheckmark(target, {ddX + ddW - 20.f, ddY + i * itemH + 18.f}, 0.7f, Color(2, 132, 199), 1.8f);
+            }
+        }
+    }
 
     // 7. Modal Báo cáo doanh thu (Hiển thị ngay trên màn hình khi nhấn xuất báo cáo)
     if (reportModalOpen) {
@@ -527,15 +614,23 @@ void MovieRevenuePanel::drawHeader(RenderTarget& target) const {
 
     // Right Controls
     // Date Range Box: "Từ: 01/09/2025  →  Đến: 24/12/2025"
-    Vector2f dateRangePos(position.x + width - 500.f, topY);
-    RoundedRectRenderer::draw(target, dateRangePos, {260.f, 36.f}, 6.f, Color::White, 1.f, Color(203, 213, 225));
-    Text dateRangeTxt(font);
-    dateRangeTxt.setString(L"Từ:  01/09/2025   →   Đến:  24/12/2025");
-    dateRangeTxt.setCharacterSize(11.5f);
-    dateRangeTxt.setFillColor(Color(51, 65, 85));
-    FloatRect drB = dateRangeTxt.getLocalBounds();
-    dateRangeTxt.setPosition({dateRangePos.x + (260.f - drB.size.x) / 2.f - drB.position.x, dateRangePos.y + (36.f - drB.size.y) / 2.f - drB.position.y});
+    Vector2f dateRangePos(position.x + width - 520.f, topY);
+    RoundedRectRenderer::draw(target, dateRangePos, {280.f, 36.f}, 6.f, Color::White, dateDropdownOpen ? 1.6f : 1.f, dateDropdownOpen ? Color(2, 132, 199) : Color(203, 213, 225));
+    
+    const array<wstring, 5> dateLabels = {
+        L"Từ:  01/09/2025   →   Đến:  24/12/2025",
+        L"Kỳ: Tháng 12/2025 (01/12 – 24/12)",
+        L"Kỳ: Tháng 11/2025 (01/11 – 30/11)",
+        L"Kỳ: Tháng 10/2025 (01/10 – 31/10)",
+        L"Kỳ: Tháng 09/2025 (01/09 – 30/09)"
+    };
+    wstring curDateStr = dateLabels[selectedDateFilter % 5];
+    Text dateRangeTxt(font, curDateStr, 11.5f);
+    dateRangeTxt.setFillColor(Color(30, 41, 59));
+    dateRangeTxt.setPosition({dateRangePos.x + 12.f, dateRangePos.y + 9.f});
     target.draw(dateRangeTxt);
+
+    UITheme::drawChevronDown(target, {dateRangePos.x + 262.f, dateRangePos.y + 17.f}, 4.2f, Color(100, 116, 139));
 
     // Button "Tải dữ liệu"
     Vector2f reloadPos(position.x + width - 230.f, topY);

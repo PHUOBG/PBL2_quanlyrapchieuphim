@@ -122,7 +122,17 @@ void ComboPanel::initDefaultCombos() {
         {"CB07", L"2 CocaCola + 1 B\u1eafp Ph\u00f4 Mai", L"G\u00f3i C\u1eb7p \u0110\u00f4i m\u1eb7n: 2 Ly Coca 22oz + 1 H\u1ed9p B\u1eafp Ph\u00f4 Mai l\u1edbn", L"Combo Nh\u00f3m", 125000, false, true, false},
         {"CB08", L"2 CocaCola + 2 B\u1eafp Caramel", L"G\u00f3i Party ng\u1ecdt: 2 Ly Coca 22oz + 2 H\u1ed9p B\u1eafp Caramel l\u1edbn", L"Combo Nh\u00f3m", 185000, false, true, false},
         {"CB09", L"2 CocaCola + 2 B\u1eafp Ph\u00f4 Mai", L"G\u00f3i Party m\u1eb7n: 2 Ly Coca 22oz + 2 H\u1ed9p B\u1eafp Ph\u00f4 Mai l\u1edbn", L"Combo Nh\u00f3m", 190000, false, true, false},
-        {"CB10", L"4 CocaCola + 2 B\u1eafp Ph\u00f4 Mai", L"G\u00f3i Gia \u0110\u00ecnh: 4 Ly Coca 22oz + 2 H\u1ed9p B\u1eafp Ph\u00f4 Mai l\u1edbn", L"Combo Nh\u00f3m", 240000, false, true, false}
+        {"CB10", L"4 CocaCola + 2 B\u1eafp Ph\u00f4 Mai", L"G\u00f3i Gia \u0110\u00ecnh: 4 Ly Coca 22oz + 2 H\u1ed9p B\u1eafp Ph\u00f4 Mai l\u1edbn", L"Combo Nh\u00f3m", 240000, false, true, false},
+        {"CB11", L"Sprite Chanh T\u01b0\u01a1i", L"1x Ly n\u01b0\u1edbc ng\u1ecdt c\u00f3 ga h\u01b0\u01a1ng chanh s\u1ea3ng kho\u00e1i (Size L 22oz)", L"\u0110\u1ed3 u\u1ed1ng", 30000, false, true, false},
+        {"CB12", L"Fanta Cam T\u01b0\u01a1i", L"1x Ly Fanta h\u01b0\u01a1ng cam b\u00f9ng n\u1ed5 n\u0103ng l\u01b0\u1ee3ng (Size L 22oz)", L"\u0110\u1ed3 u\u1ed1ng", 30000, false, true, false},
+        {"CB13", L"B\u1eafp Rang B\u01a1 Truy\u1ec1n Th\u1ed1ng", L"1x B\u1eafp rang b\u01a1 v\u00e0ng \u00f3ng th\u01a1m n\u1ee9c h\u01b0\u01a1ng v\u1ecb truy\u1ec1n th\u1ed1ng (64oz)", L"B\u1eafp ng\u1ecdt", 65000, false, true, false},
+        {"CB14", L"B\u1eafp Rang Ph\u00f4 Mai Rong Bi\u1ec3n", L"1x B\u1eafp l\u1eafc rong bi\u1ec3n gi\u00f2n k\u00e8m b\u1ed9t ph\u00f4 mai \u0111\u1ed9c quy\u1ec1n (64oz)", L"B\u1eafp m\u1eb7n", 80000, true, true, false},
+        {"CB15", L"N\u01b0\u1edbc Kho\u00e1ng Dasani 500ml", L"1x Chai n\u01b0\u1edbc kho\u00e1ng tinh khi\u1ebft thanh m\u00e1t", L"\u0110\u1ed3 u\u1ed1ng", 20000, false, true, false},
+        {"CB16", L"Tr\u00e0 S\u1eefa Tr\u00e2n Ch\u00e2u R\u1ea1p Chi\u1ebfu", L"1x Ly tr\u00e0 s\u1eefa th\u01a1m b\u00e9o k\u00e8m tr\u00e2n ch\u00e2u ho\u00e0ng kim dai gi\u00f2n", L"\u0110\u1ed3 u\u1ed1ng", 45000, true, true, false},
+        {"CB17", L"Khoai T\u00e2y Chi\u00ean L\u1eafc Ph\u00f4 Mai", L"1x H\u1ed9p khoai t\u00e2y chi\u00ean gi\u00f2n r\u1ee5m l\u1eafc ph\u00f4 mai \u0111\u1eadm \u0111\u00e0", L"B\u1eafp m\u1eb7n", 50000, false, true, false},
+        {"CB18", L"Combo Couple Sweet", L"2x Ly n\u01b0\u1edbc ng\u1ecdt 22oz + 1 H\u1ed9p b\u1eafp ng\u1ecdt l\u1edbn size L", L"Combo Nh\u00f3m", 115000, false, true, false},
+        {"CB19", L"Combo Gia \u0110\u00ecnh", L"4x Ly n\u01b0\u1edbc ng\u1ecdt + 2 H\u1ed9p b\u1eafp t\u1ef1 ch\u1ecdn + 1 Ph\u1ea7n snack gi\u00f2n", L"Combo Nh\u00f3m", 260000, false, true, false},
+        {"CB20", L"Combo CineMax VIP", L"2x N\u01b0\u1edbc \u0111\u1eb7c bi\u1ec7t + 1 H\u1ed9p b\u1eafp 3 ng\u0103n \u0111\u1ee7 v\u1ecb l\u1edbn", L"Combo Nh\u00f3m", 150000, true, true, false}
     };
 }
 
@@ -142,12 +152,19 @@ void ComboPanel::loadCombosFromFile() {
         getline(ss, name, '|');
         getline(ss, pr, '|');
 
+        bool found = false;
         for (auto& item : allCombos) {
             if (item.id == id) {
                 item.name = s2ws(name);
                 try { item.price = stoi(pr); } catch (...) {}
+                found = true;
                 break;
             }
+        }
+        if (!found && !id.empty() && !name.empty()) {
+            int p = 50000;
+            try { p = stoi(pr); } catch (...) {}
+            allCombos.push_back({id, s2ws(name), L"Sản phẩm bắp nước rạp chiếu", L"Combo Đơn", p, false, true, false});
         }
     }
 }
@@ -185,8 +202,11 @@ void ComboPanel::applyFilter() {
         filteredCombos.push_back(itm);
     }
 
+    totalPages = max(1, (static_cast<int>(filteredCombos.size()) + maxVisibleRows - 1) / maxVisibleRows);
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+    scrollOffset = (currentPage - 1) * maxVisibleRows;
     selectedRow = (!searchQuery.empty() && !filteredCombos.empty()) ? 0 : -1;
-    scrollOffset = 0;
 }
 
 void ComboPanel::drawRoundedCard(RenderWindow& win, Vector2f pos, Vector2f sz, float r, Color fill, float outline, Color outCol) {
@@ -490,6 +510,53 @@ void ComboPanel::handleEvent(const Event& event, const RenderWindow& win) {
                     return;
                 }
             }
+
+            // Pagination buttons
+            float pageY = tableY + 44.f + maxVisibleRows * rowH + 12.f;
+            float tableW = width - 60.f;
+            float rightEdge = position.x + 30.f + tableW;
+
+            int numPageBtns = min(5, totalPages);
+            int startP = max(1, min(currentPage - 2, totalPages - numPageBtns + 1));
+            int endP = min(totalPages, startP + numPageBtns - 1);
+
+            float btnPrevW = 60.f;
+            float btnNextW = 60.f;
+            float btnPageW = 32.f;
+            float gap = 6.f;
+            float totalBtnsW = btnPrevW + gap + (endP - startP + 1) * (btnPageW + gap) - gap + gap + btnNextW;
+            float curBtnX = rightEdge - totalBtnsW;
+
+            // Nút Trước
+            FloatRect btnPrev({curBtnX, pageY}, {btnPrevW, 30.f});
+            if (btnPrev.contains(mousePos) && currentPage > 1) {
+                currentPage--;
+                selectedRow = -1;
+                scrollOffset = (currentPage - 1) * maxVisibleRows;
+                return;
+            }
+            curBtnX += btnPrevW + gap;
+
+            // Nút số trang 1, 2, 3...
+            for (int p = startP; p <= endP; ++p) {
+                FloatRect btnP({curBtnX, pageY}, {btnPageW, 30.f});
+                if (btnP.contains(mousePos)) {
+                    currentPage = p;
+                    selectedRow = -1;
+                    scrollOffset = (currentPage - 1) * maxVisibleRows;
+                    return;
+                }
+                curBtnX += btnPageW + gap;
+            }
+
+            // Nút Tiếp
+            FloatRect btnNext({curBtnX, pageY}, {btnNextW, 30.f});
+            if (btnNext.contains(mousePos) && currentPage < totalPages) {
+                currentPage++;
+                selectedRow = -1;
+                scrollOffset = (currentPage - 1) * maxVisibleRows;
+                return;
+            }
         }
     }
 
@@ -497,9 +564,15 @@ void ComboPanel::handleEvent(const Event& event, const RenderWindow& win) {
     if (const auto* wheel = event.getIf<Event::MouseWheelScrolled>()) {
         if (!showPopup) {
             if (wheel->delta > 0) {
-                if (scrollOffset > 0) scrollOffset--;
+                if (currentPage > 1) {
+                    currentPage--;
+                    scrollOffset = (currentPage - 1) * maxVisibleRows;
+                }
             } else if (wheel->delta < 0) {
-                if (scrollOffset + maxVisibleRows < (int)filteredCombos.size()) scrollOffset++;
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    scrollOffset = (currentPage - 1) * maxVisibleRows;
+                }
             }
         }
     }
@@ -859,6 +932,65 @@ void ComboPanel::render(RenderWindow& win) {
         btnDl.setPosition({actX + 38.f + (32.f - dlb.size.x) / 2.f - dlb.position.x, rY + 24.f + (24.f - dlb.size.y) / 2.f - dlb.position.y});
         win.draw(btnDl);
     }
+
+    // 6b. THANH PHÂN TRANG (PAGINATION BAR)
+    float pagY = tableY + 44.f + maxVisibleRows * rowH + 12.f;
+    int fromIdx = filteredCombos.empty() ? 0 : (scrollOffset + 1);
+    int toIdx = min((int)filteredCombos.size(), scrollOffset + maxVisibleRows);
+    wstring pageInfoStr = filteredCombos.empty()
+        ? L"Không có sản phẩm combo nào"
+        : (L"Hiển thị " + to_wstring(fromIdx) + L" – " + to_wstring(toIdx) + L" trên tổng số " + to_wstring(filteredCombos.size()) + L" sản phẩm combo");
+    Text pageInfo(font, pageInfoStr, 12.5f);
+    pageInfo.setFillColor(Color(100, 116, 139));
+    pageInfo.setPosition({position.x + 30.f, pagY + 6.f});
+    win.draw(pageInfo);
+
+    float rightEdge = position.x + 30.f + tableW;
+    int numPageBtns = min(5, totalPages);
+    int startP = max(1, min(currentPage - 2, totalPages - numPageBtns + 1));
+    int endP = min(totalPages, startP + numPageBtns - 1);
+
+    float btnPrevW = 60.f;
+    float btnNextW = 60.f;
+    float btnPageW = 32.f;
+    float gap = 6.f;
+    float totalBtnsW = btnPrevW + gap + (endP - startP + 1) * (btnPageW + gap) - gap + gap + btnNextW;
+    float curBtnX = rightEdge - totalBtnsW;
+
+    // Nút Trước
+    bool canPrev = (currentPage > 1);
+    drawRoundedCard(win, {curBtnX, pagY}, {btnPrevW, 30.f}, 4.f, Color::White, 1.f, Color(226, 232, 240));
+    Text prTxt(boldFont, L"Trước", 12.f);
+    prTxt.setFillColor(canPrev ? Color(71, 85, 105) : Color(203, 213, 225));
+    FloatRect prb = prTxt.getLocalBounds();
+    prTxt.setPosition({curBtnX + (btnPrevW - prb.size.x) / 2.f - prb.position.x, pagY + (30.f - prb.size.y) / 2.f - prb.position.y});
+    win.draw(prTxt);
+    curBtnX += btnPrevW + gap;
+
+    // Các nút số trang 1, 2, 3...
+    for (int p = startP; p <= endP; ++p) {
+        bool isAct = (p == currentPage);
+        Color pBg = isAct ? Color(0, 119, 182) : Color::White;
+        Color pBorder = isAct ? Color(0, 119, 182) : Color(226, 232, 240);
+        Color pFg = isAct ? Color::White : Color(71, 85, 105);
+
+        drawRoundedCard(win, {curBtnX, pagY}, {btnPageW, 30.f}, 4.f, pBg, 1.f, pBorder);
+        Text pTxt(boldFont, to_wstring(p), 12.f);
+        pTxt.setFillColor(pFg);
+        FloatRect pb = pTxt.getLocalBounds();
+        pTxt.setPosition({curBtnX + (btnPageW - pb.size.x) / 2.f - pb.position.x, pagY + (30.f - pb.size.y) / 2.f - pb.position.y});
+        win.draw(pTxt);
+        curBtnX += btnPageW + gap;
+    }
+
+    // Nút Tiếp
+    bool canNext = (currentPage < totalPages);
+    drawRoundedCard(win, {curBtnX, pagY}, {btnNextW, 30.f}, 4.f, Color::White, 1.f, Color(226, 232, 240));
+    Text nxTxt(boldFont, L"Tiếp", 12.f);
+    nxTxt.setFillColor(canNext ? Color(71, 85, 105) : Color(203, 213, 225));
+    FloatRect nxb = nxTxt.getLocalBounds();
+    nxTxt.setPosition({curBtnX + (btnNextW - nxb.size.x) / 2.f - nxb.position.x, pagY + (30.f - nxb.size.y) / 2.f - nxb.position.y});
+    win.draw(nxTxt);
 
     // ==========================================
     // 7. MODAL POPUP THÊM / SỬA COMBO

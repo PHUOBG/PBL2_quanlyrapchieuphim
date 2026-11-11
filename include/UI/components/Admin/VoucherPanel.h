@@ -98,6 +98,8 @@ private:
     void saveVouchersToFile();
     void applyVoucherFilter();
     void applyRecipientFilter();
+    bool exportToExcel();
+    void openExportedFile(const string& path) const;
 
     void drawRoundedCard(RenderWindow& win, Vector2f pos, Vector2f sz, float r, Color fill, float outline = 0.f, Color outCol = Color::Transparent);
 
