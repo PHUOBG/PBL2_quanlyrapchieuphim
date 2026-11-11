@@ -180,12 +180,7 @@ void MoviePanel::applyFilter() {
 
         // 1. Tìm kiếm đa trường hỗ trợ tiếng Việt có dấu & không dấu (ID, Tên phim, Đạo diễn, Quốc gia, Thể loại, Diễn viên)
         if (!searchQuery.empty()) {
-            bool match = UITheme::matchesViQuery(s2ws(idStr), searchQuery) ||
-                         UITheme::matchesViQuery(s2ws(title), searchQuery) ||
-                         UITheme::matchesViQuery(s2ws(director), searchQuery) ||
-                         UITheme::matchesViQuery(s2ws(country), searchQuery) ||
-                         UITheme::matchesViQuery(s2ws(genres), searchQuery) ||
-                         UITheme::matchesViQuery(s2ws(actors), searchQuery);
+            bool match = UITheme::matchesViQuery(s2ws(title), searchQuery);
             if (!match) continue;
         }
 
@@ -922,7 +917,7 @@ void MoviePanel::render(RenderWindow& window) {
     drawSearchIcon(window, {startX + 14.f, toolY + 14.f}, searchActive ? Color(2, 132, 199) : Color(100, 116, 139));
 
     if (searchQuery.empty()) {
-        Text ph(boldFont, L"T\u00ecm t\u00ean phim, \u0111\u1ea1o di\u1ec5n, qu\u1ed1c gia...", 13);
+        Text ph(boldFont, L"T\u00ecm t\u00ean phim...", 13);
         ph.setFillColor(Color(100, 116, 139));
         ph.setPosition({startX + 38.f, toolY + 12.f});
         window.draw(ph);
