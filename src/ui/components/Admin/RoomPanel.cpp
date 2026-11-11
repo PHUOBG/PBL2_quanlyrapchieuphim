@@ -349,6 +349,24 @@ void RoomPanel::handleEvent(const Event& event, const RenderWindow& win) {
                 return;
             }
 
+            if (statusDropdownOpen) {
+                const wstring statusOpts[2] = {
+                    L"B\u00ecnh th\u01b0\u1eddng (\u0110ang \u0111\u00f3n kh\u00e1ch)",
+                    L"\u0110ang b\u1ea3o tr\u00ec k\u1ef9 thu\u1eadt"
+                };
+                float ddY = cardY + 336.f;
+                for (int i = 0; i < 2; ++i) {
+                    FloatRect itmB({position.x + 50.f, ddY + i * 36.f}, {leftCardW - 40.f, 36.f});
+                    if (itmB.contains(mousePos)) {
+                        inputStatus = statusOpts[i];
+                        statusDropdownOpen = false;
+                        return;
+                    }
+                }
+                statusDropdownOpen = false;
+                return;
+            }
+
             if (seatTypeDropdownOpen) {
                 SeatType types[4] = {SeatType::STANDARD, SeatType::VIP, SeatType::SWEETBOX, SeatType::MAINTENANCE};
                 float ddY = cardY + 408.f;
@@ -377,11 +395,9 @@ void RoomPanel::handleEvent(const Event& event, const RenderWindow& win) {
             // Click ô Trạng thái phòng chiếu (chuyển đổi Bình thường / Đang bảo trì)
             FloatRect boxStatus({position.x + 50.f, cardY + 296.f}, {leftCardW - 40.f, 38.f});
             if (boxStatus.contains(mousePos)) {
-                if (inputStatus.find(L"B\u00ecnh th\u01b0\u1eddng") != wstring::npos || inputStatus.empty()) {
-                    inputStatus = L"\u0110ang b\u1ea3o tr\u00ec k\u1ef9 thu\u1eadt";
-                } else {
-                    inputStatus = L"B\u00ecnh th\u01b0\u1eddng (\u0110ang \u0111\u00f3n kh\u00e1ch)";
-                }
+                statusDropdownOpen = !statusDropdownOpen;
+                roomDropdownOpen = false;
+                seatTypeDropdownOpen = false;
                 activeInputBox = -1;
                 return;
             }
@@ -722,9 +738,9 @@ void RoomPanel::render(RenderWindow& win) {
 
     // 4. Trạng thái phòng chiếu
     Text lbl5(boldFont, L"Tr\u1ea1ng th\u00e1i ph\u00f2ng chi\u1ebfu:", 13); lbl5.setFillColor(Color(51, 65, 85)); lbl5.setPosition({position.x + 50.f, cardY + 274.f}); win.draw(lbl5);
-    drawRoundedCard(win, {position.x + 50.f, cardY + 296.f}, {leftCardW - 40.f, 38.f}, 8.f, Color(248, 250, 252), 1.f, Color(203, 213, 225));
-    Text stTxt(font, inputStatus.empty() ? L"B\u00ecnh th\u01b0\u1eddng (\u0110ang \u0111\u00f3n kh\u00e1ch)" : inputStatus, 12); stTxt.setFillColor(Color(15, 23, 42)); stTxt.setPosition({position.x + 62.f, cardY + 305.f}); win.draw(stTxt);
-    Text arr2(boldFont, L"\u25bc", 11); arr2.setFillColor(Color(100, 116, 139)); arr2.setPosition({position.x + leftCardW - 15.f, cardY + 307.f}); win.draw(arr2);
+    drawRoundedCard(win, {position.x + 50.f, cardY + 296.f}, {leftCardW - 40.f, 38.f}, 8.f, Color(248, 250, 252), statusDropdownOpen ? 1.5f : 1.f, statusDropdownOpen ? Color(2, 132, 199) : Color(203, 213, 225));
+    Text stTxt(boldFont, inputStatus.empty() ? L"B\u00ecnh th\u01b0\u1eddng (\u0110ang \u0111\u00f3n kh\u00e1ch)" : inputStatus, 12); stTxt.setFillColor(statusDropdownOpen ? Color(2, 132, 199) : Color(15, 23, 42)); stTxt.setPosition({position.x + 62.f, cardY + 305.f}); win.draw(stTxt);
+    Text arr2(boldFont, L"\u25bc", 11); arr2.setFillColor(statusDropdownOpen ? Color(2, 132, 199) : Color(100, 116, 139)); arr2.setPosition({position.x + leftCardW - 15.f, cardY + 307.f}); win.draw(arr2);
 
     // 5. Chọn loại ghế để gán / chỉnh sửa
     Text lbl6(boldFont, L"Ch\u1ecdn lo\u1ea1i gh\u1ebf \u0111\u1ec3 g\u00e1n / ch\u1ec9nh s\u1eeda:", 13); lbl6.setFillColor(Color(51, 65, 85)); lbl6.setPosition({position.x + 50.f, cardY + 346.f}); win.draw(lbl6);
@@ -925,6 +941,27 @@ void RoomPanel::render(RenderWindow& win) {
             rItm.setFillColor((i == (size_t)selectedRoomIndex) ? Color(2, 132, 199) : Color(15, 23, 42));
             rItm.setPosition({position.x + 62.f, iY + 9.f});
             win.draw(rItm);
+        }
+    }
+
+    if (statusDropdownOpen) {
+        float ddY = cardY + 336.f;
+        drawRoundedCard(win, {position.x + 50.f, ddY}, {leftCardW - 40.f, 72.f}, 8.f, Color::White, 1.5f, Color(2, 132, 199));
+        const wstring statusOpts[2] = {
+            L"B\u00ecnh th\u01b0\u1eddng (\u0110ang \u0111\u00f3n kh\u00e1ch)",
+            L"\u0110ang b\u1ea3o tr\u00ec k\u1ef9 thu\u1eadt"
+        };
+        bool isNormal = inputStatus.empty() || inputStatus.find(L"B\u00ecnh th\u01b0\u1eddng") != wstring::npos;
+        for (int i = 0; i < 2; ++i) {
+            float iY = ddY + i * 36.f;
+            bool sel = (i == 0) ? isNormal : !isNormal;
+            if (sel) {
+                RoundedRectRenderer::draw(win, {position.x + 52.f, iY}, {leftCardW - 44.f, 35.f}, 4.f, Color(224, 242, 254));
+            }
+            Text sItm(boldFont, statusOpts[i], 12);
+            sItm.setFillColor(sel ? Color(2, 132, 199) : Color(15, 23, 42));
+            sItm.setPosition({position.x + 62.f, iY + 9.f});
+            win.draw(sItm);
         }
     }
 
