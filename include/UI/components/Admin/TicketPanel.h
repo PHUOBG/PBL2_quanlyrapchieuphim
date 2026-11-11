@@ -27,11 +27,12 @@ private:
     wstring searchQuery;
     bool searchActive = false;
 
-    // Table selection & scrolling
+    // Table selection & pagination
     int selectedRow = -1;
     int hoveredRow = -1;
-    int scrollOffset = 0;
-    const int maxVisibleRows = 16;
+    int currentPage = 1;
+    const int ticketsPerPage = 14;
+    int totalPages = 1;
 
     // Buttons hover states
     bool btnViewHover = false;

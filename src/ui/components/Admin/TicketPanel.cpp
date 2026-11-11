@@ -63,6 +63,7 @@ void TicketPanel::loadTickets() {
         string normId = UITheme::normalizeViUtf8(allTickets[i].ticketId);
         ticketIndexMap.insert(normId, (int)i);
     }
+    currentPage = 1;
     applySearch();
 }
 
@@ -74,8 +75,10 @@ void TicketPanel::applySearch() {
     size_t first = q.find_first_not_of(L" \t");
     if (first == wstring::npos) {
         filteredTickets = allTickets;
-        selectedRow = -1;
-        scrollOffset = 0;
+        totalPages = max(1, (static_cast<int>(filteredTickets.size()) + ticketsPerPage - 1) / ticketsPerPage);
+        if (currentPage > totalPages) currentPage = totalPages;
+        if (currentPage < 1) currentPage = 1;
+        selectedRow = filteredTickets.empty() ? -1 : 0;
         return;
     }
     size_t last = q.find_last_not_of(L" \t");
@@ -105,8 +108,10 @@ void TicketPanel::applySearch() {
         }
     }
 
+    totalPages = max(1, (static_cast<int>(filteredTickets.size()) + ticketsPerPage - 1) / ticketsPerPage);
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
     selectedRow = filteredTickets.empty() ? -1 : 0;
-    scrollOffset = 0;
 }
 
 void TicketPanel::deleteSelectedTicket() {
@@ -250,15 +255,17 @@ void TicketPanel::handleEvent(const Event& event, const RenderWindow& win) {
 
             // Click vào các dòng của bảng
             float tableY = position.y + 158.f;
+            float tableW = width - 60.f;
             float rowH = 42.f;
-            int count = max(0, min((int)filteredTickets.size() - scrollOffset, maxVisibleRows));
+            int startIdx = (currentPage - 1) * ticketsPerPage;
+            int count = max(0, min((int)filteredTickets.size() - startIdx, ticketsPerPage));
 
             for (int r = 0; r < count; ++r) {
                 float rY = tableY + 46.f + r * rowH;
-                FloatRect rowRect({position.x + 30.f, rY}, {width - 60.f, rowH});
+                FloatRect rowRect({position.x + 30.f, rY}, {tableW, rowH});
 
                 if (rowRect.contains(mousePos)) {
-                    int clickedIdx = scrollOffset + r;
+                    int clickedIdx = startIdx + r;
                     if (selectedRow == clickedIdx) {
                         // Click lần 2 vào dòng đã chọn sẽ mở luôn chi tiết vé
                         currentDetailTicket = filteredTickets[clickedIdx];
@@ -269,15 +276,63 @@ void TicketPanel::handleEvent(const Event& event, const RenderWindow& win) {
                     return;
                 }
             }
+
+            // Click vào các nút chuyển trang (Pagination Bar)
+            float pagY = tableY + 46.f + ticketsPerPage * rowH + 16.f;
+            FloatRect pagBarRect({position.x + 30.f, pagY}, {tableW, 36.f});
+
+            if (pagBarRect.contains(mousePos)) {
+                float rightEdge = position.x + 30.f + tableW;
+                int numPageBtns = min(5, totalPages);
+                int startP = max(1, min(currentPage - 2, totalPages - numPageBtns + 1));
+                int endP = min(totalPages, startP + numPageBtns - 1);
+                float btnPrevW = 64.f;
+                float btnNextW = 64.f;
+                float btnPageW = 34.f;
+                float gap = 6.f;
+                float totalBtnsW = btnPrevW + gap + (endP - startP + 1) * (btnPageW + gap) - gap + gap + btnNextW;
+                float curBtnX = rightEdge - totalBtnsW;
+
+                // Nút Trước
+                FloatRect prevRect({curBtnX, pagY}, {btnPrevW, 34.f});
+                if (prevRect.contains(mousePos) && currentPage > 1) {
+                    currentPage--;
+                    selectedRow = (currentPage - 1) * ticketsPerPage;
+                    return;
+                }
+                curBtnX += btnPrevW + gap;
+
+                // Các nút số trang
+                for (int p = startP; p <= endP; ++p) {
+                    FloatRect pRect({curBtnX, pagY}, {btnPageW, 34.f});
+                    if (pRect.contains(mousePos)) {
+                        currentPage = p;
+                        selectedRow = (currentPage - 1) * ticketsPerPage;
+                        return;
+                    }
+                    curBtnX += btnPageW + gap;
+                }
+
+                // Nút Tiếp
+                FloatRect nextRect({curBtnX, pagY}, {btnNextW, 34.f});
+                if (nextRect.contains(mousePos) && currentPage < totalPages) {
+                    currentPage++;
+                    selectedRow = (currentPage - 1) * ticketsPerPage;
+                    return;
+                }
+                return;
+            }
         }
     }
 
-    // 4. XỬ LÝ CUỘN CHUỘT
+    // 4. XỬ LÝ CUỘN CHUỘT ĐỂ CHUYỂN TRANG
     if (const auto* wheel = event.getIf<Event::MouseWheelScrolled>()) {
-        if (wheel->delta > 0) {
-            if (scrollOffset > 0) scrollOffset--;
-        } else if (wheel->delta < 0) {
-            if (scrollOffset + maxVisibleRows < (int)filteredTickets.size()) scrollOffset++;
+        if (wheel->delta > 0 && currentPage > 1) {
+            currentPage--;
+            selectedRow = (currentPage - 1) * ticketsPerPage;
+        } else if (wheel->delta < 0 && currentPage < totalPages) {
+            currentPage++;
+            selectedRow = (currentPage - 1) * ticketsPerPage;
         }
     }
 
@@ -330,7 +385,8 @@ void TicketPanel::update(Vector2f mousePos, bool) {
     if (!detailVisible) {
         float tableY = position.y + 158.f;
         float rowH = 42.f;
-        int count = min((int)filteredTickets.size() - scrollOffset, maxVisibleRows);
+        int startIdx = (currentPage - 1) * ticketsPerPage;
+        int count = min((int)filteredTickets.size() - startIdx, ticketsPerPage);
 
         for (int r = 0; r < count; ++r) {
             float rY = tableY + 46.f + r * rowH;
@@ -450,10 +506,11 @@ void TicketPanel::render(RenderWindow& win) {
     Text h5(boldFont, L"Gi\u1edd \u0111\u1eb7t v\u00e9", 13); h5.setFillColor(Color::White); h5.setPosition({position.x + 1040.f, tableY + 14.f}); win.draw(h5);
 
     // Các dòng dữ liệu
-    int count = min((int)filteredTickets.size() - scrollOffset, maxVisibleRows);
+    int startIdx = (currentPage - 1) * ticketsPerPage;
+    int count = max(0, min((int)filteredTickets.size() - startIdx, ticketsPerPage));
 
     for (int r = 0; r < count; ++r) {
-        int idx = scrollOffset + r;
+        int idx = startIdx + r;
         const auto& t = filteredTickets[idx];
         float rY = tableY + 46.f + r * rowH;
 
@@ -493,6 +550,66 @@ void TicketPanel::render(RenderWindow& win) {
         tTm.setPosition({position.x + 1040.f, rY + 12.f});
         win.draw(tTm);
     }
+
+    // ==========================================
+    // 5b. THANH PHÂN TRANG (PAGINATION BAR)
+    // ==========================================
+    float pagY = tableY + 46.f + ticketsPerPage * rowH + 16.f;
+    int fromIdx = filteredTickets.empty() ? 0 : (startIdx + 1);
+    int toIdx = min(static_cast<int>(filteredTickets.size()), startIdx + ticketsPerPage);
+    wstring pageInfoStr = filteredTickets.empty()
+        ? L"Không có vé nào phù hợp"
+        : (L"Hiển thị " + to_wstring(fromIdx) + L" – " + to_wstring(toIdx) + L" trên tổng số " + to_wstring(filteredTickets.size()) + L" vé");
+    Text pageInfo(font, pageInfoStr, 12.5f);
+    pageInfo.setFillColor(Color(100, 116, 139));
+    pageInfo.setPosition({position.x + 30.f, pagY + 7.f});
+    win.draw(pageInfo);
+
+    float rightEdge = position.x + 30.f + tableW;
+    int numPageBtns = min(5, totalPages);
+    int startP = max(1, min(currentPage - 2, totalPages - numPageBtns + 1));
+    int endP = min(totalPages, startP + numPageBtns - 1);
+    float btnPrevW = 64.f;
+    float btnNextW = 64.f;
+    float btnPageW = 34.f;
+    float gap = 6.f;
+    float totalBtnsW = btnPrevW + gap + (endP - startP + 1) * (btnPageW + gap) - gap + gap + btnNextW;
+    float curBtnX = rightEdge - totalBtnsW;
+
+    // Nút Trước
+    bool canPrev = (currentPage > 1);
+    drawRoundedCard(win, {curBtnX, pagY}, {btnPrevW, 34.f}, 6.f, Color::White, 1.2f, Color(226, 232, 240));
+    Text prTxt(boldFont, L"Trước", 12.5f);
+    prTxt.setFillColor(canPrev ? Color(71, 85, 105) : Color(203, 213, 225));
+    FloatRect prb = prTxt.getLocalBounds();
+    prTxt.setPosition({curBtnX + (btnPrevW - prb.size.x) / 2.f - prb.position.x, pagY + (34.f - prb.size.y) / 2.f - prb.position.y});
+    win.draw(prTxt);
+    curBtnX += btnPrevW + gap;
+
+    // Các nút số trang 1, 2, 3, ...
+    for (int p = startP; p <= endP; ++p) {
+        bool isAct = (p == currentPage);
+        Color pBg = isAct ? Color(0, 119, 182) : Color::White;
+        Color pBorder = isAct ? Color(0, 119, 182) : Color(226, 232, 240);
+        Color pFg = isAct ? Color::White : Color(51, 65, 85);
+
+        drawRoundedCard(win, {curBtnX, pagY}, {btnPageW, 34.f}, 6.f, pBg, 1.2f, pBorder);
+        Text pTxt(boldFont, to_wstring(p), 12.5f);
+        pTxt.setFillColor(pFg);
+        FloatRect pb = pTxt.getLocalBounds();
+        pTxt.setPosition({curBtnX + (btnPageW - pb.size.x) / 2.f - pb.position.x, pagY + (34.f - pb.size.y) / 2.f - pb.position.y});
+        win.draw(pTxt);
+        curBtnX += btnPageW + gap;
+    }
+
+    // Nút Tiếp
+    bool canNext = (currentPage < totalPages);
+    drawRoundedCard(win, {curBtnX, pagY}, {btnNextW, 34.f}, 6.f, Color::White, 1.2f, Color(226, 232, 240));
+    Text nxTxt(boldFont, L"Tiếp", 12.5f);
+    nxTxt.setFillColor(canNext ? Color(71, 85, 105) : Color(203, 213, 225));
+    FloatRect nxb = nxTxt.getLocalBounds();
+    nxTxt.setPosition({curBtnX + (btnNextW - nxb.size.x) / 2.f - nxb.position.x, pagY + (34.f - nxb.size.y) / 2.f - nxb.position.y});
+    win.draw(nxTxt);
 
     // ==========================================
     // 6. MODAL POPUP: CHI TIẾT VÉ
