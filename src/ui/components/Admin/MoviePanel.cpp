@@ -84,11 +84,61 @@ const Texture* MoviePanel::getPosterTexture(const string& rawPath, const string&
         candidates.push_back("../assets/posters/panda4.jpg");
         candidates.push_back("assets/posters/inside-out.png");
         candidates.push_back("../assets/posters/inside-out.png");
+    } else if (movieId == "#PBL-009") {
+        candidates.push_back("assets/posters/nha-ba-toi-mot-phong.jpg");
+        candidates.push_back("../assets/posters/nha-ba-toi-mot-phong.jpg");
+        candidates.push_back("assets/posters/Nhà ba tôi một phòng.jpg");
+        candidates.push_back("../assets/posters/Nhà ba tôi một phòng.jpg");
+    } else if (movieId == "#PBL-010") {
+        candidates.push_back("assets/posters/nghi-he-so-nghi-huu.jpg");
+        candidates.push_back("../assets/posters/nghi-he-so-nghi-huu.jpg");
+        candidates.push_back("assets/posters/nghỉ hè sợ nghỉ hưu.jpg");
+        candidates.push_back("../assets/posters/nghỉ hè sợ nghỉ hưu.jpg");
+    } else if (movieId == "#PBL-011") {
+        candidates.push_back("assets/posters/mui-pho.jpg");
+        candidates.push_back("../assets/posters/mui-pho.jpg");
+        candidates.push_back("assets/posters/Mùi phở.jpg");
+        candidates.push_back("../assets/posters/Mùi phở.jpg");
+    } else if (movieId == "#PBL-012") {
+        candidates.push_back("assets/posters/len-huong.jpg");
+        candidates.push_back("../assets/posters/len-huong.jpg");
+        candidates.push_back("assets/posters/Lên Hương.jpg");
+        candidates.push_back("../assets/posters/Lên Hương.jpg");
+    } else if (movieId == "#PBL-013") {
+        candidates.push_back("assets/posters/shin-ky-nghi-yeu-quai.jpg");
+        candidates.push_back("../assets/posters/shin-ky-nghi-yeu-quai.jpg");
+        candidates.push_back("assets/posters/kỳ nghỉ siêu quái của tớ.jpg");
+        candidates.push_back("../assets/posters/kỳ nghỉ siêu quái của tớ.jpg");
+    } else if (movieId == "#PBL-014") {
+        candidates.push_back("assets/posters/heo-5-mong.jpg");
+        candidates.push_back("../assets/posters/heo-5-mong.jpg");
+        candidates.push_back("assets/posters/Heo 5 móng.jpg");
+        candidates.push_back("../assets/posters/Heo 5 móng.jpg");
+    } else if (movieId == "#PBL-015") {
+        candidates.push_back("assets/posters/chi-chi-em-em-3.jpg");
+        candidates.push_back("../assets/posters/chi-chi-em-em-3.jpg");
+        candidates.push_back("assets/posters/chị chị em em 3.jpg");
+        candidates.push_back("../assets/posters/chị chị em em 3.jpg");
+    } else if (movieId == "#PBL-016") {
+        candidates.push_back("assets/posters/bo-sua-bay.jpg");
+        candidates.push_back("../assets/posters/bo-sua-bay.jpg");
+        candidates.push_back("assets/posters/bò sữa bay.jpg");
+        candidates.push_back("../assets/posters/bò sữa bay.jpg");
+    } else if (movieId == "#PBL-017") {
+        candidates.push_back("assets/posters/tho-oi.jpg");
+        candidates.push_back("../assets/posters/tho-oi.jpg");
+        candidates.push_back("assets/posters/Thỏ ơi.jpg");
+        candidates.push_back("../assets/posters/Thỏ ơi.jpg");
+    } else if (movieId == "#PBL-018") {
+        candidates.push_back("assets/posters/trai-buon-nguoi.jpg");
+        candidates.push_back("../assets/posters/trai-buon-nguoi.jpg");
+        candidates.push_back("assets/posters/trại buôn người.jpg");
+        candidates.push_back("../assets/posters/trại buôn người.jpg");
     }
 
     bool loaded = false;
     for (const auto& c : candidates) {
-        if (!c.empty() && tex.loadFromFile(c)) {
+        if (!c.empty() && (tex.loadFromFile(c) || tex.loadFromFile(s2ws(c)))) {
             loaded = true;
             break;
         }
@@ -517,7 +567,7 @@ void MoviePanel::handleEvent(const Event& event, const RenderWindow& window) {
 
             // Ưu tiên kiểm tra danh sách Dropdown đang mở trước khi kiểm tra bảng bên dưới
             if (genreDropdownOpen) {
-                vector<string> genres = {"Tất cả thể loại", "Hành động", "Hoạt hình", "Tội phạm", "Viễn tưởng", "Tâm lý"};
+                vector<string> genres = {"Tất cả thể loại", "Hành động", "Hoạt hình", "Tội phạm", "Viễn tưởng", "Tâm lý", "Hài", "Kinh dị", "Gia đình"};
                 for (size_t g = 0; g < genres.size(); ++g) {
                     FloatRect gb({startX + 375.f, toolY + 46.f + g * 36.f}, {160.f, 36.f});
                     if (gb.contains(mouse)) {
@@ -952,7 +1002,7 @@ void MoviePanel::render(RenderWindow& window) {
     const float subY = 318.f;
     drawFunnelIcon(window, {startX + 2.f, subY + 3.f}, Color(2, 132, 199));
 
-    Text subTitle(boldFont, L"DANH S\u00c1CH PHIM CHI\u1ebeU R\u1ea0P (THEO D\u1eee LI\u1ec6U TH\u1ef0C T\u1ebe PBL2)", 13);
+    Text subTitle(boldFont, L"DANH S\u00c1CH PHIM CHI\u1ebeU R\u1ea0P", 13);
     subTitle.setFillColor(Color(15, 23, 42));
     subTitle.setPosition({startX + 20.f, subY + 2.f});
     window.draw(subTitle);
@@ -1041,7 +1091,17 @@ void MoviePanel::render(RenderWindow& window) {
 
         // Col 2: Poster thumbnail + Title + Format & Genre
         float col2X = startX + 140.f;
-        string fmtStr = (idx == 1) ? "IMAX 3D" : ((idx == 2) ? "2D Digital" : ((idx == 3) ? "4DX / 3D" : ((idx == 4) ? "2D Lồng tiếng" : "2D / Atmos")));
+        string lang = (row.size() > 4) ? row[4] : "";
+        string fmtStr = "2D / Atmos";
+        if (lang.find("Lồng tiếng") != string::npos) {
+            fmtStr = "2D Lồng tiếng";
+        } else if (idx % 4 == 1) {
+            fmtStr = "IMAX 3D";
+        } else if (idx % 4 == 2) {
+            fmtStr = "2D Digital";
+        } else if (idx % 4 == 3) {
+            fmtStr = "4DX / 3D";
+        }
 
         // Poster box: Real cinema movie poster loaded from assets/posters
         string pPath = (row.size() > 12) ? row[12] : "";
@@ -1069,7 +1129,17 @@ void MoviePanel::render(RenderWindow& window) {
 
         // Title
         string titleStr = (row.size() > 1) ? row[1] : "";
-        Text titleTxt(boldFont, s2ws(titleStr), 15);
+        wstring wTitle = s2ws(titleStr);
+        Text titleTxt(boldFont, wTitle, 15);
+        if (titleTxt.getLocalBounds().size.x > 295.f) {
+            titleTxt.setCharacterSize(13.5f);
+            if (titleTxt.getLocalBounds().size.x > 295.f) {
+                while (wTitle.length() > 3 && titleTxt.getLocalBounds().size.x > 285.f) {
+                    wTitle.pop_back();
+                    titleTxt.setString(wTitle + L"...");
+                }
+            }
+        }
         titleTxt.setFillColor(UITheme::TextPrimary);
         titleTxt.setPosition({col2X + 50.f, rY + 14.f});
         window.draw(titleTxt);
@@ -1091,12 +1161,16 @@ void MoviePanel::render(RenderWindow& window) {
         // Col 3: Director
         float col3X = startX + 500.f;
         string dirStr = (row.size() > 9) ? row[9] : "";
-        Text dirTxt(boldFont, s2ws(dirStr), 13);
+        wstring wDir = s2ws(dirStr);
+        Text dirTxt(boldFont, wDir, 13);
+        if (dirTxt.getLocalBounds().size.x > 135.f) {
+            dirTxt.setCharacterSize(11.5f);
+        }
         dirTxt.setFillColor(Color(30, 41, 59));
         dirTxt.setPosition({col3X + 12.f, rY + 31.f});
         window.draw(dirTxt);
 
-        // Col 4: Country pill (e.g. VN Việt Nam, US Mỹ, KR Hàn Quốc, RU Nga)
+        // Col 4: Country pill (e.g. VN Việt Nam, US Mỹ, KR Hàn Quốc, RU Nga, JP Nhật Bản)
         float col4X = startX + 645.f;
         float col4W = 125.f;
         string ctry = (row.size() > 3) ? row[3] : "Việt Nam";
@@ -1116,6 +1190,10 @@ void MoviePanel::render(RenderWindow& window) {
             ctryBg = Color(220, 252, 231);
             ctryText = Color(22, 163, 74);
             code = "RU ";
+        } else if (ctry.find("Nhật") != string::npos) {
+            ctryBg = Color(254, 243, 199);
+            ctryText = Color(217, 119, 6);
+            code = "JP ";
         }
 
         float pillW = 104.f;
@@ -1236,7 +1314,7 @@ void MoviePanel::render(RenderWindow& window) {
 
     // 9. Dropdown menus (if open)
     if (genreDropdownOpen) {
-        vector<string> genres = {"Tất cả thể loại", "Hành động", "Hoạt hình", "Tội phạm", "Viễn tưởng", "Tâm lý"};
+        vector<string> genres = {"Tất cả thể loại", "Hành động", "Hoạt hình", "Tội phạm", "Viễn tưởng", "Tâm lý", "Hài", "Kinh dị", "Gia đình"};
         RoundedRectRenderer::draw(window, {startX + 375.f, toolY + 46.f}, {160.f, genres.size() * 36.f}, 8.f, Color::White, 1.2f, Color(203, 213, 225));
         for (size_t g = 0; g < genres.size(); ++g) {
             Color itemBg = (static_cast<int>(g) == hoveredGenreIndex) ? Color(241, 245, 249) : Color::White;
