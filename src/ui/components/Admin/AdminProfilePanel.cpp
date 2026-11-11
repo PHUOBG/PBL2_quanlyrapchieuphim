@@ -385,7 +385,7 @@ void AdminProfilePanel::drawHeaderBanner(RenderTarget& target) const {
 
     // Metadata line: Email • Role • Last Login
     Text meta(font);
-    meta.setString(L"Email: " + s2ws(email) + L"   •   Vai trò: Quản trị viên   •   Đăng nhập gần nhất: 10 phút trước (118.69.214.88)");
+    meta.setString(L"Email: " + s2ws(email) + L"   •   Vai trò: Quản trị viên   •   Đăng nhập gần nhất: 10 phút trước");
     meta.setCharacterSize(12.5f);
     meta.setFillColor(Color(100, 116, 139));
     meta.setPosition({textX, cardY + 86.f});
@@ -786,13 +786,6 @@ void AdminProfilePanel::drawBottomBar(RenderTarget& target) const {
     div.setPosition({position.x + 20.f, barY - 4.f});
     div.setFillColor(Color(226, 232, 240));
     target.draw(div);
-
-    Text engText(font);
-    engText.setString(L"NODE: VN-DN601  •  LIVE   |   CineCore Admin Security Vault: Protected   |   UTF-8 Engine");
-    engText.setCharacterSize(11.f);
-    engText.setFillColor(Color(100, 116, 139));
-    engText.setPosition({position.x + 20.f, barY});
-    target.draw(engText);
 
     Text authText(font);
     authText.setString(L"Phụ trách: Admin CineCore (Toàn quyền)  •  1728x972 HD");

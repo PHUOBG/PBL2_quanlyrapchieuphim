@@ -1316,13 +1316,6 @@ void UserPanel::drawBottomBar(RenderTarget& target) const {
     div.setFillColor(Color(226, 232, 240));
     target.draw(div);
 
-    Text engText(font);
-    engText.setString(L"NODE: VN-DN601  •  LIVE   |   CineCore Customer Registry: Synced (0.12ms)   |   UTF-8 Engine");
-    engText.setCharacterSize(11.f);
-    engText.setFillColor(Color(100, 116, 139));
-    engText.setPosition({position.x + 20.f, barY});
-    target.draw(engText);
-
     Text authText(font);
     authText.setString(L"Admin CineCore (Toàn quyền)  •  1728x972 HD");
     authText.setCharacterSize(11.f);

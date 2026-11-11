@@ -277,22 +277,7 @@ void AdminSidebar::render(RenderWindow& window) {
         }
     }
 
-    // 4. Trạng thái node hệ thống & Nút Đăng xuất
-    float statY = logoutBounds.position.y - 24.f;
-    Text nodeTxt(boldFont, L"NODE - VN - DN601", 11);
-    nodeTxt.setFillColor(Color(186, 230, 253));
-    nodeTxt.setPosition({padX + 2.f, statY});
-    window.draw(nodeTxt);
-
-    CircleShape liveDot(3.5f);
-    liveDot.setFillColor(Color(34, 197, 94));
-    liveDot.setPosition({position.x + width - 60.f, statY + 4.f});
-    window.draw(liveDot);
-
-    Text liveTxt(boldFont, L"LIVE", 11);
-    liveTxt.setFillColor(Color(34, 197, 94));
-    liveTxt.setPosition({position.x + width - 50.f, statY});
-    window.draw(liveTxt);
+    // 4. Nút Đăng xuất
 
     Color logBg = logoutHovered ? Color(255, 255, 255, 45) : Color(255, 255, 255, 18);
     Color logBorder = logoutHovered ? Color(255, 255, 255, 140) : Color(255, 255, 255, 70);

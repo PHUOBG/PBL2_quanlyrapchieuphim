@@ -1673,13 +1673,6 @@ void MovieRevenuePanel::drawBottomBar(RenderTarget& target) const {
     div.setFillColor(Color(226, 232, 240));
     target.draw(div);
 
-    Text engText(font);
-    engText.setString(L"NODE: VN-DN601  •  24ms   |   CineCore Financial Gateway: Connected   |   UTF-8 Engine");
-    engText.setCharacterSize(12.f);
-    engText.setFillColor(Color(100, 116, 139));
-    engText.setPosition({position.x + 20.f, barY});
-    target.draw(engText);
-
     Text authText(font);
     authText.setString(L"Phụ trách: Admin CineCore (Toàn quyền)  •  1728x972 HD");
     authText.setCharacterSize(12.f);
