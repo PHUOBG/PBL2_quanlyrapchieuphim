@@ -1125,9 +1125,9 @@ void MoviePanel::render(RenderWindow& window) {
         // Title
         string titleStr = (row.size() > 1) ? row[1] : "";
         wstring wTitle = s2ws(titleStr);
-        Text titleTxt(boldFont, wTitle, 15);
+        Text titleTxt(boldFont, wTitle, 14.5f);
         if (titleTxt.getLocalBounds().size.x > 295.f) {
-            titleTxt.setCharacterSize(13.5f);
+            titleTxt.setCharacterSize(13.f);
             if (titleTxt.getLocalBounds().size.x > 295.f) {
                 while (wTitle.length() > 3 && titleTxt.getLocalBounds().size.x > 285.f) {
                     wTitle.pop_back();
@@ -1136,21 +1136,31 @@ void MoviePanel::render(RenderWindow& window) {
             }
         }
         titleTxt.setFillColor(UITheme::TextPrimary);
-        titleTxt.setPosition({col2X + 50.f, rY + 14.f});
+        titleTxt.setPosition({col2X + 50.f, rY + 10.f});
         window.draw(titleTxt);
 
-        // Format Pill (e.g. 2D / Atmos, IMAX 3D, 4DX/3D)
-        RoundedRectRenderer::draw(window, {col2X + 50.f, rY + 41.f}, {76.f, 22.f}, 5.f, UITheme::SurfaceSubtle, 1.f, UITheme::BorderMedium);
-        Text fmtTxt(boldFont, s2ws(fmtStr), 12);
+        // Format Pill (e.g. 2D / Atmos, IMAX 3D, 4DX/3D, 2D Lồng tiếng) - Co dãn tự động theo độ dài chữ
+        Text fmtTxt(boldFont, s2ws(fmtStr), 11.5f);
+        FloatRect fb = fmtTxt.getLocalBounds();
+        float fmtPillW = fb.size.x + 16.f;
+        float fmtPillH = 20.f;
+        RoundedRectRenderer::draw(window, {col2X + 50.f, rY + 33.f}, {fmtPillW, fmtPillH}, 4.f, UITheme::SurfaceSubtle, 1.f, UITheme::BorderMedium);
         fmtTxt.setFillColor(Color(30, 41, 59));
-        fmtTxt.setPosition({col2X + 56.f, rY + 43.f});
+        fmtTxt.setPosition({col2X + 58.f - fb.position.x, rY + 33.f + (fmtPillH - fb.size.y) / 2.f - fb.position.y});
         window.draw(fmtTxt);
 
-        // Genre bullet & text
+        // Genre text - Xuống hàng riêng biệt bên dưới định dạng 2D/3D
         string genreStr = (row.size() > 5) ? row[5] : "";
-        Text gTxt(boldFont, L"\u2022  " + s2ws(genreStr), 12.5f);
+        wstring wGenre = s2ws(genreStr);
+        Text gTxt(font, wGenre, 11.5f);
+        if (gTxt.getLocalBounds().size.x > 295.f) {
+            while (wGenre.length() > 3 && gTxt.getLocalBounds().size.x > 285.f) {
+                wGenre.pop_back();
+                gTxt.setString(wGenre + L"...");
+            }
+        }
         gTxt.setFillColor(UITheme::TextSecondary);
-        gTxt.setPosition({col2X + 134.f, rY + 43.f});
+        gTxt.setPosition({col2X + 50.f, rY + 56.f});
         window.draw(gTxt);
 
         // Col 3: Director
