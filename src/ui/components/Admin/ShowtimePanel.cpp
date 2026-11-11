@@ -711,7 +711,7 @@ void ShowtimePanel::render(RenderWindow& win) {
     // 4. FILTER CARD & KPI SUMMARY
     // ==========================================
     float fCardY = position.y + 144.f;
-    drawRoundedCard(win, {position.x + 30.f, fCardY}, {width - 60.f, 150.f}, 12.f, Color::White, 1.f, Color(226, 232, 240));
+    drawRoundedCard(win, {position.x + 30.f, fCardY}, {width - 60.f, 166.f}, 12.f, Color::White, 1.f, Color(226, 232, 240));
 
     // Ngày chiếu
     Text lblDate(boldFont, L"Ng\u00e0y chi\u1ebfu", 12); lblDate.setFillColor(Color(71, 85, 105)); lblDate.setPosition({position.x + 50.f, fCardY + 16.f}); win.draw(lblDate);
@@ -746,6 +746,10 @@ void ShowtimePanel::render(RenderWindow& win) {
     if (!searchQuery.empty()) {
         UITheme::drawCloseIcon(win, {position.x + 522.f, fCardY + 126.f}, 10.f, Color(148, 163, 184), 1.8f);
     }
+    Text noteSearch(font, L"* Tìm theo tên phim, tên phòng chiếu hoặc giờ chiếu (VD: 15:20)", 10.5f);
+    noteSearch.setFillColor(Color(100, 116, 139));
+    noteSearch.setPosition({position.x + 310.f, fCardY + 147.f});
+    win.draw(noteSearch);
 
     // Thẻ KPI Summary: Tách làm 2 ô màu khác nhau bên trong 1 ô card bao ngoài
     float kpiOuterW = 285.f;
