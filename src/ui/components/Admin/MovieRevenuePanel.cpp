@@ -496,8 +496,7 @@ void MovieRevenuePanel::handleEvent(const Event& event, const RenderWindow& /*wi
 
             FloatRect exportRect({position.x + width - 120.f, position.y + 16.f}, {100.f, 36.f});
             bool clickBottomExport = (activeTab == RevenueTab::TOTAL_REVENUE) &&
-                (FloatRect({position.x + 20.f + (width - 40.f) * 0.89f - 12.f, position.y + height - 74.f}, {116.f, 36.f}).contains(mPos) ||
-                 FloatRect({position.x + width - 256.f, position.y + 544.f}, {100.f, 30.f}).contains(mPos));
+                FloatRect({position.x + 20.f + (width - 40.f) * 0.89f - 12.f, position.y + height - 74.f}, {116.f, 36.f}).contains(mPos);
             if (exportRect.contains(mPos) || clickBottomExport) {
                 bool ok = exportRevenueReportToCsv();
                 toastActive = true;
@@ -1694,7 +1693,7 @@ void MovieRevenuePanel::drawTab2TotalRevenue(RenderTarget& target) const {
         subTbl.setPosition({cPos.x + 24.f, cPos.y + 36.f});
         target.draw(subTbl);
 
-        // Header phải: Pill Đơn vị tính + Xuất Excel + Phân tích sâu
+        // Header phải: Pill Đơn vị tính + Phân tích sâu
         Vector2f deepSize(106.f, 30.f);
         Vector2f deepPos(cPos.x + availableW - 20.f - deepSize.x, cPos.y + 16.f);
         RoundedRectRenderer::draw(target, deepPos, deepSize, 7.f, Color(2, 132, 199));
@@ -1707,20 +1706,8 @@ void MovieRevenuePanel::drawTab2TotalRevenue(RenderTarget& target) const {
         });
         target.draw(deepTxt);
 
-        Vector2f xlSize(100.f, 30.f);
-        Vector2f xlPos(deepPos.x - 10.f - xlSize.x, cPos.y + 16.f);
-        RoundedRectRenderer::draw(target, xlPos, xlSize, 7.f, Color::White, 1.f, Color(203, 213, 225));
-        Text xlTxt(boldFont, L"Xuất Excel", 12.f);
-        xlTxt.setFillColor(Color(51, 65, 85));
-        FloatRect xlb = xlTxt.getLocalBounds();
-        xlTxt.setPosition({
-            xlPos.x + (xlSize.x - xlb.size.x) / 2.f - xlb.position.x,
-            xlPos.y + (xlSize.y - xlb.size.y) / 2.f - xlb.position.y
-        });
-        target.draw(xlTxt);
-
         Vector2f unitPillSize(236.f, 30.f);
-        Vector2f unitPillPos(xlPos.x - 10.f - unitPillSize.x, cPos.y + 16.f);
+        Vector2f unitPillPos(deepPos.x - 10.f - unitPillSize.x, cPos.y + 16.f);
         RoundedRectRenderer::draw(target, unitPillPos, unitPillSize, 7.f, Color(248, 250, 252), 1.f, Color(226, 232, 240));
         Text unitTxt(boldFont, L"Đơn vị tính: Việt Nam Đồng (VND)", 11.5f);
         unitTxt.setFillColor(Color(71, 85, 105));
