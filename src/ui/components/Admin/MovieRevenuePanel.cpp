@@ -1883,180 +1883,213 @@ void MovieRevenuePanel::drawTab2TotalRevenue(RenderTarget& target) const {
 }
 
 void MovieRevenuePanel::drawTab3RevenueByMovie(RenderTarget& target) const {
-    const float contentY = position.y + 242.f;
+    const float contentY = position.y + 218.f;
     const float availableW = width - 40.f;
-    const float halfW = (availableW - 14.f) / 2.f;
+    const float totalH = height - 28.f - contentY - 4.f;
+    const float leftW = availableW * 0.56f;
+    const float rightW = availableW - leftW - 14.f;
 
     // Left Card: XẾP HẠNG DOANH THU THEO PHIM (VND)
     {
         Vector2f cPos(position.x + 20.f, contentY);
-        RoundedRectRenderer::draw(target, cPos, {halfW, 350.f}, 8.f, Color::White, 1.f, Color(226, 232, 240));
+        RoundedRectRenderer::draw(target, cPos, {leftW, totalH}, 10.f, Color::White, 1.f, Color(226, 232, 240));
 
-        Text title(boldFont);
-        title.setString(L"XẾP HẠNG DOANH THU THEO PHIM (VND)");
-        title.setCharacterSize(15);
+        Text title(boldFont, L"XẾP HẠNG DOANH THU THEO PHIM (VND)", 16);
         title.setFillColor(Color(15, 23, 42));
-        title.setPosition({cPos.x + 16.f, cPos.y + 14.f});
+        title.setPosition({cPos.x + 24.f, cPos.y + 16.f});
         target.draw(title);
 
-        Text sub(font);
-        sub.setString(L"Thang đo định mức tối đa: 4.000.000 đ");
-        sub.setCharacterSize(12.f);
+        Text sub(font, L"Thang đo định mức tối đa: 4.000.000 đ", 12.5f);
         sub.setFillColor(Color(148, 163, 184));
-        sub.setPosition({cPos.x + 16.f, cPos.y + 34.f});
+        sub.setPosition({cPos.x + 24.f, cPos.y + 40.f});
         target.draw(sub);
 
-        Vector2f bPos(cPos.x + halfW - 120.f, cPos.y + 14.f);
-        RoundedRectRenderer::draw(target, bPos, {105.f, 22.f}, 4.f, Color(224, 242, 254));
-        Text bTxt(boldFont);
-        bTxt.setString(L"TOP 8 BOX OFFICE");
-        bTxt.setCharacterSize(11.5f);
+        Vector2f bSize(134.f, 28.f);
+        Vector2f bPos(cPos.x + leftW - 24.f - bSize.x, cPos.y + 16.f);
+        RoundedRectRenderer::draw(target, bPos, bSize, 6.f, Color(240, 249, 255), 1.f, Color(186, 230, 253));
+        Text bTxt(boldFont, L"TOP 8 BOX OFFICE", 12);
         bTxt.setFillColor(Color(2, 132, 199));
-        bTxt.setPosition({bPos.x + 8.f, bPos.y + 3.f});
+        FloatRect btb = bTxt.getLocalBounds();
+        bTxt.setPosition({
+            bPos.x + (bSize.x - btb.size.x) / 2.f - btb.position.x,
+            bPos.y + (bSize.y - btb.size.y) / 2.f - btb.position.y
+        });
         target.draw(bTxt);
 
-        // 8 Horizontal Progress Bars
-        float rTop = cPos.y + 60.f;
-        float rH = 34.f;
+        // 8 Horizontal Progress Bars trải đều chiều cao thẻ
+        float rTop = cPos.y + 80.f;
+        int nRows = max(1, (int)moviesList.size());
+        float rH = (totalH - 96.f) / static_cast<float>(nRows);
         float maxRev = 4000000.f;
         for (const auto& m : moviesList) {
             if ((float)m.revenue > maxRev) maxRev = (float)m.revenue * 1.05f;
         }
 
-        float barStartX = cPos.x + 200.f;
-        float barEndX = cPos.x + halfW - 110.f;
-        float maxBarW = max(50.f, barEndX - barStartX);
+        float nameX = cPos.x + 54.f;
+        float barStartX = cPos.x + 258.f;
+        float barEndX = cPos.x + leftW - 142.f;
+        float maxBarW = max(60.f, barEndX - barStartX);
 
         for (size_t i = 0; i < moviesList.size(); ++i) {
             float ry = rTop + i * rH;
+            float centerY = ry + rH / 2.f;
 
             // Rank
-            Text rTxt(boldFont);
-            rTxt.setString(to_string(i + 1));
-            rTxt.setCharacterSize(11.5f);
+            Text rTxt(boldFont, to_string(i + 1), 14.5f);
             Color rankCol = (i == 0) ? Color(245, 158, 11) : (i == 1 ? Color(100, 116, 139) : (i == 2 ? Color(180, 83, 9) : Color(148, 163, 184)));
             rTxt.setFillColor(rankCol);
-            rTxt.setPosition({cPos.x + 16.f, ry});
+            FloatRect rtb = rTxt.getLocalBounds();
+            rTxt.setPosition({cPos.x + 24.f, centerY - rtb.size.y / 2.f - rtb.position.y});
             target.draw(rTxt);
 
             // Movie Name (cắt gọn nếu quá dài để không đè lên thanh bar)
             wstring titleStr = moviesList[i].title;
-            Text mTxt(font, titleStr, 11.5f);
-            mTxt.setFillColor(Color(51, 65, 85));
-            if (mTxt.getGlobalBounds().size.x > 155.f) {
-                while (!titleStr.empty() && mTxt.getGlobalBounds().size.x > 142.f) {
+            Text mTxt(i == 0 ? boldFont : font, titleStr, 14.5f);
+            mTxt.setFillColor(i == 0 ? Color(15, 23, 42) : Color(51, 65, 85));
+            if (mTxt.getGlobalBounds().size.x > 190.f) {
+                while (!titleStr.empty() && mTxt.getGlobalBounds().size.x > 176.f) {
                     titleStr.pop_back();
                     mTxt.setString(titleStr + L"...");
                 }
-                titleStr += L"...";
-                mTxt.setString(titleStr);
             }
-            mTxt.setPosition({cPos.x + 36.f, ry});
+            FloatRect mtb = mTxt.getLocalBounds();
+            mTxt.setPosition({nameX, centerY - mtb.size.y / 2.f - mtb.position.y});
             target.draw(mTxt);
 
-            // Background Track (rãnh màu xám nhạt thể hiện quy mô tối đa)
-            RoundedRectRenderer::draw(target, {barStartX, ry + 4.f}, {maxBarW, 8.f}, 4.f, Color(241, 245, 249));
+            // Background Track
+            float barH = 12.f;
+            RoundedRectRenderer::draw(target, {barStartX, centerY - barH / 2.f}, {maxBarW, barH}, 6.f, Color(241, 245, 249));
 
-            // Progress Bar (thanh tiến trình màu xanh với chiều dài không bao giờ vượt quá barEndX)
-            float barW = min(maxBarW, max(4.f, ((float)moviesList[i].revenue / maxRev) * maxBarW));
+            // Progress Bar
+            float barW = min(maxBarW, max(8.f, ((float)moviesList[i].revenue / maxRev) * maxBarW));
             Color barCol = (i == 0) ? Color(2, 132, 199) : (i < 3 ? Color(56, 189, 248) : Color(125, 211, 252));
-            RoundedRectRenderer::draw(target, {barStartX, ry + 4.f}, {barW, 8.f}, 4.f, barCol);
+            RoundedRectRenderer::draw(target, {barStartX, centerY - barH / 2.f}, {barW, barH}, 6.f, barCol);
 
-            // Revenue text (căn phải cách lề 16px, luôn có khoảng cách an toàn với thanh bar)
-            Text revTxt(boldFont);
-            revTxt.setString(s2ws(toCurrency(moviesList[i].revenue)));
-            revTxt.setCharacterSize(11.5f);
+            // Revenue text (căn phải cách lề 24px)
+            Text revTxt(boldFont, s2ws(toCurrency(moviesList[i].revenue)), 14.5f);
             revTxt.setFillColor(Color(15, 23, 42));
             FloatRect revB = revTxt.getLocalBounds();
-            revTxt.setPosition({cPos.x + halfW - 16.f - revB.size.x, ry});
+            revTxt.setPosition({cPos.x + leftW - 24.f - revB.size.x - revB.position.x, centerY - revB.size.y / 2.f - revB.position.y});
             target.draw(revTxt);
         }
     }
 
     // Right Column: Top 1 Highlight + Thể loại
     {
-        float rightX = position.x + 20.f + halfW + 14.f;
+        float rightX = position.x + 20.f + leftW + 14.f;
+        float top1H = 216.f;
 
         // 1. Dark Top 1 Card
         Vector2f top1Pos(rightX, contentY);
-        RoundedRectRenderer::draw(target, top1Pos, {halfW, 160.f}, 8.f, Color(15, 23, 42));
+        RoundedRectRenderer::draw(target, top1Pos, {rightW, top1H}, 10.f, Color(15, 23, 42));
 
-        Text t1Badge(boldFont);
-        t1Badge.setString(L"TOP 1 PHIM BÁN CHẠY NHẤT");
-        t1Badge.setCharacterSize(12.f);
+        Vector2f t1BadgeSize(210.f, 26.f);
+        Vector2f t1BadgePos(top1Pos.x + 24.f, top1Pos.y + 20.f);
+        RoundedRectRenderer::draw(target, t1BadgePos, t1BadgeSize, 6.f, Color(51, 41, 26));
+        Text t1Badge(boldFont, L"TOP 1 PHIM BÁN CHẠY NHẤT", 12);
         t1Badge.setFillColor(Color(245, 158, 11));
-        t1Badge.setPosition({top1Pos.x + 16.f, top1Pos.y + 14.f});
+        FloatRect t1bb = t1Badge.getLocalBounds();
+        t1Badge.setPosition({
+            t1BadgePos.x + (t1BadgeSize.x - t1bb.size.x) / 2.f - t1bb.position.x,
+            t1BadgePos.y + (t1BadgeSize.y - t1bb.size.y) / 2.f - t1bb.position.y
+        });
         target.draw(t1Badge);
 
-        Text t1Title(boldFont);
-        t1Title.setString(L"Tử Chiến Trên Không");
-        t1Title.setCharacterSize(18);
+        wstring topTitle = moviesList.empty() ? L"Tử Chiến Trên Không" : moviesList[0].title;
+        wstring topGenre = moviesList.empty() ? L"Hành động / Kịch tính" : moviesList[0].genre;
+        long long topRev = moviesList.empty() ? 3890000 : moviesList[0].revenue;
+        int topTicks = moviesList.empty() ? 31 : moviesList[0].tickets;
+
+        Text t1Title(boldFont, topTitle, 22);
         t1Title.setFillColor(Color::White);
-        t1Title.setPosition({top1Pos.x + 16.f, top1Pos.y + 36.f});
+        t1Title.setPosition({top1Pos.x + 24.f, top1Pos.y + 58.f});
         target.draw(t1Title);
 
-        Text t1Genre(font);
-        t1Genre.setString(L"Thể loại: Hành động / Kịch tính");
-        t1Genre.setCharacterSize(12.f);
+        Text t1Genre(font, L"Thể loại: " + topGenre, 13.5f);
         t1Genre.setFillColor(Color(148, 163, 184));
-        t1Genre.setPosition({top1Pos.x + 16.f, top1Pos.y + 64.f});
+        t1Genre.setPosition({top1Pos.x + 24.f, top1Pos.y + 90.f});
         target.draw(t1Genre);
 
-        Text t1Rev(boldFont);
-        t1Rev.setString(L"Doanh thu: 3.890.000 đ");
-        t1Rev.setCharacterSize(13);
+        RectangleShape t1Div(Vector2f(rightW - 48.f, 1.f));
+        t1Div.setPosition({top1Pos.x + 24.f, top1Pos.y + 126.f});
+        t1Div.setFillColor(Color(30, 41, 59));
+        target.draw(t1Div);
+
+        Text t1RevLbl(font, L"Doanh thu ghi nhận", 12.5f);
+        t1RevLbl.setFillColor(Color(148, 163, 184));
+        t1RevLbl.setPosition({top1Pos.x + 24.f, top1Pos.y + 142.f});
+        target.draw(t1RevLbl);
+
+        Text t1Rev(boldFont, s2ws(toCurrency(topRev)), 22);
         t1Rev.setFillColor(Color(52, 211, 153));
-        t1Rev.setPosition({top1Pos.x + 16.f, top1Pos.y + 92.f});
+        t1Rev.setPosition({top1Pos.x + 24.f, top1Pos.y + 164.f});
         target.draw(t1Rev);
 
-        Text t1Tick(boldFont);
-        t1Tick.setString(L"Tổng vé: 31 vé");
-        t1Tick.setCharacterSize(13);
+        Text t1TickLbl(font, L"Số lượng phát hành", 12.5f);
+        t1TickLbl.setFillColor(Color(148, 163, 184));
+        FloatRect t1tlb = t1TickLbl.getLocalBounds();
+        t1TickLbl.setPosition({top1Pos.x + rightW - 24.f - t1tlb.size.x, top1Pos.y + 142.f});
+        target.draw(t1TickLbl);
+
+        Text t1Tick(boldFont, L"Tổng vé: " + to_wstring(topTicks) + L" vé", 20);
         t1Tick.setFillColor(Color(147, 197, 253));
-        t1Tick.setPosition({top1Pos.x + 240.f, top1Pos.y + 92.f});
+        FloatRect t1tkb = t1Tick.getLocalBounds();
+        t1Tick.setPosition({top1Pos.x + rightW - 24.f - t1tkb.size.x, top1Pos.y + 166.f});
         target.draw(t1Tick);
 
         // 2. Thể loại Breakdown Card
-        Vector2f gPos(rightX, contentY + 174.f);
-        RoundedRectRenderer::draw(target, gPos, {halfW, 176.f}, 8.f, Color::White, 1.f, Color(226, 232, 240));
+        float gY = contentY + top1H + 14.f;
+        float gH = totalH - top1H - 14.f;
+        Vector2f gPos(rightX, gY);
+        RoundedRectRenderer::draw(target, gPos, {rightW, gH}, 10.f, Color::White, 1.f, Color(226, 232, 240));
 
-        Text gTitle(boldFont);
-        gTitle.setString(L"CƠ CẤU DOANH THU THEO THỂ LOẠI");
-        gTitle.setCharacterSize(12);
+        Text gTitle(boldFont, L"CƠ CẤU DOANH THU THEO THỂ LOẠI", 15.5f);
         gTitle.setFillColor(Color(15, 23, 42));
-        gTitle.setPosition({gPos.x + 16.f, gPos.y + 14.f});
+        gTitle.setPosition({gPos.x + 24.f, gPos.y + 18.f});
         target.draw(gTitle);
+
+        Text gUnit(font, L"Tỷ trọng %", 12.5f);
+        gUnit.setFillColor(Color(148, 163, 184));
+        FloatRect gub = gUnit.getLocalBounds();
+        gUnit.setPosition({gPos.x + rightW - 24.f - gub.size.x, gPos.y + 20.f});
+        target.draw(gUnit);
 
         // 4 Categories
         struct CatItem { wstring name; float pct; Color col; };
         const array<CatItem, 4> cats = {
-            CatItem{L"● Hành động", 58.0f, Color(2, 132, 199)},
-            CatItem{L"● Hoạt hình", 18.4f, Color(245, 158, 11)},
-            CatItem{L"● Tâm lý", 13.6f, Color(225, 29, 72)},
-            CatItem{L"● Lịch sử", 10.0f, Color(16, 185, 129)}
+            CatItem{L"Hành động", 58.0f, Color(2, 132, 199)},
+            CatItem{L"Hoạt hình", 18.4f, Color(245, 158, 11)},
+            CatItem{L"Tâm lý", 13.6f, Color(225, 29, 72)},
+            CatItem{L"Lịch sử", 10.0f, Color(16, 185, 129)}
         };
 
+        float catTop = gPos.y + 62.f;
+        float catStep = (gH - 80.f) / 4.f;
+        float fullBarW = rightW - 48.f;
+
         for (size_t i = 0; i < cats.size(); ++i) {
-            float cy = gPos.y + 44.f + i * 28.f;
-            Text cName(boldFont);
-            cName.setString(cats[i].name);
-            cName.setCharacterSize(11);
-            cName.setFillColor(cats[i].col);
-            cName.setPosition({gPos.x + 16.f, cy});
+            float cy = catTop + i * catStep;
+
+            CircleShape dot(5.f);
+            dot.setPosition({gPos.x + 24.f, cy + 5.f});
+            dot.setFillColor(cats[i].col);
+            target.draw(dot);
+
+            Text cName(boldFont, cats[i].name, 14.5f);
+            cName.setFillColor(Color(15, 23, 42));
+            cName.setPosition({gPos.x + 42.f, cy});
             target.draw(cName);
 
-            // Bar
-            Vector2f barP(gPos.x + 120.f, cy + 4.f);
-            RoundedRectRenderer::draw(target, barP, {halfW - 200.f, 6.f}, 3.f, Color(241, 245, 249));
-            RoundedRectRenderer::draw(target, barP, {(halfW - 200.f) * (cats[i].pct / 100.f), 6.f}, 3.f, cats[i].col);
-
             stringstream ss; ss << fixed << setprecision(1) << cats[i].pct << "%";
-            Text cPct(boldFont);
-            cPct.setString(ss.str());
-            cPct.setCharacterSize(11);
+            Text cPct(boldFont, ss.str(), 14.5f);
             cPct.setFillColor(Color(51, 65, 85));
-            cPct.setPosition({gPos.x + halfW - 55.f, cy});
+            FloatRect cpb = cPct.getLocalBounds();
+            cPct.setPosition({gPos.x + rightW - 24.f - cpb.size.x, cy});
             target.draw(cPct);
+
+            Vector2f barP(gPos.x + 24.f, cy + 28.f);
+            RoundedRectRenderer::draw(target, barP, {fullBarW, 10.f}, 5.f, Color(241, 245, 249));
+            RoundedRectRenderer::draw(target, barP, {fullBarW * (cats[i].pct / 100.f), 10.f}, 5.f, cats[i].col);
         }
     }
 }
