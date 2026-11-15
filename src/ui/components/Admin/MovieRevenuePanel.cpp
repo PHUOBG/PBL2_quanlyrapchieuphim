@@ -307,7 +307,61 @@ void MovieRevenuePanel::handleEvent(const Event& event, const RenderWindow& /*wi
         float mx = position.x + (width - mw) / 2.f;
         float my = position.y + (height - mh) / 2.f;
 
+        // 0b. Xử lý click Modal Chi tiết tháng nếu đang mở
+    if (detailMonthIndex >= 0 && detailMonthIndex < (int)monthsList.size()) {
+        float mw = 540.f, mh = 370.f;
+        float mx = position.x + (width - mw) / 2.f;
+        float my = position.y + (height - mh) / 2.f;
+
         if (auto mousePress = event.getIf<Event::MouseButtonPressed>()) {
+            if (mousePress->button == Mouse::Button::Left) {
+                Vector2f mPos(static_cast<float>(mousePress->position.x), static_cast<float>(mousePress->position.y));
+
+                FloatRect closeXRect({mx + mw - 38.f, my + 14.f}, {26.f, 26.f});
+                if (closeXRect.contains(mPos)) {
+                    detailMonthIndex = -1;
+                    return;
+                }
+
+                // Nút "Lọc theo tháng này"
+                FloatRect btnFilter({mx + mw - 305.f, my + mh - 52.f}, {180.f, 36.f});
+                if (btnFilter.contains(mPos)) {
+                    int filterIdx = 4 - detailMonthIndex; // 0->4(T09), 1->3(T10), 2->2(T11), 3->1(T12)
+                    selectedDateFilter = filterIdx;
+                    if (filterIdx == 1) {
+                        totalRevenue = 2947500; movieRevenue = 1700000; comboRevenue = 1247500; totalTickets = 25; totalCombos = 22;
+                    } else if (filterIdx == 2) {
+                        totalRevenue = 4305000; movieRevenue = 2450000; comboRevenue = 1855000; totalTickets = 37; totalCombos = 33;
+                    } else if (filterIdx == 3) {
+                        totalRevenue = 2915000; movieRevenue = 1800000; comboRevenue = 1115000; totalTickets = 25; totalCombos = 21;
+                    } else if (filterIdx == 4) {
+                        totalRevenue = 1675000; movieRevenue = 1050000; comboRevenue = 625000; totalTickets = 14; totalCombos = 13;
+                    }
+                    toastMessage = L"Đã lọc số liệu tổng quan theo: " + monthsList[detailMonthIndex].displayMonth;
+                    toastTimer = 2.5f;
+                    toastActive = true;
+                    detailMonthIndex = -1;
+                    return;
+                }
+
+                // Nút "Đóng"
+                FloatRect btnClose({mx + mw - 115.f, my + mh - 52.f}, {92.f, 36.f});
+                if (btnClose.contains(mPos)) {
+                    detailMonthIndex = -1;
+                    return;
+                }
+
+                // Click ngoài modal -> đóng
+                if (!FloatRect({mx, my}, {mw, mh}).contains(mPos)) {
+                    detailMonthIndex = -1;
+                    return;
+                }
+            }
+        }
+        return;
+    }
+
+    if (auto mousePress = event.getIf<Event::MouseButtonPressed>()) {
             if (mousePress->button == Mouse::Button::Left) {
                 Vector2f mPos(static_cast<float>(mousePress->position.x), static_cast<float>(mousePress->position.y));
 
@@ -336,6 +390,60 @@ void MovieRevenuePanel::handleEvent(const Event& event, const RenderWindow& /*wi
                 FloatRect modalRect({mx, my}, {mw, mh});
                 if (!modalRect.contains(mPos)) {
                     reportModalOpen = false;
+                    return;
+                }
+            }
+        }
+        return;
+    }
+
+    // 0b. Xử lý click Modal Chi tiết tháng nếu đang mở
+    if (detailMonthIndex >= 0 && detailMonthIndex < (int)monthsList.size()) {
+        float mw = 540.f, mh = 370.f;
+        float mx = position.x + (width - mw) / 2.f;
+        float my = position.y + (height - mh) / 2.f;
+
+        if (auto mousePress = event.getIf<Event::MouseButtonPressed>()) {
+            if (mousePress->button == Mouse::Button::Left) {
+                Vector2f mPos(static_cast<float>(mousePress->position.x), static_cast<float>(mousePress->position.y));
+
+                FloatRect closeXRect({mx + mw - 38.f, my + 14.f}, {26.f, 26.f});
+                if (closeXRect.contains(mPos)) {
+                    detailMonthIndex = -1;
+                    return;
+                }
+
+                // Nút "Lọc theo tháng này"
+                FloatRect btnFilter({mx + mw - 305.f, my + mh - 52.f}, {180.f, 36.f});
+                if (btnFilter.contains(mPos)) {
+                    int filterIdx = 4 - detailMonthIndex; // 0->4(T09), 1->3(T10), 2->2(T11), 3->1(T12)
+                    selectedDateFilter = filterIdx;
+                    if (filterIdx == 1) {
+                        totalRevenue = 2947500; movieRevenue = 1700000; comboRevenue = 1247500; totalTickets = 25; totalCombos = 22;
+                    } else if (filterIdx == 2) {
+                        totalRevenue = 4305000; movieRevenue = 2450000; comboRevenue = 1855000; totalTickets = 37; totalCombos = 33;
+                    } else if (filterIdx == 3) {
+                        totalRevenue = 2915000; movieRevenue = 1800000; comboRevenue = 1115000; totalTickets = 25; totalCombos = 21;
+                    } else if (filterIdx == 4) {
+                        totalRevenue = 1675000; movieRevenue = 1050000; comboRevenue = 625000; totalTickets = 14; totalCombos = 13;
+                    }
+                    toastMessage = L"Đã lọc số liệu tổng quan theo: " + monthsList[detailMonthIndex].displayMonth;
+                    toastTimer = 2.5f;
+                    toastActive = true;
+                    detailMonthIndex = -1;
+                    return;
+                }
+
+                // Nút "Đóng"
+                FloatRect btnClose({mx + mw - 115.f, my + mh - 52.f}, {92.f, 36.f});
+                if (btnClose.contains(mPos)) {
+                    detailMonthIndex = -1;
+                    return;
+                }
+
+                // Click ngoài modal -> đóng
+                if (!FloatRect({mx, my}, {mw, mh}).contains(mPos)) {
+                    detailMonthIndex = -1;
                     return;
                 }
             }
@@ -442,6 +550,28 @@ void MovieRevenuePanel::handleEvent(const Event& event, const RenderWindow& /*wi
                 }
                 dateDropdownOpen = false;
             }
+
+            // 4. Click "Chi tiết" trên bảng Tổng kết doanh thu theo tháng (Tab 2)
+            if (activeTab == RevenueTab::TOTAL_REVENUE && !monthsList.empty()) {
+                const float contentY = position.y + 218.f;
+                const float availableW = width - 40.f;
+                const float topH = 296.f;
+                const float bTableY = contentY + topH + 14.f;
+                const float bTableH = height - 28.f - bTableY - 4.f;
+                const float col_act = position.x + 20.f + availableW * 0.89f;
+                const float rTop = bTableY + 46.f + 34.f;
+                const float footerH = 48.f;
+                const float rH = (bTableH - (rTop - bTableY) - footerH) / static_cast<float>(monthsList.size());
+
+                for (size_t i = 0; i < monthsList.size(); ++i) {
+                    float ry = rTop + i * rH;
+                    FloatRect detailRect({col_act - 8.f, ry + (rH - 30.f) / 2.f}, {86.f, 30.f});
+                    if (detailRect.contains(mPos)) {
+                        detailMonthIndex = static_cast<int>(i);
+                        return;
+                    }
+                }
+            }
         }
     }
 }
@@ -479,6 +609,36 @@ void MovieRevenuePanel::update(const Vector2f& mousePos, bool /*mouseDown*/) {
         float my = position.y + (height - mh) / 2.f;
         modalOpenExcelHovered = FloatRect({mx + mw - 340.f, my + mh - 50.f}, {210.f, 36.f}).contains(mousePos);
         modalCloseHovered = FloatRect({mx + mw - 115.f, my + mh - 50.f}, {100.f, 36.f}).contains(mousePos);
+    }
+
+    if (detailMonthIndex >= 0 && detailMonthIndex < (int)monthsList.size()) {
+        float mw = 540.f, mh = 370.f;
+        float mx = position.x + (width - mw) / 2.f;
+        float my = position.y + (height - mh) / 2.f;
+        detailFilterBtnHovered = FloatRect({mx + mw - 305.f, my + mh - 52.f}, {180.f, 36.f}).contains(mousePos);
+        detailCloseBtnHovered = FloatRect({mx + mw - 115.f, my + mh - 52.f}, {92.f, 36.f}).contains(mousePos);
+    }
+
+    hoveredDetailRow = -1;
+    if (detailMonthIndex < 0 && !reportModalOpen && activeTab == RevenueTab::TOTAL_REVENUE && !monthsList.empty()) {
+        const float contentY = position.y + 218.f;
+        const float availableW = width - 40.f;
+        const float topH = 296.f;
+        const float bTableY = contentY + topH + 14.f;
+        const float bTableH = height - 28.f - bTableY - 4.f;
+        const float col_act = position.x + 20.f + availableW * 0.89f;
+        const float rTop = bTableY + 46.f + 34.f;
+        const float footerH = 48.f;
+        const float rH = (bTableH - (rTop - bTableY) - footerH) / static_cast<float>(monthsList.size());
+
+        for (size_t i = 0; i < monthsList.size(); ++i) {
+            float ry = rTop + i * rH;
+            FloatRect detailRect({col_act - 8.f, ry + (rH - 30.f) / 2.f}, {86.f, 30.f});
+            if (detailRect.contains(mousePos)) {
+                hoveredDetailRow = static_cast<int>(i);
+                break;
+            }
+        }
     }
 
     if (toastActive) {
@@ -556,7 +716,42 @@ void MovieRevenuePanel::render(RenderTarget& target) const {
         drawReportModal(target);
     }
 
+    // 7b. Modal Chi tiết doanh thu từng tháng
+    if (detailMonthIndex >= 0 && detailMonthIndex < (int)monthsList.size()) {
+        drawMonthDetailModal(target);
+    }
+
     // 8. Toast Notification
+    if (detailMonthIndex >= 0 && detailMonthIndex < (int)monthsList.size()) {
+        float mw = 540.f, mh = 370.f;
+        float mx = position.x + (width - mw) / 2.f;
+        float my = position.y + (height - mh) / 2.f;
+        detailFilterBtnHovered = FloatRect({mx + mw - 305.f, my + mh - 52.f}, {180.f, 36.f}).contains(mousePos);
+        detailCloseBtnHovered = FloatRect({mx + mw - 115.f, my + mh - 52.f}, {92.f, 36.f}).contains(mousePos);
+    }
+
+    hoveredDetailRow = -1;
+    if (detailMonthIndex < 0 && !reportModalOpen && activeTab == RevenueTab::TOTAL_REVENUE && !monthsList.empty()) {
+        const float contentY = position.y + 218.f;
+        const float availableW = width - 40.f;
+        const float topH = 296.f;
+        const float bTableY = contentY + topH + 14.f;
+        const float bTableH = height - 28.f - bTableY - 4.f;
+        const float col_act = position.x + 20.f + availableW * 0.89f;
+        const float rTop = bTableY + 46.f + 34.f;
+        const float footerH = 48.f;
+        const float rH = (bTableH - (rTop - bTableY) - footerH) / static_cast<float>(monthsList.size());
+
+        for (size_t i = 0; i < monthsList.size(); ++i) {
+            float ry = rTop + i * rH;
+            FloatRect detailRect({col_act - 8.f, ry + (rH - 30.f) / 2.f}, {86.f, 30.f});
+            if (detailRect.contains(mousePos)) {
+                hoveredDetailRow = static_cast<int>(i);
+                break;
+            }
+        }
+    }
+
     if (toastActive) {
         drawToast(target);
     }
@@ -1556,8 +1751,9 @@ void MovieRevenuePanel::drawTab2TotalRevenue(RenderTarget& target) const {
             float ry = rTop + i * rH;
             float centerY = ry + rH / 2.f;
 
-            // Nền màu nhạt cột Tăng trưởng giống hình mẫu
-            if (!monthsList[i].growth.empty() && (monthsList[i].growth[0] == '+' || monthsList[i].growth[0] == '-')) {
+            // Nền màu nhạt cột Tăng trưởng giống hình mẫu (chỉ tô khi có số liệu +/-)
+            if (monthsList[i].growth != L"---" && !monthsList[i].growth.empty() &&
+                (monthsList[i].growth[0] == '+' || monthsList[i].growth[0] == '-')) {
                 Color cellBg = (monthsList[i].growth[0] == '+') ? Color(240, 253, 244) : Color(254, 242, 242);
                 RectangleShape grBg(Vector2f(availableW * 0.11f, rH - 1.f));
                 grBg.setPosition({col_gr - 18.f, ry + 0.5f});
@@ -1615,7 +1811,9 @@ void MovieRevenuePanel::drawTab2TotalRevenue(RenderTarget& target) const {
             target.draw(tt);
 
             // Tăng trưởng
-            Color grCol = (monthsList[i].growth[0] == '+') ? Color(16, 185, 129) : (monthsList[i].growth[0] == '-' ? Color(225, 29, 72) : Color(148, 163, 184));
+            bool hasGrowth = (monthsList[i].growth != L"---" && !monthsList[i].growth.empty());
+            Color grCol = !hasGrowth ? Color(148, 163, 184)
+                : (monthsList[i].growth[0] == '+' ? Color(16, 185, 129) : Color(225, 29, 72));
             Text tg(boldFont, monthsList[i].growth, 14.f);
             tg.setFillColor(grCol);
             FloatRect tgb = tg.getLocalBounds();
@@ -1630,11 +1828,26 @@ void MovieRevenuePanel::drawTab2TotalRevenue(RenderTarget& target) const {
             ts.setPosition({col_sh + 22.f, centerY - tsb.size.y / 2.f - tsb.position.y});
             target.draw(ts);
 
-            // Thao tác
-            Text ta(boldFont, L"Chi tiết", 14.f);
-            ta.setFillColor(Color(2, 132, 199));
+            // Thao tác: nút "Chi tiết" có hiệu ứng hover rõ ràng
+            bool isDetHov = (hoveredDetailRow == static_cast<int>(i));
+            Vector2f detBtnSize(86.f, 30.f);
+            Vector2f detBtnPos(col_act - 8.f, centerY - detBtnSize.y / 2.f);
+            RoundedRectRenderer::draw(
+                target,
+                detBtnPos,
+                detBtnSize,
+                6.f,
+                isDetHov ? Color(224, 242, 254) : Color(248, 250, 252),
+                1.f,
+                isDetHov ? Color(2, 132, 199) : Color(226, 232, 240)
+            );
+            Text ta(boldFont, L"Chi tiết", 13.5f);
+            ta.setFillColor(isDetHov ? Color(3, 105, 161) : Color(2, 132, 199));
             FloatRect tab = ta.getLocalBounds();
-            ta.setPosition({col_act + 10.f, centerY - tab.size.y / 2.f - tab.position.y});
+            ta.setPosition({
+                detBtnPos.x + (detBtnSize.x - tab.size.x) / 2.f - tab.position.x,
+                detBtnPos.y + (detBtnSize.y - tab.size.y) / 2.f - tab.position.y
+            });
             target.draw(ta);
         }
 
@@ -2172,4 +2385,110 @@ void MovieRevenuePanel::drawReportModal(RenderTarget& target) const {
     FloatRect clb = btnClTxt.getLocalBounds();
     btnClTxt.setPosition({btnClPos.x + (100.f - clb.size.x) / 2.f - clb.position.x, btnClPos.y + 9.f});
     target.draw(btnClTxt);
+}
+
+void MovieRevenuePanel::drawMonthDetailModal(RenderTarget& target) const {
+    if (detailMonthIndex < 0 || detailMonthIndex >= (int)monthsList.size()) return;
+    const auto& m = monthsList[detailMonthIndex];
+
+    RectangleShape dimBg(Vector2f(width + 300.f, height + 100.f));
+    dimBg.setPosition({position.x - 300.f, position.y - 50.f});
+    dimBg.setFillColor(Color(15, 23, 42, 175));
+    target.draw(dimBg);
+
+    float mw = 540.f;
+    float mh = 370.f;
+    Vector2f mPos(position.x + (width - mw) / 2.f, position.y + (height - mh) / 2.f);
+    RoundedRectRenderer::draw(target, mPos, {mw, mh}, 12.f, Color::White, 1.2f, Color(203, 213, 225));
+
+    Text mTitle(boldFont, L"CHI TIẾT DOANH THU — " + m.displayMonth, 16);
+    mTitle.setFillColor(Color(15, 23, 42));
+    mTitle.setPosition({mPos.x + 24.f, mPos.y + 20.f});
+    target.draw(mTitle);
+
+    if (m.isRecord) {
+        Vector2f bPos(mPos.x + 24.f + mTitle.getGlobalBounds().size.x + 12.f, mPos.y + 20.f);
+        RoundedRectRenderer::draw(target, bPos, {68.f, 24.f}, 12.f, Color(254, 226, 226));
+        Text bTxt(boldFont, L"Kỷ lục", 11.5f);
+        bTxt.setFillColor(Color(225, 29, 72));
+        FloatRect bb = bTxt.getLocalBounds();
+        bTxt.setPosition({bPos.x + (68.f - bb.size.x) / 2.f - bb.position.x, bPos.y + (24.f - bb.size.y) / 2.f - bb.position.y});
+        target.draw(bTxt);
+    }
+
+    UITheme::drawCloseIcon(target, {mPos.x + mw - 25.f, mPos.y + 27.f}, 11.f, Color(100, 116, 139), 2.f);
+
+    Text mSub(font, L"Tổng hợp đối soát vé phim & combo F&B trong kỳ báo cáo", 12.5f);
+    mSub.setFillColor(Color(100, 116, 139));
+    mSub.setPosition({mPos.x + 24.f, mPos.y + 46.f});
+    target.draw(mSub);
+
+    RectangleShape sep1(Vector2f(mw - 48.f, 1.f));
+    sep1.setPosition({mPos.x + 24.f, mPos.y + 72.f});
+    sep1.setFillColor(Color(226, 232, 240));
+    target.draw(sep1);
+
+    // Dữ liệu vé & combo ước tính theo từng tháng
+    const array<int, 4> monthTickets = {14, 25, 37, 25};
+    const array<int, 4> monthCombos  = {13, 21, 33, 22};
+    int tCount = (detailMonthIndex < 4) ? monthTickets[detailMonthIndex] : 0;
+    int cCount = (detailMonthIndex < 4) ? monthCombos[detailMonthIndex] : 0;
+    float ticketPct = 100.f - m.comboShare;
+
+    stringstream ssTicket, ssCombo;
+    ssTicket << fixed << setprecision(1) << ticketPct << "% tổng doanh thu";
+    ssCombo  << fixed << setprecision(1) << m.comboShare << "% tổng doanh thu";
+
+    float cardW = (mw - 48.f - 14.f) / 2.f;
+    float cardH = 92.f;
+
+    auto drawDetailCard = [&](int col, int row, const wstring& lbl, const wstring& val, const wstring& note, Color valCol) {
+        Vector2f cp(mPos.x + 24.f + col * (cardW + 14.f), mPos.y + 88.f + row * (cardH + 14.f));
+        RoundedRectRenderer::draw(target, cp, {cardW, cardH}, 8.f, Color(248, 250, 252), 1.f, Color(226, 232, 240));
+
+        Text l(font, lbl, 12);
+        l.setFillColor(Color(100, 116, 139));
+        l.setPosition({cp.x + 14.f, cp.y + 12.f});
+        target.draw(l);
+
+        Text v(boldFont, val, 18);
+        v.setFillColor(valCol);
+        v.setPosition({cp.x + 14.f, cp.y + 34.f});
+        target.draw(v);
+
+        Text n(boldFont, note, 11.5f);
+        n.setFillColor(Color(100, 116, 139));
+        n.setPosition({cp.x + 14.f, cp.y + 64.f});
+        target.draw(n);
+    };
+
+    drawDetailCard(0, 0, L"TỔNG DOANH THU THÁNG", s2ws(toCurrency(m.totalRev)), L"Tăng trưởng: " + m.growth, Color(15, 23, 42));
+    drawDetailCard(1, 0, L"SẢN LƯỢNG XUẤT BÁN", to_wstring(tCount) + L" vé  •  " + to_wstring(cCount) + L" combo", L"Tỷ lệ kèm F&B ổn định", Color(2, 132, 199));
+    drawDetailCard(0, 1, L"DOANH THU VÉ PHIM", s2ws(toCurrency(m.ticketRev)), s2ws(ssTicket.str()), Color(2, 132, 199));
+    drawDetailCard(1, 1, L"DOANH THU COMBO F&B", s2ws(toCurrency(m.comboRev)), s2ws(ssCombo.str()), Color(245, 158, 11));
+
+    RectangleShape sep2(Vector2f(mw - 48.f, 1.f));
+    sep2.setPosition({mPos.x + 24.f, mPos.y + mh - 68.f});
+    sep2.setFillColor(Color(226, 232, 240));
+    target.draw(sep2);
+
+    // Nút "Lọc theo tháng này"
+    Vector2f btnFPos(mPos.x + mw - 305.f, mPos.y + mh - 52.f);
+    Color fBg = detailFilterBtnHovered ? Color(3, 105, 161) : Color(2, 132, 199);
+    RoundedRectRenderer::draw(target, btnFPos, {180.f, 36.f}, 6.f, fBg);
+    Text btnFTxt(boldFont, L"Lọc theo tháng này", 12.5f);
+    btnFTxt.setFillColor(Color::White);
+    FloatRect fb = btnFTxt.getLocalBounds();
+    btnFTxt.setPosition({btnFPos.x + (180.f - fb.size.x) / 2.f - fb.position.x, btnFPos.y + (36.f - fb.size.y) / 2.f - fb.position.y});
+    target.draw(btnFTxt);
+
+    // Nút "Đóng"
+    Vector2f btnCPos(mPos.x + mw - 115.f, mPos.y + mh - 52.f);
+    Color cBg = detailCloseBtnHovered ? Color(226, 232, 240) : Color(241, 245, 249);
+    RoundedRectRenderer::draw(target, btnCPos, {92.f, 36.f}, 6.f, cBg, 1.f, Color(203, 213, 225));
+    Text btnCTxt(boldFont, L"Đóng", 12.5f);
+    btnCTxt.setFillColor(Color(51, 65, 85));
+    FloatRect cb = btnCTxt.getLocalBounds();
+    btnCTxt.setPosition({btnCPos.x + (92.f - cb.size.x) / 2.f - cb.position.x, btnCPos.y + (36.f - cb.size.y) / 2.f - cb.position.y});
+    target.draw(btnCTxt);
 }

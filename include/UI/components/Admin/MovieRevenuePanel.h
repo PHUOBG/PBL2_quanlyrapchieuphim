@@ -97,6 +97,12 @@ private:
     bool modalOpenExcelHovered = false;
     bool modalCloseHovered = false;
 
+    // Monthly detail modal (from Tab 2 "Chi tiết" action)
+    int detailMonthIndex = -1;
+    int hoveredDetailRow = -1;
+    bool detailFilterBtnHovered = false;
+    bool detailCloseBtnHovered = false;
+
     std::string resolveDataPath(const std::string& relative) const;
     void loadData();
     void loadTickets();
@@ -126,6 +132,7 @@ private:
     void drawBottomBar(sf::RenderTarget& target) const;
     void drawToast(sf::RenderTarget& target) const;
     void drawReportModal(sf::RenderTarget& target) const;
+    void drawMonthDetailModal(sf::RenderTarget& target) const;
 
 public:
     MovieRevenuePanel(sf::Font& fontRef, float w, float h);
