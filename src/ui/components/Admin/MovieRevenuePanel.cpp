@@ -496,13 +496,20 @@ void MovieRevenuePanel::handleEvent(const Event& event, const RenderWindow& /*wi
 
             FloatRect exportRect({position.x + width - 120.f, position.y + 16.f}, {100.f, 36.f});
             bool clickBottomExport = (activeTab == RevenueTab::TOTAL_REVENUE) &&
-                FloatRect({position.x + 20.f + (width - 40.f) * 0.89f - 10.f, position.y + height - 74.f}, {110.f, 36.f}).contains(mPos);
+                (FloatRect({position.x + 20.f + (width - 40.f) * 0.89f - 12.f, position.y + height - 74.f}, {116.f, 36.f}).contains(mPos) ||
+                 FloatRect({position.x + width - 256.f, position.y + 544.f}, {100.f, 30.f}).contains(mPos));
             if (exportRect.contains(mPos) || clickBottomExport) {
                 bool ok = exportRevenueReportToCsv();
                 toastActive = true;
                 toastTimer = 3.f;
                 toastMessage = ok ? L"Đã xuất báo cáo và mở trong Excel / CSV thành công!"
                                   : L"Đã xuất báo cáo doanh thu Excel thành công!";
+                return;
+            }
+
+            if (activeTab == RevenueTab::TOTAL_REVENUE &&
+                FloatRect({position.x + width - 146.f, position.y + 544.f}, {106.f, 30.f}).contains(mPos)) {
+                activeTab = RevenueTab::REVENUE_BY_MOVIE;
                 return;
             }
 
@@ -627,13 +634,13 @@ void MovieRevenuePanel::update(const Vector2f& mousePos, bool /*mouseDown*/) {
         const float bTableY = contentY + topH + 14.f;
         const float bTableH = height - 28.f - bTableY - 4.f;
         const float col_act = position.x + 20.f + availableW * 0.89f;
-        const float rTop = bTableY + 46.f + 34.f;
-        const float footerH = 48.f;
+        float rTop = bTableY + 58.f + 34.f;
+        const float footerH = 50.f;
         const float rH = (bTableH - (rTop - bTableY) - footerH) / static_cast<float>(monthsList.size());
 
         for (size_t i = 0; i < monthsList.size(); ++i) {
             float ry = rTop + i * rH;
-            FloatRect detailRect({col_act - 8.f, ry + (rH - 30.f) / 2.f}, {86.f, 30.f});
+            FloatRect detailRect({col_act - 6.f, ry + (rH - 30.f) / 2.f}, {88.f, 30.f});
             if (detailRect.contains(mousePos)) {
                 hoveredDetailRow = static_cast<int>(i);
                 break;
@@ -1663,34 +1670,78 @@ void MovieRevenuePanel::drawTab2TotalRevenue(RenderTarget& target) const {
         Vector2f cPos(position.x + 20.f, bTableY);
         RoundedRectRenderer::draw(target, cPos, {availableW, bTableH}, 10.f, Color::White, 1.f, Color(226, 232, 240));
 
-        Text title(boldFont, L"Tổng kết doanh thu theo tháng (Niên độ Q3 & Q4/2025)", 16);
+        // Header trái: Tiêu đề + pill Niên độ + phụ đề
+        Text title(boldFont, L"Tổng kết doanh thu theo tháng", 16.5f);
         title.setFillColor(Color(15, 23, 42));
-        title.setPosition({cPos.x + 24.f, cPos.y + 14.f});
+        title.setPosition({cPos.x + 24.f, cPos.y + 12.f});
         target.draw(title);
 
-        Text unitVal(boldFont, L"Việt Nam Đồng (VND)", 13);
-        unitVal.setFillColor(Color(51, 65, 85));
-        FloatRect uvb = unitVal.getLocalBounds();
-        unitVal.setPosition({cPos.x + availableW - 24.f - uvb.size.x, cPos.y + 16.f});
-        target.draw(unitVal);
+        float titleW = title.getGlobalBounds().size.x;
+        Vector2f eraSize(142.f, 22.f);
+        Vector2f eraPos(cPos.x + 24.f + titleW + 12.f, cPos.y + 13.f);
+        RoundedRectRenderer::draw(target, eraPos, eraSize, 11.f, Color(241, 245, 249));
+        Text eraTxt(boldFont, L"Niên độ Q3 & Q4/2025", 11.f);
+        eraTxt.setFillColor(Color(71, 85, 105));
+        FloatRect erab = eraTxt.getLocalBounds();
+        eraTxt.setPosition({
+            eraPos.x + (eraSize.x - erab.size.x) / 2.f - erab.position.x,
+            eraPos.y + (eraSize.y - erab.size.y) / 2.f - erab.position.y
+        });
+        target.draw(eraTxt);
 
-        Text unitLbl(font, L"Đơn vị tính: ", 13);
-        unitLbl.setFillColor(Color(100, 116, 139));
-        FloatRect ulb = unitLbl.getLocalBounds();
-        unitLbl.setPosition({unitVal.getPosition().x - ulb.size.x - 2.f, cPos.y + 16.f});
-        target.draw(unitLbl);
+        Text subTbl(font, L"Báo cáo kiểm toán luồng tiền bán vé và chuỗi dịch vụ ẩm thực (F&B)", 12.f);
+        subTbl.setFillColor(Color(100, 116, 139));
+        subTbl.setPosition({cPos.x + 24.f, cPos.y + 36.f});
+        target.draw(subTbl);
+
+        // Header phải: Pill Đơn vị tính + Xuất Excel + Phân tích sâu
+        Vector2f deepSize(106.f, 30.f);
+        Vector2f deepPos(cPos.x + availableW - 20.f - deepSize.x, cPos.y + 16.f);
+        RoundedRectRenderer::draw(target, deepPos, deepSize, 7.f, Color(2, 132, 199));
+        Text deepTxt(boldFont, L"Phân tích sâu", 12.f);
+        deepTxt.setFillColor(Color::White);
+        FloatRect dpb = deepTxt.getLocalBounds();
+        deepTxt.setPosition({
+            deepPos.x + (deepSize.x - dpb.size.x) / 2.f - dpb.position.x,
+            deepPos.y + (deepSize.y - dpb.size.y) / 2.f - dpb.position.y
+        });
+        target.draw(deepTxt);
+
+        Vector2f xlSize(100.f, 30.f);
+        Vector2f xlPos(deepPos.x - 10.f - xlSize.x, cPos.y + 16.f);
+        RoundedRectRenderer::draw(target, xlPos, xlSize, 7.f, Color::White, 1.f, Color(203, 213, 225));
+        Text xlTxt(boldFont, L"Xuất Excel", 12.f);
+        xlTxt.setFillColor(Color(51, 65, 85));
+        FloatRect xlb = xlTxt.getLocalBounds();
+        xlTxt.setPosition({
+            xlPos.x + (xlSize.x - xlb.size.x) / 2.f - xlb.position.x,
+            xlPos.y + (xlSize.y - xlb.size.y) / 2.f - xlb.position.y
+        });
+        target.draw(xlTxt);
+
+        Vector2f unitPillSize(236.f, 30.f);
+        Vector2f unitPillPos(xlPos.x - 10.f - unitPillSize.x, cPos.y + 16.f);
+        RoundedRectRenderer::draw(target, unitPillPos, unitPillSize, 7.f, Color(248, 250, 252), 1.f, Color(226, 232, 240));
+        Text unitTxt(boldFont, L"Đơn vị tính: Việt Nam Đồng (VND)", 11.5f);
+        unitTxt.setFillColor(Color(71, 85, 105));
+        FloatRect utb = unitTxt.getLocalBounds();
+        unitTxt.setPosition({
+            unitPillPos.x + (unitPillSize.x - utb.size.x) / 2.f - utb.position.x,
+            unitPillPos.y + (unitPillSize.y - utb.size.y) / 2.f - utb.position.y
+        });
+        target.draw(unitTxt);
 
         // Tọa độ các cột theo tỷ lệ phần trăm chiều ngang
         float col_m   = cPos.x + 24.f;
         float col_tv  = cPos.x + availableW * 0.21f;
         float col_cv  = cPos.x + availableW * 0.37f;
-        float col_tot = cPos.x + availableW * 0.53f;
-        float col_gr  = cPos.x + availableW * 0.67f;
-        float col_sh  = cPos.x + availableW * 0.79f;
+        float col_tot = cPos.x + availableW * 0.52f;
+        float col_gr  = cPos.x + availableW * 0.66f;
+        float col_sh  = cPos.x + availableW * 0.77f;
         float col_act = cPos.x + availableW * 0.89f;
 
         // Thanh tiêu đề cột
-        float thBoxY = cPos.y + 46.f;
+        float thBoxY = cPos.y + 58.f;
         float thBoxH = 34.f;
         RectangleShape thBg(Vector2f(availableW - 2.f, thBoxH));
         thBg.setPosition({cPos.x + 1.f, thBoxY});
@@ -1698,38 +1749,49 @@ void MovieRevenuePanel::drawTab2TotalRevenue(RenderTarget& target) const {
         target.draw(thBg);
 
         float thY = thBoxY + 8.f;
-        Text th1(boldFont, L"THÁNG / KỲ", 12.5f); th1.setFillColor(Color(148, 163, 184)); th1.setPosition({col_m, thY}); target.draw(th1);
-        Text th2(boldFont, L"DOANH THU VÉ (Đ)", 12.5f); th2.setFillColor(Color(148, 163, 184)); th2.setPosition({col_tv, thY}); target.draw(th2);
-        Text th3(boldFont, L"DOANH THU COMBO (Đ)", 12.5f); th3.setFillColor(Color(148, 163, 184)); th3.setPosition({col_cv, thY}); target.draw(th3);
-        Text th4(boldFont, L"TỔNG DOANH THU (Đ)", 12.5f); th4.setFillColor(Color(148, 163, 184)); th4.setPosition({col_tot, thY}); target.draw(th4);
-        Text th5(boldFont, L"TĂNG TRƯỞNG", 12.5f); th5.setFillColor(Color(148, 163, 184)); th5.setPosition({col_gr, thY}); target.draw(th5);
-        Text th6(boldFont, L"ĐÓNG GÓP F&B", 12.5f); th6.setFillColor(Color(148, 163, 184)); th6.setPosition({col_sh, thY}); target.draw(th6);
-        Text th7(boldFont, L"THAO TÁC", 12.5f); th7.setFillColor(Color(148, 163, 184)); th7.setPosition({col_act, thY}); target.draw(th7);
+        Text th1(boldFont, L"THÁNG / KỲ", 12.f); th1.setFillColor(Color(100, 116, 139)); th1.setPosition({col_m, thY}); target.draw(th1);
+        Text th2(boldFont, L"DOANH THU VÉ (Đ)", 12.f); th2.setFillColor(Color(100, 116, 139)); th2.setPosition({col_tv, thY}); target.draw(th2);
+        Text th3(boldFont, L"DOANH THU COMBO (Đ)", 12.f); th3.setFillColor(Color(100, 116, 139)); th3.setPosition({col_cv, thY}); target.draw(th3);
+        Text th4(boldFont, L"TỔNG DOANH THU (Đ)", 12.f); th4.setFillColor(Color(100, 116, 139)); th4.setPosition({col_tot, thY}); target.draw(th4);
+        Text th5(boldFont, L"TĂNG TRƯỞNG", 12.f); th5.setFillColor(Color(100, 116, 139)); th5.setPosition({col_gr, thY}); target.draw(th5);
+        Text th6(boldFont, L"ĐÓNG GÓP F&B", 12.f); th6.setFillColor(Color(100, 116, 139)); th6.setPosition({col_sh, thY}); target.draw(th6);
+        Text th7(boldFont, L"THAO TÁC", 12.f); th7.setFillColor(Color(100, 116, 139)); th7.setPosition({col_act + 10.f, thY}); target.draw(th7);
 
         RectangleShape div(Vector2f(availableW - 2.f, 1.f));
         div.setPosition({cPos.x + 1.f, thBoxY + thBoxH});
         div.setFillColor(Color(226, 232, 240));
         target.draw(div);
 
+        // Helper vẽ mũi tên tăng/giảm nhỏ bằng vector (không phụ thuộc font)
+        auto drawTrendArrow = [&](Vector2f center, bool up, Color col) {
+            RectangleShape stem({1.8f, 8.f});
+            stem.setFillColor(col);
+            stem.setPosition({center.x - 0.9f, center.y - 4.f});
+            target.draw(stem);
+
+            ConvexShape head(3);
+            if (up) {
+                head.setPoint(0, {center.x, center.y - 5.5f});
+                head.setPoint(1, {center.x - 3.5f, center.y - 1.5f});
+                head.setPoint(2, {center.x + 3.5f, center.y - 1.5f});
+            } else {
+                head.setPoint(0, {center.x, center.y + 5.5f});
+                head.setPoint(1, {center.x - 3.5f, center.y + 1.5f});
+                head.setPoint(2, {center.x + 3.5f, center.y + 1.5f});
+            }
+            head.setFillColor(col);
+            target.draw(head);
+        };
+
         // 4 Dòng dữ liệu tháng + 1 Dòng tổng kết dưới đáy
         float rTop = thBoxY + thBoxH;
-        float footerH = 48.f;
+        float footerH = 50.f;
         int rowCount = max(1, (int)monthsList.size());
         float rH = (bTableH - (rTop - cPos.y) - footerH) / (float)rowCount;
 
         for (size_t i = 0; i < monthsList.size(); ++i) {
             float ry = rTop + i * rH;
             float centerY = ry + rH / 2.f;
-
-            // Nền màu nhạt cột Tăng trưởng giống hình mẫu (chỉ tô khi có số liệu +/-)
-            if (monthsList[i].growth != L"---" && !monthsList[i].growth.empty() &&
-                (monthsList[i].growth[0] == '+' || monthsList[i].growth[0] == '-')) {
-                Color cellBg = (monthsList[i].growth[0] == '+') ? Color(240, 253, 244) : Color(254, 242, 242);
-                RectangleShape grBg(Vector2f(availableW * 0.11f, rH - 1.f));
-                grBg.setPosition({col_gr - 18.f, ry + 0.5f});
-                grBg.setFillColor(cellBg);
-                target.draw(grBg);
-            }
 
             if (i > 0) {
                 RectangleShape rLine(Vector2f(availableW - 2.f, 1.f));
@@ -1738,18 +1800,25 @@ void MovieRevenuePanel::drawTab2TotalRevenue(RenderTarget& target) const {
                 target.draw(rLine);
             }
 
-            // Tháng / Kỳ + nhãn Kỷ lục
+            // Chấm tròn màu chỉ thị đầu dòng + Tháng / Kỳ + nhãn Kỷ lục
+            Color dotCol = (i == 0) ? Color(59, 130, 246)
+                         : (monthsList[i].isRecord ? Color(244, 63, 94) : Color(203, 213, 225));
+            CircleShape rowDot(3.8f);
+            rowDot.setPosition({col_m, centerY - 3.8f});
+            rowDot.setFillColor(dotCol);
+            target.draw(rowDot);
+
             Text tm(boldFont, monthsList[i].displayMonth, 14.5f);
             tm.setFillColor(Color(15, 23, 42));
             FloatRect tmb = tm.getLocalBounds();
-            tm.setPosition({col_m, centerY - tmb.size.y / 2.f - tmb.position.y});
+            tm.setPosition({col_m + 14.f, centerY - tmb.size.y / 2.f - tmb.position.y});
             target.draw(tm);
 
             if (monthsList[i].isRecord) {
-                Vector2f recSize(54.f, 22.f);
-                Vector2f recPos(col_m + tmb.size.x + 10.f, centerY - recSize.y / 2.f);
-                RoundedRectRenderer::draw(target, recPos, recSize, 4.f, Color(254, 226, 226));
-                Text recTxt(boldFont, L"Kỷ lục", 11.5f);
+                Vector2f recSize(64.f, 22.f);
+                Vector2f recPos(col_m + 14.f + tmb.size.x + 10.f, centerY - recSize.y / 2.f);
+                RoundedRectRenderer::draw(target, recPos, recSize, 11.f, Color(254, 226, 226));
+                Text recTxt(boldFont, L"★ Kỷ lục", 11.f);
                 recTxt.setFillColor(Color(225, 29, 72));
                 FloatRect rcb = recTxt.getLocalBounds();
                 recTxt.setPosition({
@@ -1777,42 +1846,70 @@ void MovieRevenuePanel::drawTab2TotalRevenue(RenderTarget& target) const {
             Text tt(boldFont, s2ws(toCurrency(monthsList[i].totalRev)), 15.f);
             tt.setFillColor(Color(15, 23, 42));
             FloatRect ttb = tt.getLocalBounds();
-            tt.setPosition({col_tot + 24.f, centerY - ttb.size.y / 2.f - ttb.position.y});
+            tt.setPosition({col_tot + 20.f, centerY - ttb.size.y / 2.f - ttb.position.y});
             target.draw(tt);
 
-            // Tăng trưởng
+            // Tăng trưởng (dạng pill bo tròn gọn đẹp)
             bool hasGrowth = (monthsList[i].growth != L"---" && !monthsList[i].growth.empty());
-            Color grCol = !hasGrowth ? Color(148, 163, 184)
-                : (monthsList[i].growth[0] == '+' ? Color(16, 185, 129) : Color(225, 29, 72));
-            Text tg(boldFont, monthsList[i].growth, 14.f);
-            tg.setFillColor(grCol);
-            FloatRect tgb = tg.getLocalBounds();
-            tg.setPosition({col_gr + 16.f, centerY - tgb.size.y / 2.f - tgb.position.y});
-            target.draw(tg);
+            Vector2f grPillSize(84.f, 26.f);
+            Vector2f grPillPos(col_gr + 2.f, centerY - grPillSize.y / 2.f);
+            if (!hasGrowth) {
+                RoundedRectRenderer::draw(target, grPillPos, grPillSize, 13.f, Color(241, 245, 249));
+                Text tg(boldFont, L"---", 13.f);
+                tg.setFillColor(Color(148, 163, 184));
+                FloatRect tgb = tg.getLocalBounds();
+                tg.setPosition({
+                    grPillPos.x + (grPillSize.x - tgb.size.x) / 2.f - tgb.position.x,
+                    grPillPos.y + (grPillSize.y - tgb.size.y) / 2.f - tgb.position.y
+                });
+                target.draw(tg);
+            } else {
+                bool isUp = (monthsList[i].growth[0] == '+');
+                Color pillBg = isUp ? Color(220, 252, 231) : Color(254, 226, 226);
+                Color pillFg = isUp ? Color(5, 150, 105) : Color(225, 29, 72);
+                RoundedRectRenderer::draw(target, grPillPos, grPillSize, 13.f, pillBg);
 
-            // Đóng góp F&B
+                drawTrendArrow({grPillPos.x + 15.f, centerY}, isUp, pillFg);
+
+                Text tg(boldFont, monthsList[i].growth, 12.5f);
+                tg.setFillColor(pillFg);
+                FloatRect tgb = tg.getLocalBounds();
+                tg.setPosition({
+                    grPillPos.x + 24.f - tgb.position.x,
+                    grPillPos.y + (grPillSize.y - tgb.size.y) / 2.f - tgb.position.y
+                });
+                target.draw(tg);
+            }
+
+            // Đóng góp F&B: % + thanh tiến trình nhỏ bên cạnh
             stringstream ss; ss << fixed << setprecision(1) << monthsList[i].comboShare << "%";
-            Text ts(font, ss.str(), 14.f);
-            ts.setFillColor(Color(71, 85, 105));
+            Text ts(boldFont, ss.str(), 13.5f);
+            ts.setFillColor(monthsList[i].isRecord ? Color(217, 119, 6) : Color(51, 65, 85));
             FloatRect tsb = ts.getLocalBounds();
-            ts.setPosition({col_sh + 22.f, centerY - tsb.size.y / 2.f - tsb.position.y});
+            ts.setPosition({col_sh, centerY - tsb.size.y / 2.f - tsb.position.y});
             target.draw(ts);
 
-            // Thao tác: nút "Chi tiết" có hiệu ứng hover rõ ràng
+            float fbBarW = 64.f;
+            float fbBarH = 6.f;
+            Vector2f fbBarPos(col_sh + 52.f, centerY - fbBarH / 2.f);
+            RoundedRectRenderer::draw(target, fbBarPos, {fbBarW, fbBarH}, 3.f, Color(241, 245, 249));
+            float fbFillW = max(6.f, min(fbBarW, (monthsList[i].comboShare / 60.f) * fbBarW));
+            Color fbBarCol = monthsList[i].isRecord ? Color(245, 158, 11) : Color(37, 99, 235);
+            RoundedRectRenderer::draw(target, fbBarPos, {fbFillW, fbBarH}, 3.f, fbBarCol);
+
+            // Thao tác: nút "Chi tiết >" có viền, hiệu ứng hover và nổi bật tháng kỷ lục
             bool isDetHov = (hoveredDetailRow == static_cast<int>(i));
-            Vector2f detBtnSize(86.f, 30.f);
-            Vector2f detBtnPos(col_act - 8.f, centerY - detBtnSize.y / 2.f);
-            RoundedRectRenderer::draw(
-                target,
-                detBtnPos,
-                detBtnSize,
-                6.f,
-                isDetHov ? Color(224, 242, 254) : Color(248, 250, 252),
-                1.f,
-                isDetHov ? Color(2, 132, 199) : Color(226, 232, 240)
-            );
-            Text ta(boldFont, L"Chi tiết", 13.5f);
-            ta.setFillColor(isDetHov ? Color(3, 105, 161) : Color(2, 132, 199));
+            Vector2f detBtnSize(88.f, 30.f);
+            Vector2f detBtnPos(col_act - 6.f, centerY - detBtnSize.y / 2.f);
+            Color detBg = isDetHov
+                ? (monthsList[i].isRecord ? Color(254, 243, 199) : Color(224, 242, 254))
+                : Color::White;
+            Color detBorder = monthsList[i].isRecord ? Color(253, 230, 138) : (isDetHov ? Color(2, 132, 199) : Color(226, 232, 240));
+            Color detFg = monthsList[i].isRecord ? Color(217, 119, 6) : Color(2, 132, 199);
+
+            RoundedRectRenderer::draw(target, detBtnPos, detBtnSize, 7.f, detBg, 1.f, detBorder);
+            Text ta(boldFont, L"Chi tiết  >", 12.5f);
+            ta.setFillColor(detFg);
             FloatRect tab = ta.getLocalBounds();
             ta.setPosition({
                 detBtnPos.x + (detBtnSize.x - tab.size.x) / 2.f - tab.position.x,
@@ -1831,10 +1928,17 @@ void MovieRevenuePanel::drawTab2TotalRevenue(RenderTarget& target) const {
 
         float fCenterY = footY + footerH / 2.f;
 
-        Text fTitle(boldFont, L"TỔNG DOANH THU KỲ", 14.f);
-        fTitle.setFillColor(Color(30, 41, 59));
+        // Icon hộp vuông xanh nhỏ + TỔNG DOANH THU KỲ
+        Vector2f sumIconPos(col_m, fCenterY - 10.f);
+        RoundedRectRenderer::draw(target, sumIconPos, {20.f, 20.f}, 5.f, Color(37, 99, 235));
+        RectangleShape icLine1({10.f, 2.f}); icLine1.setFillColor(Color::White); icLine1.setPosition({sumIconPos.x + 5.f, sumIconPos.y + 6.f}); target.draw(icLine1);
+        RectangleShape icLine2({10.f, 2.f}); icLine2.setFillColor(Color::White); icLine2.setPosition({sumIconPos.x + 5.f, sumIconPos.y + 10.f}); target.draw(icLine2);
+        RectangleShape icLine3({6.f, 2.f});  icLine3.setFillColor(Color::White); icLine3.setPosition({sumIconPos.x + 5.f, sumIconPos.y + 14.f}); target.draw(icLine3);
+
+        Text fTitle(boldFont, L"TỔNG DOANH THU KỲ", 13.5f);
+        fTitle.setFillColor(Color(15, 23, 42));
         FloatRect ftb = fTitle.getLocalBounds();
-        fTitle.setPosition({col_m, fCenterY - ftb.size.y / 2.f - ftb.position.y});
+        fTitle.setPosition({col_m + 28.f, fCenterY - ftb.size.y / 2.f - ftb.position.y});
         target.draw(fTitle);
 
         Text fTv(boldFont, s2ws(toCurrency(movieRevenue)), 15.f);
@@ -1852,27 +1956,37 @@ void MovieRevenuePanel::drawTab2TotalRevenue(RenderTarget& target) const {
         Text fTot(boldFont, s2ws(toCurrency(totalRevenue)), 16.5f);
         fTot.setFillColor(Color(15, 23, 42));
         FloatRect ftotb = fTot.getLocalBounds();
-        fTot.setPosition({col_tot + 18.f, fCenterY - ftotb.size.y / 2.f - ftotb.position.y});
+        fTot.setPosition({col_tot + 16.f, fCenterY - ftotb.size.y / 2.f - ftotb.position.y});
         target.draw(fTot);
 
-        Text fGr(boldFont, L"+18.4%", 14.5f);
-        fGr.setFillColor(Color(16, 185, 129));
+        // Pill tăng trưởng tổng kỳ
+        Vector2f fGrSize(84.f, 26.f);
+        Vector2f fGrPos(col_gr + 2.f, fCenterY - fGrSize.y / 2.f);
+        RoundedRectRenderer::draw(target, fGrPos, fGrSize, 13.f, Color(220, 252, 231));
+        drawTrendArrow({fGrPos.x + 15.f, fCenterY}, true, Color(5, 150, 105));
+        Text fGr(boldFont, L"+18.4%", 12.5f);
+        fGr.setFillColor(Color(5, 150, 105));
         FloatRect fgrb = fGr.getLocalBounds();
-        fGr.setPosition({col_gr + 16.f, fCenterY - fgrb.size.y / 2.f - fgrb.position.y});
+        fGr.setPosition({fGrPos.x + 24.f - fgrb.position.x, fGrPos.y + (fGrSize.y - fgrb.size.y) / 2.f - fgrb.position.y});
         target.draw(fGr);
 
-        Text fSh(boldFont, L"TB 40.9%", 14.5f);
+        // Đóng góp F&B trung bình + thanh bar
+        Text fSh(boldFont, L"TB 40.9%", 13.5f);
         fSh.setFillColor(Color(15, 23, 42));
         FloatRect fshb = fSh.getLocalBounds();
-        fSh.setPosition({col_sh + 12.f, fCenterY - fshb.size.y / 2.f - fshb.position.y});
+        fSh.setPosition({col_sh - 10.f, fCenterY - fshb.size.y / 2.f - fshb.position.y});
         target.draw(fSh);
 
-        // Nút "Xuất báo cáo" ở góc phải dòng tổng kết
-        Vector2f expBtnSize(102.f, 30.f);
-        Vector2f expBtnPos(col_act - 8.f, fCenterY - expBtnSize.y / 2.f);
-        RoundedRectRenderer::draw(target, expBtnPos, expBtnSize, 6.f, Color::White, 1.f, Color(203, 213, 225));
-        Text expBtnTxt(boldFont, L"Xuất báo cáo", 12.f);
-        expBtnTxt.setFillColor(Color(51, 65, 85));
+        Vector2f fFbBarPos(col_sh + 58.f, fCenterY - 3.f);
+        RoundedRectRenderer::draw(target, fFbBarPos, {58.f, 6.f}, 3.f, Color(226, 232, 240));
+        RoundedRectRenderer::draw(target, fFbBarPos, {38.f, 6.f}, 3.f, Color(245, 158, 11));
+
+        // Nút đen "Xuất báo cáo" ở góc phải dòng tổng kết
+        Vector2f expBtnSize(112.f, 32.f);
+        Vector2f expBtnPos(col_act - 12.f, fCenterY - expBtnSize.y / 2.f);
+        RoundedRectRenderer::draw(target, expBtnPos, expBtnSize, 8.f, Color(15, 23, 42));
+        Text expBtnTxt(boldFont, L"Xuất báo cáo", 12.5f);
+        expBtnTxt.setFillColor(Color::White);
         FloatRect ebb = expBtnTxt.getLocalBounds();
         expBtnTxt.setPosition({
             expBtnPos.x + (expBtnSize.x - ebb.size.x) / 2.f - ebb.position.x,
