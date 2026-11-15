@@ -123,12 +123,10 @@ private:
     bool logoutHovered = false;
     bool collapsed = false;
     bool toggleHovered = false;
-    bool edgeTabHovered = false;
 
     vector<SidebarElement> elements;
     FloatRect logoutBounds;
     FloatRect toggleBtnBounds;
-    FloatRect edgeTabBounds;
 
     function<void(AppState)> onStateChange;
     function<void()> onLogout;
@@ -139,4 +137,5 @@ private:
 
     void recalculateLayout();
     void drawLogoutIcon(RenderTarget& target, Vector2f pos, Color col);
+    void drawSidebarToggleIcon(RenderWindow& window, Vector2f center, bool pointRight, Color col);
 };

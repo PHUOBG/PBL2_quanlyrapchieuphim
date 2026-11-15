@@ -78,8 +78,7 @@ void AdminSidebar::setActiveState(AppState state) {
 
 void AdminSidebar::recalculateLayout() {
     if (collapsed) {
-        toggleBtnBounds = FloatRect({8.f, 15.f}, {32.f, 32.f});
-        edgeTabBounds = FloatRect({0.f, position.y + height / 2.f - 28.f}, {20.f, 56.f});
+        toggleBtnBounds = FloatRect({8.f, 18.f}, {28.f, 28.f});
         return;
     }
 
@@ -87,8 +86,7 @@ void AdminSidebar::recalculateLayout() {
     const float itemW = width - 32.f;
     float curY = position.y + 100.f; // Kéo toàn bộ các mục xuống thấp hơn cho cân đối
 
-    toggleBtnBounds = FloatRect({position.x + width - 44.f, position.y + 22.f}, {28.f, 28.f});
-    edgeTabBounds = FloatRect({position.x + width - 2.f, position.y + height / 2.f - 28.f}, {16.f, 56.f});
+    toggleBtnBounds = FloatRect({position.x + width - 42.f, position.y + 23.f}, {26.f, 26.f});
 
     for (size_t i = 0; i < elements.size(); ++i) {
         if (elements[i].type == SidebarElementType::SECTION_HEADER) {
@@ -111,7 +109,7 @@ void AdminSidebar::handleEvent(const Event& event, const RenderWindow& win) {
             Vector2f mousePos = win.mapPixelToCoords(Mouse::getPosition(win));
 
             // Click nút thu gọn / mở rộng thanh điều hướng
-            if (toggleBtnBounds.contains(mousePos) || edgeTabBounds.contains(mousePos)) {
+            if (toggleBtnBounds.contains(mousePos)) {
                 setCollapsed(!collapsed);
                 if (onToggleCollapse) {
                     onToggleCollapse(collapsed);
@@ -145,7 +143,6 @@ void AdminSidebar::update(const RenderWindow& win) {
     Vector2f mousePos = win.mapPixelToCoords(Mouse::getPosition(win));
 
     toggleHovered = toggleBtnBounds.contains(mousePos);
-    edgeTabHovered = edgeTabBounds.contains(mousePos);
 
     if (collapsed) {
         hoveredIndex = -1;
@@ -193,6 +190,54 @@ void AdminSidebar::drawLogoutIcon(RenderTarget& target, Vector2f pos, Color col)
     target.draw(frameBtm);
 }
 
+void AdminSidebar::drawSidebarToggleIcon(RenderWindow& window, Vector2f center, bool pointRight, Color col) {
+    // Khung bo góc nhỏ đại diện cho cửa sổ + thanh điều hướng (giống hình mẫu 2)
+    const Vector2f boxSize(13.f, 11.f);
+    const Vector2f boxPos(center.x - boxSize.x / 2.f, center.y - boxSize.y / 2.f);
+    RoundedRectRenderer::draw(window, boxPos, boxSize, 2.2f, Color::Transparent, 1.3f, col);
+
+    // Vạch dọc chia đôi phần sidebar bên trái
+    RectangleShape divider({1.3f, boxSize.y});
+    divider.setFillColor(col);
+    divider.setPosition({boxPos.x + 4.f, boxPos.y});
+    window.draw(divider);
+
+    // Mũi tên chevron nhỏ (< hoặc >) nằm trong phần khung bên phải
+    const float chevX = boxPos.x + 8.5f;
+    const float chevY = center.y;
+    if (!pointRight) {
+        // Mũi tên '<' (thu gọn)
+        RectangleShape arm1({3.6f, 1.3f});
+        arm1.setOrigin({0.f, 0.65f});
+        arm1.setFillColor(col);
+        arm1.setPosition({chevX - 1.3f, chevY});
+        arm1.setRotation(degrees(-42.f));
+        window.draw(arm1);
+
+        RectangleShape arm2({3.6f, 1.3f});
+        arm2.setOrigin({0.f, 0.65f});
+        arm2.setFillColor(col);
+        arm2.setPosition({chevX - 1.3f, chevY});
+        arm2.setRotation(degrees(42.f));
+        window.draw(arm2);
+    } else {
+        // Mũi tên '>' (mở rộng)
+        RectangleShape arm1({3.6f, 1.3f});
+        arm1.setOrigin({0.f, 0.65f});
+        arm1.setFillColor(col);
+        arm1.setPosition({chevX + 1.3f, chevY});
+        arm1.setRotation(degrees(-138.f));
+        window.draw(arm1);
+
+        RectangleShape arm2({3.6f, 1.3f});
+        arm2.setOrigin({0.f, 0.65f});
+        arm2.setFillColor(col);
+        arm2.setPosition({chevX + 1.3f, chevY});
+        arm2.setRotation(degrees(138.f));
+        window.draw(arm2);
+    }
+}
+
 void AdminSidebar::render(RenderWindow& window) {
     if (collapsed) {
         // Viền nhấn màu xanh Ocean Blue sát mép trái khi đã ẩn thanh điều hướng
@@ -201,31 +246,16 @@ void AdminSidebar::render(RenderWindow& window) {
         leftAccent.setFillColor(Color(0, 119, 182));
         window.draw(leftAccent);
 
-        // Nút mở lại thanh điều hướng ở góc trên bên trái
-        Color btnBg = toggleHovered ? Color(0, 95, 146) : Color(0, 119, 182);
-        RoundedRectRenderer::draw(window, {toggleBtnBounds.position.x, toggleBtnBounds.position.y + 2.f}, toggleBtnBounds.size, 8.f, Color(0, 0, 0, 28));
-        RoundedRectRenderer::draw(window, toggleBtnBounds.position, toggleBtnBounds.size, 8.f, btnBg);
-
-        // 3 gạch ngang (Hamburger icon) kèm mũi tên mở rộng
-        for (int line = 0; line < 3; ++line) {
-            RectangleShape bar({14.f, 2.f});
-            bar.setFillColor(Color::White);
-            bar.setPosition({toggleBtnBounds.position.x + 9.f, toggleBtnBounds.position.y + 10.f + line * 5.f});
-            window.draw(bar);
-        }
-
-        // Nút gờ mở rộng ở chính giữa mép trái màn hình
-        Color tabBg = edgeTabHovered ? Color(0, 95, 146) : Color(0, 119, 182);
-        RoundedRectRenderer::draw(window, {edgeTabBounds.position.x - 4.f, edgeTabBounds.position.y}, {edgeTabBounds.size.x + 4.f, edgeTabBounds.size.y}, 8.f, tabBg);
-
-        Text tabArrow(boldFont, L"\u276F", 13);
-        tabArrow.setFillColor(Color::White);
-        FloatRect tabAb = tabArrow.getLocalBounds();
-        tabArrow.setPosition({
-            edgeTabBounds.position.x + (edgeTabBounds.size.x - tabAb.size.x) / 2.f - tabAb.position.x,
-            edgeTabBounds.position.y + (edgeTabBounds.size.y - tabAb.size.y) / 2.f - tabAb.position.y
-        });
-        window.draw(tabArrow);
+        // Nút tròn mở lại thanh điều hướng ở góc trên bên trái
+        Color btnBg = toggleHovered ? Color(0, 80, 130) : Color(0, 95, 146);
+        RoundedRectRenderer::draw(window, {toggleBtnBounds.position.x, toggleBtnBounds.position.y + 1.5f}, toggleBtnBounds.size, 14.f, Color(0, 0, 0, 28));
+        RoundedRectRenderer::draw(window, toggleBtnBounds.position, toggleBtnBounds.size, 14.f, btnBg);
+        drawSidebarToggleIcon(
+            window,
+            {toggleBtnBounds.position.x + toggleBtnBounds.size.x / 2.f, toggleBtnBounds.position.y + toggleBtnBounds.size.y / 2.f},
+            true,
+            Color(224, 242, 254)
+        );
         return;
     }
 
@@ -291,35 +321,21 @@ void AdminSidebar::render(RenderWindow& window) {
     });
     window.draw(admTxt);
 
-    // Nút thu gọn thanh điều hướng (ở góc trên bên phải của sidebar)
-    Color toggleBg = toggleHovered ? Color(255, 255, 255, 55) : Color(0, 95, 146);
-    RoundedRectRenderer::draw(window, toggleBtnBounds.position, toggleBtnBounds.size, 7.f, toggleBg, 1.f, Color(255, 255, 255, 50));
-    Text collapseIcon(boldFont, L"\u00AB", 16);
-    collapseIcon.setFillColor(Color::White);
-    FloatRect cib = collapseIcon.getLocalBounds();
-    collapseIcon.setPosition({
-        toggleBtnBounds.position.x + (toggleBtnBounds.size.x - cib.size.x) / 2.f - cib.position.x,
-        toggleBtnBounds.position.y + (toggleBtnBounds.size.y - cib.size.y) / 2.f - cib.position.y
-    });
-    window.draw(collapseIcon);
+    // Nút tròn thu gọn thanh điều hướng nằm ngay bên phải badge ADMIN (theo đúng hình mẫu 2)
+    Color toggleBg = toggleHovered ? Color(0, 78, 124) : Color(0, 95, 146);
+    RoundedRectRenderer::draw(window, toggleBtnBounds.position, toggleBtnBounds.size, 13.f, toggleBg);
+    drawSidebarToggleIcon(
+        window,
+        {toggleBtnBounds.position.x + toggleBtnBounds.size.x / 2.f, toggleBtnBounds.position.y + toggleBtnBounds.size.y / 2.f},
+        false,
+        Color(224, 242, 254)
+    );
 
     // Đường kẻ phân cách dưới khu vực thương hiệu
     RectangleShape headerDivider({width - 32.f, 1.f});
     headerDivider.setPosition({padX, position.y + 74.f});
     headerDivider.setFillColor(Color(255, 255, 255, 35));
     window.draw(headerDivider);
-
-    // Gờ thu gọn ở mép phải thanh điều hướng
-    Color edgeBg = edgeTabHovered ? Color(0, 80, 130) : Color(0, 102, 160);
-    RoundedRectRenderer::draw(window, edgeTabBounds.position, edgeTabBounds.size, 6.f, edgeBg, 1.f, Color(255, 255, 255, 45));
-    Text edgeArrow(boldFont, L"\u276E", 12);
-    edgeArrow.setFillColor(Color(224, 242, 254));
-    FloatRect eab = edgeArrow.getLocalBounds();
-    edgeArrow.setPosition({
-        edgeTabBounds.position.x + (edgeTabBounds.size.x - eab.size.x) / 2.f - eab.position.x,
-        edgeTabBounds.position.y + (edgeTabBounds.size.y - eab.size.y) / 2.f - eab.position.y
-    });
-    window.draw(edgeArrow);
 
     // 3. Render các nhóm và mục chức năng
     for (size_t i = 0; i < elements.size(); ++i) {
