@@ -722,36 +722,6 @@ void MovieRevenuePanel::render(RenderTarget& target) const {
     }
 
     // 8. Toast Notification
-    if (detailMonthIndex >= 0 && detailMonthIndex < (int)monthsList.size()) {
-        float mw = 540.f, mh = 370.f;
-        float mx = position.x + (width - mw) / 2.f;
-        float my = position.y + (height - mh) / 2.f;
-        detailFilterBtnHovered = FloatRect({mx + mw - 305.f, my + mh - 52.f}, {180.f, 36.f}).contains(mousePos);
-        detailCloseBtnHovered = FloatRect({mx + mw - 115.f, my + mh - 52.f}, {92.f, 36.f}).contains(mousePos);
-    }
-
-    hoveredDetailRow = -1;
-    if (detailMonthIndex < 0 && !reportModalOpen && activeTab == RevenueTab::TOTAL_REVENUE && !monthsList.empty()) {
-        const float contentY = position.y + 218.f;
-        const float availableW = width - 40.f;
-        const float topH = 296.f;
-        const float bTableY = contentY + topH + 14.f;
-        const float bTableH = height - 28.f - bTableY - 4.f;
-        const float col_act = position.x + 20.f + availableW * 0.89f;
-        const float rTop = bTableY + 46.f + 34.f;
-        const float footerH = 48.f;
-        const float rH = (bTableH - (rTop - bTableY) - footerH) / static_cast<float>(monthsList.size());
-
-        for (size_t i = 0; i < monthsList.size(); ++i) {
-            float ry = rTop + i * rH;
-            FloatRect detailRect({col_act - 8.f, ry + (rH - 30.f) / 2.f}, {86.f, 30.f});
-            if (detailRect.contains(mousePos)) {
-                hoveredDetailRow = static_cast<int>(i);
-                break;
-            }
-        }
-    }
-
     if (toastActive) {
         drawToast(target);
     }
