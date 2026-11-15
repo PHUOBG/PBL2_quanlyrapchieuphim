@@ -911,10 +911,15 @@ void VoucherPanel::render(RenderWindow& win) {
     win.draw(title);
 
     FloatRect tb = title.getGlobalBounds();
-    drawRoundedCard(win, {tb.position.x + tb.size.x + 16.f, position.y + 70.f}, {190.f, 26.f}, 13.f, Color(224, 242, 254));
     Text bBadge(boldFont, to_wstring(allVouchers.size()) + L" Ch\u01b0\u01a1ng tr\u00ecnh ho\u1ea1t \u0111\u1ed9ng", 12);
     bBadge.setFillColor(Color(2, 132, 199));
-    bBadge.setPosition({tb.position.x + tb.size.x + 24.f, position.y + 75.f});
+    FloatRect bb = bBadge.getLocalBounds();
+    float bX = tb.position.x + tb.size.x + 14.f;
+    float bY = position.y + 70.f;
+    float bW = bb.size.x + 24.f;
+    float bH = 26.f;
+    drawRoundedCard(win, {bX, bY}, {bW, bH}, bH / 2.f, Color(224, 242, 254));
+    bBadge.setPosition({bX + (bW - bb.size.x) / 2.f - bb.position.x, bY + (bH - bb.size.y) / 2.f - bb.position.y});
     win.draw(bBadge);
 
     Text subTitle(font, L"C\u1ea5u h\u00ecnh \u0111i\u1ec1u ki\u1ec7n \u01b0u \u0111\u00e3i, danh s\u00e1ch ph\u00e1t h\u00e0nh v\u00e0 ki\u1ec3m so\u00e1t ph\u00e2n b\u1ed5 ng\u01b0\u1eddi nh\u1eadn tr\u00ean to\u00e0n chu\u1ed7i r\u1ea1p CineCore.", 13);

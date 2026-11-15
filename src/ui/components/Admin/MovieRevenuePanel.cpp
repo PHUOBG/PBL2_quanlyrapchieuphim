@@ -577,31 +577,34 @@ void MovieRevenuePanel::drawHeader(RenderTarget& target) const {
     wstring badgeStr = L"Quyết toán tài chính theo kỳ";
     Color bBg = Color(224, 242, 254);
     Color bTxt = Color(2, 132, 199);
-    float badgeW = 160.f;
 
     if (activeTab == RevenueTab::TOTAL_REVENUE) {
         badgeStr = L"Quyết toán thực tế";
         bBg = Color(220, 252, 231);
         bTxt = Color(5, 150, 105);
-        badgeW = 120.f;
     } else if (activeTab == RevenueTab::REVENUE_BY_MOVIE) {
         badgeStr = L"Cập nhật lúc 22:45 hôm nay";
         bBg = Color(241, 245, 249);
         bTxt = Color(100, 116, 139);
-        badgeW = 175.f;
     } else if (activeTab == RevenueTab::REVENUE_BY_COMBO) {
         badgeStr = L"Kỳ Q3-Q4/2025";
         bBg = Color(254, 243, 199);
         bTxt = Color(217, 119, 6);
-        badgeW = 110.f;
     }
 
-    RoundedRectRenderer::draw(target, badgePos, {badgeW, 22.f}, 11.f, bBg);
     Text badgeText(boldFont);
     badgeText.setString(badgeStr);
     badgeText.setCharacterSize(11);
     badgeText.setFillColor(bTxt);
-    badgeText.setPosition({badgePos.x + 10.f, badgePos.y + 3.f});
+    FloatRect bb = badgeText.getLocalBounds();
+    float badgeW = bb.size.x + 24.f;
+    float badgeH = 24.f;
+
+    RoundedRectRenderer::draw(target, badgePos, {badgeW, badgeH}, badgeH / 2.f, bBg);
+    badgeText.setPosition({
+        badgePos.x + (badgeW - bb.size.x) / 2.f - bb.position.x,
+        badgePos.y + (badgeH - bb.size.y) / 2.f - bb.position.y
+    });
     target.draw(badgeText);
 
     // Subtitle

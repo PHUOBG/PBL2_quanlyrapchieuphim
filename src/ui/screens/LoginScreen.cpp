@@ -773,24 +773,37 @@ void LoginScreen::draw(RenderWindow& window) {
     const float formX = rightX + (rightW - formW) / 2.f; // 834.f
 
     // Top Badge: "CỔNG QUẢN TRỊ NỘI BỘ"
-    RoundedRectRenderer::draw(window, {formX, cardY + 52.f}, {180.f, 32.f}, 16.f, Color(239, 246, 255), 1.f, Color(186, 230, 253));
-    
-    // Checkmark icon
-    RectangleShape ck1({4.5f, 2.f});
-    ck1.setFillColor(Color(2, 132, 199));
-    ck1.setRotation(degrees(45.f));
-    ck1.setPosition({formX + 16.f, cardY + 68.f});
-    window.draw(ck1);
-
-    RectangleShape ck2({9.f, 2.f});
-    ck2.setFillColor(Color(2, 132, 199));
-    ck2.setRotation(degrees(-55.f));
-    ck2.setPosition({formX + 19.5f, cardY + 71.f});
-    window.draw(ck2);
-
     Text topBadgeText(boldFont, L"C\u1ed4NG QU\u1ea2N TR\u1eca N\u1ed8I B\u1ed8", 11);
     topBadgeText.setFillColor(Color(2, 132, 199));
-    topBadgeText.setPosition({formX + 33.f, cardY + 59.f});
+    FloatRect tbb = topBadgeText.getLocalBounds();
+
+    const float pillY = cardY + 52.f;
+    const float pillH = 30.f;
+    const float padH = 14.f;
+    const float iconW = 11.f;
+    const float iconGap = 7.f;
+    const float pillW = padH * 2.f + iconW + iconGap + tbb.size.x;
+    RoundedRectRenderer::draw(window, {formX, pillY}, {pillW, pillH}, pillH / 2.f, Color(239, 246, 255), 1.f, Color(186, 230, 253));
+
+    // Checkmark icon (centered vertically at pillCenterY)
+    const float ckX = formX + padH;
+    const float pillCenterY = pillY + pillH / 2.f;
+    RectangleShape ck1({5.5f, 2.f});
+    ck1.setFillColor(Color(2, 132, 199));
+    ck1.setRotation(degrees(45.f));
+    ck1.setPosition({ckX + 0.5f, pillCenterY - 1.5f});
+    window.draw(ck1);
+
+    RectangleShape ck2({9.5f, 2.f});
+    ck2.setFillColor(Color(2, 132, 199));
+    ck2.setRotation(degrees(-45.f));
+    ck2.setPosition({ckX + 2.8f, pillCenterY + 2.2f});
+    window.draw(ck2);
+
+    topBadgeText.setPosition({
+        formX + padH + iconW + iconGap - tbb.position.x,
+        pillY + (pillH - tbb.size.y) / 2.f - tbb.position.y
+    });
     window.draw(topBadgeText);
 
     // Heading: ĐĂNG NHẬP QUẢN TRỊ VIÊN

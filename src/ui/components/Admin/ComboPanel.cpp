@@ -643,10 +643,15 @@ void ComboPanel::render(RenderWindow& win) {
     win.draw(title);
 
     FloatRect tb = title.getGlobalBounds();
-    drawRoundedCard(win, {tb.position.x + tb.size.x + 16.f, position.y + 72.f}, {165.f, 26.f}, 13.f, Color(220, 252, 231));
     Text bBadge(boldFont, to_wstring(allCombos.size()) + L" Combo \u0110ang B\u00e1n", 12);
     bBadge.setFillColor(Color(22, 101, 52));
-    bBadge.setPosition({tb.position.x + tb.size.x + 24.f, position.y + 77.f});
+    FloatRect bb = bBadge.getLocalBounds();
+    float bX = tb.position.x + tb.size.x + 14.f;
+    float bY = position.y + 72.f;
+    float bW = bb.size.x + 24.f;
+    float bH = 26.f;
+    drawRoundedCard(win, {bX, bY}, {bW, bH}, bH / 2.f, Color(220, 252, 231));
+    bBadge.setPosition({bX + (bW - bb.size.x) / 2.f - bb.position.x, bY + (bH - bb.size.y) / 2.f - bb.position.y});
     win.draw(bBadge);
 
     Text subTitle(font, L"C\u1eadp nh\u1eadt b\u1ea3ng gi\u00e1, c\u00f4ng th\u1ee9c m\u00f3n b\u1eafp rang, n\u01b0\u1edbc ng\u1ecdt v\u00e0 c\u00e1c g\u00f3i \u01b0u \u0111\u00e3i t\u1ea1i qu\u1ea7y b\u1eafp n\u01b0\u1edbc.", 13);

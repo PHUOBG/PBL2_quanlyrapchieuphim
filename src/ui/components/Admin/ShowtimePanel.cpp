@@ -663,8 +663,16 @@ void ShowtimePanel::render(RenderWindow& win) {
     win.draw(title);
 
     FloatRect tb = title.getGlobalBounds();
-    drawRoundedCard(win, {tb.position.x + tb.size.x + 16.f, position.y + 72.f}, {145.f, 26.f}, 13.f, Color(224, 242, 254));
-    Text bBadge(boldFont, L"L\u1ecbch bi\u1ec3u ho\u1ea1t \u0111\u1ed9ng", 12); bBadge.setFillColor(Color(2, 132, 199)); bBadge.setPosition({tb.position.x + tb.size.x + 24.f, position.y + 77.f}); win.draw(bBadge);
+    Text bBadge(boldFont, L"L\u1ecbch bi\u1ec3u ho\u1ea1t \u0111\u1ed9ng", 12);
+    bBadge.setFillColor(Color(2, 132, 199));
+    FloatRect bb = bBadge.getLocalBounds();
+    float bX = tb.position.x + tb.size.x + 14.f;
+    float bY = position.y + 72.f;
+    float bW = bb.size.x + 24.f;
+    float bH = 26.f;
+    drawRoundedCard(win, {bX, bY}, {bW, bH}, bH / 2.f, Color(224, 242, 254));
+    bBadge.setPosition({bX + (bW - bb.size.x) / 2.f - bb.position.x, bY + (bH - bb.size.y) / 2.f - bb.position.y});
+    win.draw(bBadge);
 
     Text subTitle(font, L"\u0110i\u1ec1u ph\u1ed1i l\u1ecbch chi\u1ebfu theo ph\u00f2ng, theo d\u00f5i t\u1ef7 l\u1ec7 l\u1ea5p \u0111\u1ea7y gh\u1ebf v\u00e0 ph\u00e2n b\u1ed1 khung gi\u1edd chi\u1ebfu.", 13);
     subTitle.setFillColor(Color(100, 116, 139));

@@ -699,22 +699,34 @@ void UserPanel::drawHeader(RenderTarget& target) const {
     // Badge 1: Hội viên CineCore Rewards
     float tW = title.getGlobalBounds().size.x;
     Vector2f b1Pos(position.x + 20.f + tW + 14.f, topY + 4.f);
-    RoundedRectRenderer::draw(target, b1Pos, {185.f, 24.f}, 12.f, Color(224, 242, 254), 1.f, Color(186, 230, 253));
     Text b1Txt(boldFont);
     b1Txt.setString(L"Hội viên CineCore Rewards");
-    b1Txt.setCharacterSize(12.f);
+    b1Txt.setCharacterSize(12);
     b1Txt.setFillColor(Color(2, 132, 199));
-    b1Txt.setPosition({b1Pos.x + 10.f, b1Pos.y + 3.f});
+    FloatRect b1b = b1Txt.getLocalBounds();
+    float b1W = b1b.size.x + 24.f;
+    float b1H = 24.f;
+    RoundedRectRenderer::draw(target, b1Pos, {b1W, b1H}, b1H / 2.f, Color(224, 242, 254), 1.f, Color(186, 230, 253));
+    b1Txt.setPosition({
+        b1Pos.x + (b1W - b1b.size.x) / 2.f - b1b.position.x,
+        b1Pos.y + (b1H - b1b.size.y) / 2.f - b1b.position.y
+    });
     target.draw(b1Txt);
 
     // Badge 2: Tổng 15 hội viên
-    Vector2f b2Pos(b1Pos.x + 195.f, topY + 4.f);
-    RoundedRectRenderer::draw(target, b2Pos, {125.f, 24.f}, 12.f, Color(241, 245, 249), 1.f, Color(226, 232, 240));
+    Vector2f b2Pos(b1Pos.x + b1W + 10.f, topY + 4.f);
     Text b2Txt(font);
     b2Txt.setString(L"Tổng " + to_wstring(totalCount) + L" hội viên");
-    b2Txt.setCharacterSize(12.f);
+    b2Txt.setCharacterSize(12);
     b2Txt.setFillColor(Color(100, 116, 139));
-    b2Txt.setPosition({b2Pos.x + 10.f, b2Pos.y + 3.f});
+    FloatRect b2b = b2Txt.getLocalBounds();
+    float b2W = b2b.size.x + 24.f;
+    float b2H = 24.f;
+    RoundedRectRenderer::draw(target, b2Pos, {b2W, b2H}, b2H / 2.f, Color(241, 245, 249), 1.f, Color(226, 232, 240));
+    b2Txt.setPosition({
+        b2Pos.x + (b2W - b2b.size.x) / 2.f - b2b.position.x,
+        b2Pos.y + (b2H - b2b.size.y) / 2.f - b2b.position.y
+    });
     target.draw(b2Txt);
 
     // Subtitle

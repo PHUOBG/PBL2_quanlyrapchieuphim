@@ -848,13 +848,18 @@ void OverviewPanel::drawHeader(RenderTarget& target) const {
     // Auto-sync pill badge
     float titleW = titleText.getGlobalBounds().size.x;
     Vector2f syncBadgePos(position.x + 20.f + titleW + 14.f, topY + 3.f);
-    RoundedRectRenderer::draw(target, syncBadgePos, {134.f, 24.f}, 12.f, Color(236, 253, 245), 1.f, Color(167, 243, 208));
-
     Text syncText(boldFont);
     syncText.setString(L"• Đồng bộ tự động");
     syncText.setCharacterSize(12);
     syncText.setFillColor(Color(5, 150, 105)); // Emerald-600
-    syncText.setPosition({syncBadgePos.x + 10.f, syncBadgePos.y + 4.f});
+    FloatRect sb = syncText.getLocalBounds();
+    float syncW = sb.size.x + 24.f;
+    float syncH = 24.f;
+    RoundedRectRenderer::draw(target, syncBadgePos, {syncW, syncH}, syncH / 2.f, Color(236, 253, 245), 1.f, Color(167, 243, 208));
+    syncText.setPosition({
+        syncBadgePos.x + (syncW - sb.size.x) / 2.f - sb.position.x,
+        syncBadgePos.y + (syncH - sb.size.y) / 2.f - sb.position.y
+    });
     target.draw(syncText);
 
     // Subtitle
