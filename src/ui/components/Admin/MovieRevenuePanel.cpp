@@ -2196,52 +2196,95 @@ void MovieRevenuePanel::drawTab3RevenueByMovie(RenderTarget& target) const {
 }
 
 void MovieRevenuePanel::drawTab4RevenueByCombo(RenderTarget& target) const {
-    const float contentY = position.y + 242.f;
+    const float contentY = position.y + 218.f;
     const float availableW = width - 40.f;
 
-    // Middle Chart: Doanh thu combo (10 Amber bars)
+    // =========================================================================
+    // PHẦN 1 (TRÊN): BIỂU ĐỒ DOANH THU COMBO (10 CỘT CAM)
+    // =========================================================================
+    const float chartCardH = 284.f;
     Vector2f cPos(position.x + 20.f, contentY);
-    RoundedRectRenderer::draw(target, cPos, {availableW, 260.f}, 8.f, Color::White, 1.f, Color(226, 232, 240));
+    RoundedRectRenderer::draw(target, cPos, {availableW, chartCardH}, 10.f, Color::White, 1.f, Color(226, 232, 240));
 
-    Text title(boldFont);
-    title.setString(L"Doanh thu combo");
-    title.setCharacterSize(15);
+    Text title(boldFont, L"Doanh thu combo", 16.5f);
     title.setFillColor(Color(15, 23, 42));
-    title.setPosition({cPos.x + 16.f, cPos.y + 12.f});
+    title.setPosition({cPos.x + 24.f, cPos.y + 14.f});
     target.draw(title);
 
-    Vector2f bPos(cPos.x + 155.f, cPos.y + 12.f);
-    RoundedRectRenderer::draw(target, bPos, {110.f, 22.f}, 4.f, Color(254, 243, 199));
-    Text bTxt(boldFont);
-    bTxt.setString(L"10 Mã sản phẩm");
-    bTxt.setCharacterSize(12.f);
-    bTxt.setFillColor(Color(217, 119, 6));
-    bTxt.setPosition({bPos.x + 8.f, bPos.y + 3.f});
+    float titleW = title.getGlobalBounds().size.x;
+    Vector2f bPos(cPos.x + 24.f + titleW + 12.f, cPos.y + 15.f);
+    Vector2f bSize(116.f, 22.f);
+    RoundedRectRenderer::draw(target, bPos, bSize, 5.f, Color(254, 243, 199));
+    Text bTxt(boldFont, L"10 MÃ SẢN PHẨM", 10.5f);
+    bTxt.setFillColor(Color(180, 83, 9));
+    FloatRect bb = bTxt.getLocalBounds();
+    bTxt.setPosition({
+        bPos.x + (bSize.x - bb.size.x) / 2.f - bb.position.x,
+        bPos.y + (bSize.y - bb.size.y) / 2.f - bb.position.y
+    });
     target.draw(bTxt);
 
-    Text sub(font);
-    sub.setString(L"Biểu đồ thể hiện mức thu nhập thực tế từ từng combo bắp rang và nước uống (Đơn vị: VNĐ)");
-    sub.setCharacterSize(12.f);
-    sub.setFillColor(Color(148, 163, 184));
-    sub.setPosition({cPos.x + 16.f, cPos.y + 34.f});
+    Text sub(font, L"Biểu đồ thể hiện mức thu nhập thực tế từ từng combo bắp rang và nước uống (Đơn vị: VNĐ)", 12.f);
+    sub.setFillColor(Color(100, 116, 139));
+    sub.setPosition({cPos.x + 24.f, cPos.y + 40.f});
     target.draw(sub);
 
-    Text leg(boldFont);
-    leg.setString(L"■ Doanh thu đạt được   Max: 1.000.000đ");
-    leg.setCharacterSize(12);
-    leg.setFillColor(Color(217, 119, 6));
-    leg.setPosition({cPos.x + availableW - 260.f, cPos.y + 14.f});
-    target.draw(leg);
+    // Header phải: Legend + Pill Max mục tiêu
+    Vector2f maxPillSize(166.f, 28.f);
+    Vector2f maxPillPos(cPos.x + availableW - 22.f - maxPillSize.x, cPos.y + 14.f);
+    RoundedRectRenderer::draw(target, maxPillPos, maxPillSize, 6.f, Color(248, 250, 252), 1.f, Color(226, 232, 240));
+    Text maxTxt(boldFont, L"Max mục tiêu: 1.000.000đ", 11.f);
+    maxTxt.setFillColor(Color(71, 85, 105));
+    FloatRect mxb = maxTxt.getLocalBounds();
+    maxTxt.setPosition({
+        maxPillPos.x + (maxPillSize.x - mxb.size.x) / 2.f - mxb.position.x,
+        maxPillPos.y + (maxPillSize.y - mxb.size.y) / 2.f - mxb.position.y
+    });
+    target.draw(maxTxt);
 
-    // 10 Bars
-    const float chartLeft = cPos.x + 40.f;
-    const float chartBottom = cPos.y + 225.f;
-    const float chartW = availableW - 80.f;
+    Text legTxt(boldFont, L"Doanh thu đạt được", 12.f);
+    legTxt.setFillColor(Color(71, 85, 105));
+    FloatRect ltb = legTxt.getLocalBounds();
+    float legX = maxPillPos.x - 18.f - ltb.size.x;
+    legTxt.setPosition({legX, cPos.y + 20.f});
+    target.draw(legTxt);
+    RoundedRectRenderer::draw(target, {legX - 18.f, cPos.y + 22.f}, {11.f, 11.f}, 2.5f, Color(245, 158, 11));
+
+    // Grid ngang + nhãn trục Y bên phải (250k, 500k, 750k, 1.000k)
+    const float chartLeft = cPos.x + 36.f;
+    const float chartRight = cPos.x + availableW - 68.f;
+    const float chartBottom = cPos.y + 248.f;
+    const float chartH = 166.f;
     const float maxVal = 1000000.f;
-    const float chartH = 150.f;
 
+    const array<pair<float, wstring>, 4> yTicks = {{
+        {0.25f, L"250k"},
+        {0.50f, L"500k"},
+        {0.75f, L"750k"},
+        {1.00f, L"1.000k"}
+    }};
+    for (const auto& tk : yTicks) {
+        float gy = chartBottom - tk.first * chartH;
+        RectangleShape gridLine(Vector2f(chartRight - chartLeft, 1.f));
+        gridLine.setPosition({chartLeft, gy});
+        gridLine.setFillColor(Color(241, 245, 249));
+        target.draw(gridLine);
+
+        Text yLbl(font, tk.second, 10.5f);
+        yLbl.setFillColor(Color(148, 163, 184));
+        yLbl.setPosition({chartRight + 10.f, gy - 7.f});
+        target.draw(yLbl);
+    }
+
+    RectangleShape baseLine(Vector2f(chartRight - chartLeft, 1.f));
+    baseLine.setPosition({chartLeft, chartBottom});
+    baseLine.setFillColor(Color(226, 232, 240));
+    target.draw(baseLine);
+
+    // 10 Cột doanh thu combo
+    const float chartW = chartRight - chartLeft;
     int n = min(10, (int)combosList.size());
-    float colW = 42.f;
+    float colW = 50.f;
     float colGap = (chartW - (n * colW)) / (n + 1);
 
     for (int i = 0; i < n; ++i) {
@@ -2249,40 +2292,176 @@ void MovieRevenuePanel::drawTab4RevenueByCombo(RenderTarget& target) const {
         float bHeight = ((float)combosList[i].revenue / maxVal) * chartH;
         float by = chartBottom - bHeight;
 
-        RoundedRectRenderer::draw(target, {bx, by}, {colW, bHeight}, 3.f, Color(245, 158, 11));
+        RoundedRectRenderer::draw(target, {bx, by}, {colW, bHeight}, 5.f, Color(245, 158, 11));
 
-        Text valTxt(boldFont);
-        valTxt.setString(to_string(combosList[i].revenue / 1000) + "k");
-        valTxt.setCharacterSize(11.5f);
-        valTxt.setFillColor(Color(51, 65, 85));
+        Text valTxt(boldFont, to_string(combosList[i].revenue / 1000) + "k", 12.f);
+        valTxt.setFillColor(Color(15, 23, 42));
         FloatRect vb = valTxt.getLocalBounds();
-        valTxt.setPosition({bx + colW / 2.f - vb.size.x / 2.f, by - 16.f});
+        valTxt.setPosition({bx + (colW - vb.size.x) / 2.f - vb.position.x, by - 19.f});
         target.draw(valTxt);
 
-        Text codeTxt(boldFont);
-        codeTxt.setString(combosList[i].code);
-        codeTxt.setCharacterSize(12.f);
-        codeTxt.setFillColor(Color(100, 116, 139));
+        Text codeTxt(boldFont, combosList[i].code, 12.f);
+        codeTxt.setFillColor(Color(71, 85, 105));
         FloatRect cb = codeTxt.getLocalBounds();
-        codeTxt.setPosition({bx + colW / 2.f - cb.size.x / 2.f, chartBottom + 6.f});
+        codeTxt.setPosition({bx + (colW - cb.size.x) / 2.f - cb.position.x, chartBottom + 8.f});
         target.draw(codeTxt);
     }
 
-    // Two Callouts
-    float callY = contentY + 274.f;
-    float callW = (availableW - 14.f) / 2.f;
+    // =========================================================================
+    // PHẦN 2 (GIỮA): HAI THẺ NHẬN ĐỊNH NỔI BẬT
+    // =========================================================================
+    const float callY = contentY + chartCardH + 12.f;
+    const float callH = 66.f;
+    const float callW = (availableW - 14.f) / 2.f;
 
-    // Callout 1: COMBO DẪN ĐẦU
+    // Callout 1: COMBO DẪN ĐẦU DOANH THU
     Vector2f c1Pos(position.x + 20.f, callY);
-    RoundedRectRenderer::draw(target, c1Pos, {callW, 64.f}, 6.f, Color(255, 251, 235), 1.f, Color(254, 243, 199));
-    Text c1T(boldFont); c1T.setString(L"COMBO DẪN ĐẦU DOANH THU"); c1T.setCharacterSize(12.f); c1T.setFillColor(Color(180, 83, 9)); c1T.setPosition({c1Pos.x + 12.f, c1Pos.y + 8.f}); target.draw(c1T);
-    Text c1B(font); c1B.setString(L"CB05: 1 CocaCola + 1 Bắp Phô Mai mang về 600.000 đ (6 lượt chọn phổ biến)."); c1B.setCharacterSize(12); c1B.setFillColor(Color(120, 53, 15)); c1B.setPosition({c1Pos.x + 12.f, c1Pos.y + 30.f}); target.draw(c1B);
+    RoundedRectRenderer::draw(target, c1Pos, {callW, callH}, 8.f, Color(255, 253, 247), 1.f, Color(252, 211, 77));
+    CircleShape c1Dot(3.5f);
+    c1Dot.setFillColor(Color(245, 158, 11));
+    c1Dot.setPosition({c1Pos.x + 16.f, c1Pos.y + 15.f});
+    target.draw(c1Dot);
+    Text c1T(boldFont, L"COMBO DẪN ĐẦU DOANH THU", 11.5f);
+    c1T.setFillColor(Color(180, 83, 9));
+    c1T.setPosition({c1Pos.x + 28.f, c1Pos.y + 11.f});
+    target.draw(c1T);
 
-    // Callout 2: XU HƯỚNG VỊ GIÁC
+    Text c1B(font, L"CB05: 1 CocaCola + 1 Bắp Phô Mai mang về 600.000 đ (6 lượt chọn phổ biến).", 12.5f);
+    c1B.setFillColor(Color(51, 65, 85));
+    c1B.setPosition({c1Pos.x + 16.f, c1Pos.y + 34.f});
+    target.draw(c1B);
+
+    // Callout 2: XU HƯỚNG VỊ GIÁC RẠP CHIẾU
     Vector2f c2Pos(position.x + 20.f + callW + 14.f, callY);
-    RoundedRectRenderer::draw(target, c2Pos, {callW, 64.f}, 6.f, Color(240, 249, 255), 1.f, Color(224, 242, 254));
-    Text c2T(boldFont); c2T.setString(L"XU HƯỚNG VỊ GIÁC RẠP CHIẾU"); c2T.setCharacterSize(12.f); c2T.setFillColor(Color(2, 132, 199)); c2T.setPosition({c2Pos.x + 12.f, c2Pos.y + 8.f}); target.draw(c2T);
-    Text c2B(font); c2B.setString(L"Hương vị Bắp Phô Mai chiếm áp đảo 62% tổng số bắp bán ra (CB03, CB05, CB07, CB09, CB10)."); c2B.setCharacterSize(12); c2B.setFillColor(Color(3, 105, 161)); c2B.setPosition({c2Pos.x + 12.f, c2Pos.y + 30.f}); target.draw(c2B);
+    RoundedRectRenderer::draw(target, c2Pos, {callW, callH}, 8.f, Color(240, 249, 255), 1.f, Color(125, 211, 252));
+    CircleShape c2Dot(3.5f);
+    c2Dot.setFillColor(Color(2, 132, 199));
+    c2Dot.setPosition({c2Pos.x + 16.f, c2Pos.y + 15.f});
+    target.draw(c2Dot);
+    Text c2T(boldFont, L"XU HƯỚNG VỊ GIÁC RẠP CHIẾU", 11.5f);
+    c2T.setFillColor(Color(2, 132, 199));
+    c2T.setPosition({c2Pos.x + 28.f, c2Pos.y + 11.f});
+    target.draw(c2T);
+
+    Text c2B(font, L"Hương vị Bắp Phô Mai chiếm áp đảo 62% tổng số bắp bán ra (CB03, CB05, CB07, CB09, CB10).", 12.5f);
+    c2B.setFillColor(Color(3, 105, 161));
+    c2B.setPosition({c2Pos.x + 16.f, c2Pos.y + 34.f});
+    target.draw(c2B);
+
+    // =========================================================================
+    // PHẦN 3 (DƯỚI): BẢNG CHI TIẾT SẢN LƯỢNG & DOANH SỐ 10 MÃ COMBO
+    // =========================================================================
+    const float tblY = callY + callH + 12.f;
+    const float tblH = height - 32.f - tblY;
+    if (tblH > 140.f) {
+        Vector2f tPos(position.x + 20.f, tblY);
+        RoundedRectRenderer::draw(target, tPos, {availableW, tblH}, 10.f, Color::White, 1.f, Color(226, 232, 240));
+
+        Text tblTitle(boldFont, L"Chi tiết sản lượng & Doanh số 10 mã combo", 15.5f);
+        tblTitle.setFillColor(Color(15, 23, 42));
+        tblTitle.setPosition({tPos.x + 24.f, tPos.y + 12.f});
+        target.draw(tblTitle);
+
+        Text tblSub(font, L"Báo cáo kết xuất từ hệ thống bán lẻ F&B CineCore", 11.5f);
+        tblSub.setFillColor(Color(148, 163, 184));
+        tblSub.setPosition({tPos.x + 24.f, tPos.y + 34.f});
+        target.draw(tblSub);
+
+        wstring totalComboStr = L"Tổng cộng: " + s2ws(toCurrency(comboRevenue));
+        Vector2f totPillSize(172.f, 28.f);
+        Vector2f totPillPos(tPos.x + availableW - 22.f - totPillSize.x, tPos.y + 15.f);
+        RoundedRectRenderer::draw(target, totPillPos, totPillSize, 6.f, Color(248, 250, 252), 1.f, Color(226, 232, 240));
+        Text totTxt(boldFont, totalComboStr, 11.5f);
+        totTxt.setFillColor(Color(71, 85, 105));
+        FloatRect ttb = totTxt.getLocalBounds();
+        totTxt.setPosition({
+            totPillPos.x + (totPillSize.x - ttb.size.x) / 2.f - ttb.position.x,
+            totPillPos.y + (totPillSize.y - ttb.size.y) / 2.f - ttb.position.y
+        });
+        target.draw(totTxt);
+
+        // Header cột
+        const float colHPosY = tPos.y + 56.f;
+        const float colHBarH = 30.f;
+        RectangleShape hStrip(Vector2f(availableW - 2.f, colHBarH));
+        hStrip.setPosition({tPos.x + 1.f, colHPosY});
+        hStrip.setFillColor(Color(248, 250, 252));
+        target.draw(hStrip);
+
+        RectangleShape hLine(Vector2f(availableW, 1.f));
+        hLine.setPosition({tPos.x, colHPosY + colHBarH});
+        hLine.setFillColor(Color(226, 232, 240));
+        target.draw(hLine);
+
+        const float cx_code  = tPos.x + 24.f;
+        const float cx_desc  = tPos.x + availableW * 0.12f;
+        const float cx_qty   = tPos.x + availableW * 0.43f;
+        const float cx_price = tPos.x + availableW * 0.58f;
+        const float cx_rev   = tPos.x + availableW * 0.74f;
+        const float cx_share = tPos.x + availableW * 0.89f;
+
+        auto drawColHdr = [&](float x, const wstring& str) {
+            Text th(boldFont, str, 11.f);
+            th.setFillColor(Color(100, 116, 139));
+            th.setPosition({x, colHPosY + 8.f});
+            target.draw(th);
+        };
+        drawColHdr(cx_code,  L"MÃ COMBO");
+        drawColHdr(cx_desc,  L"CHI TIẾT GÓI SẢN PHẨM");
+        drawColHdr(cx_qty,   L"SỐ LƯỢNG BÁN");
+        drawColHdr(cx_price, L"ĐƠN GIÁ THAM CHIẾU");
+        drawColHdr(cx_rev,   L"DOANH THU ĐẠT ĐƯỢC");
+        drawColHdr(cx_share, L"TỶ TRỌNG F&B");
+
+        const float rStartY = colHPosY + colHBarH;
+        const int maxRows = min(5, (int)combosList.size());
+        const float rH = (tblH - (rStartY - tPos.y) - 4.f) / static_cast<float>(maxRows);
+
+        for (int i = 0; i < maxRows; ++i) {
+            const auto& cbItem = combosList[i];
+            float ry = rStartY + i * rH;
+            float textY = ry + (rH - 16.f) / 2.f;
+
+            if (i > 0) {
+                RectangleShape rDiv(Vector2f(availableW - 48.f, 1.f));
+                rDiv.setPosition({tPos.x + 24.f, ry});
+                rDiv.setFillColor(Color(241, 245, 249));
+                target.draw(rDiv);
+            }
+
+            Text tdCode(boldFont, cbItem.code, 13.f);
+            tdCode.setFillColor(Color(217, 119, 6));
+            tdCode.setPosition({cx_code, textY});
+            target.draw(tdCode);
+
+            Text tdDesc(font, cbItem.name, 13.f);
+            tdDesc.setFillColor(Color(51, 65, 85));
+            tdDesc.setPosition({cx_desc, textY});
+            target.draw(tdDesc);
+
+            Text tdQty(boldFont, to_wstring(cbItem.quantity) + L" combo", 13.f);
+            tdQty.setFillColor(Color(15, 23, 42));
+            tdQty.setPosition({cx_qty, textY});
+            target.draw(tdQty);
+
+            Text tdPrice(font, s2ws(toCurrency(cbItem.unitPrice)), 13.f);
+            tdPrice.setFillColor(Color(100, 116, 139));
+            tdPrice.setPosition({cx_price, textY});
+            target.draw(tdPrice);
+
+            Text tdRev(boldFont, s2ws(toCurrency(cbItem.revenue)), 13.5f);
+            tdRev.setFillColor(Color(15, 23, 42));
+            tdRev.setPosition({cx_rev, textY});
+            target.draw(tdRev);
+
+            wstringstream shSs;
+            shSs << fixed << setprecision(1) << cbItem.share << L"%";
+            Text tdShare(boldFont, shSs.str(), 13.f);
+            tdShare.setFillColor(Color(217, 119, 6));
+            tdShare.setPosition({cx_share + 14.f, textY});
+            target.draw(tdShare);
+        }
+    }
 }
 
 void MovieRevenuePanel::drawBottomBar(RenderTarget& target) const {
