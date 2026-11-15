@@ -153,6 +153,7 @@ const Texture* MoviePanel::getPosterTexture(const string& rawPath, const string&
 
 void MoviePanel::setPosition(Vector2f pos) {
     position = pos;
+    width = 1728.f - pos.x;
 }
 
 void MoviePanel::refreshData() {
@@ -557,7 +558,7 @@ void MoviePanel::handleEvent(const Event& event, const RenderWindow& window) {
     if (const auto* mouseBtn = event.getIf<Event::MouseButtonPressed>()) {
         if (mouseBtn->button == Mouse::Button::Left) {
             Vector2f mouse = window.mapPixelToCoords(Mouse::getPosition(window));
-            const float startX = position.x + 102.f;
+            const float startX = position.x + (width - 1244.f) / 2.f;
             const float toolY = 252.f;
 
             // Ưu tiên kiểm tra danh sách Dropdown đang mở trước khi kiểm tra bảng bên dưới
@@ -794,7 +795,7 @@ void MoviePanel::update(Vector2f mouse, bool /*mousePressed*/) {
         return;
     }
 
-    const float startX = position.x + 102.f;
+    const float startX = position.x + (width - 1244.f) / 2.f;
     const float toolY = 252.f;
 
     FloatRect searchBox({startX, toolY}, {360.f, 44.f});
@@ -856,7 +857,7 @@ void MoviePanel::update(Vector2f mouse, bool /*mousePressed*/) {
 }
 
 void MoviePanel::render(RenderWindow& window) {
-    const float startX = position.x + 102.f; // Centered inside 1448px panel width (102px left, 102px right)
+    const float startX = position.x + (width - 1244.f) / 2.f; // Centered inside panel width
 
     // 1. Standardized Top Navigation Bar & Profile Header
     UITheme::drawTopBar(window, startX, position.y, 1244.f, L"QUẢN LÝ PHIM", font, boldFont);

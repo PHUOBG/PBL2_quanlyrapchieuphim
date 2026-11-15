@@ -81,6 +81,7 @@ RoomPanel::RoomPanel(Font& fontRef, float w, float h)
 
 void RoomPanel::setPosition(Vector2f pos) {
     position = pos;
+    width = 1728.f - pos.x;
 }
 
 void RoomPanel::initDefaultRooms() {

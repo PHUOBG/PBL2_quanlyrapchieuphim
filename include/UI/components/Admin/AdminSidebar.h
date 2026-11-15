@@ -96,7 +96,12 @@ public:
     void setPosition(Vector2f pos);
     void setOnStateChange(function<void(AppState)> callback);
     void setOnLogout(function<void()> callback);
+    void setOnToggleCollapse(function<void(bool)> callback);
     void setActiveState(AppState state);
+
+    bool isCollapsed() const { return collapsed; }
+    void setCollapsed(bool c);
+    float getEffectiveWidth() const { return collapsed ? 36.f : width; }
 
     void handleEvent(const Event& event, const RenderWindow& window);
     void update(const RenderWindow& window);
@@ -116,12 +121,18 @@ private:
     AppState activeState = AppState::ADMIN_MOVIES;
     int hoveredIndex = -1;
     bool logoutHovered = false;
+    bool collapsed = false;
+    bool toggleHovered = false;
+    bool edgeTabHovered = false;
 
     vector<SidebarElement> elements;
     FloatRect logoutBounds;
+    FloatRect toggleBtnBounds;
+    FloatRect edgeTabBounds;
 
     function<void(AppState)> onStateChange;
     function<void()> onLogout;
+    function<void(bool)> onToggleCollapse;
 
     Texture logoTexture;
     optional<Sprite> logoSprite;

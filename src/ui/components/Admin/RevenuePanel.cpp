@@ -34,6 +34,7 @@ void RevenuePanel::layoutComponents() {
 
 void RevenuePanel::setPosition(const Vector2f& pos) {
     position = pos;
+    width = 1728.f - pos.x;
     layoutComponents();
 }
 

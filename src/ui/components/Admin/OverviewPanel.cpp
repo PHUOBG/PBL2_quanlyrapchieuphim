@@ -82,6 +82,7 @@ void OverviewPanel::initFilterOptions() {
 
 void OverviewPanel::setPosition(const Vector2f& pos) {
     position = pos;
+    width = 1728.f - pos.x;
 }
 
 string OverviewPanel::resolveDataPath(const string& relative) const {

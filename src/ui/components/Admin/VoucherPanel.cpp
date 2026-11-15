@@ -54,6 +54,7 @@ VoucherPanel::VoucherPanel(Font& fontRef, float w, float h)
 
 void VoucherPanel::setPosition(Vector2f pos) {
     position = pos;
+    width = 1728.f - pos.x;
 }
 
 void VoucherPanel::initDefaultData() {

@@ -109,6 +109,7 @@ const Texture* ComboPanel::getComboTexture(const string& id, const wstring& name
 
 void ComboPanel::setPosition(Vector2f pos) {
     position = pos;
+    width = 1728.f - pos.x;
 }
 
 void ComboPanel::initDefaultCombos() {

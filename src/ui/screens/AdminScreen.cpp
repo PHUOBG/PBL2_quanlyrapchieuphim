@@ -26,6 +26,10 @@ AdminScreen::AdminScreen(Font& font, RenderWindow& win, AppState& state, AuthSer
     sidebar->setOnLogout([this]() {
         handleAdminLogout();
     });
+
+    sidebar->setOnToggleCollapse([this](bool) {
+        updateActivePanelLayout();
+    });
     
     // Main panel background (Off-white modern canvas #F4F6F9)
     mainPanelBg.setSize(Vector2f((float)window.getSize().x, (float)window.getSize().y));
@@ -36,11 +40,26 @@ AdminScreen::AdminScreen(Font& font, RenderWindow& win, AppState& state, AuthSer
     switchPanel(AppState::ADMIN_MOVIES);
 }
 
+void AdminScreen::updateActivePanelLayout() {
+    float offsetX = sidebar ? sidebar->getEffectiveWidth() : 280.f;
+    Vector2f pos(offsetX, 0.f);
+    if (moviePanel) moviePanel->setPosition(pos);
+    if (userPanel) userPanel->setPosition(pos);
+    if (comboPanel) comboPanel->setPosition(pos);
+    if (roomPanel) roomPanel->setPosition(pos);
+    if (ticketPanel) ticketPanel->setPosition(pos);
+    if (revenuePanel) revenuePanel->setPosition(pos);
+    if (showtimePanel) showtimePanel->setPosition(pos);
+    if (profilePanel) profilePanel->setPosition(pos);
+    if (voucherPanel) voucherPanel->setPosition(pos);
+}
+
 void AdminScreen::switchPanel(AppState newState) {
     currentPanelState = newState;
     sidebar->setActiveState(newState);
     
-    float panelWidth = (float)window.getSize().x - 280.f;
+    float offsetX = sidebar ? sidebar->getEffectiveWidth() : 280.f;
+    float panelWidth = (float)window.getSize().x - offsetX;
     float panelHeight = (float)window.getSize().y;
     moviePanel.reset();
     userPanel.reset();
@@ -56,49 +75,49 @@ void AdminScreen::switchPanel(AppState newState) {
     switch (newState) {
         case AppState::ADMIN_DASHBOARD:
             revenuePanel = make_unique<RevenuePanel>(font, panelWidth, panelHeight, StatsMode::Revenue);
-            revenuePanel->setPosition(Vector2f(280.f, 0.f));
+            revenuePanel->setPosition(Vector2f(offsetX, 0.f));
             break;
 
         case AppState::ADMIN_MOVIES:
             moviePanel = make_unique<MoviePanel>(font, panelWidth, panelHeight);
-            moviePanel->setPosition(Vector2f(280.f, 0.f));
+            moviePanel->setPosition(Vector2f(offsetX, 0.f));
             break;
 
         case AppState::ADMIN_COMBOS:
             comboPanel = make_unique<ComboPanel>(font, panelWidth, panelHeight);
-            comboPanel->setPosition(Vector2f(280.f, 0.f));
+            comboPanel->setPosition(Vector2f(offsetX, 0.f));
             break;
         case AppState::ADMIN_CUSTOMERS:
             userPanel = make_unique<UserPanel>(font, panelWidth, panelHeight);
-            userPanel->setPosition(Vector2f(280.f, 0.f));
+            userPanel->setPosition(Vector2f(offsetX, 0.f));
             break;
         case AppState::ADMIN_ROOMS:
             roomPanel = make_unique<RoomPanel>(font, panelWidth, panelHeight);
-            roomPanel->setPosition(Vector2f(280.f, 0.f));
+            roomPanel->setPosition(Vector2f(offsetX, 0.f));
             break;
         case AppState::ADMIN_SHOWTIMES:
             showtimePanel = make_unique<ShowtimePanel>(font, panelWidth, panelHeight);
-            showtimePanel->setPosition(Vector2f(280.f, 0.f));
+            showtimePanel->setPosition(Vector2f(offsetX, 0.f));
             break;
         case AppState::ADMIN_TICKETS:
             ticketPanel = make_unique<TicketPanel>(font, panelWidth, panelHeight);
-            ticketPanel->setPosition(Vector2f(280.f, 0.f));
+            ticketPanel->setPosition(Vector2f(offsetX, 0.f));
             break;
         case AppState::ADMIN_REVENUE:
             revenuePanel = make_unique<RevenuePanel>(font, panelWidth, panelHeight, StatsMode::Tickets);
-            revenuePanel->setPosition(Vector2f(280.f, 0.f));
+            revenuePanel->setPosition(Vector2f(offsetX, 0.f));
             break;
         case AppState::ADMIN_SOLD_TICKETS:
             revenuePanel = make_unique<RevenuePanel>(font, panelWidth, panelHeight, StatsMode::Tickets);
-            revenuePanel->setPosition(Vector2f(280, 20));
+            revenuePanel->setPosition(Vector2f(offsetX, 20.f));
             break;
         case AppState::ADMIN_CHANGE_PASSWORD:
             profilePanel = make_unique<AdminProfilePanel>(font, panelWidth, panelHeight, authService);
-            profilePanel->setPosition(Vector2f(280.f, 0.f));
+            profilePanel->setPosition(Vector2f(offsetX, 0.f));
             break;
         case AppState::ADMIN_VOUCHERS:
             voucherPanel = make_unique<VoucherPanel>(font, panelWidth, panelHeight);
-            voucherPanel->setPosition(Vector2f(280.f, 0.f));
+            voucherPanel->setPosition(Vector2f(offsetX, 0.f));
             break;
         default:
             break;
@@ -185,10 +204,11 @@ void AdminScreen::render() {
 
     // Modern subtle dot grid
     const float step = 28.f;
+    const float startGridX = (sidebar ? sidebar->getEffectiveWidth() : 280.f) + 10.f;
     CircleShape dot(1.2f, 8);
     dot.setFillColor(Color(203, 213, 225, 120));
     for (float y = 50.f; y < H - 40.f; y += step) {
-        for (float x = 290.f; x < W - 20.f; x += step) {
+        for (float x = startGridX; x < W - 20.f; x += step) {
             dot.setPosition({x, y});
             window.draw(dot);
         }

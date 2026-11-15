@@ -45,6 +45,7 @@ TicketPanel::TicketPanel(Font& fontRef, float w, float h)
 
 void TicketPanel::setPosition(Vector2f pos) {
     position = pos;
+    width = 1728.f - pos.x;
 }
 
 void TicketPanel::loadTickets() {

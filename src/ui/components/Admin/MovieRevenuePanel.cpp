@@ -43,6 +43,7 @@ MovieRevenuePanel::MovieRevenuePanel(Font& fontRef, float w, float h)
 
 void MovieRevenuePanel::setPosition(const Vector2f& pos) {
     position = pos;
+    width = 1728.f - pos.x;
 }
 
 string MovieRevenuePanel::resolveDataPath(const string& relative) const {

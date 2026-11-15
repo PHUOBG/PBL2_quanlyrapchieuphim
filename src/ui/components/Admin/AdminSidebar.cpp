@@ -63,34 +63,63 @@ void AdminSidebar::setOnLogout(function<void()> callback) {
     onLogout = callback;
 }
 
+void AdminSidebar::setOnToggleCollapse(function<void(bool)> callback) {
+    onToggleCollapse = callback;
+}
+
+void AdminSidebar::setCollapsed(bool c) {
+    collapsed = c;
+    recalculateLayout();
+}
+
 void AdminSidebar::setActiveState(AppState state) {
     activeState = state;
 }
 
 void AdminSidebar::recalculateLayout() {
+    if (collapsed) {
+        toggleBtnBounds = FloatRect({8.f, 15.f}, {32.f, 32.f});
+        edgeTabBounds = FloatRect({0.f, position.y + height / 2.f - 28.f}, {20.f, 56.f});
+        return;
+    }
+
     const float padX = position.x + 16.f;
     const float itemW = width - 32.f;
-    float curY = position.y + 72.f;
+    float curY = position.y + 100.f; // Kéo toàn bộ các mục xuống thấp hơn cho cân đối
+
+    toggleBtnBounds = FloatRect({position.x + width - 44.f, position.y + 22.f}, {28.f, 28.f});
+    edgeTabBounds = FloatRect({position.x + width - 2.f, position.y + height / 2.f - 28.f}, {16.f, 56.f});
 
     for (size_t i = 0; i < elements.size(); ++i) {
         if (elements[i].type == SidebarElementType::SECTION_HEADER) {
-            if (i > 0) curY += 14.f; // Khoảng cách giữa các nhóm chức năng
-            elements[i].bounds = FloatRect({padX, curY}, {itemW, 22.f});
-            curY += 26.f;
+            if (i > 0) curY += 24.f; // Khoảng cách rộng rãi giữa các nhóm chức năng
+            elements[i].bounds = FloatRect({padX, curY}, {itemW, 24.f});
+            curY += 30.f;
         } else {
-            elements[i].bounds = FloatRect({padX, curY}, {itemW, 36.f});
-            curY += 40.f;
+            elements[i].bounds = FloatRect({padX, curY}, {itemW, 42.f});
+            curY += 48.f;
         }
     }
 
     // Nút đăng xuất ở đáy thanh điều hướng
-    logoutBounds = FloatRect({padX, position.y + height - 56.f}, {itemW, 40.f});
+    logoutBounds = FloatRect({padX, position.y + height - 64.f}, {itemW, 44.f});
 }
 
 void AdminSidebar::handleEvent(const Event& event, const RenderWindow& win) {
     if (const auto* mouseBtn = event.getIf<Event::MouseButtonPressed>()) {
         if (mouseBtn->button == Mouse::Button::Left) {
             Vector2f mousePos = win.mapPixelToCoords(Mouse::getPosition(win));
+
+            // Click nút thu gọn / mở rộng thanh điều hướng
+            if (toggleBtnBounds.contains(mousePos) || edgeTabBounds.contains(mousePos)) {
+                setCollapsed(!collapsed);
+                if (onToggleCollapse) {
+                    onToggleCollapse(collapsed);
+                }
+                return;
+            }
+
+            if (collapsed) return;
 
             // Click nút Đăng xuất
             if (logoutBounds.contains(mousePos)) {
@@ -114,6 +143,15 @@ void AdminSidebar::handleEvent(const Event& event, const RenderWindow& win) {
 
 void AdminSidebar::update(const RenderWindow& win) {
     Vector2f mousePos = win.mapPixelToCoords(Mouse::getPosition(win));
+
+    toggleHovered = toggleBtnBounds.contains(mousePos);
+    edgeTabHovered = edgeTabBounds.contains(mousePos);
+
+    if (collapsed) {
+        hoveredIndex = -1;
+        logoutHovered = false;
+        return;
+    }
 
     logoutHovered = logoutBounds.contains(mousePos);
 
@@ -156,6 +194,41 @@ void AdminSidebar::drawLogoutIcon(RenderTarget& target, Vector2f pos, Color col)
 }
 
 void AdminSidebar::render(RenderWindow& window) {
+    if (collapsed) {
+        // Viền nhấn màu xanh Ocean Blue sát mép trái khi đã ẩn thanh điều hướng
+        RectangleShape leftAccent({4.f, height});
+        leftAccent.setPosition({0.f, position.y});
+        leftAccent.setFillColor(Color(0, 119, 182));
+        window.draw(leftAccent);
+
+        // Nút mở lại thanh điều hướng ở góc trên bên trái
+        Color btnBg = toggleHovered ? Color(0, 95, 146) : Color(0, 119, 182);
+        RoundedRectRenderer::draw(window, {toggleBtnBounds.position.x, toggleBtnBounds.position.y + 2.f}, toggleBtnBounds.size, 8.f, Color(0, 0, 0, 28));
+        RoundedRectRenderer::draw(window, toggleBtnBounds.position, toggleBtnBounds.size, 8.f, btnBg);
+
+        // 3 gạch ngang (Hamburger icon) kèm mũi tên mở rộng
+        for (int line = 0; line < 3; ++line) {
+            RectangleShape bar({14.f, 2.f});
+            bar.setFillColor(Color::White);
+            bar.setPosition({toggleBtnBounds.position.x + 9.f, toggleBtnBounds.position.y + 10.f + line * 5.f});
+            window.draw(bar);
+        }
+
+        // Nút gờ mở rộng ở chính giữa mép trái màn hình
+        Color tabBg = edgeTabHovered ? Color(0, 95, 146) : Color(0, 119, 182);
+        RoundedRectRenderer::draw(window, {edgeTabBounds.position.x - 4.f, edgeTabBounds.position.y}, {edgeTabBounds.size.x + 4.f, edgeTabBounds.size.y}, 8.f, tabBg);
+
+        Text tabArrow(boldFont, L"\u276F", 13);
+        tabArrow.setFillColor(Color::White);
+        FloatRect tabAb = tabArrow.getLocalBounds();
+        tabArrow.setPosition({
+            edgeTabBounds.position.x + (edgeTabBounds.size.x - tabAb.size.x) / 2.f - tabAb.position.x,
+            edgeTabBounds.position.y + (edgeTabBounds.size.y - tabAb.size.y) / 2.f - tabAb.position.y
+        });
+        window.draw(tabArrow);
+        return;
+    }
+
     // 1. Nền thanh điều hướng: Ocean Blue (#0077B6)
     RectangleShape bg({width, height});
     bg.setPosition(position);
@@ -172,7 +245,7 @@ void AdminSidebar::render(RenderWindow& window) {
 
     // 2. Tiêu đề thương hiệu (Logo + CineCore + PBL2 PORTAL + ADMIN badge)
     if (logoSprite) {
-        float targetH = 36.f;
+        float targetH = 38.f;
         float scale = targetH / (float)logoTexture.getSize().y;
         logoSprite->setScale({scale, scale});
         logoSprite->setPosition({padX, position.y + 18.f});
@@ -187,26 +260,26 @@ void AdminSidebar::render(RenderWindow& window) {
 
         Text brandPortal(boldFont, L"PBL2 PORTAL", 11);
         brandPortal.setFillColor(Color(186, 230, 253));
-        brandPortal.setPosition({brandTextX + 1.f, position.y + 38.f});
+        brandPortal.setPosition({brandTextX + 1.f, position.y + 39.f});
         window.draw(brandPortal);
     } else {
-        RoundedRectRenderer::draw(window, {padX, position.y + 18.f}, {36.f, 36.f}, 8.f, Color(255, 255, 255, 45));
+        RoundedRectRenderer::draw(window, {padX, position.y + 18.f}, {38.f, 38.f}, 8.f, Color(255, 255, 255, 45));
         RectangleShape prj1({6.f, 18.f}); prj1.setFillColor(Color::White); prj1.setPosition({padX + 9.f, position.y + 27.f}); window.draw(prj1);
         RectangleShape prj2({6.f, 18.f}); prj2.setFillColor(Color::White); prj2.setPosition({padX + 21.f, position.y + 27.f}); window.draw(prj2);
 
         Text brandLogo(boldFont, L"CineCore", 19);
         brandLogo.setFillColor(Color::White);
-        brandLogo.setPosition({padX + 44.f, position.y + 16.f});
+        brandLogo.setPosition({padX + 46.f, position.y + 16.f});
         window.draw(brandLogo);
 
         Text brandPortal(boldFont, L"PBL2 PORTAL", 11);
         brandPortal.setFillColor(Color(186, 230, 253));
-        brandPortal.setPosition({padX + 45.f, position.y + 38.f});
+        brandPortal.setPosition({padX + 47.f, position.y + 39.f});
         window.draw(brandPortal);
     }
 
     // Badge ADMIN
-    Vector2f bPos(position.x + width - 68.f, position.y + 24.f);
+    Vector2f bPos(position.x + width - 102.f, position.y + 25.f);
     Vector2f bSize(52.f, 22.f);
     RoundedRectRenderer::draw(window, bPos, bSize, 11.f, Color(0, 95, 146));
     Text admTxt(boldFont, L"ADMIN", 11);
@@ -214,21 +287,57 @@ void AdminSidebar::render(RenderWindow& window) {
     FloatRect ab = admTxt.getLocalBounds();
     admTxt.setPosition({
         bPos.x + (bSize.x - ab.size.x) / 2.f - ab.position.x,
-        bPos.y + (bSize.y - ab.size.y) / 2.f - ab.position.y - 1.f
+        bPos.y + (bSize.y - ab.size.y) / 2.f - ab.position.y
     });
     window.draw(admTxt);
+
+    // Nút thu gọn thanh điều hướng (ở góc trên bên phải của sidebar)
+    Color toggleBg = toggleHovered ? Color(255, 255, 255, 55) : Color(0, 95, 146);
+    RoundedRectRenderer::draw(window, toggleBtnBounds.position, toggleBtnBounds.size, 7.f, toggleBg, 1.f, Color(255, 255, 255, 50));
+    Text collapseIcon(boldFont, L"\u00AB", 16);
+    collapseIcon.setFillColor(Color::White);
+    FloatRect cib = collapseIcon.getLocalBounds();
+    collapseIcon.setPosition({
+        toggleBtnBounds.position.x + (toggleBtnBounds.size.x - cib.size.x) / 2.f - cib.position.x,
+        toggleBtnBounds.position.y + (toggleBtnBounds.size.y - cib.size.y) / 2.f - cib.position.y
+    });
+    window.draw(collapseIcon);
+
+    // Đường kẻ phân cách dưới khu vực thương hiệu
+    RectangleShape headerDivider({width - 32.f, 1.f});
+    headerDivider.setPosition({padX, position.y + 74.f});
+    headerDivider.setFillColor(Color(255, 255, 255, 35));
+    window.draw(headerDivider);
+
+    // Gờ thu gọn ở mép phải thanh điều hướng
+    Color edgeBg = edgeTabHovered ? Color(0, 80, 130) : Color(0, 102, 160);
+    RoundedRectRenderer::draw(window, edgeTabBounds.position, edgeTabBounds.size, 6.f, edgeBg, 1.f, Color(255, 255, 255, 45));
+    Text edgeArrow(boldFont, L"\u276E", 12);
+    edgeArrow.setFillColor(Color(224, 242, 254));
+    FloatRect eab = edgeArrow.getLocalBounds();
+    edgeArrow.setPosition({
+        edgeTabBounds.position.x + (edgeTabBounds.size.x - eab.size.x) / 2.f - eab.position.x,
+        edgeTabBounds.position.y + (edgeTabBounds.size.y - eab.size.y) / 2.f - eab.position.y
+    });
+    window.draw(edgeArrow);
 
     // 3. Render các nhóm và mục chức năng
     for (size_t i = 0; i < elements.size(); ++i) {
         const auto& elem = elements[i];
 
         if (elem.type == SidebarElementType::SECTION_HEADER) {
+            if (i > 0) {
+                RectangleShape secDivider({width - 44.f, 1.f});
+                secDivider.setPosition({padX + 6.f, elem.bounds.position.y - 12.f});
+                secDivider.setFillColor(Color(255, 255, 255, 22));
+                window.draw(secDivider);
+            }
             // Tiêu đề nhóm (Text in hoa màu xanh phấn nhạt, không có nền hộp)
             Text secTitle(boldFont, elem.label, 12);
             secTitle.setFillColor(Color(170, 222, 255));
             FloatRect tb = secTitle.getLocalBounds();
             secTitle.setPosition({
-                elem.bounds.position.x + 6.f - tb.position.x,
+                elem.bounds.position.x + 8.f - tb.position.x,
                 elem.bounds.position.y + (elem.bounds.size.y - tb.size.y) / 2.f - tb.position.y
             });
             window.draw(secTitle);
@@ -240,15 +349,15 @@ void AdminSidebar::render(RenderWindow& window) {
 
             if (isActive) {
                 // Khung chữ nhật bo góc màu TRẮNG tinh nổi bật khi được chọn (Pill card)
-                RoundedRectRenderer::draw(window, elem.bounds.position, elem.bounds.size, 8.f, Color::White);
+                RoundedRectRenderer::draw(window, elem.bounds.position, elem.bounds.size, 9.f, Color::White);
             }
             else if (isHover) {
                 // Nền hover trắng mờ nhẹ
-                RoundedRectRenderer::draw(window, elem.bounds.position, elem.bounds.size, 8.f, Color(255, 255, 255, 40));
+                RoundedRectRenderer::draw(window, elem.bounds.position, elem.bounds.size, 9.f, Color(255, 255, 255, 40));
             }
 
             // Chữ hiển thị
-            Text itemText(isActive ? boldFont : boldFont, elem.label, 14);
+            Text itemText(boldFont, elem.label, 14);
             if (isActive) {
                 // Chữ màu xanh dương đậm thương hiệu trên nền trắng
                 itemText.setFillColor(Color(0, 102, 160));
@@ -260,38 +369,41 @@ void AdminSidebar::render(RenderWindow& window) {
 
             FloatRect tb = itemText.getLocalBounds();
             itemText.setPosition({
-                elem.bounds.position.x + 14.f - tb.position.x,
-                elem.bounds.position.y + (elem.bounds.size.y - tb.size.y) / 2.f - tb.position.y - 1.f
+                elem.bounds.position.x + 16.f - tb.position.x,
+                elem.bounds.position.y + (elem.bounds.size.y - tb.size.y) / 2.f - tb.position.y
             });
             window.draw(itemText);
 
             if (elem.targetState == AppState::ADMIN_CUSTOMERS) {
-                Vector2f bPos(elem.bounds.position.x + elem.bounds.size.x - 38.f, elem.bounds.position.y + (elem.bounds.size.y - 20.f) / 2.f);
-                RoundedRectRenderer::draw(window, bPos, {26.f, 20.f}, 10.f, isActive ? Color(224, 242, 254) : Color(0, 80, 130));
-                Text bTxt(boldFont, L"15", 11.5f);
+                Vector2f badgeSize(28.f, 20.f);
+                Vector2f badgePos(elem.bounds.position.x + elem.bounds.size.x - 40.f, elem.bounds.position.y + (elem.bounds.size.y - badgeSize.y) / 2.f);
+                RoundedRectRenderer::draw(window, badgePos, badgeSize, 10.f, isActive ? Color(224, 242, 254) : Color(0, 80, 130));
+                Text bTxt(boldFont, L"15", 11);
                 bTxt.setFillColor(isActive ? Color(0, 102, 160) : Color(224, 242, 254));
                 FloatRect bb = bTxt.getLocalBounds();
-                bTxt.setPosition({bPos.x + 13.f - bb.size.x / 2.f, bPos.y + 2.f});
+                bTxt.setPosition({
+                    badgePos.x + (badgeSize.x - bb.size.x) / 2.f - bb.position.x,
+                    badgePos.y + (badgeSize.y - bb.size.y) / 2.f - bb.position.y
+                });
                 window.draw(bTxt);
             }
         }
     }
 
     // 4. Nút Đăng xuất
-
     Color logBg = logoutHovered ? Color(255, 255, 255, 45) : Color(255, 255, 255, 18);
     Color logBorder = logoutHovered ? Color(255, 255, 255, 140) : Color(255, 255, 255, 70);
 
-    RoundedRectRenderer::draw(window, logoutBounds.position, logoutBounds.size, 8.f, logBg, 1.2f, logBorder);
+    RoundedRectRenderer::draw(window, logoutBounds.position, logoutBounds.size, 9.f, logBg, 1.2f, logBorder);
 
-    drawLogoutIcon(window, {logoutBounds.position.x + 14.f, logoutBounds.position.y + 14.f}, Color::White);
+    drawLogoutIcon(window, {logoutBounds.position.x + 16.f, logoutBounds.position.y + (logoutBounds.size.y - 12.f) / 2.f}, Color::White);
 
     Text logText(boldFont, L"\u0110\u0103ng xu\u1ea5t h\u1ec7 th\u1ed1ng", 13);
     logText.setFillColor(Color::White);
     FloatRect logTb = logText.getLocalBounds();
     logText.setPosition({
-        logoutBounds.position.x + 38.f,
-        logoutBounds.position.y + (logoutBounds.size.y - logTb.size.y) / 2.f - logTb.position.y - 1.f
+        logoutBounds.position.x + 40.f - logTb.position.x,
+        logoutBounds.position.y + (logoutBounds.size.y - logTb.size.y) / 2.f - logTb.position.y
     });
     window.draw(logText);
 }

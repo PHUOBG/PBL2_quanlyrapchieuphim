@@ -55,6 +55,7 @@ UserPanel::UserPanel(Font& fontRef, float w, float h)
 
 void UserPanel::setPosition(const Vector2f& pos) {
     position = pos;
+    width = 1728.f - pos.x;
 }
 
 void UserPanel::loadData() {

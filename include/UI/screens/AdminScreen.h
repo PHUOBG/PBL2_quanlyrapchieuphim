@@ -38,6 +38,7 @@ private:
     RectangleShape mainPanelBg;
     
     void switchPanel(AppState newState);
+    void updateActivePanelLayout();
     void handleAdminLogout();
     
 public:
