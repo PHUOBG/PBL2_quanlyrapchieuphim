@@ -1,1 +1,0 @@
-email|code|status|expiry_date|quantity
