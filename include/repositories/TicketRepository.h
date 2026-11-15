@@ -94,7 +94,7 @@ private:
     }
 
 public:
-    explicit TicketRepository(const string& path = "../data/tickets.csv")
+    explicit TicketRepository(const string& path = "../data/tickets.txt")
         : filePath(path) {
         loadFromFile();
     }

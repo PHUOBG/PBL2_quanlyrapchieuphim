@@ -47,7 +47,7 @@ UserPanel::UserPanel(Font& fontRef, float w, float h)
       width(w),
       height(h),
       position(280.f, 0.f),
-      repository(make_unique<UserRepository>(FileUtils::resolveDataPath("data/users.csv")))
+      repository(make_unique<UserRepository>(FileUtils::resolveDataPath("data/users.txt")))
 {
     loadData();
     applyFilter();

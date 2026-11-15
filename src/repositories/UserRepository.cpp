@@ -36,8 +36,8 @@ namespace {
         if (!input.filename().empty()) {
             tails.push_back(input.filename());
             if (input.filename() == fs::path("users.csv") || input.filename() == fs::path("users.txt")) {
-                tails.push_back(fs::path("data") / "users.csv");
                 tails.push_back(fs::path("data") / "users.txt");
+                tails.push_back(fs::path("data") / "users.csv");
             }
         }
 

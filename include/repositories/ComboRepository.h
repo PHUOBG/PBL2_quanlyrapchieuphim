@@ -76,7 +76,7 @@ private:
     }
 
 public:
-    explicit ComboRepository(const std::string& path = "../data/combo.csv")
+    explicit ComboRepository(const std::string& path = "../data/combo.txt")
         : filePath(path) {
         loadFromFile();
     }

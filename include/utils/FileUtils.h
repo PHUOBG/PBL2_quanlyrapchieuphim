@@ -15,8 +15,8 @@ public:
     }
 
     // Resolve a relative data path across common working directories.
-    // Example: resolveDataPath("data/movies.csv") will try
-    // "data/movies.csv", "../data/movies.csv", "./data/movies.csv", "../../data/movies.csv".
+    // Example: resolveDataPath("data/movies.txt") will try
+    // "data/movies.txt", "../data/movies.txt", "./data/movies.txt", "../../data/movies.txt".
     static string resolveDataPath(const string& relative) {
         namespace fs = std::filesystem;
         const std::array<std::string, 4> prefixes = {"", "../", "./", "../../"};

@@ -12,6 +12,6 @@ private:
     void loadRooms();
 
 public:
-    explicit RoomRepository(const String& path = "../data/rooms.csv");
+    explicit RoomRepository(const String& path = "../data/rooms.txt");
     String getRoomNameById(const String& roomId) const;
 };

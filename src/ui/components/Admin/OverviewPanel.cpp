@@ -35,10 +35,10 @@ OverviewPanel::OverviewPanel(Font& fontRef, float w, float h)
       width(w),
       height(h),
       position(280.f, 0.f),
-      ticketsFilePath(FileUtils::resolveDataPath("data/tickets.csv")),
-      usersFilePath(FileUtils::resolveDataPath("data/users.csv")),
-      showtimesFilePath(FileUtils::resolveDataPath("data/showtimes.csv")),
-      combosFilePath(FileUtils::resolveDataPath("data/combo.csv"))
+      ticketsFilePath(FileUtils::resolveDataPath("data/tickets.txt")),
+      usersFilePath(FileUtils::resolveDataPath("data/users.txt")),
+      showtimesFilePath(FileUtils::resolveDataPath("data/showtimes.txt")),
+      combosFilePath(FileUtils::resolveDataPath("data/combo.txt"))
 {
     initFilterOptions();
     loadData();
@@ -197,7 +197,7 @@ void OverviewPanel::loadShowtimePrices() {
         }
     };
     consume(showtimesFilePath);
-    consume(FileUtils::resolveDataPath("data/showtimes_history.csv"));
+    consume(FileUtils::resolveDataPath("data/showtimes_history.txt"));
 }
 
 void OverviewPanel::loadComboPrices() {
@@ -859,7 +859,7 @@ void OverviewPanel::drawHeader(RenderTarget& target) const {
 
     // Subtitle
     Text subText(font);
-    subText.setString(L"Dữ liệu thời gian thực rạp CineCore Đà Nẵng - Cập nhật tự động từ CSV");
+    subText.setString(L"Dữ liệu thời gian thực rạp CineCore Đà Nẵng - Cập nhật tự động từ hệ thống");
     subText.setCharacterSize(12.5f);
     subText.setFillColor(Color(100, 116, 139)); // Slate-500
     subText.setPosition({position.x + 20.f, topY + 30.f});

@@ -126,7 +126,7 @@ void RoomPanel::initDefaultRooms() {
 }
 
 void RoomPanel::loadRoomsFromFile() {
-    string filePath = FileUtils::resolveDataPath("data/rooms.csv");
+    string filePath = FileUtils::resolveDataPath("data/rooms.txt");
     ifstream file(filePath);
     if (!file.is_open()) return;
 
@@ -175,7 +175,7 @@ void RoomPanel::loadRoomsFromFile() {
 }
 
 void RoomPanel::saveRoomsToFile() {
-    string filePath = FileUtils::resolveDataPath("data/rooms.csv");
+    string filePath = FileUtils::resolveDataPath("data/rooms.txt");
     ofstream file(filePath);
     if (!file.is_open()) return;
 

@@ -84,7 +84,7 @@ void VoucherPanel::initDefaultData() {
 }
 
 void VoucherPanel::loadVouchersFromFile() {
-    string path = FileUtils::resolveDataPath("data/voucher_defs.csv");
+    string path = FileUtils::resolveDataPath("data/voucher_defs.txt");
     ifstream f(path);
     if (!f.is_open()) return;
 
@@ -116,7 +116,7 @@ void VoucherPanel::loadVouchersFromFile() {
 }
 
 void VoucherPanel::saveVouchersToFile() {
-    string path = FileUtils::resolveDataPath("data/voucher_defs.csv");
+    string path = FileUtils::resolveDataPath("data/voucher_defs.txt");
     ofstream f(path);
     if (!f.is_open()) return;
 

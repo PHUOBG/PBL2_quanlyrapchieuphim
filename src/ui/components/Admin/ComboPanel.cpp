@@ -137,7 +137,7 @@ void ComboPanel::initDefaultCombos() {
 }
 
 void ComboPanel::loadCombosFromFile() {
-    string path = FileUtils::resolveDataPath("data/combo.csv");
+    string path = FileUtils::resolveDataPath("data/combo.txt");
     ifstream f(path);
     if (!f.is_open()) return;
 
@@ -170,7 +170,7 @@ void ComboPanel::loadCombosFromFile() {
 }
 
 void ComboPanel::saveCombosToFile() {
-    string path = FileUtils::resolveDataPath("data/combo.csv");
+    string path = FileUtils::resolveDataPath("data/combo.txt");
     ofstream f(path);
     if (!f.is_open()) return;
 
