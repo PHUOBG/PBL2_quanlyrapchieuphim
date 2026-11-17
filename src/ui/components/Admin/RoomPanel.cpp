@@ -832,7 +832,7 @@ void RoomPanel::render(RenderWindow& win) {
     win.draw(head1);
 
     FloatRect h1b = head1.getGlobalBounds();
-    Text head2(font, L" | Ma tr\u1eadn: " + to_wstring(rooms[selectedRoomIndex].rows) + L" H\u00e0ng x " + to_wstring(rooms[selectedRoomIndex].cols) + L" Gh\u1ebf (Kh\u1ea9u \u0111\u1ed9 r\u1ea1p 24m)", 12);
+    Text head2(font, L" | Ma tr\u1eadn: " + to_wstring(rooms[selectedRoomIndex].rows) + L" H\u00e0ng x " + to_wstring(rooms[selectedRoomIndex].cols) + L" Gh\u1ebf (Kh\u1ea9u \u0111\u1ed9 r\u1ea1p cong 24m)", 12);
     head2.setFillColor(Color(100, 116, 139));
     head2.setPosition({h1b.position.x + h1b.size.x, cardY + 24.f});
     win.draw(head2);
@@ -844,17 +844,60 @@ void RoomPanel::render(RenderWindow& win) {
     Text zVal(boldFont, to_wstring(zoomPercent) + L"%", 11); zVal.setFillColor(Color(15, 23, 42)); zVal.setPosition({rightX + rightW - 95.f, cardY + 24.f}); win.draw(zVal);
     Text zPlus(boldFont, L"+", 14); zPlus.setFillColor(Color(71, 85, 105)); zPlus.setPosition({rightX + rightW - 40.f, cardY + 22.f}); win.draw(zPlus);
 
-    // Khối MÀN HÌNH (Cinema Screen)
-    float screenW = rightW - 80.f;
-    drawRoundedCard(win, {rightX + 40.f, cardY + 68.f}, {screenW, 30.f}, 6.f, Color(224, 238, 252));
-    Text scrTxt(boldFont, L"M \u00c0 N   H \u00cc N H", 12);
-    scrTxt.setFillColor(Color(2, 132, 199));
-    FloatRect stb = scrTxt.getLocalBounds();
-    scrTxt.setPosition({
-        rightX + 40.f + (screenW - stb.size.x) / 2.f - stb.position.x,
-        cardY + 68.f + (30.f - stb.size.y) / 2.f - stb.position.y
-    });
-    win.draw(scrTxt);
+    // Khối MÀN HÌNH CHIẾU DẠNG CONG (Curved Cinema Screen)
+    {
+        const float arcW = min(rightW - 140.f, 680.f);
+        const float arcLeft = rightX + (rightW - arcW) / 2.f;
+        const float arcTopY = cardY + 72.f;
+        const float sag = 18.f;
+        const float thick = 14.f;
+        const float glowH = 26.f;
+        const int segs = 48;
+
+        VertexArray glowStrip(PrimitiveType::TriangleStrip, (segs + 1) * 2);
+        VertexArray rimStrip(PrimitiveType::TriangleStrip, (segs + 1) * 2);
+        VertexArray screenStrip(PrimitiveType::TriangleStrip, (segs + 1) * 2);
+
+        for (int i = 0; i <= segs; ++i) {
+            float t = static_cast<float>(i) / static_cast<float>(segs);
+            float u = 2.f * t - 1.f; // -1 .. +1
+            float x = arcLeft + t * arcW;
+            float y = arcTopY + sag * (u * u);
+
+            // Soft projection glow underneath the curved screen
+            glowStrip[i * 2].position = {x, y + thick};
+            glowStrip[i * 2].color = Color(56, 189, 248, 38);
+            glowStrip[i * 2 + 1].position = {x, y + thick + glowH};
+            glowStrip[i * 2 + 1].color = Color(255, 255, 255, 0);
+
+            // Darker 3D bottom rim
+            rimStrip[i * 2].position = {x, y + thick - 2.f};
+            rimStrip[i * 2].color = Color(7, 89, 133);
+            rimStrip[i * 2 + 1].position = {x, y + thick + 2.5f};
+            rimStrip[i * 2 + 1].color = Color(7, 89, 133);
+
+            // Main curved blue screen ribbon (slightly lighter in center)
+            uint8_t g = static_cast<uint8_t>(138 - 18 * (u * u));
+            uint8_t b = static_cast<uint8_t>(204 - 22 * (u * u));
+            screenStrip[i * 2].position = {x, y};
+            screenStrip[i * 2].color = Color(14, g, b);
+            screenStrip[i * 2 + 1].position = {x, y + thick};
+            screenStrip[i * 2 + 1].color = Color(2, static_cast<uint8_t>(g - 18), static_cast<uint8_t>(b - 18));
+        }
+
+        win.draw(glowStrip);
+        win.draw(rimStrip);
+        win.draw(screenStrip);
+
+        Text scrTxt(boldFont, L"M \u00c0 N   H \u00cc N H   C H I \u1ebe U", 10.5f);
+        scrTxt.setFillColor(Color::White);
+        FloatRect stb = scrTxt.getLocalBounds();
+        scrTxt.setPosition({
+            arcLeft + (arcW - stb.size.x) / 2.f - stb.position.x,
+            arcTopY + (thick - stb.size.y) / 2.f - stb.position.y - 0.5f
+        });
+        win.draw(scrTxt);
+    }
 
     // ==========================================
     // MA TRẬN GHẾ
