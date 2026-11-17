@@ -715,7 +715,7 @@ void ComboPanel::render(RenderWindow& win) {
     drawRoundedCard(win, {c3X, statY}, {cardW, cardH}, 10.f, Color::White, 1.f, Color(226, 232, 240));
     Text sc3T(boldFont, L"BEST SELLER H\u00d4M NAY", 12.5f); sc3T.setFillColor(Color(100, 116, 139)); sc3T.setPosition({c3X + 16.f, statY + 12.f}); win.draw(sc3T);
     Text sc3V(boldFont, L"CB02: B\u1eafp Caramel", 16); sc3V.setFillColor(Color(15, 23, 42)); sc3V.setPosition({c3X + 16.f, statY + 34.f}); win.draw(sc3V);
-    Text sc3S(boldFont, L"184 ph\u1ea7n \u0111\u00e3 b\u00e1n ra", 12); sc3S.setFillColor(Color(217, 119, 6)); sc3S.setPosition({c3X + 16.f, statY + 62.f}); win.draw(sc3S);
+    Text sc3S(font, L"184 ph\u1ea7n \u0111\u00e3 b\u00e1n ra", 12); sc3S.setFillColor(Color(148, 163, 184)); sc3S.setPosition({c3X + 16.f, statY + 62.f}); win.draw(sc3S);
 
     // Card 4: Giá trị trung bình F&B
     float c4X = c3X + cardW + 15.f;
@@ -724,7 +724,7 @@ void ComboPanel::render(RenderWindow& win) {
     Text sc4V(boldFont, L"115.000 \u0111", 20); sc4V.setFillColor(Color(15, 23, 42)); sc4V.setPosition({c4X + 16.f, statY + 30.f}); win.draw(sc4V);
     FloatRect v4b = sc4V.getGlobalBounds();
     Text sc4Tx(font, L"/ giao d\u1ecbch", 12); sc4Tx.setFillColor(Color(100, 116, 139)); sc4Tx.setPosition({v4b.position.x + v4b.size.x + 4.f, statY + 34.f}); win.draw(sc4Tx);
-    Text sc4S(font, L"Th\u01b0\u1eddng mua k\u00e8m v\u00e9 \u0111\u00f4i", 12); sc4S.setFillColor(Color(147, 51, 234)); sc4S.setPosition({c4X + 16.f, statY + 62.f}); win.draw(sc4S);
+    Text sc4S(font, L"Th\u01b0\u1eddng mua k\u00e8m v\u00e9 \u0111\u00f4i", 12); sc4S.setFillColor(Color(148, 163, 184)); sc4S.setPosition({c4X + 16.f, statY + 62.f}); win.draw(sc4S);
 
     // ==========================================
     // 5. TOOLBAR & FILTER PILLS
