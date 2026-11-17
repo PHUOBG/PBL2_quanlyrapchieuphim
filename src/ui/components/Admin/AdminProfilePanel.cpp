@@ -636,8 +636,8 @@ void AdminProfilePanel::drawPasswordCard(RenderTarget& target) const {
     float barGap = 8.f;
     float segW = (passW - 3 * barGap) / 4.f;
     for (int i = 0; i < 4; ++i) {
-        Vector2f segPos(cardX + 24.f + i * (segW + barGap), meterY + 20.f);
-        RoundedRectRenderer::draw(target, segPos, {segW, 5.f}, 2.5f, Color(16, 185, 129));
+        Vector2f segPos(cardX + 24.f + i * (segW + barGap), meterY + 19.f);
+        RoundedRectRenderer::draw(target, segPos, {segW, 8.f}, 4.f, Color(16, 185, 129));
     }
 
     // 3. Xác thực mật khẩu (Field 8)
