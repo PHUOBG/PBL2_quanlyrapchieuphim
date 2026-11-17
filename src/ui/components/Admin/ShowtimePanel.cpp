@@ -576,7 +576,10 @@ void ShowtimePanel::handleEvent(const Event& event, const RenderWindow& win) {
 
             for (int r = 0; r < count; ++r) {
                 float rY = tableY + 44.f + r * rowH;
-                float actX = position.x + width - 110.f;
+                float tblX = position.x + 30.f;
+                float tblW = width - 60.f;
+                float div5 = tblX + tblW * 0.87f;
+                float actX = div5 + ((tblX + tblW - div5) - 78.f) / 2.f;
 
                 FloatRect btnEdit({actX, rY + 8.f}, {36.f, 26.f});
                 FloatRect btnDel({actX + 42.f, rY + 8.f}, {36.f, 26.f});
@@ -837,19 +840,38 @@ void ShowtimePanel::render(RenderWindow& win) {
     // ==========================================
     // 5. BẢNG DỮ LIỆU SUẤT CHIẾU
     // ==========================================
+    float tableX = position.x + 30.f;
     float tableY = position.y + 316.f;
     float tableW = width - 60.f;
+    float tableRight = tableX + tableW;
     float rowH = 46.f;
 
-    // Header bảng (#0284C7)
-    drawRoundedCard(win, {position.x + 30.f, tableY}, {tableW, 44.f}, 8.f, Color(2, 132, 199));
+    const float div1 = tableX + tableW * 0.14f;
+    const float div2 = tableX + tableW * 0.28f;
+    const float div3 = tableX + tableW * 0.54f;
+    const float div4 = tableX + tableW * 0.65f;
+    const float div5 = tableX + tableW * 0.87f;
 
-    Text h1(boldFont, L"GI\u1edc CHI\u1ebeU", 12); h1.setFillColor(Color::White); h1.setPosition({position.x + 50.f, tableY + 14.f}); win.draw(h1);
-    Text h2(boldFont, L"PH\u00d2NG", 12); h2.setFillColor(Color::White); h2.setPosition({position.x + 220.f, tableY + 14.f}); win.draw(h2);
-    Text h3(boldFont, L"PHIM", 12); h3.setFillColor(Color::White); h3.setPosition({position.x + 380.f, tableY + 14.f}); win.draw(h3);
-    Text h4(boldFont, L"GI\u00c1 V\u00c9", 12); h4.setFillColor(Color::White); h4.setPosition({position.x + 650.f, tableY + 14.f}); win.draw(h4);
-    Text h5(boldFont, L"T\u1ef8 L\u1ec6 L\u1ea4P \u0110\u1ea6Y", 12); h5.setFillColor(Color::White); h5.setPosition({position.x + 780.f, tableY + 14.f}); win.draw(h5);
-    Text h6(boldFont, L"THAO T\u00c1C", 12); h6.setFillColor(Color::White); h6.setPosition({position.x + width - 105.f, tableY + 14.f}); win.draw(h6);
+    // Header bảng (#0284C7)
+    drawRoundedCard(win, {tableX, tableY}, {tableW, 44.f}, 8.f, Color(2, 132, 199));
+
+    for (float dx : {div1, div2, div3, div4, div5}) {
+        RectangleShape hDiv(Vector2f(1.f, 44.f));
+        hDiv.setPosition({dx, tableY});
+        hDiv.setFillColor(Color(255, 255, 255, 45));
+        win.draw(hDiv);
+    }
+
+    Text h1(boldFont, L"GI\u1edc CHI\u1ebeU", 12); h1.setFillColor(Color::White); h1.setPosition({tableX + 24.f, tableY + 14.f}); win.draw(h1);
+    Text h2(boldFont, L"PH\u00d2NG", 12); h2.setFillColor(Color::White); h2.setPosition({div1 + 24.f, tableY + 14.f}); win.draw(h2);
+    Text h3(boldFont, L"PHIM", 12); h3.setFillColor(Color::White); h3.setPosition({div2 + 24.f, tableY + 14.f}); win.draw(h3);
+    Text h4(boldFont, L"GI\u00c1 V\u00c9", 12); h4.setFillColor(Color::White); h4.setPosition({div3 + 24.f, tableY + 14.f}); win.draw(h4);
+    Text h5(boldFont, L"T\u1ef6 L\u1ec6 L\u1ea4P \u0110\u1ea6Y", 12); h5.setFillColor(Color::White); h5.setPosition({div4 + 24.f, tableY + 14.f}); win.draw(h5);
+
+    Text h6(boldFont, L"THAO T\u00c1C", 12); h6.setFillColor(Color::White);
+    FloatRect h6b = h6.getLocalBounds();
+    h6.setPosition({div5 + ((tableRight - div5) - h6b.size.x) / 2.f - h6b.position.x, tableY + 14.f});
+    win.draw(h6);
 
     // Các dòng dữ liệu
     int startIdx = (currentPage - 1) * pageSize;
@@ -861,20 +883,27 @@ void ShowtimePanel::render(RenderWindow& win) {
         float rY = tableY + 44.f + r * rowH;
         bool isHov = (hoveredRow == r);
 
-        drawRoundedCard(win, {position.x + 30.f, rY}, {tableW, rowH}, 0.f, isHov ? Color(241, 245, 249) : Color::White, 0.5f, Color(241, 245, 249));
+        drawRoundedCard(win, {tableX, rY}, {tableW, rowH}, 0.f, isHov ? Color(241, 245, 249) : Color::White, 0.5f, Color(241, 245, 249));
+
+        for (float dx : {div1, div2, div3, div4, div5}) {
+            RectangleShape rDiv(Vector2f(1.f, rowH));
+            rDiv.setPosition({dx, rY});
+            rDiv.setFillColor(Color(241, 245, 249));
+            win.draw(rDiv);
+        }
 
         // 1. Giờ chiếu
-        CircleShape dotBlue(3.5f); dotBlue.setFillColor(Color(2, 132, 199)); dotBlue.setPosition({position.x + 50.f, rY + 20.f}); win.draw(dotBlue);
-        Text timeTxt(boldFont, s2ws(itm.startTime + " \u2013 " + itm.endTime), 13); timeTxt.setFillColor(Color(15, 23, 42)); timeTxt.setPosition({position.x + 64.f, rY + 14.f}); win.draw(timeTxt);
+        CircleShape dotBlue(3.5f); dotBlue.setFillColor(Color(2, 132, 199)); dotBlue.setPosition({tableX + 24.f, rY + 20.f}); win.draw(dotBlue);
+        Text timeTxt(boldFont, s2ws(itm.startTime + " \u2013 " + itm.endTime), 13); timeTxt.setFillColor(Color(15, 23, 42)); timeTxt.setPosition({tableX + 38.f, rY + 14.f}); win.draw(timeTxt);
 
         // 2. Phòng
-        Text roomTxt(font, itm.roomName, 13); roomTxt.setFillColor(Color(51, 65, 85)); roomTxt.setPosition({position.x + 220.f, rY + 14.f}); win.draw(roomTxt);
+        Text roomTxt(font, itm.roomName, 13); roomTxt.setFillColor(Color(51, 65, 85)); roomTxt.setPosition({div1 + 24.f, rY + 14.f}); win.draw(roomTxt);
 
         // 3. Phim
-        Text movieTxt(boldFont, itm.movieTitle, 13); movieTxt.setFillColor(Color(15, 23, 42)); movieTxt.setPosition({position.x + 380.f, rY + 14.f}); win.draw(movieTxt);
+        Text movieTxt(boldFont, itm.movieTitle, 13); movieTxt.setFillColor(Color(15, 23, 42)); movieTxt.setPosition({div2 + 24.f, rY + 14.f}); win.draw(movieTxt);
 
         // 4. Giá vé
-        Text priceTxt(boldFont, s2ws(formatPriceStr(itm.price)), 13); priceTxt.setFillColor(Color(15, 23, 42)); priceTxt.setPosition({position.x + 650.f, rY + 14.f}); win.draw(priceTxt);
+        Text priceTxt(boldFont, s2ws(formatPriceStr(itm.price)), 13); priceTxt.setFillColor(Color(15, 23, 42)); priceTxt.setPosition({div3 + 24.f, rY + 14.f}); win.draw(priceTxt);
 
         // 5. Tỷ lệ lấp đầy
         int pct = (int)((itm.bookedSeats * 100.f) / itm.totalSeats + 0.5f);
@@ -885,16 +914,22 @@ void ShowtimePanel::render(RenderWindow& win) {
         wstring seatInfo = to_wstring(itm.bookedSeats) + L"/" + to_wstring(itm.totalSeats) + L" v\u00e9";
         if (pct >= 100) seatInfo = to_wstring(itm.bookedSeats) + L"/" + to_wstring(itm.totalSeats) + L" (H\u1ebft v\u00e9)";
 
-        Text seatTxt(font, seatInfo, 12.5f); seatTxt.setFillColor(barCol); seatTxt.setPosition({position.x + 780.f, rY + 10.f}); win.draw(seatTxt);
-        Text pctTxt(boldFont, to_wstring(pct) + L"%", 12.5f); pctTxt.setFillColor(barCol); pctTxt.setPosition({position.x + 860.f, rY + 10.f}); win.draw(pctTxt);
+        float barX = div4 + 24.f;
+        float barW = (div5 - div4) - 48.f;
+        Text seatTxt(font, seatInfo, 12.5f); seatTxt.setFillColor(barCol); seatTxt.setPosition({barX, rY + 9.f}); win.draw(seatTxt);
+
+        Text pctTxt(boldFont, to_wstring(pct) + L"%", 12.5f); pctTxt.setFillColor(barCol);
+        FloatRect ptb = pctTxt.getLocalBounds();
+        pctTxt.setPosition({barX + barW - ptb.size.x - ptb.position.x, rY + 9.f});
+        win.draw(pctTxt);
 
         // Progress bar
-        drawRoundedCard(win, {position.x + 780.f, rY + 28.f}, {100.f, 4.f}, 2.f, Color(226, 232, 240));
-        float fillW = max(4.f, 100.f * ((float)itm.bookedSeats / itm.totalSeats));
-        drawRoundedCard(win, {position.x + 780.f, rY + 28.f}, {fillW, 4.f}, 2.f, barCol);
+        drawRoundedCard(win, {barX, rY + 29.f}, {barW, 4.5f}, 2.25f, Color(226, 232, 240));
+        float fillW = max(4.f, barW * ((float)itm.bookedSeats / itm.totalSeats));
+        drawRoundedCard(win, {barX, rY + 29.f}, {fillW, 4.5f}, 2.25f, barCol);
 
-        // 6. Thao tác: Sửa, Xóa
-        float actX = position.x + width - 110.f;
+        // 6. Thao tác: Sửa, Xóa (căn giữa trong [div5, tableRight])
+        float actX = div5 + ((tableRight - div5) - 78.f) / 2.f;
         drawRoundedCard(win, {actX, rY + 9.f}, {36.f, 26.f}, 4.f, Color(241, 245, 249), 1.f, Color(203, 213, 225));
         Text btnEditTxt(boldFont, L"S\u1eeda", 11);
         btnEditTxt.setFillColor(Color(2, 132, 199));

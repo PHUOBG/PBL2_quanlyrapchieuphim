@@ -659,7 +659,7 @@ void VoucherPanel::handleEvent(const Event& event, const RenderWindow& win) {
             for (int r = 0; r < count; ++r) {
                 float rY = tableY + 40.f + r * rowH;
                 FloatRect rowRect({position.x + 30.f, rY}, {leftW, rowH});
-                FloatRect rowEditBtn({position.x + 636.f, rY + (rowH - 28.f) / 2.f}, {56.f, 28.f});
+                FloatRect rowEditBtn({position.x + 667.f, rY + (rowH - 28.f) / 2.f}, {56.f, 28.f});
 
                 if (rowEditBtn.contains(mousePos)) {
                     selectedVoucherIndex = startIdx + r;
@@ -857,7 +857,7 @@ void VoucherPanel::update(Vector2f mousePos, bool) {
 
         for (int r = 0; r < count; ++r) {
             float rY = tableY + 40.f + r * rowH;
-            FloatRect rowEditBtn({position.x + 636.f, rY + (rowH - 28.f) / 2.f}, {56.f, 28.f});
+            FloatRect rowEditBtn({position.x + 667.f, rY + (rowH - 28.f) / 2.f}, {56.f, 28.f});
             if (rowEditBtn.contains(mousePos)) {
                 hoveredEditBtnRow = r;
             }
@@ -1037,16 +1037,41 @@ void VoucherPanel::render(RenderWindow& win) {
     }
 
     // Bảng Voucher
+    float tableX = position.x + 30.f;
     float tableY = position.y + 356.f;
     float rowH = 64.f;
-    drawRoundedCard(win, {position.x + 30.f, tableY}, {leftW, 40.f}, 4.f, Color(0, 119, 182));
+    float tblRight = tableX + leftW;
 
-    Text vh1(boldFont, L"M\u00c3 VOUCHER", 12.f); vh1.setFillColor(Color::White); vh1.setPosition({position.x + 44.f, tableY + 11.f}); win.draw(vh1);
-    Text vh2(boldFont, L"LO\u1ea0I", 12.f); vh2.setFillColor(Color::White); vh2.setPosition({position.x + 236.f, tableY + 11.f}); win.draw(vh2);
-    Text vh3(boldFont, L"GI\u00c1 TR\u1eca", 12.f); vh3.setFillColor(Color::White); vh3.setPosition({position.x + 338.f, tableY + 11.f}); win.draw(vh3);
-    Text vh4(boldFont, L"\u0110\u01a0N T\u1ed0I THI\u1ec2U", 12.f); vh4.setFillColor(Color::White); vh4.setPosition({position.x + 430.f, tableY + 11.f}); win.draw(vh4);
-    Text vh5(boldFont, L"NG\u01af\u1edcI NH\u1eacN", 12.f); vh5.setFillColor(Color::White); vh5.setPosition({position.x + 544.f, tableY + 11.f}); win.draw(vh5);
-    Text vh6(boldFont, L"THAO T\u00c1C", 12.f); vh6.setFillColor(Color::White); vh6.setPosition({position.x + 636.f, tableY + 11.f}); win.draw(vh6);
+    const float div1 = tableX + 250.f;
+    const float div2 = div1 + 78.f;
+    const float div3 = div2 + 96.f;
+    const float div4 = div3 + 108.f;
+    const float div5 = div4 + 88.f;
+
+    auto drawCenteredHdr = [&](const wstring& str, float xStart, float xEnd) {
+        Text h(boldFont, str, 12.f);
+        h.setFillColor(Color::White);
+        FloatRect hb = h.getLocalBounds();
+        h.setPosition({xStart + (xEnd - xStart - hb.size.x) / 2.f - hb.position.x, tableY + 12.f});
+        win.draw(h);
+    };
+
+    drawRoundedCard(win, {tableX, tableY}, {leftW, 40.f}, 6.f, Color(0, 119, 182));
+
+    for (float dx : {div1, div2, div3, div4, div5}) {
+        RectangleShape hDiv(Vector2f(1.f, 40.f));
+        hDiv.setPosition({dx, tableY});
+        hDiv.setFillColor(Color(255, 255, 255, 45));
+        win.draw(hDiv);
+    }
+
+    drawRoundedCard(win, {tableX + 14.f, tableY + 12.f}, {16.f, 16.f}, 3.f, Color(255, 255, 255, 60));
+    Text vh1(boldFont, L"M\u00c3 VOUCHER", 12.f); vh1.setFillColor(Color::White); vh1.setPosition({tableX + 42.f, tableY + 12.f}); win.draw(vh1);
+    drawCenteredHdr(L"LO\u1ea0I", div1, div2);
+    drawCenteredHdr(L"GI\u00c1 TR\u1eca", div2, div3);
+    drawCenteredHdr(L"\u0110\u01a0N T\u1ed0I THI\u1ec2U", div3, div4);
+    drawCenteredHdr(L"NG\u01af\u1edcI NH\u1eacN", div4, div5);
+    drawCenteredHdr(L"THAO T\u00c1C", div5, tblRight);
 
     int startIdx = (currentVoucherPage - 1) * pageSize;
     int count = min((int)filteredVouchers.size() - startIdx, pageSize);
@@ -1060,10 +1085,17 @@ void VoucherPanel::render(RenderWindow& win) {
         bool isHov = (hoveredVoucherRow == r);
 
         Color rowBg = isSel ? Color(224, 242, 254) : (isHov ? Color(248, 250, 252) : Color::White);
-        drawRoundedCard(win, {position.x + 30.f, rY}, {leftW, rowH}, 0.f, rowBg, 0.5f, Color(226, 232, 240));
+        drawRoundedCard(win, {tableX, rY}, {leftW, rowH}, 0.f, rowBg, 0.5f, Color(226, 232, 240));
+
+        for (float dx : {div1, div2, div3, div4, div5}) {
+            RectangleShape rDiv(Vector2f(1.f, rowH));
+            rDiv.setPosition({dx, rY});
+            rDiv.setFillColor(Color(241, 245, 249));
+            win.draw(rDiv);
+        }
 
         // Checkbox với dấu check vector (không phụ thuộc font)
-        float cbX = position.x + 44.f;
+        float cbX = tableX + 14.f;
         float cbY = rY + (rowH - 16.f) / 2.f;
         drawRoundedCard(win, {cbX, cbY}, {16.f, 16.f}, 3.f, isSel ? Color(2, 132, 199) : Color::White, 1.f, isSel ? Color(2, 132, 199) : Color(203, 213, 225));
         if (isSel) {
@@ -1081,7 +1113,7 @@ void VoucherPanel::render(RenderWindow& win) {
         }
 
         // Mã Voucher & Tag & Subtitle
-        float codeX = position.x + 70.f;
+        float codeX = tableX + 42.f;
         Text codeTxt(boldFont, s2ws(v.code), 13.5f); codeTxt.setFillColor(Color(15, 23, 42)); codeTxt.setPosition({codeX, rY + 12.f}); win.draw(codeTxt);
 
         if (!v.tag.empty()) {
@@ -1094,11 +1126,12 @@ void VoucherPanel::render(RenderWindow& win) {
             Text tgTxt(boldFont, v.tag, 11.5f); tgTxt.setFillColor(tagFg); tgTxt.setPosition({cb.position.x + cb.size.x + 10.f, rY + 14.f}); win.draw(tgTxt);
         }
 
-        // Subtitle cắt gọn gàng để không đè lên cột LOẠI
+        // Subtitle cắt gọn gàng trong [codeX, div1 - 12]
         wstring sub = v.subtitle;
+        float maxSubW = div1 - codeX - 14.f;
         Text testSub(font, sub, 11.5f);
-        if (testSub.getGlobalBounds().size.x > 135.f) {
-            while (!sub.empty() && testSub.getGlobalBounds().size.x > 125.f) {
+        if (testSub.getGlobalBounds().size.x > maxSubW) {
+            while (!sub.empty() && testSub.getGlobalBounds().size.x > maxSubW - 10.f) {
                 sub.pop_back();
                 testSub.setString(sub + L"...");
             }
@@ -1106,43 +1139,51 @@ void VoucherPanel::render(RenderWindow& win) {
         }
         Text subTxt(font, sub, 11.5f); subTxt.setFillColor(Color(100, 116, 139)); subTxt.setPosition({codeX, rY + 36.f}); win.draw(subTxt);
 
-        // Loại Voucher (Badge hiển thị trên 1 hàng, cách đều)
-        wstring typeLabel = (v.type == 2) ? L"Lo\u1ea1i 2 [%]" : L"Lo\u1ea1i 1 [Ti\u1ec1n]";
+        // Loại Voucher (Pill gọn: % hoặc Tiền)
+        wstring typeLabel = (v.type == 2) ? L"%" : L"Ti\u1ec1n";
         Color typeBg = (v.type == 2) ? Color(253, 242, 248) : Color(238, 242, 255);
         Color typeFg = (v.type == 2) ? Color(219, 39, 119) : Color(79, 70, 229);
-        float badgeW = 84.f;
-        float badgeH = 26.f;
-        float badgeX = position.x + 218.f;
+        float badgeW = 46.f;
+        float badgeH = 24.f;
+        float badgeX = div1 + ((div2 - div1) - badgeW) / 2.f;
         float badgeY = rY + (rowH - badgeH) / 2.f;
-        drawRoundedCard(win, {badgeX, badgeY}, {badgeW, badgeH}, 6.f, typeBg);
-        Text tpTxt(boldFont, typeLabel, 11.f);
+        drawRoundedCard(win, {badgeX, badgeY}, {badgeW, badgeH}, 12.f, typeBg);
+        Text tpTxt(boldFont, typeLabel, 11.5f);
         tpTxt.setFillColor(typeFg);
         FloatRect tpb = tpTxt.getLocalBounds();
         tpTxt.setPosition({badgeX + (badgeW - tpb.size.x) / 2.f - tpb.position.x, badgeY + (badgeH - tpb.size.y) / 2.f - tpb.position.y});
         win.draw(tpTxt);
 
-        // Giá trị
+        // Giá trị (căn giữa)
         wstring valStr = (v.type == 2) ? (to_wstring(v.value) + L"%") : s2ws(formatPrice(v.value));
-        Text valTxt(boldFont, valStr, 13.5f); valTxt.setFillColor(Color(5, 150, 105)); valTxt.setPosition({position.x + 338.f, rY + (rowH - 20.f) / 2.f}); win.draw(valTxt);
+        Text valTxt(boldFont, valStr, 13.5f); valTxt.setFillColor(Color(5, 150, 105));
+        FloatRect vtb = valTxt.getLocalBounds();
+        valTxt.setPosition({div2 + ((div3 - div2) - vtb.size.x) / 2.f - vtb.position.x, rY + (rowH - 18.f) / 2.f});
+        win.draw(valTxt);
 
-        // Đơn tối thiểu
-        Text minTxt(font, s2ws(formatPrice(v.minBill)), 13); minTxt.setFillColor(Color(71, 85, 105)); minTxt.setPosition({position.x + 430.f, rY + (rowH - 20.f) / 2.f}); win.draw(minTxt);
+        // Đơn tối thiểu (căn giữa)
+        Text minTxt(font, s2ws(formatPrice(v.minBill)), 13); minTxt.setFillColor(Color(71, 85, 105));
+        FloatRect mtb = minTxt.getLocalBounds();
+        minTxt.setPosition({div3 + ((div4 - div3) - mtb.size.x) / 2.f - mtb.position.x, rY + (rowH - 18.f) / 2.f});
+        win.draw(minTxt);
 
-        // Người nhận (Badge số lượng)
-        float rcPillW = 46.f;
+        // Người nhận (Badge số lượng căn giữa)
+        float rcPillW = 44.f;
         float rcPillH = 24.f;
-        float rcPillX = position.x + 550.f;
+        float rcPillX = div4 + ((div5 - div4) - rcPillW) / 2.f;
         float rcPillY = rY + (rowH - rcPillH) / 2.f;
-        drawRoundedCard(win, {rcPillX, rcPillY}, {rcPillW, rcPillH}, 12.f, Color(241, 245, 249));
-        Text rcTxt(boldFont, to_wstring(v.recipientCount), 12); rcTxt.setFillColor(Color(2, 132, 199));
+        Color rcBg = (v.recipientCount > 0) ? Color(224, 242, 254) : Color(241, 245, 249);
+        Color rcFg = (v.recipientCount > 0) ? Color(2, 132, 199) : Color(148, 163, 184);
+        drawRoundedCard(win, {rcPillX, rcPillY}, {rcPillW, rcPillH}, 12.f, rcBg);
+        Text rcTxt(boldFont, to_wstring(v.recipientCount), 12); rcTxt.setFillColor(rcFg);
         FloatRect rcb = rcTxt.getLocalBounds();
         rcTxt.setPosition({rcPillX + (rcPillW - rcb.size.x) / 2.f - rcb.position.x, rcPillY + (rcPillH - rcb.size.y) / 2.f - rcb.position.y});
         win.draw(rcTxt);
 
-        // Thao tác - Nút Sửa trong ô vuông / hộp màu đỏ
+        // Thao tác - Nút Sửa căn giữa trong [div5, tblRight]
         float editBtnW = 56.f;
         float editBtnH = 28.f;
-        float editBtnX = position.x + 636.f;
+        float editBtnX = div5 + ((tblRight - div5) - editBtnW) / 2.f;
         float editBtnY = rY + (rowH - editBtnH) / 2.f;
         bool isEditHov = (hoveredEditBtnRow == r);
         drawRoundedCard(win, {editBtnX, editBtnY}, {editBtnW, editBtnH}, 5.f, isEditHov ? Color(185, 28, 28) : Color(220, 38, 38));

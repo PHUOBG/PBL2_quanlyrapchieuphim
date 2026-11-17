@@ -502,12 +502,15 @@ void TicketPanel::render(RenderWindow& win) {
     const float div2 = tableX + tableW * 0.38f;
     const float div3 = tableX + tableW * 0.65f;
     const float div4 = tableX + tableW * 0.83f;
+    const float tableRight = tableX + tableW;
 
-    const float col1X = tableX + 28.f;
-    const float col2X = div1 + 24.f;
-    const float col3X = div2 + 24.f;
-    const float col4X = div3 + 24.f;
-    const float col5X = div4 + 24.f;
+    auto drawCenteredText = [&](const Font& f, const wstring& str, unsigned int size, Color col, float xStart, float xEnd, float y) {
+        Text txt(f, str, size);
+        txt.setFillColor(col);
+        FloatRect b = txt.getLocalBounds();
+        txt.setPosition({xStart + (xEnd - xStart - b.size.x) / 2.f - b.position.x, y});
+        win.draw(txt);
+    };
 
     // Header bảng (#0077B6 / #0284C7)
     drawRoundedCard(win, {tableX, tableY}, {tableW, 46.f}, 4.f, Color(0, 119, 182));
@@ -519,11 +522,11 @@ void TicketPanel::render(RenderWindow& win) {
         win.draw(hDiv);
     }
 
-    Text h1(boldFont, L"ID v\u00e9", 13); h1.setFillColor(Color::White); h1.setPosition({col1X, tableY + 14.f}); win.draw(h1);
-    Text h2(boldFont, L"ID su\u1ea5t chi\u1ebfu", 13); h2.setFillColor(Color::White); h2.setPosition({col2X, tableY + 14.f}); win.draw(h2);
-    Text h3(boldFont, L"Email \u0111\u1eb7t v\u00e9", 13); h3.setFillColor(Color::White); h3.setPosition({col3X, tableY + 14.f}); win.draw(h3);
-    Text h4(boldFont, L"Ng\u00e0y \u0111\u1eb7t v\u00e9", 13); h4.setFillColor(Color::White); h4.setPosition({col4X, tableY + 14.f}); win.draw(h4);
-    Text h5(boldFont, L"Gi\u1edd \u0111\u1eb7t v\u00e9", 13); h5.setFillColor(Color::White); h5.setPosition({col5X, tableY + 14.f}); win.draw(h5);
+    drawCenteredText(boldFont, L"ID v\u00e9", 13, Color::White, tableX, div1, tableY + 14.f);
+    drawCenteredText(boldFont, L"ID su\u1ea5t chi\u1ebfu", 13, Color::White, div1, div2, tableY + 14.f);
+    drawCenteredText(boldFont, L"Email \u0111\u1eb7t v\u00e9", 13, Color::White, div2, div3, tableY + 14.f);
+    drawCenteredText(boldFont, L"Ng\u00e0y \u0111\u1eb7t v\u00e9", 13, Color::White, div3, div4, tableY + 14.f);
+    drawCenteredText(boldFont, L"Gi\u1edd \u0111\u1eb7t v\u00e9", 13, Color::White, div4, tableRight, tableY + 14.f);
 
     // Các dòng dữ liệu
     int startIdx = (currentPage - 1) * ticketsPerPage;
@@ -547,35 +550,11 @@ void TicketPanel::render(RenderWindow& win) {
             win.draw(rDiv);
         }
 
-        // ID vé
-        Text tId(boldFont, s2ws(t.ticketId), 13);
-        tId.setFillColor(isSel ? Color(2, 132, 199) : Color(71, 85, 105));
-        tId.setPosition({col1X, rY + 12.f});
-        win.draw(tId);
-
-        // ID suất chiếu
-        Text tSt(font, s2ws(t.showtimeId), 13);
-        tSt.setFillColor(Color(51, 65, 85));
-        tSt.setPosition({col2X, rY + 12.f});
-        win.draw(tSt);
-
-        // Email đặt vé
-        Text tEm(font, s2ws(t.email), 13);
-        tEm.setFillColor(Color(51, 65, 85));
-        tEm.setPosition({col3X, rY + 12.f});
-        win.draw(tEm);
-
-        // Ngày đặt vé
-        Text tDt(font, s2ws(t.bookedDate.empty() ? t.date : t.bookedDate), 13);
-        tDt.setFillColor(Color(51, 65, 85));
-        tDt.setPosition({col4X, rY + 12.f});
-        win.draw(tDt);
-
-        // Giờ đặt vé
-        Text tTm(font, s2ws(t.bookedTime.empty() ? t.time : t.bookedTime), 13);
-        tTm.setFillColor(Color(51, 65, 85));
-        tTm.setPosition({col5X, rY + 12.f});
-        win.draw(tTm);
+        drawCenteredText(boldFont, s2ws(t.ticketId), 13, isSel ? Color(2, 132, 199) : Color(71, 85, 105), tableX, div1, rY + 12.f);
+        drawCenteredText(font, s2ws(t.showtimeId), 13, Color(51, 65, 85), div1, div2, rY + 12.f);
+        drawCenteredText(font, s2ws(t.email), 13, Color(51, 65, 85), div2, div3, rY + 12.f);
+        drawCenteredText(font, s2ws(t.bookedDate.empty() ? t.date : t.bookedDate), 13, Color(51, 65, 85), div3, div4, rY + 12.f);
+        drawCenteredText(font, s2ws(t.bookedTime.empty() ? t.time : t.bookedTime), 13, Color(51, 65, 85), div4, tableRight, rY + 12.f);
     }
 
     // ==========================================

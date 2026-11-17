@@ -561,7 +561,7 @@ void UserPanel::handleEvent(const Event& event, const RenderWindow& window) {
                     selectedIndex = i;
                     filteredCustomers[i]->selected = !filteredCustomers[i]->selected;
 
-                    float col_act = position.x + 20.f + (width - 40.f) - 130.f;
+                    float col_act = position.x + 20.f + (width - 40.f) - 150.f;
                     if (FloatRect({col_act, ry + 12.f}, {34.f, 26.f}).contains(mPos)) {
                         activeDialog = DialogType::VIEW;
                         dialogUserIndex = i;
@@ -1028,15 +1028,15 @@ void UserPanel::drawCustomerTable(RenderTarget& target) const {
     // Dark Navy Header Bar
     RoundedRectRenderer::draw(target, {tableX, tableY}, {tableW, headerH}, 6.f, Color(15, 23, 42));
 
-    // Column positions
-    float col_stt = tableX + 50.f;
-    float col_name = tableX + 100.f;
-    float col_email = tableX + 380.f;
-    float col_phone = tableX + 600.f;
-    float col_tier = tableX + 740.f;
-    float col_date = tableX + 880.f;
-    float col_bought = tableX + 1040.f;
-    float col_action = tableX + tableW - 130.f;
+    // Column positions (evenly distributed across tableW)
+    float col_stt    = tableX + 46.f;
+    float col_name   = tableX + 94.f;
+    float col_email  = tableX + tableW * 0.27f;
+    float col_phone  = tableX + tableW * 0.45f;
+    float col_tier   = tableX + tableW * 0.57f;
+    float col_date   = tableX + tableW * 0.69f;
+    float col_bought = tableX + tableW * 0.80f;
+    float col_action = tableX + tableW - 150.f;
 
     float thY = tableY + 13.f;
     Text th_stt(boldFont); th_stt.setString(L"STT"); th_stt.setCharacterSize(12.5f); th_stt.setFillColor(Color::White); th_stt.setPosition({col_stt, thY}); target.draw(th_stt);

@@ -854,21 +854,6 @@ void MovieRevenuePanel::drawKpiCards(RenderTarget& target) const {
         lbl.setPosition({cPos.x + 16.f, cPos.y + 12.f});
         target.draw(lbl);
 
-        // Icon circle
-        Vector2f iconPos(cPos.x + cardW - 36.f, cPos.y + 12.f);
-        CircleShape iconCircle(13.f);
-        iconCircle.setPosition(iconPos);
-        iconCircle.setFillColor(Color(254, 226, 226));
-        target.draw(iconCircle);
-
-        Text iconTxt(boldFont);
-        iconTxt.setString(L"$");
-        iconTxt.setCharacterSize(12);
-        iconTxt.setFillColor(Color(225, 29, 72));
-        FloatRect ib = iconTxt.getLocalBounds();
-        iconTxt.setPosition({iconPos.x + 13.f - ib.size.x / 2.f - ib.position.x, iconPos.y + 13.f - ib.size.y / 2.f - ib.position.y});
-        target.draw(iconTxt);
-
         // Big value
         Text val(boldFont);
         val.setString(s2ws(toCurrency(totalRevenue)));
@@ -908,20 +893,6 @@ void MovieRevenuePanel::drawKpiCards(RenderTarget& target) const {
         lbl.setPosition({cPos.x + 16.f, cPos.y + 12.f});
         target.draw(lbl);
 
-        Vector2f iconPos(cPos.x + cardW - 36.f, cPos.y + 12.f);
-        CircleShape iconCircle(13.f);
-        iconCircle.setPosition(iconPos);
-        iconCircle.setFillColor(Color(224, 242, 254));
-        target.draw(iconCircle);
-
-        ConvexShape playIco;
-        playIco.setPointCount(3);
-        playIco.setPoint(0, {iconPos.x + 10.5f, iconPos.y + 8.5f});
-        playIco.setPoint(1, {iconPos.x + 17.5f, iconPos.y + 13.f});
-        playIco.setPoint(2, {iconPos.x + 10.5f, iconPos.y + 17.5f});
-        playIco.setFillColor(Color(2, 132, 199));
-        target.draw(playIco);
-
         Text val(boldFont);
         val.setString(s2ws(toCurrency(movieRevenue)));
         val.setCharacterSize(22);
@@ -959,20 +930,6 @@ void MovieRevenuePanel::drawKpiCards(RenderTarget& target) const {
         lbl.setFillColor(Color(100, 116, 139));
         lbl.setPosition({cPos.x + 16.f, cPos.y + 12.f});
         target.draw(lbl);
-
-        Vector2f iconPos(cPos.x + cardW - 36.f, cPos.y + 12.f);
-        CircleShape iconCircle(13.f);
-        iconCircle.setPosition(iconPos);
-        iconCircle.setFillColor(Color(254, 243, 199));
-        target.draw(iconCircle);
-
-        Text fbTxt(boldFont);
-        fbTxt.setString(L"F&B");
-        fbTxt.setCharacterSize(10.f);
-        fbTxt.setFillColor(Color(217, 119, 6));
-        FloatRect fbb = fbTxt.getLocalBounds();
-        fbTxt.setPosition({iconPos.x + 13.f - fbb.size.x / 2.f - fbb.position.x, iconPos.y + 13.f - fbb.size.y / 2.f - fbb.position.y});
-        target.draw(fbTxt);
 
         Text val(boldFont);
         val.setString(s2ws(toCurrency(comboRevenue)));

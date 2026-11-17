@@ -472,7 +472,8 @@ void ComboPanel::handleEvent(const Event& event, const RenderWindow& win) {
                     }
 
                     // Click action edit
-                    FloatRect btnRowEdit({position.x + width - 110.f, rY + 22.f}, {34.f, 28.f});
+                    float actX = position.x + width - 30.f - 120.f + (120.f - 70.f) / 2.f;
+                    FloatRect btnRowEdit({actX, rY + 22.f}, {34.f, 28.f});
                     if (btnRowEdit.contains(mousePos)) {
                         string selId = filteredCombos[selectedRow].id;
                         for (size_t i = 0; i < allCombos.size(); ++i) {
@@ -492,7 +493,7 @@ void ComboPanel::handleEvent(const Event& event, const RenderWindow& win) {
                     }
 
                     // Click action delete
-                    FloatRect btnRowDel({position.x + width - 72.f, rY + 22.f}, {34.f, 28.f});
+                    FloatRect btnRowDel({actX + 38.f, rY + 22.f}, {34.f, 28.f});
                     if (btnRowDel.contains(mousePos)) {
                         string selId = filteredCombos[selectedRow].id;
                         for (auto it = allCombos.begin(); it != allCombos.end(); ++it) {
@@ -813,27 +814,43 @@ void ComboPanel::render(RenderWindow& win) {
     // ==========================================
     // 6. BẢNG DỮ LIỆU COMBO (DATA TABLE)
     // ==========================================
+    float tableX = position.x + 30.f;
     float tableY = position.y + 346.f;
     float tableW = width - 60.f;
+    float tableRight = tableX + tableW;
     float rowH = 72.f;
 
+    const float div1 = tableX + 128.f;
+    const float div5 = tableRight - 120.f;
+    const float div4 = div5 - 150.f;
+    const float div3 = div4 - 165.f;
+    const float div2 = div3 - 145.f;
+
+    auto drawCenteredHdr = [&](const wstring& str, float xStart, float xEnd) {
+        Text h(boldFont, str, 12.5f);
+        h.setFillColor(Color::White);
+        FloatRect hb = h.getLocalBounds();
+        h.setPosition({xStart + (xEnd - xStart - hb.size.x) / 2.f - hb.position.x, tableY + 13.f});
+        win.draw(h);
+    };
+
     // Header bảng (#0077B6)
-    drawRoundedCard(win, {position.x + 30.f, tableY}, {tableW, 44.f}, 6.f, Color(0, 119, 182));
+    drawRoundedCard(win, {tableX, tableY}, {tableW, 44.f}, 6.f, Color(0, 119, 182));
 
-    const float col_code   = position.x + 85.f;
-    const float col_name   = position.x + 195.f;
-    const float col_act    = position.x + width - 110.f;
-    const float col_status = col_act - 135.f;
-    const float col_price  = col_status - 155.f;
-    const float col_cat    = col_price - 135.f;
+    for (float dx : {div1, div2, div3, div4, div5}) {
+        RectangleShape hDiv(Vector2f(1.f, 44.f));
+        hDiv.setPosition({dx, tableY});
+        hDiv.setFillColor(Color(255, 255, 255, 45));
+        win.draw(hDiv);
+    }
 
-    drawRoundedCard(win, {position.x + 44.f, tableY + 14.f}, {16.f, 16.f}, 3.f, Color(255, 255, 255, 60));
-    Text h1(boldFont, L"M\u00c3 COMBO", 12.5f); h1.setFillColor(Color::White); h1.setPosition({col_code, tableY + 12.f}); win.draw(h1);
-    Text h2(boldFont, L"T\u00caN COMBO & QUY CHU\u1ea8N CHI TI\u1ebeT", 12.5f); h2.setFillColor(Color::White); h2.setPosition({col_name, tableY + 12.f}); win.draw(h2);
-    Text h3(boldFont, L"PH\u00c2N LO\u1ea0I", 12.5f); h3.setFillColor(Color::White); h3.setPosition({col_cat + 10.f, tableY + 12.f}); win.draw(h3);
-    Text h4(boldFont, L"GI\u00c1 B\u00c1N NI\u00caM Y\u1ebeT", 12.5f); h4.setFillColor(Color::White); h4.setPosition({col_price - 14.f, tableY + 12.f}); win.draw(h4);
-    Text h5(boldFont, L"TR\u1ea0NG TH\u00c1I", 12.5f); h5.setFillColor(Color::White); h5.setPosition({col_status + 6.f, tableY + 12.f}); win.draw(h5);
-    Text h6(boldFont, L"THAO T\u00c1C", 12.5f); h6.setFillColor(Color::White); h6.setPosition({col_act, tableY + 12.f}); win.draw(h6);
+    drawRoundedCard(win, {tableX + 14.f, tableY + 14.f}, {16.f, 16.f}, 3.f, Color(255, 255, 255, 60));
+    Text h1(boldFont, L"M\u00c3 COMBO", 12.5f); h1.setFillColor(Color::White); h1.setPosition({tableX + 44.f, tableY + 13.f}); win.draw(h1);
+    Text h2(boldFont, L"T\u00caN COMBO & QUY CHU\u1ea8N CHI TI\u1ebeT", 12.5f); h2.setFillColor(Color::White); h2.setPosition({div1 + 18.f, tableY + 13.f}); win.draw(h2);
+    drawCenteredHdr(L"PH\u00c2N LO\u1ea0I", div2, div3);
+    drawCenteredHdr(L"GI\u00c1 B\u00c1N NI\u00caM Y\u1ebeT", div3, div4);
+    drawCenteredHdr(L"TR\u1ea0NG TH\u00c1I", div4, div5);
+    drawCenteredHdr(L"THAO T\u00c1C", div5, tableRight);
 
     // Dòng dữ liệu
     int count = min((int)filteredCombos.size() - scrollOffset, maxVisibleRows);
@@ -847,38 +864,48 @@ void ComboPanel::render(RenderWindow& win) {
         bool isHov = (hoveredRow == r);
 
         Color rowBg = isSel ? Color(224, 242, 254) : (isHov ? Color(248, 250, 252) : Color::White);
-        drawRoundedCard(win, {position.x + 30.f, rY}, {tableW, rowH}, 0.f, rowBg, 0.5f, Color(226, 232, 240));
+        drawRoundedCard(win, {tableX, rY}, {tableW, rowH}, 0.f, rowBg, 0.5f, Color(226, 232, 240));
+
+        for (float dx : {div1, div2, div3, div4, div5}) {
+            RectangleShape rDiv(Vector2f(1.f, rowH));
+            rDiv.setPosition({dx, rY});
+            rDiv.setFillColor(Color(241, 245, 249));
+            win.draw(rDiv);
+        }
 
         // 1. Checkbox
-        drawRoundedCard(win, {position.x + 44.f, rY + 28.f}, {16.f, 16.f}, 3.f, itm.isChecked ? Color(2, 132, 199) : Color::White, 1.f, Color(203, 213, 225));
+        drawRoundedCard(win, {tableX + 14.f, rY + 28.f}, {16.f, 16.f}, 3.f, itm.isChecked ? Color(2, 132, 199) : Color::White, 1.f, Color(203, 213, 225));
         if (itm.isChecked) {
-            UITheme::drawCheckmark(win, {position.x + 52.f, rY + 36.f}, 0.72f, Color::White, 2.f);
+            UITheme::drawCheckmark(win, {tableX + 22.f, rY + 36.f}, 0.72f, Color::White, 2.f);
         }
 
         // 2. Mã combo (Badge viền mỏng)
-        drawRoundedCard(win, {position.x + 80.f, rY + 24.f}, {55.f, 24.f}, 4.f, Color(248, 250, 252), 1.f, Color(226, 232, 240));
-        Text idTxt(boldFont, s2ws(itm.id), 12.5f); idTxt.setFillColor(Color(51, 65, 85)); idTxt.setPosition({position.x + 90.f, rY + 27.f}); win.draw(idTxt);
+        drawRoundedCard(win, {tableX + 44.f, rY + 24.f}, {55.f, 24.f}, 4.f, Color(248, 250, 252), 1.f, Color(226, 232, 240));
+        Text idTxt(boldFont, s2ws(itm.id), 12.5f); idTxt.setFillColor(Color(51, 65, 85));
+        FloatRect idb = idTxt.getLocalBounds();
+        idTxt.setPosition({tableX + 44.f + (55.f - idb.size.x) / 2.f - idb.position.x, rY + 27.f});
+        win.draw(idTxt);
 
-        // 3. Tên combo & Quy chuẩn chi tiết
-        // Real photo image from assets/combos
+        // 3. Tên combo & Quy chuẩn chi tiết (giữ nguyên ảnh minh họa combo)
+        const float thumbX = div1 + 18.f;
         const Texture* cTex = getComboTexture(itm.id, itm.name);
         if (cTex) {
-            drawRoundedCard(win, {col_name, rY + 14.f}, {44.f, 44.f}, 8.f, Color::White, 1.2f, Color(226, 232, 240));
+            drawRoundedCard(win, {thumbX, rY + 14.f}, {44.f, 44.f}, 8.f, Color::White, 1.2f, Color(226, 232, 240));
             Sprite spr(*cTex);
             Vector2u sz = cTex->getSize();
             spr.setScale({42.f / (float)sz.x, 42.f / (float)sz.y});
-            spr.setPosition({col_name + 1.f, rY + 15.f});
+            spr.setPosition({thumbX + 1.f, rY + 15.f});
             win.draw(spr);
-            drawRoundedCard(win, {col_name + 1.f, rY + 15.f}, {42.f, 42.f}, 6.f, Color::Transparent, 1.f, Color(203, 213, 225));
+            drawRoundedCard(win, {thumbX + 1.f, rY + 15.f}, {42.f, 42.f}, 6.f, Color::Transparent, 1.f, Color(203, 213, 225));
         } else {
-            drawRoundedCard(win, {col_name + 1.f, rY + 15.f}, {42.f, 42.f}, 8.f, itm.category == L"Đồ uống" ? Color(254, 226, 226) : Color(254, 243, 199));
+            drawRoundedCard(win, {thumbX + 1.f, rY + 15.f}, {42.f, 42.f}, 8.f, itm.category == L"Đồ uống" ? Color(254, 226, 226) : Color(254, 243, 199));
             Text icDish(boldFont, itm.category == L"Đồ uống" ? L"DRINK" : L"SNACK", 10);
             icDish.setFillColor(Color(180, 83, 9));
-            icDish.setPosition({col_name + 5.f, rY + 28.f});
+            icDish.setPosition({thumbX + 5.f, rY + 28.f});
             win.draw(icDish);
         }
 
-        const float comboTextX = col_name + 56.f;
+        const float comboTextX = thumbX + 56.f;
         Text nameTxt(boldFont, itm.name, 14.f);
         nameTxt.setFillColor(Color(15, 23, 42));
         nameTxt.setPosition({comboTextX, rY + 14.f});
@@ -901,7 +928,7 @@ void ComboPanel::render(RenderWindow& win) {
         subTxt.setPosition({comboTextX, rY + 38.f});
         win.draw(subTxt);
 
-        // 4. Phân loại (Badge pill)
+        // 4. Phân loại (Badge pill căn giữa trong [div2, div3])
         Color catBg = Color(241, 245, 249);
         Color catFg = Color(71, 85, 105);
         if (itm.category == L"B\u1eafp ng\u1ecdt") { catBg = Color(254, 243, 199); catFg = Color(180, 83, 9); }
@@ -909,25 +936,28 @@ void ComboPanel::render(RenderWindow& win) {
         else if (itm.category == L"Combo \u0110\u01a1n") { catBg = Color(224, 242, 254); catFg = Color(2, 132, 199); }
         else if (itm.category == L"Combo Nh\u00f3m") { catBg = Color(243, 232, 255); catFg = Color(126, 34, 206); }
 
-        drawRoundedCard(win, {col_cat, rY + 24.f}, {92.f, 26.f}, 13.f, catBg);
+        float catPillX = div2 + ((div3 - div2) - 92.f) / 2.f;
+        drawRoundedCard(win, {catPillX, rY + 23.f}, {92.f, 26.f}, 13.f, catBg);
         Text catTxt(boldFont, itm.category, 12); catTxt.setFillColor(catFg);
         FloatRect ctb = catTxt.getLocalBounds();
-        catTxt.setPosition({col_cat + (92.f - ctb.size.x) / 2.f - ctb.position.x, rY + 24.f + (26.f - ctb.size.y) / 2.f - ctb.position.y});
+        catTxt.setPosition({catPillX + (92.f - ctb.size.x) / 2.f - ctb.position.x, rY + 23.f + (26.f - ctb.size.y) / 2.f - ctb.position.y});
         win.draw(catTxt);
 
-        // 5. Giá bán niêm yết
+        // 5. Giá bán niêm yết (căn giữa trong [div3, div4])
         Text prTxt(boldFont, s2ws(formatPrice(itm.price)), 13.5f);
         prTxt.setFillColor(Color(15, 23, 42));
-        prTxt.setPosition({col_price + 6.f, rY + 26.f});
+        FloatRect prb = prTxt.getLocalBounds();
+        prTxt.setPosition({div3 + ((div4 - div3) - prb.size.x) / 2.f - prb.position.x, rY + 26.f});
         win.draw(prTxt);
 
-        // 6. Trạng thái: ● Đang bán
-        drawRoundedCard(win, {col_status, rY + 24.f}, {92.f, 26.f}, 13.f, Color(220, 252, 231));
-        CircleShape dotG(3.f); dotG.setFillColor(Color(22, 101, 52)); dotG.setPosition({col_status + 8.f, rY + 34.f}); win.draw(dotG);
-        Text stTxt(boldFont, L"\u0110ang b\u00e1n", 12); stTxt.setFillColor(Color(22, 101, 52)); stTxt.setPosition({col_status + 18.f, rY + 28.f}); win.draw(stTxt);
+        // 6. Trạng thái: ● Đang bán (căn giữa trong [div4, div5])
+        float stPillX = div4 + ((div5 - div4) - 92.f) / 2.f;
+        drawRoundedCard(win, {stPillX, rY + 23.f}, {92.f, 26.f}, 13.f, Color(220, 252, 231));
+        CircleShape dotG(3.f); dotG.setFillColor(Color(22, 101, 52)); dotG.setPosition({stPillX + 8.f, rY + 33.f}); win.draw(dotG);
+        Text stTxt(boldFont, L"\u0110ang b\u00e1n", 12); stTxt.setFillColor(Color(22, 101, 52)); stTxt.setPosition({stPillX + 18.f, rY + 27.f}); win.draw(stTxt);
 
-        // 7. Thao tác: Nút Sửa & Xóa
-        float actX = col_act;
+        // 7. Thao tác: Nút Sửa & Xóa (căn giữa trong [div5, tableRight])
+        float actX = div5 + ((tableRight - div5) - 70.f) / 2.f;
         drawRoundedCard(win, {actX, rY + 24.f}, {32.f, 24.f}, 4.f, Color(254, 243, 199));
         Text btnEd(boldFont, L"S\u1eeda", 11.5f);
         btnEd.setFillColor(Color(180, 83, 9));
