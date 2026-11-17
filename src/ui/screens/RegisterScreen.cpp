@@ -1,4 +1,4 @@
-﻿#include "UI/screens/RegisterScreen.h"
+#include "UI/screens/RegisterScreen.h"
 #include "UI/components/Admin/RoundedRectRenderer.h"
 #ifdef _WIN32
 #include <windows.h>
@@ -23,7 +23,10 @@ RegisterScreen::RegisterScreen(const Font& f, AuthService& authRef)
     if (!boldFont.openFromFile("../assets/fonts/segoeuib.ttf")) {
         boldFont = f;
     }
-    if (logoTexture.loadFromFile("../assets/images/logo.png")) {
+    if (logoTexture.loadFromFile("../assets/elements/cinexine_logo.png") ||
+        logoTexture.loadFromFile("assets/elements/cinexine_logo.png") ||
+        logoTexture.loadFromFile("../assets/elements/icon.png") ||
+        logoTexture.loadFromFile("assets/elements/icon.png")) {
         logoTexture.setSmooth(true);
         logoSprite.emplace(logoTexture);
     }
@@ -277,15 +280,25 @@ void RegisterScreen::draw(RenderWindow& window) {
     RoundedRectRenderer::draw(window, {cardX, cardY}, {cardW, cardH}, 20.f, Color::White, 1.f, Color(226, 232, 240));
 
     // Brand Header inside Card
-    drawVectorPortalLogo(window, {leftX, cardY + 32.f}, 44.f);
+    float brandTextX = leftX + 58.f;
+    if (logoSprite) {
+        float targetH = 44.f;
+        float scale = targetH / (float)logoTexture.getSize().y;
+        logoSprite->setScale({scale, scale});
+        logoSprite->setPosition({leftX, cardY + 32.f});
+        window.draw(*logoSprite);
+        brandTextX = leftX + (float)logoTexture.getSize().x * scale + 14.f;
+    } else {
+        drawVectorPortalLogo(window, {leftX, cardY + 32.f}, 44.f);
+    }
     Text brandTop(boldFont, L"CINECORE ENTERPRISE", 10.5f);
     brandTop.setFillColor(Color(100, 116, 139));
-    brandTop.setPosition({leftX + 58.f, cardY + 35.f});
+    brandTop.setPosition({brandTextX, cardY + 35.f});
     window.draw(brandTop);
 
     Text brandMain(boldFont, L"CineCore Portal", 17.f);
     brandMain.setFillColor(Color(15, 23, 42));
-    brandMain.setPosition({leftX + 58.f, cardY + 51.f});
+    brandMain.setPosition({brandTextX, cardY + 51.f});
     window.draw(brandMain);
 
     RectangleShape topDiv({cardW, 1.f});
