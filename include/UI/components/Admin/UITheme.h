@@ -236,13 +236,7 @@ namespace UITheme {
                             Color iconBg, Color iconColor, const Font& boldFont) {
         // Card Body
         RoundedRectRenderer::draw(target, pos, size, 12.f, Surface, 1.2f, BorderLight);
-
-        // Icon Circle (Top-Right)
-        float iconR = 19.f;
-        CircleShape ic(iconR, 20);
-        ic.setFillColor(iconBg);
-        ic.setPosition({pos.x + size.x - 48.f, pos.y + 14.f});
-        target.draw(ic);
+        (void)iconBg;
 
         // Title
         Text t(boldFont, title, TableHeaderSize);

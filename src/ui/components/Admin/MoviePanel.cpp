@@ -886,28 +886,24 @@ void MoviePanel::render(RenderWindow& window) {
     UITheme::drawKpiCard(window, {startX, cardY}, {cardW, cardH},
                          L"Phim đang chiếu", to_wstring(countActive), L"Đang tạo doanh thu",
                          UITheme::SuccessLight, UITheme::SuccessDark, boldFont);
-    UITheme::drawPlayIcon(window, {startX + cardW - 29.f, cardY + 33.f}, 13.f, UITheme::SuccessDark);
 
     // Card 2: Phim sắp khởi chiếu
     float c2X = startX + cardW + cardGap;
     UITheme::drawKpiCard(window, {c2X, cardY}, {cardW, cardH},
                          L"Phim sắp khởi chiếu", to_wstring(countUpcoming), L"Đã mở bán sớm",
                          UITheme::InfoLight, UITheme::InfoDark, boldFont);
-    UITheme::drawCalendarIcon(window, {c2X + cardW - 29.f, cardY + 33.f}, 17.f, UITheme::InfoDark);
 
     // Card 3: Tổng suất hôm nay
     float c3X = c2X + cardW + cardGap;
     UITheme::drawKpiCard(window, {c3X, cardY}, {cardW, cardH},
                          L"Tổng suất hôm nay", L"42", L"12 phòng chiếu full",
                          Color(243, 232, 255), Color(126, 34, 206), boldFont);
-    UITheme::drawClockIcon(window, {c3X + cardW - 29.f, cardY + 33.f}, 8.5f, Color(126, 34, 206));
 
     // Card 4: Tổng phim quản lý
     float c4X = c3X + cardW + cardGap;
     UITheme::drawKpiCard(window, {c4X, cardY}, {cardW, cardH},
                          L"Tổng phim quản lý", to_wstring(allMovies.size()), L"Kho dữ liệu CineCore",
                          UITheme::SurfaceSubtle, UITheme::TextSecondary, boldFont);
-    UITheme::drawFilmIcon(window, {c4X + cardW - 29.f, cardY + 33.f}, 18.f, UITheme::TextSecondary);
 
     // 5. TOOLBAR (Search & Filters & Actions)
     const float toolY = 252.f;
