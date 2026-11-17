@@ -952,7 +952,6 @@ void VoucherPanel::render(RenderWindow& win) {
     float c1X = position.x + 30.f;
     drawRoundedCard(win, {c1X, statY}, {cardW, cardH}, 10.f, Color::White, 1.f, Color(226, 232, 240));
     Text sc1T(boldFont, L"T\u1ed5ng voucher kh\u1ea3 d\u1ee5ng", 13); sc1T.setFillColor(Color(100, 116, 139)); sc1T.setPosition({c1X + 16.f, statY + 12.f}); win.draw(sc1T);
-    CircleShape ic1(12.f); ic1.setFillColor(Color(224, 242, 254)); ic1.setPosition({c1X + cardW - 36.f, statY + 10.f}); win.draw(ic1);
     Text sc1V(boldFont, to_wstring(allVouchers.size()), 22); sc1V.setFillColor(Color(15, 23, 42)); sc1V.setPosition({c1X + 16.f, statY + 34.f}); win.draw(sc1V);
     FloatRect v1b = sc1V.getGlobalBounds();
     Text sc1U(font, L"chi\u1ebfn d\u1ecbch", 12.5f); sc1U.setFillColor(Color(100, 116, 139)); sc1U.setPosition({v1b.position.x + v1b.size.x + 8.f, statY + 41.f}); win.draw(sc1U);
@@ -961,7 +960,6 @@ void VoucherPanel::render(RenderWindow& win) {
     float c2X = c1X + cardW + 15.f;
     drawRoundedCard(win, {c2X, statY}, {cardW, cardH}, 10.f, Color::White, 1.f, Color(226, 232, 240));
     Text sc2T(boldFont, L"\u0110\u00e3 quy \u0111\u1ed5i / S\u1eed d\u1ee5ng", 13); sc2T.setFillColor(Color(100, 116, 139)); sc2T.setPosition({c2X + 16.f, statY + 12.f}); win.draw(sc2T);
-    CircleShape ic2(12.f); ic2.setFillColor(Color(220, 252, 231)); ic2.setPosition({c2X + cardW - 36.f, statY + 10.f}); win.draw(ic2);
     Text sc2V(boldFont, L"1,420", 22); sc2V.setFillColor(Color(15, 23, 42)); sc2V.setPosition({c2X + 16.f, statY + 34.f}); win.draw(sc2V);
     FloatRect v2b = sc2V.getGlobalBounds();
     Text sc2P(boldFont, L"(68%)", 12.5f); sc2P.setFillColor(Color(5, 150, 105)); sc2P.setPosition({v2b.position.x + v2b.size.x + 8.f, statY + 41.f}); win.draw(sc2P);
@@ -970,14 +968,12 @@ void VoucherPanel::render(RenderWindow& win) {
     float c3X = c2X + cardW + 15.f;
     drawRoundedCard(win, {c3X, statY}, {cardW, cardH}, 10.f, Color::White, 1.f, Color(226, 232, 240));
     Text sc3T(boldFont, L"T\u1ed5ng ng\u00e2n s\u00e1ch chi\u1ebft kh\u1ea5u", 13); sc3T.setFillColor(Color(100, 116, 139)); sc3T.setPosition({c3X + 16.f, statY + 12.f}); win.draw(sc3T);
-    CircleShape ic3(12.f); ic3.setFillColor(Color(254, 243, 199)); ic3.setPosition({c3X + cardW - 36.f, statY + 10.f}); win.draw(ic3);
     Text sc3V(boldFont, L"42.500.000 \u0111", 20); sc3V.setFillColor(Color(15, 23, 42)); sc3V.setPosition({c3X + 16.f, statY + 36.f}); win.draw(sc3V);
 
     // Card 4: Đang chọn khảo sát
     float c4X = c3X + cardW + 15.f;
     drawRoundedCard(win, {c4X, statY}, {cardW, cardH}, 10.f, Color::White, 1.f, Color(226, 232, 240));
     Text sc4T(font, L"\u0110ang ch\u1ecdn kh\u1ea3o s\u00e1t", 13); sc4T.setFillColor(Color(100, 116, 139)); sc4T.setPosition({c4X + 16.f, statY + 12.f}); win.draw(sc4T);
-    CircleShape ic4(12.f); ic4.setFillColor(Color(224, 242, 254)); ic4.setPosition({c4X + cardW - 36.f, statY + 10.f}); win.draw(ic4);
     string selCode = (selectedVoucherIndex >= 0 && selectedVoucherIndex < (int)filteredVouchers.size()) ? filteredVouchers[selectedVoucherIndex].code : "WELCOME";
     Text sc4V(boldFont, s2ws(selCode), 20); sc4V.setFillColor(Color(2, 132, 199)); sc4V.setPosition({c4X + 16.f, statY + 36.f}); win.draw(sc4V);
 
