@@ -150,8 +150,8 @@ void AdminProfilePanel::handleEvent(const Event& event, const RenderWindow& wind
             const float colGap = 18.f;
             const float colW = (width - 40.f - colGap) / 2.f;
 
-            // 1. Delete Account button (khớp drawHeaderBanner: cardX + cardW - 240.f, cardY + 40.f)
-            FloatRect delRect({position.x + width - 260.f, position.y + 60.f}, {216.f, 42.f});
+            // 1. Delete Account button (khớp drawHeaderBanner: cardX + cardW - 254.f, cardY + 40.f)
+            FloatRect delRect({position.x + width - 274.f, position.y + 60.f}, {230.f, 42.f});
             if (delRect.contains(mPos)) {
                 showDeleteConfirm = true;
                 return;
@@ -284,7 +284,7 @@ void AdminProfilePanel::update(const Vector2f& mousePos, bool /*mouseDown*/) {
     const float colW = (width - 40.f - colGap) / 2.f;
 
     // Delete button hover
-    deleteHovered = FloatRect({position.x + width - 260.f, position.y + 60.f}, {216.f, 42.f}).contains(mousePos);
+    deleteHovered = FloatRect({position.x + width - 274.f, position.y + 60.f}, {230.f, 42.f}).contains(mousePos);
 
     // Save button hover
     saveInfoHovered = FloatRect({position.x + 44.f, position.y + 158.f + 386.f}, {170.f, 42.f}).contains(mousePos);
@@ -372,20 +372,20 @@ void AdminProfilePanel::drawHeaderBanner(RenderTarget& target) const {
 
     float tW = title.getGlobalBounds().size.x;
     Vector2f bPos(textX + tW + 14.f, cardY + 28.f);
-    RoundedRectRenderer::draw(target, bPos, {164.f, 24.f}, 12.f, Color(224, 242, 254), 1.f, Color(186, 230, 253));
-    UITheme::drawShieldIcon(target, {bPos.x + 15.f, bPos.y + 12.f}, 5.5f, Color(2, 132, 199));
-    Text bTxt(boldFont, L"Quản trị viên cấp cao", 11.5f);
+    RoundedRectRenderer::draw(target, bPos, {180.f, 26.f}, 13.f, Color(224, 242, 254), 1.f, Color(186, 230, 253));
+    UITheme::drawShieldIcon(target, {bPos.x + 15.f, bPos.y + 13.f}, 5.5f, Color(2, 132, 199));
+    Text bTxt(boldFont, L"Quản trị viên cấp cao", 13.f);
     bTxt.setFillColor(Color(2, 132, 199));
     bTxt.setPosition({bPos.x + 25.f, bPos.y + 4.f});
     target.draw(bTxt);
 
-    Vector2f stPos(bPos.x + 174.f, cardY + 28.f);
-    RoundedRectRenderer::draw(target, stPos, {162.f, 24.f}, 12.f, Color(220, 252, 231), 1.f, Color(167, 243, 208));
+    Vector2f stPos(bPos.x + 190.f, cardY + 28.f);
+    RoundedRectRenderer::draw(target, stPos, {178.f, 26.f}, 13.f, Color(220, 252, 231), 1.f, Color(167, 243, 208));
     CircleShape stDot(3.2f);
     stDot.setFillColor(Color(16, 185, 129));
-    stDot.setPosition({stPos.x + 10.f, stPos.y + 9.f});
+    stDot.setPosition({stPos.x + 10.f, stPos.y + 10.f});
     target.draw(stDot);
-    Text stTxt(boldFont, L"Đang hoạt động (Active)", 11.5f);
+    Text stTxt(boldFont, L"Đang hoạt động (Active)", 13.f);
     stTxt.setFillColor(Color(5, 150, 105));
     stTxt.setPosition({stPos.x + 20.f, stPos.y + 4.f});
     target.draw(stTxt);
@@ -393,32 +393,32 @@ void AdminProfilePanel::drawHeaderBanner(RenderTarget& target) const {
     // Line 2: Email • Vai trò • Đăng nhập gần nhất • IP pill
     Text meta(font);
     meta.setString(L"Email: " + s2ws(email) + L"   •   Vai trò: Quản trị viên hệ thống   •   Đăng nhập gần nhất: 10 phút trước   •   ");
-    meta.setCharacterSize(12.5f);
+    meta.setCharacterSize(13.f);
     meta.setFillColor(Color(100, 116, 139));
-    meta.setPosition({textX, cardY + 68.f});
+    meta.setPosition({textX, cardY + 67.f});
     target.draw(meta);
 
     float metaW = meta.getGlobalBounds().size.x;
     Vector2f ipPos(textX + metaW + 2.f, cardY + 64.f);
-    Text ipTxt(font, L"IP: 118.69.182.45 (Đà Nẵng)", 11.5f);
+    Text ipTxt(font, L"IP: 118.69.182.45 (Đà Nẵng)", 13.f);
     ipTxt.setFillColor(Color(71, 85, 105));
     float ipPillW = ipTxt.getGlobalBounds().size.x + 18.f;
-    RoundedRectRenderer::draw(target, ipPos, {ipPillW, 22.f}, 6.f, Color(241, 245, 249));
-    ipTxt.setPosition({ipPos.x + 9.f, ipPos.y + 3.f});
+    RoundedRectRenderer::draw(target, ipPos, {ipPillW, 24.f}, 6.f, Color(241, 245, 249));
+    ipTxt.setPosition({ipPos.x + 9.f, cardY + 67.f});
     target.draw(ipTxt);
 
     // Danger Button: XÓA VĨNH VIỄN TÀI KHOẢN
-    Vector2f delPos(cardX + cardW - 240.f, cardY + 40.f);
+    Vector2f delPos(cardX + cardW - 254.f, cardY + 40.f);
     Color delBg = deleteHovered ? Color(185, 28, 28) : Color(220, 38, 38);
-    RoundedRectRenderer::draw(target, delPos, {216.f, 42.f}, 8.f, delBg);
+    RoundedRectRenderer::draw(target, delPos, {230.f, 42.f}, 8.f, delBg);
     // Vector trash icon
-    RectangleShape trHandle({4.f, 1.5f}); trHandle.setFillColor(Color::White); trHandle.setPosition({delPos.x + 20.f, delPos.y + 14.5f}); target.draw(trHandle);
-    RectangleShape trLid({10.f, 1.5f}); trLid.setFillColor(Color::White); trLid.setPosition({delPos.x + 17.f, delPos.y + 16.5f}); target.draw(trLid);
-    RoundedRectRenderer::draw(target, {delPos.x + 18.f, delPos.y + 19.f}, {8.f, 9.f}, 1.5f, Color::Transparent, 1.4f, Color::White);
-    Text delTxt(boldFont, L"XÓA VĨNH VIỄN TÀI KHOẢN", 11.5f);
+    RectangleShape trHandle({4.f, 1.5f}); trHandle.setFillColor(Color::White); trHandle.setPosition({delPos.x + 16.f, delPos.y + 14.5f}); target.draw(trHandle);
+    RectangleShape trLid({10.f, 1.5f}); trLid.setFillColor(Color::White); trLid.setPosition({delPos.x + 13.f, delPos.y + 16.5f}); target.draw(trLid);
+    RoundedRectRenderer::draw(target, {delPos.x + 14.f, delPos.y + 19.f}, {8.f, 9.f}, 1.5f, Color::Transparent, 1.4f, Color::White);
+    Text delTxt(boldFont, L"XÓA VĨNH VIỄN TÀI KHOẢN", 13.f);
     delTxt.setFillColor(Color::White);
     FloatRect db = delTxt.getLocalBounds();
-    delTxt.setPosition({delPos.x + 36.f, delPos.y + (42.f - db.size.y) / 2.f - db.position.y});
+    delTxt.setPosition({delPos.x + 32.f, delPos.y + (42.f - db.size.y) / 2.f - db.position.y});
     target.draw(delTxt);
 }
 
@@ -438,22 +438,22 @@ void AdminProfilePanel::drawPersonalInfoCard(RenderTarget& target) const {
     UITheme::drawIdCardIcon(target, {icPos.x + 17.f, icPos.y + 17.f}, Color(2, 132, 199));
 
     // Title
-    Text title(boldFont, L"THÔNG TIN CÁ NHÂN", 14.f);
+    Text title(boldFont, L"THÔNG TIN CÁ NHÂN", 13.f);
     title.setFillColor(Color(15, 23, 42));
     title.setPosition({cardX + 68.f, cardY + 18.f});
     target.draw(title);
 
     // Subtitle
-    Text sub(font, L"Cập nhật hồ sơ và các thông tin liên lạc hành chính", 11.5f);
+    Text sub(font, L"Cập nhật hồ sơ và các thông tin liên lạc hành chính", 13.f);
     sub.setFillColor(Color(100, 116, 139));
     sub.setPosition({cardX + 68.f, cardY + 37.f});
     target.draw(sub);
 
     // ID Pill on the right
-    Vector2f idPillSize(118.f, 24.f);
-    Vector2f idPillPos(cardX + cardW - 24.f - idPillSize.x, cardY + 22.f);
+    Vector2f idPillSize(134.f, 26.f);
+    Vector2f idPillPos(cardX + cardW - 24.f - idPillSize.x, cardY + 21.f);
     RoundedRectRenderer::draw(target, idPillPos, idPillSize, 6.f, Color(248, 250, 252), 1.f, Color(226, 232, 240));
-    Text idTxt(boldFont, L"ID: ADM-2024-001", 11.f);
+    Text idTxt(boldFont, L"ID: ADM-2024-001", 13.f);
     idTxt.setFillColor(Color(100, 116, 139));
     FloatRect idb = idTxt.getLocalBounds();
     idTxt.setPosition({idPillPos.x + (idPillSize.x - idb.size.x) / 2.f - idb.position.x, idPillPos.y + (idPillSize.y - idb.size.y) / 2.f - idb.position.y});
@@ -464,23 +464,23 @@ void AdminProfilePanel::drawPersonalInfoCard(RenderTarget& target) const {
     float inH = 40.f;
 
     auto drawInputBox = [&](float x, float y, const wstring& label, bool required, const string& val, bool isAct, bool hasVerifiedBadge) {
-        Text lbl(boldFont, label, 11.5f);
+        Text lbl(boldFont, label, 13.f);
         lbl.setFillColor(Color(51, 65, 85));
         lbl.setPosition({x, y});
         target.draw(lbl);
 
         if (required) {
             FloatRect lb = lbl.getLocalBounds();
-            Text star(boldFont, L"*", 11.5f);
+            Text star(boldFont, L"*", 13.f);
             star.setFillColor(Color(239, 68, 68));
             star.setPosition({x + lb.size.x + 3.f, y});
             target.draw(star);
         }
 
         if (hasVerifiedBadge) {
-            float badgeStartX = x + inW - 92.f;
+            float badgeStartX = x + inW - 100.f;
             UITheme::drawCheckmark(target, {badgeStartX + 4.f, y + 7.f}, 0.72f, Color(5, 150, 105), 2.f);
-            Text vBadge(boldFont, L"Đã xác minh", 11.5f);
+            Text vBadge(boldFont, L"Đã xác minh", 13.f);
             vBadge.setFillColor(Color(5, 150, 105));
             vBadge.setPosition({badgeStartX + 13.f, y});
             target.draw(vBadge);
@@ -520,7 +520,7 @@ void AdminProfilePanel::drawPersonalInfoCard(RenderTarget& target) const {
     notIc.setPosition({notPos.x + 20.8f, notPos.y + 19.f});
     target.draw(notIc);
 
-    Text notTxt(font, L"Mọi thay đổi thông tin cá nhân sẽ được lưu vào Nhật ký kiểm toán hệ thống (Audit Log) theo\ntiêu chuẩn ISO 27001.", 12.f);
+    Text notTxt(font, L"Mọi thay đổi thông tin cá nhân sẽ được lưu vào Nhật ký kiểm toán hệ thống (Audit Log)\ntheo tiêu chuẩn ISO 27001.", 13.f);
     notTxt.setFillColor(Color(71, 85, 105));
     notTxt.setPosition({notPos.x + 40.f, notPos.y + 10.f});
     target.draw(notTxt);
@@ -552,19 +552,19 @@ void AdminProfilePanel::drawPasswordCard(RenderTarget& target) const {
     UITheme::drawKeyIcon(target, {icPos.x + 17.f, icPos.y + 17.f}, Color(217, 119, 6));
 
     // Title
-    Text title(boldFont, L"ĐỔI MẬT KHẨU", 14.f);
+    Text title(boldFont, L"ĐỔI MẬT KHẨU", 13.f);
     title.setFillColor(Color(15, 23, 42));
     title.setPosition({cardX + 68.f, cardY + 18.f});
     target.draw(title);
 
     // Subtitle
-    Text sub(font, L"Nên đổi mật khẩu định kỳ 90 ngày để đảm bảo an toàn", 11.5f);
+    Text sub(font, L"Nên đổi mật khẩu định kỳ 90 ngày để đảm bảo an toàn", 13.f);
     sub.setFillColor(Color(100, 116, 139));
     sub.setPosition({cardX + 68.f, cardY + 37.f});
     target.draw(sub);
 
     // Security Level on Right
-    Text secTxt(boldFont, L"Bảo mật cấp 3", 11.5f);
+    Text secTxt(boldFont, L"Bảo mật cấp 3", 13.f);
     secTxt.setFillColor(Color(100, 116, 139));
     secTxt.setPosition({cardX + cardW - 24.f - secTxt.getGlobalBounds().size.x, cardY + 24.f});
     target.draw(secTxt);
@@ -574,13 +574,13 @@ void AdminProfilePanel::drawPasswordCard(RenderTarget& target) const {
     float passH = 40.f;
 
     auto drawPassInput = [&](float y, const wstring& lbl, const string& val, const wstring& placeholder, bool isAct, bool showEye) {
-        Text l(boldFont, lbl, 11.5f);
+        Text l(boldFont, lbl, 13.f);
         l.setFillColor(Color(51, 65, 85));
         l.setPosition({cardX + 24.f, y});
         target.draw(l);
 
         FloatRect lb = l.getLocalBounds();
-        Text star(boldFont, L"*", 11.5f);
+        Text star(boldFont, L"*", 13.f);
         star.setFillColor(Color(239, 68, 68));
         star.setPosition({cardX + 24.f + lb.size.x + 3.f, y});
         target.draw(star);
@@ -600,7 +600,7 @@ void AdminProfilePanel::drawPasswordCard(RenderTarget& target) const {
             displayStr = wstring(val.size(), L'●') + (isAct ? L"|" : L"");
         }
 
-        Text vTxt((val.empty() && !isAct) ? font : boldFont, displayStr, 12.f);
+        Text vTxt((val.empty() && !isAct) ? font : boldFont, displayStr, 13.f);
         vTxt.setFillColor((val.empty() && !isAct) ? Color(148, 163, 184) : Color(15, 23, 42));
         vTxt.setPosition({bPos.x + 36.f, bPos.y + 11.f});
         target.draw(vTxt);
@@ -623,12 +623,12 @@ void AdminProfilePanel::drawPasswordCard(RenderTarget& target) const {
 
     // Password Strength Meter
     float meterY = cardY + 220.f;
-    Text sLbl(font, L"Độ mạnh mật khẩu:", 12.f);
+    Text sLbl(font, L"Độ mạnh mật khẩu:", 13.f);
     sLbl.setFillColor(Color(100, 116, 139));
     sLbl.setPosition({cardX + 24.f, meterY});
     target.draw(sLbl);
 
-    Text sVal(boldFont, L"Rất mạnh", 12.f);
+    Text sVal(boldFont, L"Rất mạnh", 13.f);
     sVal.setFillColor(Color(16, 185, 129));
     sVal.setPosition({cardX + cardW - 24.f - sVal.getGlobalBounds().size.x, meterY});
     target.draw(sVal);
@@ -645,7 +645,7 @@ void AdminProfilePanel::drawPasswordCard(RenderTarget& target) const {
 
     // Password Rules Checklist (2x2 grid)
     float ruleY = cardY + 340.f;
-    Text rTitle(boldFont, L"Quy định mật khẩu CineCore:", 12.5f);
+    Text rTitle(boldFont, L"Quy định mật khẩu CineCore:", 13.f);
     rTitle.setFillColor(Color(71, 85, 105));
     rTitle.setPosition({cardX + 24.f, ruleY});
     target.draw(rTitle);
@@ -662,7 +662,7 @@ void AdminProfilePanel::drawPasswordCard(RenderTarget& target) const {
         }
         target.draw(dot);
 
-        Text t(font, rTxt, 12.f);
+        Text t(font, rTxt, 13.f);
         t.setFillColor(Color(100, 116, 139));
         t.setPosition({x + 14.f, y});
         target.draw(t);
@@ -704,26 +704,26 @@ void AdminProfilePanel::drawTwoFactorCard(RenderTarget& target) const {
     UITheme::drawCheckmark(target, {icPos.x + 16.f, icPos.y + 16.f}, 0.55f, Color::White, 2.f);
 
     // Title & Subtitle
-    Text title(boldFont, L"Xác thực 2 yếu tố (2FA Google Authenticator)", 12.5f);
+    Text title(boldFont, L"Xác thực 2 yếu tố (2FA Google Authenticator)", 13.f);
     title.setFillColor(Color(15, 23, 42));
-    title.setPosition({cardX + 60.f, cardY + 13.f});
+    title.setPosition({cardX + 60.f, cardY + 12.f});
     target.draw(title);
 
-    Text sub(font, L"Bảo vệ tài khoản qua mã OTP ứng dụng điện thoại", 12.f);
+    Text sub(font, L"Bảo vệ tài khoản qua mã OTP ứng dụng điện thoại", 13.f);
     sub.setFillColor(Color(100, 116, 139));
     sub.setPosition({cardX + 60.f, cardY + 32.f});
     target.draw(sub);
 
     // Badge: ● ĐÃ BẬT
-    Vector2f bPos(cardX + cardW - 108.f, cardY + 18.f);
-    RoundedRectRenderer::draw(target, bPos, {86.f, 26.f}, 13.f, Color(220, 252, 231), 1.f, Color(167, 243, 208));
+    Vector2f bPos(cardX + cardW - 114.f, cardY + 18.f);
+    RoundedRectRenderer::draw(target, bPos, {92.f, 26.f}, 13.f, Color(220, 252, 231), 1.f, Color(167, 243, 208));
     CircleShape bDot(3.2f);
     bDot.setFillColor(Color(5, 150, 105));
     bDot.setPosition({bPos.x + 11.f, bPos.y + 10.f});
     target.draw(bDot);
-    Text bTxt(boldFont, L"ĐÃ BẬT", 11.5f);
+    Text bTxt(boldFont, L"ĐÃ BẬT", 13.f);
     bTxt.setFillColor(Color(5, 150, 105));
-    bTxt.setPosition({bPos.x + 22.f, bPos.y + 5.f});
+    bTxt.setPosition({bPos.x + 22.f, bPos.y + 4.f});
     target.draw(bTxt);
 }
 
