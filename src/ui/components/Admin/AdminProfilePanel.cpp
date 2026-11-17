@@ -215,8 +215,8 @@ void AdminProfilePanel::handleEvent(const Event& event, const RenderWindow& wind
                 return;
             }
 
-            // Field 8: Xác thực mật khẩu (y = cardY + 258, box at cardY + 278)
-            FloatRect f8Rect({rightCardX + 24.f, rightCardY + 278.f}, {passW, inH});
+            // Field 8: Xác thực mật khẩu (y = cardY + 266, box at cardY + 286)
+            FloatRect f8Rect({rightCardX + 24.f, rightCardY + 286.f}, {passW, inH});
             if (f8Rect.contains(mPos)) {
                 if (mPos.x > rightCardX + 24.f + passW - 40.f) {
                     showConfirmPass = !showConfirmPass;
@@ -400,10 +400,11 @@ void AdminProfilePanel::drawHeaderBanner(RenderTarget& target) const {
 
     float metaW = meta.getGlobalBounds().size.x;
     Vector2f ipPos(textX + metaW + 2.f, cardY + 64.f);
-    RoundedRectRenderer::draw(target, ipPos, {196.f, 22.f}, 6.f, Color(241, 245, 249));
     Text ipTxt(font, L"IP: 118.69.182.45 (Đà Nẵng)", 11.5f);
     ipTxt.setFillColor(Color(71, 85, 105));
-    ipTxt.setPosition({ipPos.x + 8.f, ipPos.y + 3.f});
+    float ipPillW = ipTxt.getGlobalBounds().size.x + 18.f;
+    RoundedRectRenderer::draw(target, ipPos, {ipPillW, 22.f}, 6.f, Color(241, 245, 249));
+    ipTxt.setPosition({ipPos.x + 9.f, ipPos.y + 3.f});
     target.draw(ipTxt);
 
     // Danger Button: XÓA VĨNH VIỄN TÀI KHOẢN
@@ -462,11 +463,19 @@ void AdminProfilePanel::drawPersonalInfoCard(RenderTarget& target) const {
     float inW = (cardW - 48.f - 18.f) / 2.f;
     float inH = 40.f;
 
-    auto drawInputBox = [&](float x, float y, const wstring& label, const string& val, bool isAct, bool hasVerifiedBadge) {
+    auto drawInputBox = [&](float x, float y, const wstring& label, bool required, const string& val, bool isAct, bool hasVerifiedBadge) {
         Text lbl(boldFont, label, 11.5f);
         lbl.setFillColor(Color(51, 65, 85));
         lbl.setPosition({x, y});
         target.draw(lbl);
+
+        if (required) {
+            FloatRect lb = lbl.getLocalBounds();
+            Text star(boldFont, L"*", 11.5f);
+            star.setFillColor(Color(239, 68, 68));
+            star.setPosition({x + lb.size.x + 3.f, y});
+            target.draw(star);
+        }
 
         if (hasVerifiedBadge) {
             float badgeStartX = x + inW - 92.f;
@@ -478,30 +487,30 @@ void AdminProfilePanel::drawPersonalInfoCard(RenderTarget& target) const {
         }
 
         Vector2f bPos(x, y + 20.f);
-        Color borderCol = isAct ? Color(2, 132, 199) : Color(203, 213, 225);
+        Color borderCol = isAct ? Color(2, 132, 199) : Color(226, 232, 240);
         RoundedRectRenderer::draw(target, bPos, {inW, inH}, 6.f, Color::White, 1.f, borderCol);
 
-        Text vTxt(boldFont, s2ws(val) + (isAct ? L"|" : L""), 13.f);
-        vTxt.setFillColor(Color(15, 23, 42));
+        Text vTxt(font, s2ws(val) + (isAct ? L"|" : L""), 13.f);
+        vTxt.setFillColor(Color(30, 41, 59));
         vTxt.setPosition({bPos.x + 12.f, bPos.y + 11.f});
         target.draw(vTxt);
     };
 
     // Row 1: Họ tên (Field 1) & Ngày sinh (Field 2)
-    drawInputBox(cardX + 24.f, cardY + 74.f, L"Họ và tên *", fullName, activeField == 1, false);
-    drawInputBox(cardX + 24.f + inW + 18.f, cardY + 74.f, L"Ngày sinh *", birthDate, activeField == 2, false);
+    drawInputBox(cardX + 24.f, cardY + 74.f, L"Họ và tên", true, fullName, activeField == 1, false);
+    drawInputBox(cardX + 24.f + inW + 18.f, cardY + 74.f, L"Ngày sinh", true, birthDate, activeField == 2, false);
 
     // Row 2: Số điện thoại (Field 3) & Email hệ thống
-    drawInputBox(cardX + 24.f, cardY + 150.f, L"Số điện thoại *", phone, activeField == 3, false);
-    drawInputBox(cardX + 24.f + inW + 18.f, cardY + 150.f, L"Email hệ thống *", email, false, true);
+    drawInputBox(cardX + 24.f, cardY + 150.f, L"Số điện thoại", true, phone, activeField == 3, false);
+    drawInputBox(cardX + 24.f + inW + 18.f, cardY + 150.f, L"Email hệ thống", true, email, false, true);
 
     // Row 3: Chức vụ (Field 4) & Cơ sở trực thuộc (Field 5)
-    drawInputBox(cardX + 24.f, cardY + 226.f, L"Chức vụ / Bộ phận", department, activeField == 4, false);
-    drawInputBox(cardX + 24.f + inW + 18.f, cardY + 226.f, L"Cơ sở trực thuộc", location, activeField == 5, false);
+    drawInputBox(cardX + 24.f, cardY + 226.f, L"Chức vụ / Bộ phận", false, department, activeField == 4, false);
+    drawInputBox(cardX + 24.f + inW + 18.f, cardY + 226.f, L"Cơ sở trực thuộc", false, location, activeField == 5, false);
 
     // Audit Log Notice Box
     Vector2f notPos(cardX + 24.f, cardY + 306.f);
-    RoundedRectRenderer::draw(target, notPos, {cardW - 48.f, 54.f}, 8.f, Color(240, 249, 255), 1.f, Color(186, 230, 253));
+    RoundedRectRenderer::draw(target, notPos, {cardW - 48.f, 54.f}, 8.f, Color(248, 250, 252), 1.f, Color(226, 232, 240));
     CircleShape infoBg(8.5f, 16);
     infoBg.setFillColor(Color(2, 132, 199));
     infoBg.setPosition({notPos.x + 14.f, notPos.y + 18.f});
@@ -512,7 +521,7 @@ void AdminProfilePanel::drawPersonalInfoCard(RenderTarget& target) const {
     target.draw(notIc);
 
     Text notTxt(font, L"Mọi thay đổi thông tin cá nhân sẽ được lưu vào Nhật ký kiểm toán hệ thống (Audit Log) theo\ntiêu chuẩn ISO 27001.", 12.f);
-    notTxt.setFillColor(Color(3, 105, 161));
+    notTxt.setFillColor(Color(71, 85, 105));
     notTxt.setPosition({notPos.x + 40.f, notPos.y + 10.f});
     target.draw(notTxt);
 
@@ -570,8 +579,14 @@ void AdminProfilePanel::drawPasswordCard(RenderTarget& target) const {
         l.setPosition({cardX + 24.f, y});
         target.draw(l);
 
+        FloatRect lb = l.getLocalBounds();
+        Text star(boldFont, L"*", 11.5f);
+        star.setFillColor(Color(239, 68, 68));
+        star.setPosition({cardX + 24.f + lb.size.x + 3.f, y});
+        target.draw(star);
+
         Vector2f bPos(cardX + 24.f, y + 20.f);
-        Color borderCol = isAct ? Color(2, 132, 199) : Color(203, 213, 225);
+        Color borderCol = isAct ? Color(2, 132, 199) : Color(226, 232, 240);
         RoundedRectRenderer::draw(target, bPos, {passW, passH}, 6.f, Color::White, 1.f, borderCol);
 
         UITheme::drawLockIcon(target, {bPos.x + 18.f, bPos.y + 20.f}, isAct ? Color(2, 132, 199) : Color(148, 163, 184));
@@ -590,14 +605,21 @@ void AdminProfilePanel::drawPasswordCard(RenderTarget& target) const {
         vTxt.setPosition({bPos.x + 36.f, bPos.y + 11.f});
         target.draw(vTxt);
 
-        UITheme::drawEyeIcon(target, {bPos.x + passW - 22.f, bPos.y + 20.f}, showEye, showEye ? Color(2, 132, 199) : Color(100, 116, 139));
+        // Clean light-gray vector eye icon
+        Color eyeCol = showEye ? Color(2, 132, 199) : Color(148, 163, 184);
+        Vector2f ePos(bPos.x + passW - 28.f, bPos.y + 15.f);
+        RoundedRectRenderer::draw(target, ePos, {15.f, 10.f}, 5.f, Color::Transparent, 1.3f, eyeCol);
+        CircleShape pupil(2.2f, 12);
+        pupil.setFillColor(eyeCol);
+        pupil.setPosition({ePos.x + 5.3f, ePos.y + 2.8f});
+        target.draw(pupil);
     };
 
     // 1. Mật khẩu cũ (Field 6)
-    drawPassInput(cardY + 74.f, L"Mật khẩu cũ *", oldPass, L"Nhập mật khẩu cũ", activeField == 6, showOldPass);
+    drawPassInput(cardY + 74.f, L"Mật khẩu cũ", oldPass, L"Nhập mật khẩu cũ", activeField == 6, showOldPass);
 
     // 2. Mật khẩu mới (Field 7)
-    drawPassInput(cardY + 148.f, L"Mật khẩu mới *", newPass, L"Nhập mật khẩu mới", activeField == 7, showNewPass);
+    drawPassInput(cardY + 148.f, L"Mật khẩu mới", newPass, L"Nhập mật khẩu mới", activeField == 7, showNewPass);
 
     // Password Strength Meter
     float meterY = cardY + 220.f;
@@ -619,10 +641,10 @@ void AdminProfilePanel::drawPasswordCard(RenderTarget& target) const {
     }
 
     // 3. Xác thực mật khẩu (Field 8)
-    drawPassInput(cardY + 258.f, L"Xác thực mật khẩu *", confirmPass, L"Xác nhận mật khẩu mới", activeField == 8, showConfirmPass);
+    drawPassInput(cardY + 266.f, L"Xác thực mật khẩu", confirmPass, L"Xác nhận mật khẩu mới", activeField == 8, showConfirmPass);
 
     // Password Rules Checklist (2x2 grid)
-    float ruleY = cardY + 334.f;
+    float ruleY = cardY + 340.f;
     Text rTitle(boldFont, L"Quy định mật khẩu CineCore:", 12.5f);
     rTitle.setFillColor(Color(71, 85, 105));
     rTitle.setPosition({cardX + 24.f, ruleY});
