@@ -695,7 +695,6 @@ void ComboPanel::render(RenderWindow& win) {
     float c1X = position.x + 30.f;
     drawRoundedCard(win, {c1X, statY}, {cardW, cardH}, 10.f, Color::White, 1.f, Color(226, 232, 240));
     Text sc1T(boldFont, L"T\u1ed4NG DANH M\u1ee4C", 12.5f); sc1T.setFillColor(Color(100, 116, 139)); sc1T.setPosition({c1X + 16.f, statY + 12.f}); win.draw(sc1T);
-    CircleShape ic1(12.f); ic1.setFillColor(Color(224, 242, 254)); ic1.setPosition({c1X + cardW - 36.f, statY + 10.f}); win.draw(ic1);
     Text sc1V(boldFont, to_wstring(allCombos.size()), 20); sc1V.setFillColor(Color(15, 23, 42)); sc1V.setPosition({c1X + 16.f, statY + 30.f}); win.draw(sc1V);
     FloatRect v1b = sc1V.getGlobalBounds();
     drawRoundedCard(win, {v1b.position.x + v1b.size.x + 10.f, statY + 34.f}, {92.f, 22.f}, 11.f, Color(220, 252, 231));
@@ -706,7 +705,6 @@ void ComboPanel::render(RenderWindow& win) {
     float c2X = c1X + cardW + 15.f;
     drawRoundedCard(win, {c2X, statY}, {cardW, cardH}, 10.f, Color::White, 1.f, Color(226, 232, 240));
     Text sc2T(boldFont, L"DOANH THU F&B H\u00d4M NAY", 12.5f); sc2T.setFillColor(Color(100, 116, 139)); sc2T.setPosition({c2X + 16.f, statY + 12.f}); win.draw(sc2T);
-    CircleShape ic2(12.f); ic2.setFillColor(Color(220, 252, 231)); ic2.setPosition({c2X + cardW - 36.f, statY + 10.f}); win.draw(ic2);
     Text sc2V(boldFont, L"14.850.000 \u0111", 20); sc2V.setFillColor(Color(15, 23, 42)); sc2V.setPosition({c2X + 16.f, statY + 30.f}); win.draw(sc2V);
     FloatRect v2b = sc2V.getGlobalBounds();
     Text sc2Inc(boldFont, L"+18.4%", 12); sc2Inc.setFillColor(Color(16, 185, 129)); sc2Inc.setPosition({v2b.position.x + v2b.size.x + 8.f, statY + 34.f}); win.draw(sc2Inc);
@@ -716,7 +714,6 @@ void ComboPanel::render(RenderWindow& win) {
     float c3X = c2X + cardW + 15.f;
     drawRoundedCard(win, {c3X, statY}, {cardW, cardH}, 10.f, Color::White, 1.f, Color(226, 232, 240));
     Text sc3T(boldFont, L"BEST SELLER H\u00d4M NAY", 12.5f); sc3T.setFillColor(Color(100, 116, 139)); sc3T.setPosition({c3X + 16.f, statY + 12.f}); win.draw(sc3T);
-    CircleShape ic3(12.f); ic3.setFillColor(Color(254, 243, 199)); ic3.setPosition({c3X + cardW - 36.f, statY + 10.f}); win.draw(ic3);
     Text sc3V(boldFont, L"CB02: B\u1eafp Caramel", 16); sc3V.setFillColor(Color(15, 23, 42)); sc3V.setPosition({c3X + 16.f, statY + 34.f}); win.draw(sc3V);
     Text sc3S(boldFont, L"184 ph\u1ea7n \u0111\u00e3 b\u00e1n ra", 12); sc3S.setFillColor(Color(217, 119, 6)); sc3S.setPosition({c3X + 16.f, statY + 62.f}); win.draw(sc3S);
 
@@ -724,7 +721,6 @@ void ComboPanel::render(RenderWindow& win) {
     float c4X = c3X + cardW + 15.f;
     drawRoundedCard(win, {c4X, statY}, {cardW, cardH}, 10.f, Color::White, 1.f, Color(226, 232, 240));
     Text sc4T(boldFont, L"GI\u00c1 TR\u1eca TRUNG B\u00ccNH F&B", 12.5f); sc4T.setFillColor(Color(100, 116, 139)); sc4T.setPosition({c4X + 16.f, statY + 12.f}); win.draw(sc4T);
-    CircleShape ic4(12.f); ic4.setFillColor(Color(243, 232, 255)); ic4.setPosition({c4X + cardW - 36.f, statY + 10.f}); win.draw(ic4);
     Text sc4V(boldFont, L"115.000 \u0111", 20); sc4V.setFillColor(Color(15, 23, 42)); sc4V.setPosition({c4X + 16.f, statY + 30.f}); win.draw(sc4V);
     FloatRect v4b = sc4V.getGlobalBounds();
     Text sc4Tx(font, L"/ giao d\u1ecbch", 12); sc4Tx.setFillColor(Color(100, 116, 139)); sc4Tx.setPosition({v4b.position.x + v4b.size.x + 4.f, statY + 34.f}); win.draw(sc4Tx);
