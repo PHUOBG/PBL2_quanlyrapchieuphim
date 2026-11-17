@@ -493,18 +493,37 @@ void TicketPanel::render(RenderWindow& win) {
     // ==========================================
     // 5. BẢNG DỮ LIỆU VÉ (DATA TABLE)
     // ==========================================
+    float tableX = position.x + 30.f;
     float tableY = position.y + 158.f;
     float tableW = width - 60.f;
     float rowH = 42.f;
 
-    // Header bảng (#0077B6 / #0284C7)
-    drawRoundedCard(win, {position.x + 30.f, tableY}, {tableW, 46.f}, 4.f, Color(0, 119, 182));
+    const float div1 = tableX + tableW * 0.12f;
+    const float div2 = tableX + tableW * 0.38f;
+    const float div3 = tableX + tableW * 0.65f;
+    const float div4 = tableX + tableW * 0.83f;
 
-    Text h1(boldFont, L"ID v\u00e9", 13); h1.setFillColor(Color::White); h1.setPosition({position.x + 60.f, tableY + 14.f}); win.draw(h1);
-    Text h2(boldFont, L"ID su\u1ea5t chi\u1ebfu", 13); h2.setFillColor(Color::White); h2.setPosition({position.x + 190.f, tableY + 14.f}); win.draw(h2);
-    Text h3(boldFont, L"Email \u0111\u1eb7t v\u00e9", 13); h3.setFillColor(Color::White); h3.setPosition({position.x + 520.f, tableY + 14.f}); win.draw(h3);
-    Text h4(boldFont, L"Ng\u00e0y \u0111\u1eb7t v\u00e9", 13); h4.setFillColor(Color::White); h4.setPosition({position.x + 850.f, tableY + 14.f}); win.draw(h4);
-    Text h5(boldFont, L"Gi\u1edd \u0111\u1eb7t v\u00e9", 13); h5.setFillColor(Color::White); h5.setPosition({position.x + 1040.f, tableY + 14.f}); win.draw(h5);
+    const float col1X = tableX + 28.f;
+    const float col2X = div1 + 24.f;
+    const float col3X = div2 + 24.f;
+    const float col4X = div3 + 24.f;
+    const float col5X = div4 + 24.f;
+
+    // Header bảng (#0077B6 / #0284C7)
+    drawRoundedCard(win, {tableX, tableY}, {tableW, 46.f}, 4.f, Color(0, 119, 182));
+
+    for (float dx : {div1, div2, div3, div4}) {
+        RectangleShape hDiv(Vector2f(1.f, 46.f));
+        hDiv.setPosition({dx, tableY});
+        hDiv.setFillColor(Color(255, 255, 255, 45));
+        win.draw(hDiv);
+    }
+
+    Text h1(boldFont, L"ID v\u00e9", 13); h1.setFillColor(Color::White); h1.setPosition({col1X, tableY + 14.f}); win.draw(h1);
+    Text h2(boldFont, L"ID su\u1ea5t chi\u1ebfu", 13); h2.setFillColor(Color::White); h2.setPosition({col2X, tableY + 14.f}); win.draw(h2);
+    Text h3(boldFont, L"Email \u0111\u1eb7t v\u00e9", 13); h3.setFillColor(Color::White); h3.setPosition({col3X, tableY + 14.f}); win.draw(h3);
+    Text h4(boldFont, L"Ng\u00e0y \u0111\u1eb7t v\u00e9", 13); h4.setFillColor(Color::White); h4.setPosition({col4X, tableY + 14.f}); win.draw(h4);
+    Text h5(boldFont, L"Gi\u1edd \u0111\u1eb7t v\u00e9", 13); h5.setFillColor(Color::White); h5.setPosition({col5X, tableY + 14.f}); win.draw(h5);
 
     // Các dòng dữ liệu
     int startIdx = (currentPage - 1) * ticketsPerPage;
@@ -519,36 +538,43 @@ void TicketPanel::render(RenderWindow& win) {
         bool isHov = (hoveredRow == r);
 
         Color rowBg = isSel ? Color(224, 242, 254) : (isHov ? Color(248, 250, 252) : Color::White);
-        drawRoundedCard(win, {position.x + 30.f, rY}, {tableW, rowH}, 0.f, rowBg, 0.5f, Color(226, 232, 240));
+        drawRoundedCard(win, {tableX, rY}, {tableW, rowH}, 0.f, rowBg, 0.5f, Color(226, 232, 240));
+
+        for (float dx : {div1, div2, div3, div4}) {
+            RectangleShape rDiv(Vector2f(1.f, rowH));
+            rDiv.setPosition({dx, rY});
+            rDiv.setFillColor(Color(241, 245, 249));
+            win.draw(rDiv);
+        }
 
         // ID vé
         Text tId(boldFont, s2ws(t.ticketId), 13);
         tId.setFillColor(isSel ? Color(2, 132, 199) : Color(71, 85, 105));
-        tId.setPosition({position.x + 60.f, rY + 12.f});
+        tId.setPosition({col1X, rY + 12.f});
         win.draw(tId);
 
         // ID suất chiếu
         Text tSt(font, s2ws(t.showtimeId), 13);
         tSt.setFillColor(Color(51, 65, 85));
-        tSt.setPosition({position.x + 190.f, rY + 12.f});
+        tSt.setPosition({col2X, rY + 12.f});
         win.draw(tSt);
 
         // Email đặt vé
         Text tEm(font, s2ws(t.email), 13);
         tEm.setFillColor(Color(51, 65, 85));
-        tEm.setPosition({position.x + 520.f, rY + 12.f});
+        tEm.setPosition({col3X, rY + 12.f});
         win.draw(tEm);
 
         // Ngày đặt vé
         Text tDt(font, s2ws(t.bookedDate.empty() ? t.date : t.bookedDate), 13);
         tDt.setFillColor(Color(51, 65, 85));
-        tDt.setPosition({position.x + 850.f, rY + 12.f});
+        tDt.setPosition({col4X, rY + 12.f});
         win.draw(tDt);
 
         // Giờ đặt vé
         Text tTm(font, s2ws(t.bookedTime.empty() ? t.time : t.bookedTime), 13);
         tTm.setFillColor(Color(51, 65, 85));
-        tTm.setPosition({position.x + 1040.f, rY + 12.f});
+        tTm.setPosition({col5X, rY + 12.f});
         win.draw(tTm);
     }
 
