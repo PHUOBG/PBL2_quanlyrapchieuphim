@@ -821,7 +821,7 @@ void ComboPanel::render(RenderWindow& win) {
     drawRoundedCard(win, {position.x + 30.f, tableY}, {tableW, 44.f}, 6.f, Color(0, 119, 182));
 
     const float col_code   = position.x + 85.f;
-    const float col_name   = position.x + 230.f;
+    const float col_name   = position.x + 195.f;
     const float col_act    = position.x + width - 110.f;
     const float col_status = col_act - 135.f;
     const float col_price  = col_status - 155.f;
@@ -863,31 +863,32 @@ void ComboPanel::render(RenderWindow& win) {
         // Real photo image from assets/combos
         const Texture* cTex = getComboTexture(itm.id, itm.name);
         if (cTex) {
-            drawRoundedCard(win, {position.x + 175.f, rY + 14.f}, {44.f, 44.f}, 8.f, Color::White, 1.2f, Color(226, 232, 240));
+            drawRoundedCard(win, {col_name, rY + 14.f}, {44.f, 44.f}, 8.f, Color::White, 1.2f, Color(226, 232, 240));
             Sprite spr(*cTex);
             Vector2u sz = cTex->getSize();
             spr.setScale({42.f / (float)sz.x, 42.f / (float)sz.y});
-            spr.setPosition({position.x + 176.f, rY + 15.f});
+            spr.setPosition({col_name + 1.f, rY + 15.f});
             win.draw(spr);
-            drawRoundedCard(win, {position.x + 176.f, rY + 15.f}, {42.f, 42.f}, 6.f, Color::Transparent, 1.f, Color(203, 213, 225));
+            drawRoundedCard(win, {col_name + 1.f, rY + 15.f}, {42.f, 42.f}, 6.f, Color::Transparent, 1.f, Color(203, 213, 225));
         } else {
-            drawRoundedCard(win, {position.x + 176.f, rY + 15.f}, {42.f, 42.f}, 8.f, itm.category == L"Đồ uống" ? Color(254, 226, 226) : Color(254, 243, 199));
+            drawRoundedCard(win, {col_name + 1.f, rY + 15.f}, {42.f, 42.f}, 8.f, itm.category == L"Đồ uống" ? Color(254, 226, 226) : Color(254, 243, 199));
             Text icDish(boldFont, itm.category == L"Đồ uống" ? L"DRINK" : L"SNACK", 10);
             icDish.setFillColor(Color(180, 83, 9));
-            icDish.setPosition({position.x + 180.f, rY + 28.f});
+            icDish.setPosition({col_name + 5.f, rY + 28.f});
             win.draw(icDish);
         }
 
-        Text nameTxt(boldFont, itm.name, 13.5f);
+        const float comboTextX = col_name + 56.f;
+        Text nameTxt(boldFont, itm.name, 14.f);
         nameTxt.setFillColor(Color(15, 23, 42));
-        nameTxt.setPosition({position.x + 230.f, rY + 16.f});
+        nameTxt.setPosition({comboTextX, rY + 14.f});
         win.draw(nameTxt);
 
         // Badge HOT nếu có
         if (itm.isHot) {
             FloatRect nb = nameTxt.getGlobalBounds();
-            drawRoundedCard(win, {nb.position.x + nb.size.x + 8.f, rY + 16.f}, {38.f, 20.f}, 4.f, Color(245, 158, 11));
-            Text hotTxt(boldFont, L"HOT", 11.5f); hotTxt.setFillColor(Color::White); hotTxt.setPosition({nb.position.x + nb.size.x + 12.f, rY + 17.f}); win.draw(hotTxt);
+            drawRoundedCard(win, {nb.position.x + nb.size.x + 8.f, rY + 14.f}, {38.f, 20.f}, 4.f, Color(245, 158, 11));
+            Text hotTxt(boldFont, L"HOT", 11.5f); hotTxt.setFillColor(Color::White); hotTxt.setPosition({nb.position.x + nb.size.x + 12.f, rY + 15.f}); win.draw(hotTxt);
         }
 
         // Cắt bớt nếu mô tả quá dài để không bị tràn chữ
@@ -895,9 +896,9 @@ void ComboPanel::render(RenderWindow& win) {
         if (dispSub.size() > 85) {
             dispSub = dispSub.substr(0, 82) + L"...";
         }
-        Text subTxt(font, dispSub, 12);
+        Text subTxt(font, dispSub, 13.f);
         subTxt.setFillColor(Color(100, 116, 139));
-        subTxt.setPosition({col_name, rY + 38.f});
+        subTxt.setPosition({comboTextX, rY + 38.f});
         win.draw(subTxt);
 
         // 4. Phân loại (Badge pill)
