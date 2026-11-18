@@ -255,12 +255,12 @@ void RegisterScreen::draw(RenderWindow& window) {
         drawVectorPortalLogo(window, {24.f, 16.f}, 24.f);
     }
 
-    Text headerTitle(boldFont, L"PBL2 \u2013 H\u1ec6 TH\u1ed0NG \u0110\u1eb6T V\u00c9 XEM PHIM K\u1ebeT H\u1ee2P TH\u1ed0NG K\u00ca PH\u00c2N T\u00cdCH DOANH THU", 13);
+    Text headerTitle(boldFont, L"PBL2 \u2013 H\u1ec6 TH\u1ed0NG \u0110\u1eb6T V\u00c9 XEM PHIM K\u1ebeT H\u1ee2P TH\u1ed0NG K\u00ca PH\u00c2N T\u00cdCH DOANH THU", 14);
     headerTitle.setFillColor(Color(30, 41, 59));
     headerTitle.setPosition({56.f, 19.f});
     window.draw(headerTitle);
 
-    Text verText(font, L"Phi\u00ean b\u1ea3n Desktop v2.4", 13);
+    Text verText(font, L"Phi\u00ean b\u1ea3n Desktop v2.4", 14);
     verText.setFillColor(Color(100, 116, 139));
     FloatRect verB = verText.getLocalBounds();
     float verPillW = verB.size.x + 28.f;
@@ -308,7 +308,7 @@ void RegisterScreen::draw(RenderWindow& window) {
     brandTop.setPosition({brandTextX, cardY + 26.f});
     window.draw(brandTop);
 
-    Text brandMain(boldFont, L"CineCore Portal", 20);
+    Text brandMain(boldFont, L"CineCore Portal", 24);
     brandMain.setFillColor(Color(23, 32, 51));
     brandMain.setPosition({brandTextX, cardY + 46.f});
     window.draw(brandMain);
@@ -338,12 +338,12 @@ void RegisterScreen::draw(RenderWindow& window) {
     window.draw(x2, 2, PrimitiveType::Lines);
 
     // Title & Subtitle
-    Text titleTxt(boldFont, L"\u0110\u0102NG K\u00dd T\u00c0I KHO\u1ea2N M\u1edaI", 28);
+    Text titleTxt(boldFont, L"\u0110\u0102NG K\u00dd T\u00c0I KHO\u1ea2N M\u1edaI", 24);
     titleTxt.setFillColor(Color(23, 32, 51));
     titleTxt.setPosition({leftX, cardY + 146.f});
     window.draw(titleTxt);
 
-    Text subTxt(font, L"\u0110i\u1ec1n \u0111\u1ea7y \u0111\u1ee7 th\u00f4ng tin \u0111\u1ec3 c\u1ea5p quy\u1ec1n truy c\u1eadp h\u1ec7 th\u1ed1ng qu\u1ea3n tr\u1ecb r\u1ea1p phim CineCore.", 17);
+    Text subTxt(font, L"\u0110i\u1ec1n \u0111\u1ea7y \u0111\u1ee7 th\u00f4ng tin \u0111\u1ec3 c\u1ea5p quy\u1ec1n truy c\u1eadp h\u1ec7 th\u1ed1ng qu\u1ea3n tr\u1ecb r\u1ea1p phim CineCore.", 16);
     subTxt.setFillColor(Color(100, 116, 139));
     subTxt.setPosition({leftX, cardY + 184.f});
     window.draw(subTxt);
@@ -368,13 +368,13 @@ void RegisterScreen::draw(RenderWindow& window) {
         const FloatRect& r = fieldRects[fm.idx];
         bool isActive = (activeField == fm.idx);
 
-        Text lbl(boldFont, fm.label, 15);
+        Text lbl(boldFont, fm.label, 16);
         lbl.setFillColor(Color(51, 65, 85));
         lbl.setPosition({r.position.x, r.position.y - 23.f});
         window.draw(lbl);
 
         FloatRect lb = lbl.getLocalBounds();
-        Text star(boldFont, L"*", 15);
+        Text star(boldFont, L"*", 16);
         star.setFillColor(Color(220, 38, 38));
         star.setPosition({r.position.x + lb.size.x + 4.f, r.position.y - 23.f});
         window.draw(star);
@@ -397,7 +397,7 @@ void RegisterScreen::draw(RenderWindow& window) {
         float textY = r.position.y + 10.f;
 
         if (inputs[fm.idx].empty()) {
-            Text ph(font, fm.placeholder, 18);
+            Text ph(font, fm.placeholder, 16);
             ph.setFillColor(Color(148, 163, 184));
             ph.setPosition({textX, textY});
             window.draw(ph);
@@ -410,7 +410,7 @@ void RegisterScreen::draw(RenderWindow& window) {
             }
         } else {
             wstring shown = (fm.isPass && !showPassword) ? bullets(inputs[fm.idx].size()) : inputs[fm.idx];
-            Text val(font, shown, 18);
+            Text val(font, shown, 16);
             val.setFillColor(Color(23, 32, 51));
             val.setPosition({textX, textY});
             window.draw(val);
@@ -480,7 +480,7 @@ void RegisterScreen::draw(RenderWindow& window) {
 
     // Status message (if any)
     if (!statusMessage.empty()) {
-        Text stTxt(boldFont, statusMessage, 15);
+        Text stTxt(boldFont, statusMessage, 16);
         stTxt.setFillColor(statusColor);
         stTxt.setPosition({leftX, backRect.position.y - 26.f});
         window.draw(stTxt);
@@ -530,12 +530,12 @@ void RegisterScreen::draw(RenderWindow& window) {
     window.draw(footL);
 
     // 8. Global Bottom Footer Bar
-    Text footLeft(font, L"\u00a9 2025 PBL2 \u2013 B\u1ed9 m\u00f4n \u0110\u1ed3 \u00e1n L\u1eadp tr\u00ecnh t\u00ednh to\u00e1n", 13);
+    Text footLeft(font, L"\u00a9 2025 PBL2 \u2013 B\u1ed9 m\u00f4n \u0110\u1ed3 \u00e1n L\u1eadp tr\u00ecnh t\u00ednh to\u00e1n", 14);
     footLeft.setFillColor(Color(100, 116, 139));
     footLeft.setPosition({24.f, H - 30.f});
     window.draw(footLeft);
 
-    Text footRight(font, L"\u0110i\u1ec1u kho\u1ea3n d\u1ecbch v\u1ee5   \u2022   Tr\u1ee3 gi\u00fap k\u1ef9 thu\u1eadt   \u2022   CineCore Enterprise Edition", 13);
+    Text footRight(font, L"\u0110i\u1ec1u kho\u1ea3n d\u1ecbch v\u1ee5   \u2022   Tr\u1ee3 gi\u00fap k\u1ef9 thu\u1eadt   \u2022   CineCore Enterprise Edition", 14);
     footRight.setFillColor(Color(100, 116, 139));
     FloatRect frb = footRight.getLocalBounds();
     footRight.setPosition({W - 24.f - frb.size.x, H - 30.f});

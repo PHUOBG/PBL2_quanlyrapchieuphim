@@ -41,12 +41,12 @@ void UserSelectPopup::setupUI() {
     background_.setOutlineThickness(2.f);
     
     // Title
-    titleText_->setCharacterSize(18);
+    titleText_->setCharacterSize(16);
     titleText_->setFillColor(headerColor_);
     titleText_->setStyle(sf::Text::Bold);
     
     // Selected count text
-    selectedCountText_->setCharacterSize(13);
+    selectedCountText_->setCharacterSize(14);
     selectedCountText_->setFillColor(accentColor_);
     selectedCountText_->setStyle(sf::Text::Bold);
     
@@ -393,7 +393,7 @@ void UserSelectPopup::render(sf::RenderWindow& window) {
         std::string scrollInfo = std::to_string(startIdx + 1) + "-" + 
                                  std::to_string(endIdx) + "/" + 
                                  std::to_string(filteredIndices_.size());
-        sf::Text scrollText(font_, toUtf8(scrollInfo), 13);
+        sf::Text scrollText(font_, toUtf8(scrollInfo), 14);
         scrollText.setFillColor(sf::Color(120, 120, 120));
         scrollText.setPosition({listBackground_.getPosition().x + listBackground_.getSize().x - 60.f,
                                listBackground_.getPosition().y + listBackground_.getSize().y + 5.f});
@@ -478,7 +478,7 @@ void UserSelectPopup::renderUserList(sf::RenderWindow& window) {
         if (email.length() > 28) {
             email = email.substr(0, 25) + "...";
         }
-        sf::Text emailText(font_, toUtf8(email), 13);
+        sf::Text emailText(font_, toUtf8(email), 14);
         emailText.setFillColor(textColor_);
         emailText.setPosition({listArea.position.x + 38.f, itemY + 10.f});
         window.draw(emailText);
@@ -488,7 +488,7 @@ void UserSelectPopup::renderUserList(sf::RenderWindow& window) {
         if (name.length() > 20) {
             name = name.substr(0, 17) + "...";
         }
-        sf::Text nameText(font_, toUtf8(name), 13);
+        sf::Text nameText(font_, toUtf8(name), 14);
         nameText.setFillColor(sf::Color(100, 100, 100));
         nameText.setPosition({listArea.position.x + 300.f, itemY + 11.f});
         window.draw(nameText);

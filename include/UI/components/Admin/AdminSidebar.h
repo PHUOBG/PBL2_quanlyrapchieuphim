@@ -26,7 +26,7 @@ public:
         : font(font), size(size), position(Vector2f()), radius(radius),
           baseColor(Color::White), hoverColor(Color::White), hovered(false) {
         label = make_unique<Text>(font);
-        label->setCharacterSize(20);
+        label->setCharacterSize(16);
         label->setFillColor(Color::White);
         label->setString(String::fromUtf8(text.begin(), text.end()));
     }

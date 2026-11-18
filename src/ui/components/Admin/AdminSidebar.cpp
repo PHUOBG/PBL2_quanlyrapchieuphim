@@ -284,36 +284,36 @@ void AdminSidebar::render(RenderWindow& window) {
 
         float brandTextX = padX + (float)logoTexture.getSize().x * scale + 10.f;
 
-        Text brandLogo(boldFont, L"CineCore", 18);
+        Text brandLogo(boldFont, L"CineCore", 24);
         brandLogo.setFillColor(Color::White);
-        brandLogo.setPosition({std::round(brandTextX), std::round(position.y + 18.f)});
+        brandLogo.setPosition({std::round(brandTextX), std::round(position.y + 14.f)});
         window.draw(brandLogo);
 
-        Text brandPortal(boldFont, L"PBL2 PORTAL", 12);
+        Text brandPortal(boldFont, L"PBL2 PORTAL", 14);
         brandPortal.setFillColor(Color(186, 230, 253));
-        brandPortal.setPosition({std::round(brandTextX + 1.f), std::round(position.y + 41.f)});
+        brandPortal.setPosition({std::round(brandTextX + 1.f), std::round(position.y + 43.f)});
         window.draw(brandPortal);
     } else {
         RoundedRectRenderer::draw(window, {padX, position.y + 18.f}, {38.f, 38.f}, 8.f, Color(255, 255, 255, 45));
         RectangleShape prj1({6.f, 18.f}); prj1.setFillColor(Color::White); prj1.setPosition({padX + 9.f, position.y + 27.f}); window.draw(prj1);
         RectangleShape prj2({6.f, 18.f}); prj2.setFillColor(Color::White); prj2.setPosition({padX + 21.f, position.y + 27.f}); window.draw(prj2);
 
-        Text brandLogo(boldFont, L"CineCore", 18);
+        Text brandLogo(boldFont, L"CineCore", 24);
         brandLogo.setFillColor(Color::White);
-        brandLogo.setPosition({std::round(padX + 46.f), std::round(position.y + 18.f)});
+        brandLogo.setPosition({std::round(padX + 46.f), std::round(position.y + 14.f)});
         window.draw(brandLogo);
 
-        Text brandPortal(boldFont, L"PBL2 PORTAL", 12);
+        Text brandPortal(boldFont, L"PBL2 PORTAL", 14);
         brandPortal.setFillColor(Color(186, 230, 253));
-        brandPortal.setPosition({std::round(padX + 47.f), std::round(position.y + 41.f)});
+        brandPortal.setPosition({std::round(padX + 47.f), std::round(position.y + 43.f)});
         window.draw(brandPortal);
     }
 
     // Badge ADMIN
-    Vector2f bPos(position.x + width - 102.f, position.y + 25.f);
-    Vector2f bSize(52.f, 22.f);
-    RoundedRectRenderer::draw(window, bPos, bSize, 11.f, Color(8, 125, 181));
-    Text admTxt(boldFont, L"ADMIN", 12);
+    Vector2f bPos(position.x + width - 108.f, position.y + 24.f);
+    Vector2f bSize(60.f, 24.f);
+    RoundedRectRenderer::draw(window, bPos, bSize, 12.f, Color(8, 125, 181));
+    Text admTxt(boldFont, L"ADMIN", 14);
     admTxt.setFillColor(Color::White);
     FloatRect ab = admTxt.getLocalBounds();
     admTxt.setPosition({
@@ -350,7 +350,7 @@ void AdminSidebar::render(RenderWindow& window) {
                 window.draw(secDivider);
             }
             // Tiêu đề nhóm (Text in hoa màu xanh phấn nhạt, không có nền hộp)
-            Text secTitle(boldFont, elem.label, 12);
+            Text secTitle(boldFont, elem.label, 14);
             secTitle.setFillColor(Color(148, 197, 233));
             FloatRect tb = secTitle.getLocalBounds();
             secTitle.setPosition({
@@ -373,7 +373,7 @@ void AdminSidebar::render(RenderWindow& window) {
             }
 
             // Chữ hiển thị
-            Text itemText(isActive ? boldFont : font, elem.label, 14);
+            Text itemText(isActive ? boldFont : font, elem.label, 16);
             if (isActive) {
                 itemText.setFillColor(Color(18, 59, 93));
             } else {
@@ -388,10 +388,10 @@ void AdminSidebar::render(RenderWindow& window) {
             window.draw(itemText);
 
             if (elem.targetState == AppState::ADMIN_CUSTOMERS) {
-                Vector2f badgeSize(28.f, 20.f);
-                Vector2f badgePos(elem.bounds.position.x + elem.bounds.size.x - 40.f, elem.bounds.position.y + (elem.bounds.size.y - badgeSize.y) / 2.f);
-                RoundedRectRenderer::draw(window, badgePos, badgeSize, 10.f, isActive ? Color(224, 242, 254) : Color(8, 125, 181));
-                Text bTxt(boldFont, L"15", 12);
+                Vector2f badgeSize(32.f, 22.f);
+                Vector2f badgePos(elem.bounds.position.x + elem.bounds.size.x - 44.f, elem.bounds.position.y + (elem.bounds.size.y - badgeSize.y) / 2.f);
+                RoundedRectRenderer::draw(window, badgePos, badgeSize, 11.f, isActive ? Color(224, 242, 254) : Color(8, 125, 181));
+                Text bTxt(boldFont, L"15", 14);
                 bTxt.setFillColor(isActive ? Color(18, 59, 93) : Color::White);
                 FloatRect bb = bTxt.getLocalBounds();
                 bTxt.setPosition({
@@ -411,7 +411,7 @@ void AdminSidebar::render(RenderWindow& window) {
 
     drawLogoutIcon(window, {logoutBounds.position.x + 16.f, logoutBounds.position.y + (logoutBounds.size.y - 12.f) / 2.f}, Color::White);
 
-    Text logText(boldFont, L"\u0110\u0103ng xu\u1ea5t h\u1ec7 th\u1ed1ng", 13);
+    Text logText(boldFont, L"\u0110\u0103ng xu\u1ea5t h\u1ec7 th\u1ed1ng", 16);
     logText.setFillColor(Color::White);
     FloatRect logTb = logText.getLocalBounds();
     logText.setPosition({

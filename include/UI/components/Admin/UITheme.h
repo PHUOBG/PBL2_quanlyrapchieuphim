@@ -16,16 +16,16 @@ namespace UITheme {
     // 1. TYPOGRAPHY TOKENS (Font Sizes & Weights)
     // ==========================================
     inline constexpr unsigned int PageTitleSize    = 24;
-    inline constexpr unsigned int SectionTitleSize = 18;
+    inline constexpr unsigned int SectionTitleSize = 16;
     inline constexpr unsigned int CardTitleSize    = 14;
-    inline constexpr unsigned int BodySize         = 14;
-    inline constexpr unsigned int TableHeaderSize  = 12;
-    inline constexpr unsigned int TableBodySize    = 13;
-    inline constexpr unsigned int FormLabelSize    = 12;
-    inline constexpr unsigned int ButtonTextSize   = 13;
-    inline constexpr unsigned int BreadcrumbSize   = 12;
-    inline constexpr unsigned int HelperTextSize   = 12;
-    inline constexpr unsigned int SmallBadgeSize   = 12;
+    inline constexpr unsigned int BodySize         = 16;
+    inline constexpr unsigned int TableHeaderSize  = 16;
+    inline constexpr unsigned int TableBodySize    = 16;
+    inline constexpr unsigned int FormLabelSize    = 14;
+    inline constexpr unsigned int ButtonTextSize   = 16;
+    inline constexpr unsigned int BreadcrumbSize   = 14;
+    inline constexpr unsigned int HelperTextSize   = 14;
+    inline constexpr unsigned int SmallBadgeSize   = 14;
     inline constexpr unsigned int KpiValueSize     = 24;
 
     // ==========================================
@@ -147,11 +147,11 @@ namespace UITheme {
 
         // 1. "CỔNG QUẢN TRỊ" Pill Badge (Tự co giãn chuẩn xác theo nội dung, căn giữa hoàn hảo)
         float bcY = panelY + 18.f;
-        Text bc1(boldFont, L"CỔNG QUẢN TRỊ", 13);
+        Text bc1(boldFont, L"CỔNG QUẢN TRỊ", BreadcrumbSize);
         bc1.setFillColor(Color(2, 132, 199));
         FloatRect bcb = bc1.getLocalBounds();
 
-        float pillH = 28.f;
+        float pillH = 30.f;
         float pillW = bcb.size.x + 36.f; // 10px lề trái + 7px chấm tròn + 6px khoảng cách + chữ + 13px lề phải
         RoundedRectRenderer::draw(target, {startX, bcY}, {pillW, pillH}, pillH / 2.f, Color(224, 242, 254), 1.f, Color(186, 230, 253));
 
@@ -170,47 +170,49 @@ namespace UITheme {
         // (Đã loại bỏ chuông thông báo không có chức năng theo yêu cầu)
 
         // 2. Admin Profile Pill (Cân đối hoàn hảo ảnh đại diện và chữ)
-        float userW = 205.f;
-        float userH = 42.f;
-        float userY = panelY + 12.f;
+        float userW = 264.f;
+        float userH = 48.f;
+        float userY = panelY + 10.f;
         float userX = startX + panelWidth - userW;
 
         RoundedRectRenderer::draw(target, {userX, userY}, {userW, userH}, userH / 2.f, Color::White, 1.2f, Color(203, 213, 225));
 
-        // Avatar tròn đường kính 32px
-        float avRadius = 16.f;
+        // Avatar tròn đường kính 36px
+        float avRadius = 18.f;
+        float avX = userX + 7.f;
+        float avY = userY + (userH - avRadius * 2.f) / 2.f;
         CircleShape av(avRadius, 24);
         av.setFillColor(Color(0, 119, 182));
-        av.setPosition({userX + 5.f, userY + 5.f});
+        av.setPosition({avX, avY});
         target.draw(av);
 
         // Ký tự "AD" căn giữa tuyệt đối trong vòng tròn
-        Text avTxt(boldFont, L"AD", 13);
+        Text avTxt(boldFont, L"AD", SmallBadgeSize);
         avTxt.setFillColor(Color::White);
         FloatRect atb = avTxt.getLocalBounds();
         avTxt.setPosition({
-            userX + 5.f + avRadius - atb.size.x / 2.f - atb.position.x,
-            userY + 5.f + avRadius - atb.size.y / 2.f - atb.position.y - 1.f
+            avX + avRadius - atb.size.x / 2.f - atb.position.x,
+            avY + avRadius - atb.size.y / 2.f - atb.position.y - 1.f
         });
         target.draw(avTxt);
 
         // Khối văn bản Admin CineCore & Toàn quyền
-        float textStartX = userX + 44.f;
-        Text uName(boldFont, L"Admin CineCore", 13);
+        float textStartX = avX + avRadius * 2.f + 10.f;
+        Text uName(boldFont, L"Admin CineCore", BodySize);
         uName.setFillColor(Color(15, 23, 42));
         FloatRect unb = uName.getLocalBounds();
         uName.setPosition({
             textStartX - unb.position.x,
-            userY + 7.f - unb.position.y
+            userY + 6.f - unb.position.y
         });
         target.draw(uName);
 
-        Text uRole(boldFont, L"Toàn quyền • SuperAdmin", 13);
+        Text uRole(font, L"Toàn quyền • SuperAdmin", HelperTextSize);
         uRole.setFillColor(Color(100, 116, 139));
         FloatRect urb = uRole.getLocalBounds();
         uRole.setPosition({
             textStartX - urb.position.x,
-            userY + 23.f - urb.position.y
+            userY + 26.f - urb.position.y
         });
         target.draw(uRole);
     }

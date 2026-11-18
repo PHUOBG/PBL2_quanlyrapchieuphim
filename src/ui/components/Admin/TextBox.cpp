@@ -25,7 +25,7 @@ TextBox::TextBox(Font& font, const string& label, float x, float y, float width,
     
     // Display text
     displayText = make_unique<Text>(font);
-    displayText->setCharacterSize(15);
+    displayText->setCharacterSize(16);
     displayText->setFillColor(textColor);
     displayText->setPosition({x + horizontalPadding, y});
 
@@ -55,7 +55,7 @@ TextBox::TextBox(Font& font, float width, float height)
     
     // Display text
     displayText = make_unique<Text>(font);
-    displayText->setCharacterSize(15);
+    displayText->setCharacterSize(16);
     displayText->setFillColor(textColor);
     displayText->setPosition({horizontalPadding, 0});
 

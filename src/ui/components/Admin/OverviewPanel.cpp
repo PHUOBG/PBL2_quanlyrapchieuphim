@@ -842,7 +842,7 @@ void OverviewPanel::drawHeader(RenderTarget& target) const {
     // Title
     Text titleText(boldFont);
     titleText.setString(L"Tổng Quan Báo Cáo & Doanh Thu");
-    titleText.setCharacterSize(22);
+    titleText.setCharacterSize(24);
     titleText.setFillColor(Color(23, 32, 51)); // Slate-900
     titleText.setPosition({position.x + 20.f, topY});
     target.draw(titleText);
@@ -852,7 +852,7 @@ void OverviewPanel::drawHeader(RenderTarget& target) const {
     Vector2f syncBadgePos(position.x + 20.f + titleW + 14.f, topY + 3.f);
     Text syncText(boldFont);
     syncText.setString(L"• Đồng bộ tự động");
-    syncText.setCharacterSize(13);
+    syncText.setCharacterSize(14);
     syncText.setFillColor(Color(21, 128, 61)); // Emerald-600
     FloatRect sb = syncText.getLocalBounds();
     float syncW = sb.size.x + 24.f;
@@ -867,7 +867,7 @@ void OverviewPanel::drawHeader(RenderTarget& target) const {
     // Subtitle
     Text subText(font);
     subText.setString(L"Dữ liệu thời gian thực rạp CineCore Đà Nẵng - Cập nhật tự động từ hệ thống");
-    subText.setCharacterSize(13);
+    subText.setCharacterSize(14);
     subText.setFillColor(Color(100, 116, 139)); // Slate-500
     subText.setPosition({position.x + 20.f, topY + 30.f});
     target.draw(subText);
@@ -905,7 +905,7 @@ void OverviewPanel::drawHeader(RenderTarget& target) const {
         target.draw(searchPlaceholder);
     } else {
         wstring dispSearch = searchQuery;
-        Text searchTxt(font, dispSearch, 13);
+        Text searchTxt(font, dispSearch, 14);
         while (!dispSearch.empty() && searchTxt.getLocalBounds().size.x > 158.f) {
             dispSearch.erase(0, 1);
             searchTxt.setString(dispSearch);
@@ -935,7 +935,7 @@ void OverviewPanel::drawHeader(RenderTarget& target) const {
 
     wstring curDateLabel = (selectedDateIndex >= 0 && selectedDateIndex < (int)dateOptions.size())
                            ? dateOptions[selectedDateIndex] : L"Toàn kỳ (09/2025 - 12/2025)";
-    Text dateText(font, curDateLabel, 13);
+    Text dateText(font, curDateLabel, 14);
     while (!curDateLabel.empty() && dateText.getLocalBounds().size.x > 148.f) {
         curDateLabel.pop_back();
         dateText.setString(curDateLabel + L"..");
@@ -953,7 +953,7 @@ void OverviewPanel::drawHeader(RenderTarget& target) const {
 
     wstring curRoomLabel = (selectedRoomIndex >= 0 && selectedRoomIndex < (int)roomOptions.size())
                            ? roomOptions[selectedRoomIndex] : L"Tất cả phòng chiếu";
-    Text roomText(font, curRoomLabel, 13);
+    Text roomText(font, curRoomLabel, 14);
     while (!curRoomLabel.empty() && roomText.getLocalBounds().size.x > 148.f) {
         curRoomLabel.pop_back();
         roomText.setString(curRoomLabel + L"..");
@@ -969,7 +969,7 @@ void OverviewPanel::drawHeader(RenderTarget& target) const {
     RoundedRectRenderer::draw(target, exportPos, {115.f, 36.f}, 6.f, exportBg);
     Text exportText(boldFont);
     exportText.setString(L"Xuất báo cáo");
-    exportText.setCharacterSize(13);
+    exportText.setCharacterSize(14);
     exportText.setFillColor(Color::White);
     FloatRect expB = exportText.getLocalBounds();
     exportText.setPosition({exportPos.x + (115.f - expB.size.x) / 2.f - expB.position.x, exportPos.y + (36.f - expB.size.y) / 2.f - expB.position.y});
@@ -1005,7 +1005,7 @@ void OverviewPanel::drawDropdownPopups(RenderTarget& target) const {
                 RoundedRectRenderer::draw(target, itemPos, {menuW - 8.f, itemH - 2.f}, 5.f, rowBg);
             }
 
-            Text optTxt(isSel ? boldFont : font, options[i], 13);
+            Text optTxt(isSel ? boldFont : font, options[i], 14);
             optTxt.setFillColor(isSel ? Color(8, 125, 181) : Color(30, 41, 59));
             optTxt.setPosition({itemPos.x + 10.f, itemPos.y + 8.f});
             target.draw(optTxt);
@@ -1043,12 +1043,12 @@ void OverviewPanel::drawKpiCards(RenderTarget& target) const {
         // Label
         Text lbl(boldFont);
         lbl.setString(label);
-        lbl.setCharacterSize(13);
+        lbl.setCharacterSize(14);
         lbl.setFillColor(Color(100, 116, 139));
         // Tự động thu nhỏ cỡ chữ nếu tiêu đề dài để không bao giờ đè lên huy hiệu F&B / Icon góc phải
         float maxLabelW = cardW - 54.f;
         if (lbl.getLocalBounds().size.x > maxLabelW) {
-            lbl.setCharacterSize(13);
+            lbl.setCharacterSize(14);
         }
         lbl.setPosition({cardPos.x + 14.f, cardPos.y + 12.f});
         target.draw(lbl);
@@ -1075,7 +1075,7 @@ void OverviewPanel::drawKpiCards(RenderTarget& target) const {
         // Value
         Text val(boldFont);
         val.setString(valStr);
-        val.setCharacterSize(22);
+        val.setCharacterSize(24);
         val.setFillColor(Color(23, 32, 51));
         val.setPosition({cardPos.x + 14.f, cardPos.y + 36.f});
         target.draw(val);
@@ -1083,7 +1083,7 @@ void OverviewPanel::drawKpiCards(RenderTarget& target) const {
         if (!unitStr.empty()) {
             Text unit(font);
             unit.setString(unitStr);
-            unit.setCharacterSize(13);
+            unit.setCharacterSize(14);
             unit.setFillColor(Color(100, 116, 139));
             unit.setPosition({val.getPosition().x + val.getGlobalBounds().size.x + 6.f, cardPos.y + 42.f});
             target.draw(unit);
@@ -1092,7 +1092,7 @@ void OverviewPanel::drawKpiCards(RenderTarget& target) const {
         // Subtitle
         Text sub(font);
         sub.setString(subStr);
-        sub.setCharacterSize(13);
+        sub.setCharacterSize(14);
         sub.setFillColor(Color(148, 163, 184));
         sub.setPosition({cardPos.x + 14.f, cardPos.y + 66.f});
         target.draw(sub);
@@ -1100,7 +1100,7 @@ void OverviewPanel::drawKpiCards(RenderTarget& target) const {
         // Footer
         Text fLeft(boldFont);
         fLeft.setString(footLeft);
-        fLeft.setCharacterSize(13);
+        fLeft.setCharacterSize(14);
         fLeft.setFillColor(footLeftColor);
         fLeft.setPosition({cardPos.x + 14.f, cardPos.y + 90.f});
         target.draw(fLeft);
@@ -1108,7 +1108,7 @@ void OverviewPanel::drawKpiCards(RenderTarget& target) const {
         if (!footRight.empty()) {
             Text fRight(font);
             fRight.setString(footRight);
-            fRight.setCharacterSize(13);
+            fRight.setCharacterSize(14);
             fRight.setFillColor(Color(148, 163, 184));
             fRight.setPosition({fLeft.getPosition().x + fLeft.getGlobalBounds().size.x + 5.f, cardPos.y + 90.f});
             target.draw(fRight);
@@ -1128,7 +1128,7 @@ void OverviewPanel::drawKpiCards(RenderTarget& target) const {
 
         Text lbl(boldFont);
         lbl.setString(L"Khách hàng mới");
-        lbl.setCharacterSize(13);
+        lbl.setCharacterSize(14);
         lbl.setFillColor(Color(100, 116, 139));
         lbl.setPosition({cardPos.x + 14.f, cardPos.y + 12.f});
         target.draw(lbl);
@@ -1156,21 +1156,21 @@ void OverviewPanel::drawKpiCards(RenderTarget& target) const {
 
         Text val(boldFont);
         val.setString(to_wstring(newCustomersThisMonth));
-        val.setCharacterSize(22);
+        val.setCharacterSize(24);
         val.setFillColor(Color(23, 32, 51));
         val.setPosition({cardPos.x + 14.f, cardPos.y + 36.f});
         target.draw(val);
 
         Text unit(font);
         unit.setString(L"thành viên");
-        unit.setCharacterSize(13);
+        unit.setCharacterSize(14);
         unit.setFillColor(Color(100, 116, 139));
         unit.setPosition({val.getPosition().x + val.getGlobalBounds().size.x + 6.f, cardPos.y + 42.f});
         target.draw(unit);
 
         Text sub(font);
         sub.setString(L"Tháng 10/2026");
-        sub.setCharacterSize(13);
+        sub.setCharacterSize(14);
         sub.setFillColor(Color(148, 163, 184));
         sub.setPosition({cardPos.x + 14.f, cardPos.y + 66.f});
         target.draw(sub);
@@ -1178,14 +1178,14 @@ void OverviewPanel::drawKpiCards(RenderTarget& target) const {
         // Progress text
         Text progLbl(font);
         progLbl.setString(L"Mục tiêu tháng");
-        progLbl.setCharacterSize(13);
+        progLbl.setCharacterSize(14);
         progLbl.setFillColor(Color(100, 116, 139));
         progLbl.setPosition({cardPos.x + 14.f, cardPos.y + 86.f});
         target.draw(progLbl);
 
         Text progVal(boldFont);
         progVal.setString(L"74% (148/200)");
-        progVal.setCharacterSize(13);
+        progVal.setCharacterSize(14);
         progVal.setFillColor(Color(13, 148, 136));
         progVal.setPosition({cardPos.x + cardW - 14.f - progVal.getGlobalBounds().size.x, cardPos.y + 86.f});
         target.draw(progVal);
@@ -1205,7 +1205,7 @@ void OverviewPanel::drawKpiCards(RenderTarget& target) const {
 
         Text lbl(boldFont);
         lbl.setString(L"Tổng vé bán ra");
-        lbl.setCharacterSize(13);
+        lbl.setCharacterSize(14);
         lbl.setFillColor(Color(100, 116, 139));
         lbl.setPosition({cardPos.x + 14.f, cardPos.y + 12.f});
         target.draw(lbl);
@@ -1225,21 +1225,21 @@ void OverviewPanel::drawKpiCards(RenderTarget& target) const {
 
         Text val(boldFont);
         val.setString(to_wstring(totalTicketsThisMonth));
-        val.setCharacterSize(22);
+        val.setCharacterSize(24);
         val.setFillColor(Color(23, 32, 51));
         val.setPosition({cardPos.x + 14.f, cardPos.y + 36.f});
         target.draw(val);
 
         Text unit(font);
         unit.setString(L"vé");
-        unit.setCharacterSize(13);
+        unit.setCharacterSize(14);
         unit.setFillColor(Color(100, 116, 139));
         unit.setPosition({val.getPosition().x + val.getGlobalBounds().size.x + 6.f, cardPos.y + 42.f});
         target.draw(unit);
 
         Text sub(font);
         sub.setString(L"Tháng 10/2026");
-        sub.setCharacterSize(13);
+        sub.setCharacterSize(14);
         sub.setFillColor(Color(148, 163, 184));
         sub.setPosition({cardPos.x + 14.f, cardPos.y + 66.f});
         target.draw(sub);
@@ -1247,14 +1247,14 @@ void OverviewPanel::drawKpiCards(RenderTarget& target) const {
         // Two stats dots: Standard & VIP
         Text stdTxt(boldFont);
         stdTxt.setString(L"• Standard: " + to_wstring(standardTicketsCount));
-        stdTxt.setCharacterSize(13);
+        stdTxt.setCharacterSize(14);
         stdTxt.setFillColor(Color(59, 130, 246));
         stdTxt.setPosition({cardPos.x + 14.f, cardPos.y + 90.f});
         target.draw(stdTxt);
 
         Text vipTxt(boldFont);
         vipTxt.setString(L"• VIP: " + to_wstring(vipTicketsCount));
-        vipTxt.setCharacterSize(13);
+        vipTxt.setCharacterSize(14);
         vipTxt.setFillColor(Color(245, 158, 11));
         vipTxt.setPosition({stdTxt.getPosition().x + stdTxt.getGlobalBounds().size.x + 12.f, cardPos.y + 90.f});
         target.draw(vipTxt);
@@ -1269,7 +1269,7 @@ void OverviewPanel::drawKpiCards(RenderTarget& target) const {
 
         Text lbl(boldFont);
         lbl.setString(L"Tổng doanh thu");
-        lbl.setCharacterSize(13);
+        lbl.setCharacterSize(14);
         lbl.setFillColor(Color(148, 163, 184));
         lbl.setPosition({cardPos.x + 14.f, cardPos.y + 12.f});
         target.draw(lbl);
@@ -1279,35 +1279,35 @@ void OverviewPanel::drawKpiCards(RenderTarget& target) const {
         RoundedRectRenderer::draw(target, badgePos, {60.f, 22.f}, 4.f, Color(30, 41, 59), 1.f, Color(71, 85, 105));
         Text badgeTxt(boldFont);
         badgeTxt.setString(L"T10/2026");
-        badgeTxt.setCharacterSize(13);
+        badgeTxt.setCharacterSize(14);
         badgeTxt.setFillColor(Color(147, 197, 253));
         badgeTxt.setPosition({badgePos.x + 6.f, badgePos.y + 3.f});
         target.draw(badgeTxt);
 
         Text val(boldFont);
         val.setString(s2ws(toCurrency(totalRevenueThisMonth)));
-        val.setCharacterSize(22);
+        val.setCharacterSize(24);
         val.setFillColor(Color::White);
         val.setPosition({cardPos.x + 14.f, cardPos.y + 36.f});
         target.draw(val);
 
         Text sub(font);
         sub.setString(L"Toàn rạp CineCore");
-        sub.setCharacterSize(13);
+        sub.setCharacterSize(14);
         sub.setFillColor(Color(148, 163, 184));
         sub.setPosition({cardPos.x + 14.f, cardPos.y + 66.f});
         target.draw(sub);
 
         Text fLeft(boldFont);
         fLeft.setString(L"+28.4%");
-        fLeft.setCharacterSize(13);
+        fLeft.setCharacterSize(14);
         fLeft.setFillColor(Color(52, 211, 153)); // Emerald light
         fLeft.setPosition({cardPos.x + 14.f, cardPos.y + 90.f});
         target.draw(fLeft);
 
         Text fRight(font);
         fRight.setString(L"vượt KPI quý");
-        fRight.setCharacterSize(13);
+        fRight.setCharacterSize(14);
         fRight.setFillColor(Color(148, 163, 184));
         fRight.setPosition({fLeft.getPosition().x + fLeft.getGlobalBounds().size.x + 5.f, cardPos.y + 90.f});
         target.draw(fRight);
@@ -1378,7 +1378,7 @@ void OverviewPanel::drawTopLeftChart(RenderTarget& target) const {
         // Label
         Text lbl(font);
         lbl.setString(to_string(tick));
-        lbl.setCharacterSize(13);
+        lbl.setCharacterSize(14);
         lbl.setFillColor(Color(148, 163, 184));
         lbl.setPosition({cardX + 16.f, y - 7.f});
         target.draw(lbl);
@@ -1424,7 +1424,7 @@ void OverviewPanel::drawTopLeftChart(RenderTarget& target) const {
         // Label below bar
         Text nameTxt(font);
         nameTxt.setString(topMoviesList[i].shortTitle);
-        nameTxt.setCharacterSize(13);
+        nameTxt.setCharacterSize(14);
         nameTxt.setFillColor(Color(100, 116, 139));
         FloatRect nb = nameTxt.getLocalBounds();
         nameTxt.setPosition({bx + colW / 2.f - nb.size.x / 2.f, chartBottom + 8.f});
@@ -1469,21 +1469,21 @@ void OverviewPanel::drawTopRightTable(RenderTarget& target) const {
 
     Text th1(boldFont);
     th1.setString(L"#  TÊN PHIM");
-    th1.setCharacterSize(13);
+    th1.setCharacterSize(14);
     th1.setFillColor(Color(148, 163, 184));
     th1.setPosition({colTitleX, cardY + 44.f});
     target.draw(th1);
 
     Text th2(boldFont);
     th2.setString(L"SỐ VÉ");
-    th2.setCharacterSize(13);
+    th2.setCharacterSize(14);
     th2.setFillColor(Color(148, 163, 184));
     th2.setPosition({colTicketsX, cardY + 44.f});
     target.draw(th2);
 
     Text th3(boldFont);
     th3.setString(L"DOANH THU");
-    th3.setCharacterSize(13);
+    th3.setCharacterSize(14);
     th3.setFillColor(Color(148, 163, 184));
     FloatRect th3b = th3.getLocalBounds();
     th3.setPosition({colRevenueX - th3b.size.x, cardY + 44.f});
@@ -1518,7 +1518,7 @@ void OverviewPanel::drawTopRightTable(RenderTarget& target) const {
 
             Text rTxt(boldFont);
             rTxt.setString(to_string(i + 1));
-            rTxt.setCharacterSize(13);
+            rTxt.setCharacterSize(14);
             rTxt.setFillColor(Color::White);
             FloatRect rb = rTxt.getLocalBounds();
             rTxt.setPosition({colTitleX + 9.f - rb.size.x / 2.f, ry + 2.f});
@@ -1562,7 +1562,7 @@ void OverviewPanel::drawTopRightTable(RenderTarget& target) const {
         // Revenue
         Text revTxt(boldFont);
         revTxt.setString(s2ws(toCurrency(topMoviesList[i].revenue)));
-        revTxt.setCharacterSize(13);
+        revTxt.setCharacterSize(14);
         revTxt.setFillColor(Color(225, 29, 72));
         FloatRect revB = revTxt.getLocalBounds();
         revTxt.setPosition({colRevenueX - revB.size.x, ry + 1.f});
@@ -1616,7 +1616,7 @@ void OverviewPanel::drawBottomLeftChart(RenderTarget& target) const {
 
         Text lbl(font);
         lbl.setString(s2ws(toCurrency(val)));
-        lbl.setCharacterSize(13);
+        lbl.setCharacterSize(14);
         lbl.setFillColor(Color(148, 163, 184));
         FloatRect lb = lbl.getLocalBounds();
         lbl.setPosition({chartLeft - lb.size.x - 10.f, y - 7.f});
@@ -1752,21 +1752,21 @@ void OverviewPanel::drawBottomRightTable(RenderTarget& target) const {
 
     Text th1(boldFont);
     th1.setString(L"THÁNG");
-    th1.setCharacterSize(13);
+    th1.setCharacterSize(14);
     th1.setFillColor(Color(148, 163, 184));
     th1.setPosition({colMonthX, cardY + 44.f});
     target.draw(th1);
 
     Text th2(boldFont);
     th2.setString(L"BIẾN ĐỘNG");
-    th2.setCharacterSize(13);
+    th2.setCharacterSize(14);
     th2.setFillColor(Color(148, 163, 184));
     th2.setPosition({colChangeX, cardY + 44.f});
     target.draw(th2);
 
     Text th3(boldFont);
     th3.setString(L"DOANH THU");
-    th3.setCharacterSize(13);
+    th3.setCharacterSize(14);
     th3.setFillColor(Color(148, 163, 184));
     FloatRect th3b = th3.getLocalBounds();
     th3.setPosition({colRevX - th3b.size.x, cardY + 44.f});
@@ -1799,7 +1799,7 @@ void OverviewPanel::drawBottomRightTable(RenderTarget& target) const {
         // Month text
         Text mTxt(boldFont);
         mTxt.setString(monthlyStatsList[i].displayMonth);
-        mTxt.setCharacterSize(13);
+        mTxt.setCharacterSize(14);
         mTxt.setFillColor(Color(23, 32, 51));
         mTxt.setPosition({colMonthX + 16.f, ry + 2.f});
         target.draw(mTxt);
@@ -1809,7 +1809,7 @@ void OverviewPanel::drawBottomRightTable(RenderTarget& target) const {
             RoundedRectRenderer::draw(target, recPos, {52.f, 20.f}, 4.f, Color(255, 228, 230));
             Text recTxt(boldFont);
             recTxt.setString(L"Kỷ lục");
-            recTxt.setCharacterSize(13);
+            recTxt.setCharacterSize(14);
             recTxt.setFillColor(Color(225, 29, 72));
             recTxt.setPosition({recPos.x + 8.f, recPos.y + 2.f});
             target.draw(recTxt);
@@ -1829,7 +1829,7 @@ void OverviewPanel::drawBottomRightTable(RenderTarget& target) const {
         // Revenue
         Text revTxt(boldFont);
         revTxt.setString(s2ws(toCurrency(monthlyStatsList[i].revenue)));
-        revTxt.setCharacterSize(13);
+        revTxt.setCharacterSize(14);
         revTxt.setFillColor(Color(23, 32, 51));
         FloatRect revB = revTxt.getLocalBounds();
         revTxt.setPosition({colRevX - revB.size.x, ry + 2.f});
@@ -1846,7 +1846,7 @@ void OverviewPanel::drawBottomRightTable(RenderTarget& target) const {
     // Summary row
     Text sumLbl(font);
     sumLbl.setString(L"Tổng doanh thu tích lũy 4 tháng:");
-    sumLbl.setCharacterSize(13);
+    sumLbl.setCharacterSize(14);
     sumLbl.setFillColor(Color(100, 116, 139));
     sumLbl.setPosition({colMonthX, sumDivY + 12.f});
     target.draw(sumLbl);
@@ -1889,7 +1889,7 @@ void OverviewPanel::drawBottomBar(RenderTarget& target) const {
 void OverviewPanel::drawToast(RenderTarget& target) const {
     Text toast(boldFont);
     toast.setString(toastMessage);
-    toast.setCharacterSize(13);
+    toast.setCharacterSize(14);
     toast.setFillColor(Color::White);
     FloatRect tb = toast.getLocalBounds();
 
@@ -1929,7 +1929,7 @@ void OverviewPanel::drawReportModal(RenderTarget& target) const {
     RoundedRectRenderer::draw(target, badgePos, {130.f, 22.f}, 11.f, Color(220, 252, 231), 1.f, Color(167, 243, 208));
     Text badgeTxt(boldFont);
     badgeTxt.setString(L"• ĐÃ XUẤT CSV");
-    badgeTxt.setCharacterSize(13);
+    badgeTxt.setCharacterSize(14);
     badgeTxt.setFillColor(Color(21, 128, 61));
     badgeTxt.setPosition({badgePos.x + 12.f, badgePos.y + 3.f});
     target.draw(badgeTxt);
@@ -1943,7 +1943,7 @@ void OverviewPanel::drawReportModal(RenderTarget& target) const {
     string roomStr = (selectedRoomIndex >= 0 && selectedRoomIndex < (int)roomOptions.size())
                      ? UITheme::wstrToUtf8(roomOptions[selectedRoomIndex]) : "Tất cả phòng";
     wstring subInfo = L"Kỳ: " + s2ws(periodStr) + L"  •  " + s2ws(roomStr) + L"  •  Cập nhật thời gian thực";
-    Text mSub(font, subInfo, 13);
+    Text mSub(font, subInfo, 14);
     mSub.setFillColor(Color(100, 116, 139));
     mSub.setPosition({mPos.x + 24.f, mPos.y + 44.f});
     target.draw(mSub);
@@ -1962,7 +1962,7 @@ void OverviewPanel::drawReportModal(RenderTarget& target) const {
     auto drawMiniKpi = [&](int idx, const wstring& lbl, const wstring& val, Color valCol) {
         Vector2f kp(mPos.x + 24.f + idx * (kpiW + 10.f), kpiY);
         RoundedRectRenderer::draw(target, kp, {kpiW, kpiH}, 6.f, Color(248, 250, 252), 1.f, Color(226, 232, 240));
-        Text l(font, lbl, 13);
+        Text l(font, lbl, 14);
         l.setFillColor(Color(100, 116, 139));
         l.setPosition({kp.x + 12.f, kp.y + 8.f});
         target.draw(l);
@@ -1980,7 +1980,7 @@ void OverviewPanel::drawReportModal(RenderTarget& target) const {
 
     // 4. Bảng Chi tiết Top 5 Phim trong Modal
     float tblY = mPos.y + 162.f;
-    Text tblHead(boldFont, L"BẢNG ĐỐI CHIẾU DOANH THU CÁC PHIM HÀNG ĐẦU (TOP 5)", 13);
+    Text tblHead(boldFont, L"BẢNG ĐỐI CHIẾU DOANH THU CÁC PHIM HÀNG ĐẦU (TOP 5)", 14);
     tblHead.setFillColor(Color(23, 32, 51));
     tblHead.setPosition({mPos.x + 24.f, tblY});
     target.draw(tblHead);
@@ -1993,10 +1993,10 @@ void OverviewPanel::drawReportModal(RenderTarget& target) const {
     float c3X = mPos.x + 460.f;
     float c4X = mPos.x + mw - 36.f;
 
-    Text th1(boldFont, L"#", 13); th1.setFillColor(Color(100, 116, 139)); th1.setPosition({c1X, thY + 7.f}); target.draw(th1);
-    Text th2(boldFont, L"TÊN PHIM CHIẾU", 13); th2.setFillColor(Color(100, 116, 139)); th2.setPosition({c2X, thY + 7.f}); target.draw(th2);
-    Text th3(boldFont, L"SỐ VÉ BÁN", 13); th3.setFillColor(Color(100, 116, 139)); th3.setPosition({c3X, thY + 7.f}); target.draw(th3);
-    Text th4(boldFont, L"DOANH THU PHIM", 13); th4.setFillColor(Color(100, 116, 139));
+    Text th1(boldFont, L"#", 14); th1.setFillColor(Color(100, 116, 139)); th1.setPosition({c1X, thY + 7.f}); target.draw(th1);
+    Text th2(boldFont, L"TÊN PHIM CHIẾU", 14); th2.setFillColor(Color(100, 116, 139)); th2.setPosition({c2X, thY + 7.f}); target.draw(th2);
+    Text th3(boldFont, L"SỐ VÉ BÁN", 14); th3.setFillColor(Color(100, 116, 139)); th3.setPosition({c3X, thY + 7.f}); target.draw(th3);
+    Text th4(boldFont, L"DOANH THU PHIM", 14); th4.setFillColor(Color(100, 116, 139));
     FloatRect th4b = th4.getLocalBounds();
     th4.setPosition({c4X - th4b.size.x, thY + 7.f}); target.draw(th4);
 
@@ -2017,26 +2017,26 @@ void OverviewPanel::drawReportModal(RenderTarget& target) const {
         rCir.setFillColor(i < 3 ? rCol : Color(241, 245, 249));
         target.draw(rCir);
 
-        Text rTxt(boldFont, to_wstring(i + 1), 13);
+        Text rTxt(boldFont, to_wstring(i + 1), 14);
         rTxt.setFillColor(i < 3 ? Color::White : Color(100, 116, 139));
         FloatRect rtb = rTxt.getLocalBounds();
         rTxt.setPosition({c1X + 6.f - rtb.size.x / 2.f - rtb.position.x, ry + 10.f});
         target.draw(rTxt);
 
         // Tên phim
-        Text mTitleTxt(boldFont, topMoviesList[i].displayTitle, 13);
+        Text mTitleTxt(boldFont, topMoviesList[i].displayTitle, 14);
         mTitleTxt.setFillColor(Color(23, 32, 51));
         mTitleTxt.setPosition({c2X, ry + 9.f});
         target.draw(mTitleTxt);
 
         // Số vé
-        Text tksTxt(boldFont, to_wstring(topMoviesList[i].tickets) + L" vé", 13);
+        Text tksTxt(boldFont, to_wstring(topMoviesList[i].tickets) + L" vé", 14);
         tksTxt.setFillColor(Color(37, 99, 235));
         tksTxt.setPosition({c3X, ry + 9.f});
         target.draw(tksTxt);
 
         // Doanh thu
-        Text revTxt(boldFont, s2ws(toCurrency(topMoviesList[i].revenue)), 13);
+        Text revTxt(boldFont, s2ws(toCurrency(topMoviesList[i].revenue)), 14);
         revTxt.setFillColor(Color(225, 29, 72));
         FloatRect revB = revTxt.getLocalBounds();
         revTxt.setPosition({c4X - revB.size.x, ry + 9.f});
@@ -2050,7 +2050,7 @@ void OverviewPanel::drawReportModal(RenderTarget& target) const {
     target.draw(sep2);
 
     // File path info
-    Text pathTxt(font, L"Vị trí lưu file: data/overview_report.csv (Mở tự động bằng Excel)", 13);
+    Text pathTxt(font, L"Vị trí lưu file: data/overview_report.csv (Mở tự động bằng Excel)", 14);
     pathTxt.setFillColor(Color(100, 116, 139));
     pathTxt.setPosition({mPos.x + 24.f, mPos.y + mh - 42.f});
     target.draw(pathTxt);
@@ -2059,7 +2059,7 @@ void OverviewPanel::drawReportModal(RenderTarget& target) const {
     Vector2f btnExPos(mPos.x + mw - 340.f, mPos.y + mh - 50.f);
     Color exBg = modalOpenExcelHovered ? Color(18, 59, 93) : Color(8, 125, 181);
     RoundedRectRenderer::draw(target, btnExPos, {210.f, 36.f}, 6.f, exBg);
-    Text btnExTxt(boldFont, L"Mở bằng Excel / CSV", 13);
+    Text btnExTxt(boldFont, L"Mở bằng Excel / CSV", 14);
     btnExTxt.setFillColor(Color::White);
     FloatRect exb = btnExTxt.getLocalBounds();
     btnExTxt.setPosition({btnExPos.x + (210.f - exb.size.x) / 2.f - exb.position.x, btnExPos.y + 9.f});
@@ -2069,7 +2069,7 @@ void OverviewPanel::drawReportModal(RenderTarget& target) const {
     Vector2f btnClPos(mPos.x + mw - 115.f, mPos.y + mh - 50.f);
     Color clBg = modalCloseHovered ? Color(226, 232, 240) : Color(241, 245, 249);
     RoundedRectRenderer::draw(target, btnClPos, {100.f, 36.f}, 6.f, clBg, 1.f, Color(203, 213, 225));
-    Text btnClTxt(boldFont, L"Đóng", 13);
+    Text btnClTxt(boldFont, L"Đóng", 14);
     btnClTxt.setFillColor(Color(51, 65, 85));
     FloatRect clb = btnClTxt.getLocalBounds();
     btnClTxt.setPosition({btnClPos.x + (100.f - clb.size.x) / 2.f - clb.position.x, btnClPos.y + 9.f});

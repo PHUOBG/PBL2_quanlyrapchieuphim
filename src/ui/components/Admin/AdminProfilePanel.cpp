@@ -366,7 +366,7 @@ void AdminProfilePanel::drawHeaderBanner(RenderTarget& target) const {
     float textX = avPos.x + 100.f;
     Text title(boldFont);
     title.setString(L"HỒ SƠ CỦA ADMIN");
-    title.setCharacterSize(22);
+    title.setCharacterSize(24);
     title.setFillColor(Color(23, 32, 51));
     title.setPosition({textX, cardY + 26.f});
     target.draw(title);
@@ -516,7 +516,7 @@ void AdminProfilePanel::drawPersonalInfoCard(RenderTarget& target) const {
     infoBg.setFillColor(Color(8, 125, 181));
     infoBg.setPosition({notPos.x + 14.f, notPos.y + 18.f});
     target.draw(infoBg);
-    Text notIc(boldFont, L"i", 13);
+    Text notIc(boldFont, L"i", 14);
     notIc.setFillColor(Color::White);
     notIc.setPosition({notPos.x + 20.8f, notPos.y + 19.f});
     target.draw(notIc);
@@ -750,7 +750,7 @@ void AdminProfilePanel::drawDeleteModal(RenderTarget& target) const {
 
     Text msg(font);
     msg.setString(L"Bạn có chắc chắn muốn xóa vĩnh viễn tài khoản quản trị này?\nHành động này không thể hoàn tác!");
-    msg.setCharacterSize(13);
+    msg.setCharacterSize(14);
     msg.setFillColor(Color(51, 65, 85));
     msg.setPosition({dPos.x + 24.f, dPos.y + 58.f});
     target.draw(msg);
@@ -760,7 +760,7 @@ void AdminProfilePanel::drawDeleteModal(RenderTarget& target) const {
     RoundedRectRenderer::draw(target, canPos, {95.f, 36.f}, 6.f, Color::White, 1.f, Color(203, 213, 225));
     Text canTxt(boldFont);
     canTxt.setString(L"Hủy bỏ");
-    canTxt.setCharacterSize(13);
+    canTxt.setCharacterSize(14);
     canTxt.setFillColor(Color(71, 85, 105));
     canTxt.setPosition({canPos.x + 24.f, canPos.y + 8.f});
     target.draw(canTxt);
@@ -770,7 +770,7 @@ void AdminProfilePanel::drawDeleteModal(RenderTarget& target) const {
     RoundedRectRenderer::draw(target, delPos, {95.f, 36.f}, 6.f, Color(220, 38, 38));
     Text delTxt(boldFont);
     delTxt.setString(L"Xóa vĩnh viễn");
-    delTxt.setCharacterSize(13);
+    delTxt.setCharacterSize(14);
     delTxt.setFillColor(Color::White);
     delTxt.setPosition({delPos.x + 10.f, delPos.y + 8.f});
     target.draw(delTxt);
@@ -796,7 +796,7 @@ void AdminProfilePanel::drawBottomBar(RenderTarget& target) const {
 void AdminProfilePanel::drawToast(RenderTarget& target) const {
     Text toast(boldFont);
     toast.setString(toastMessage);
-    toast.setCharacterSize(13);
+    toast.setCharacterSize(14);
     toast.setFillColor(Color::White);
     FloatRect tb = toast.getLocalBounds();
 

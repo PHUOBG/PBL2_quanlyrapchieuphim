@@ -21,12 +21,12 @@ GlobalSearchBar::GlobalSearchBar(Font& f, Vector2f position, Vector2f size)
     inputBox.setOutlineThickness(0.f); // Không có viền
     
     // Input text - căn chỉnh vào giữa search bar với font size lớn hơn
-    inputText.setCharacterSize(22);
+    inputText.setCharacterSize(16);
     inputText.setFillColor(Color::Black); // Chữ màu đen để thấy trên nền trắng
     inputText.setPosition(Vector2f(position.x + 18.f, position.y + 3.f)); // Dịch vào trong, căn giữa dọc
     
     // Placeholder text
-    placeholderText.setCharacterSize(22);
+    placeholderText.setCharacterSize(16);
     placeholderText.setFillColor(Color(120, 120, 120)); // Màu xám đậm hơn
     placeholderText.setString("Search...");
     placeholderText.setPosition(Vector2f(position.x + 18.f, position.y + 3.f));

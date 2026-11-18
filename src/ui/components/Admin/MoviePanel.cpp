@@ -656,9 +656,9 @@ void MoviePanel::handleEvent(const Event& event, const RenderWindow& window) {
             // Click trên các dòng của bảng phim
             const float tableY = 352.f;
             const float hdrH = 48.f;
-            const float rowH = 80.f;
+            const float rowH = 82.f;
             const float tableW = 1244.f;
-            const float col8X = startX + 1125.f;
+            const float col8X = startX + 1124.f;
 
             int startIdx = (currentPage - 1) * moviesPerPage;
             int displayCount = max(0, min(moviesPerPage, static_cast<int>(filteredIndices.size()) - startIdx));
@@ -666,8 +666,8 @@ void MoviePanel::handleEvent(const Event& event, const RenderWindow& window) {
                 int idx = startIdx + r;
                 float rY = tableY + hdrH + r * rowH;
                 FloatRect rBounds({startX, rY}, {tableW, rowH});
-                FloatRect editIconBtn({col8X + 8.f, rY + 23.f}, {34.f, 34.f});
-                FloatRect delIconBtn({col8X + 50.f, rY + 23.f}, {34.f, 34.f});
+                FloatRect editIconBtn({col8X + 20.f, rY + (rowH - 34.f) / 2.f}, {34.f, 34.f});
+                FloatRect delIconBtn({col8X + 64.f, rY + (rowH - 34.f) / 2.f}, {34.f, 34.f});
 
                 if (rBounds.contains(mouse)) {
                     if (editIconBtn.contains(mouse)) {
@@ -687,9 +687,9 @@ void MoviePanel::handleEvent(const Event& event, const RenderWindow& window) {
             int numPageBtns = min(5, totalPages);
             int startP = max(1, min(currentPage - 2, totalPages - numPageBtns + 1));
             int endP = min(totalPages, startP + numPageBtns - 1);
-            float btnPrevW = 64.f;
-            float btnNextW = 64.f;
-            float btnPageW = 34.f;
+            float btnPrevW = 72.f;
+            float btnNextW = 68.f;
+            float btnPageW = 36.f;
             float gap = 6.f;
             float totalBtnsW = btnPrevW + gap + (endP - startP + 1) * (btnPageW + gap) - gap + gap + btnNextW;
             float curBtnX = rightEdge - totalBtnsW;
@@ -829,9 +829,9 @@ void MoviePanel::update(Vector2f mouse, bool /*mousePressed*/) {
     // Table rows hover
     const float tableY = 352.f;
     const float hdrH = 48.f;
-    const float rowH = 80.f;
+    const float rowH = 82.f;
     const float tableW = 1244.f;
-    const float col8X = startX + 1125.f;
+    const float col8X = startX + 1124.f;
 
     hoveredRow = -1;
     hoveredEditRow = -1;
@@ -843,8 +843,8 @@ void MoviePanel::update(Vector2f mouse, bool /*mousePressed*/) {
         int idx = startIdx + r;
         float rY = tableY + hdrH + r * rowH;
         FloatRect rBounds({startX, rY}, {tableW, rowH});
-        FloatRect editIconBtn({col8X + 8.f, rY + 23.f}, {34.f, 34.f});
-        FloatRect delIconBtn({col8X + 50.f, rY + 23.f}, {34.f, 34.f});
+        FloatRect editIconBtn({col8X + 20.f, rY + (rowH - 34.f) / 2.f}, {34.f, 34.f});
+        FloatRect delIconBtn({col8X + 64.f, rY + (rowH - 34.f) / 2.f}, {34.f, 34.f});
 
         if (editIconBtn.contains(mouse)) hoveredEditRow = idx;
         if (delIconBtn.contains(mouse)) hoveredDeleteRow = idx;
@@ -910,9 +910,9 @@ void MoviePanel::render(RenderWindow& window) {
     drawSearchIcon(window, {startX + 14.f, toolY + 14.f}, searchActive ? Color(8, 125, 181) : Color(100, 116, 139));
 
     if (searchQuery.empty()) {
-        Text ph(boldFont, L"T\u00ecm t\u00ean phim...", 13);
+        Text ph(font, L"T\u00ecm t\u00ean phim...", UITheme::BodySize);
         ph.setFillColor(Color(100, 116, 139));
-        ph.setPosition({startX + 38.f, toolY + 12.f});
+        ph.setPosition({startX + 38.f, toolY + 11.f});
         window.draw(ph);
         if (searchActive && caretVisible) {
             RectangleShape caret({2.f, 20.f});
@@ -921,7 +921,7 @@ void MoviePanel::render(RenderWindow& window) {
             window.draw(caret);
         }
     } else {
-        Text val(boldFont, searchQuery, 14);
+        Text val(font, searchQuery, UITheme::BodySize);
         val.setFillColor(Color(23, 32, 51));
         val.setPosition({startX + 38.f, toolY + 11.f});
         window.draw(val);
@@ -939,20 +939,20 @@ void MoviePanel::render(RenderWindow& window) {
     // Genre Dropdown Button
     RoundedRectRenderer::draw(window, {startX + 375.f, toolY}, {160.f, 44.f}, 10.f, Color::White, 1.2f, Color(203, 213, 225));
     wstring gLabel = (selectedGenre == "all") ? L"T\u1ea5t c\u1ea3 th\u1ec3 lo\u1ea1i" : s2ws(selectedGenre);
-    Text gt(boldFont, gLabel, 13);
+    Text gt(font, gLabel, UITheme::BodySize);
     gt.setFillColor(Color(30, 41, 59));
-    gt.setPosition({startX + 388.f, toolY + 12.f});
+    gt.setPosition({startX + 386.f, toolY + 11.f});
     window.draw(gt);
     drawDownArrow(window, {startX + 514.f, toolY + 20.f}, Color(51, 65, 85));
 
     // Status Dropdown Button
     RoundedRectRenderer::draw(window, {startX + 550.f, toolY}, {160.f, 44.f}, 10.f, Color::White, 1.2f, Color(203, 213, 225));
     wstring stLabel = (selectedStatus == "all") ? L"Tr\u1ea1ng th\u00e1i: T\u1ea5t c\u1ea3" : (selectedStatus == "dang_chieu" ? L"\u0110ang chi\u1ebfu" : L"S\u1eafp chi\u1ebfu");
-    Text stt(boldFont, stLabel, 13);
+    Text stt(font, stLabel, UITheme::BodySize);
     stt.setFillColor(Color(30, 41, 59));
-    stt.setPosition({startX + 562.f, toolY + 12.f});
+    stt.setPosition({startX + 560.f, toolY + 11.f});
     window.draw(stt);
-    drawDownArrow(window, {startX + 690.f, toolY + 20.f}, Color(51, 65, 85));
+    drawDownArrow(window, {startX + 692.f, toolY + 20.f}, Color(51, 65, 85));
 
     // Reload Button
     Color relCol = btnReloadHover ? Color(241, 245, 249) : Color::White;
@@ -962,46 +962,46 @@ void MoviePanel::render(RenderWindow& window) {
     // Edit Button (Amber/Orange)
     Color editCol = btnEditHover ? Color(217, 119, 6) : Color(245, 158, 11);
     RoundedRectRenderer::draw(window, {startX + 779.f, toolY}, {150.f, 44.f}, 10.f, editCol);
-    drawPencilIcon(window, {startX + 794.f, toolY + 15.f}, Color::White);
-    Text editTxt(boldFont, L"S\u1eeda th\u00f4ng tin", 14);
+    drawPencilIcon(window, {startX + 791.f, toolY + 15.f}, Color::White);
+    Text editTxt(boldFont, L"S\u1eeda th\u00f4ng tin", UITheme::ButtonTextSize);
     editTxt.setFillColor(Color::White);
-    editTxt.setPosition({startX + 816.f, toolY + 11.f});
+    editTxt.setPosition({startX + 811.f, toolY + 11.f});
     window.draw(editTxt);
 
     // Delete Button (Crimson)
     Color delCol = btnDeleteHover ? Color(220, 38, 38) : Color(220, 38, 38);
     RoundedRectRenderer::draw(window, {startX + 941.f, toolY}, {125.f, 44.f}, 10.f, delCol);
-    drawTrashIcon(window, {startX + 955.f, toolY + 15.f}, Color::White);
-    Text delTxt(boldFont, L"X\u00f3a phim", 14);
+    drawTrashIcon(window, {startX + 954.f, toolY + 15.f}, Color::White);
+    Text delTxt(boldFont, L"X\u00f3a phim", UITheme::ButtonTextSize);
     delTxt.setFillColor(Color::White);
-    delTxt.setPosition({startX + 977.f, toolY + 11.f});
+    delTxt.setPosition({startX + 976.f, toolY + 11.f});
     window.draw(delTxt);
 
     // Add Button (Ocean Blue)
     Color addCol = btnAddHover ? Color(18, 59, 93) : Color(8, 125, 181);
     RoundedRectRenderer::draw(window, {startX + 1079.f, toolY}, {165.f, 44.f}, 10.f, addCol);
-    drawPlusIcon(window, {startX + 1095.f, toolY + 17.f}, Color::White);
-    Text addTxt(boldFont, L"Th\u00eam phim m\u1edbi", 14);
+    drawPlusIcon(window, {startX + 1091.f, toolY + 17.f}, Color::White);
+    Text addTxt(boldFont, L"Th\u00eam phim m\u1edbi", UITheme::ButtonTextSize);
     addTxt.setFillColor(Color::White);
-    addTxt.setPosition({startX + 1115.f, toolY + 11.f});
+    addTxt.setPosition({startX + 1110.f, toolY + 11.f});
     window.draw(addTxt);
 
     // 6. DATA TABLE SUBHEADER
     const float subY = 318.f;
     drawFunnelIcon(window, {startX + 2.f, subY + 3.f}, Color(8, 125, 181));
 
-    Text subTitle(boldFont, L"DANH S\u00c1CH PHIM CHI\u1ebeU R\u1ea0P", 13);
+    Text subTitle(boldFont, L"DANH S\u00c1CH PHIM CHI\u1ebeU R\u1ea0P", UITheme::SectionTitleSize);
     subTitle.setFillColor(Color(23, 32, 51));
-    subTitle.setPosition({startX + 20.f, subY + 2.f});
+    subTitle.setPosition({startX + 20.f, subY + 1.f});
     window.draw(subTitle);
 
     // Right count badge
     wstring countStr = L"Trang " + to_wstring(currentPage) + L"/" + to_wstring(totalPages) + L" (" + to_wstring(filteredIndices.size()) + L" phim)";
-    RoundedRectRenderer::draw(window, {startX + 1244.f - 210.f, subY - 4.f}, {210.f, 28.f}, 14.f, Color(241, 245, 249), 1.2f, Color(203, 213, 225));
-    Text cBadge(boldFont, countStr, 13);
+    RoundedRectRenderer::draw(window, {startX + 1244.f - 220.f, subY - 4.f}, {220.f, 30.f}, 15.f, Color(241, 245, 249), 1.2f, Color(203, 213, 225));
+    Text cBadge(boldFont, countStr, UITheme::SmallBadgeSize);
     cBadge.setFillColor(Color(30, 41, 59));
     FloatRect cbb = cBadge.getLocalBounds();
-    cBadge.setPosition({startX + 1244.f - 210.f + (210.f - cbb.size.x) / 2.f - cbb.position.x, subY + 1.f});
+    cBadge.setPosition({startX + 1244.f - 220.f + (220.f - cbb.size.x) / 2.f - cbb.position.x, subY + 2.f});
     window.draw(cBadge);
 
     // 7. TABLE HEADER (Ocean Blue #0077B6)
@@ -1015,25 +1015,32 @@ void MoviePanel::render(RenderWindow& window) {
     vector<pair<wstring, float>> cols = {
         {L"", 45.f},
         {L"ID PHIM", 95.f},
-        {L"T\u00caN PHIM & TH\u1ec2 LO\u1ea0I", 360.f},
-        {L"\u0110\u1ea0O DI\u1ec4N", 145.f},
+        {L"T\u00caN PHIM & TH\u1ec2 LO\u1ea0I", 355.f},
+        {L"\u0110\u1ea0O DI\u1ec4N", 150.f},
         {L"QU\u1ed0C GIA", 125.f},
-        {L"TH\u1edcI L\u01af\u1ee2NG", 100.f},
-        {L"NG\u00c0Y CHI\u1ebeU", 120.f},
+        {L"TH\u1edcI L\u01af\u1ee2NG", 105.f},
+        {L"NG\u00c0Y CHI\u1ebeU", 115.f},
         {L"TR\u1ea0NG TH\u00c1I", 134.f},
         {L"THAO T\u00c1C", 120.f}
     };
 
     float curColX = startX;
     for (size_t c = 0; c < cols.size(); ++c) {
+        if (c > 0) {
+            RectangleShape hSep({1.f, hdrH - 16.f});
+            hSep.setFillColor(Color(255, 255, 255, 55));
+            hSep.setPosition({curColX, tblY + 8.f});
+            window.draw(hSep);
+        }
         if (!cols[c].first.empty()) {
-            Text hText(boldFont, cols[c].first, 13);
+            Text hText(boldFont, cols[c].first, UITheme::TableHeaderSize);
             hText.setFillColor(Color::White);
-            if (c == 4) { // Cột QUỐC GIA căn giữa theo cột
-                FloatRect hb = hText.getLocalBounds();
-                hText.setPosition({curColX + (cols[c].second - hb.size.x) / 2.f - hb.position.x, tblY + 15.f});
+            FloatRect hb = hText.getLocalBounds();
+            float hY = tblY + (hdrH - hb.size.y) / 2.f - hb.position.y - 1.f;
+            if (c == 4 || c == 5 || c == 8) {
+                hText.setPosition({curColX + (cols[c].second - hb.size.x) / 2.f - hb.position.x, hY});
             } else {
-                hText.setPosition({curColX + 12.f, tblY + 15.f});
+                hText.setPosition({curColX + 10.f, hY});
             }
             window.draw(hText);
         }
@@ -1041,7 +1048,7 @@ void MoviePanel::render(RenderWindow& window) {
     }
 
     // 8. TABLE ROWS
-    const float rowH = 80.f;
+    const float rowH = 82.f;
     int startIdx = (currentPage - 1) * moviesPerPage;
     int displayCount = max(0, min(moviesPerPage, static_cast<int>(filteredIndices.size()) - startIdx));
 
@@ -1057,24 +1064,37 @@ void MoviePanel::render(RenderWindow& window) {
         Color rowBg = isSelected ? Color(224, 242, 254) : (isHovered ? Color(248, 250, 252) : Color::White);
         RoundedRectRenderer::draw(window, {startX, rY}, {tblW, rowH}, 0.f, rowBg);
 
-        // Divider under row
-        RectangleShape rLine({tblW, 1.2f});
+        // Horizontal 1px row separator
+        RectangleShape rLine({tblW, 1.f});
         rLine.setFillColor(Color(226, 232, 240));
         rLine.setPosition({startX, rY + rowH - 1.f});
         window.draw(rLine);
 
+        // Vertical 1px column separators aligned with header
+        float vColX = startX;
+        for (size_t c = 0; c < cols.size(); ++c) {
+            if (c > 0) {
+                RectangleShape vLine({1.f, rowH});
+                vLine.setFillColor(Color(226, 232, 240));
+                vLine.setPosition({vColX, rY});
+                window.draw(vLine);
+            }
+            vColX += cols[c].second;
+        }
+
         // Checkbox column
         Color cbBorder = isSelected ? Color(8, 125, 181) : Color(203, 213, 225);
-        RoundedRectRenderer::draw(window, {startX + 14.f, rY + 30.f}, {20.f, 20.f}, 4.f, Color::White, 1.2f, cbBorder);
+        RoundedRectRenderer::draw(window, {startX + 13.f, rY + (rowH - 20.f) / 2.f}, {20.f, 20.f}, 4.f, Color::White, 1.2f, cbBorder);
         if (isSelected) {
-            drawCheckmark(window, {startX + 18.f, rY + 38.f}, Color(8, 125, 181));
+            drawCheckmark(window, {startX + 17.f, rY + (rowH - 20.f) / 2.f + 8.f}, Color(8, 125, 181));
         }
 
         // Col 1: ID Phim (e.g. #PBL-001)
         string idStr = (row.size() > 0) ? row[0] : "";
-        Text idText(boldFont, s2ws(idStr), 13);
+        Text idText(boldFont, s2ws(idStr), UITheme::TableBodySize);
         idText.setFillColor(Color(8, 125, 181));
-        idText.setPosition({startX + 50.f, rY + 31.f});
+        FloatRect idb = idText.getLocalBounds();
+        idText.setPosition({startX + 52.f, rY + (rowH - idb.size.y) / 2.f - idb.position.y - 1.f});
         window.draw(idText);
 
         // Col 2: Poster thumbnail + Title + Format & Genre
@@ -1118,54 +1138,55 @@ void MoviePanel::render(RenderWindow& window) {
         // Title
         string titleStr = (row.size() > 1) ? row[1] : "";
         wstring wTitle = s2ws(titleStr);
-        Text titleTxt(boldFont, wTitle, 14);
-        if (titleTxt.getLocalBounds().size.x > 295.f) {
-            titleTxt.setCharacterSize(13.f);
-            if (titleTxt.getLocalBounds().size.x > 295.f) {
-                while (wTitle.length() > 3 && titleTxt.getLocalBounds().size.x > 285.f) {
-                    wTitle.pop_back();
-                    titleTxt.setString(wTitle + L"...");
-                }
+        Text titleTxt(boldFont, wTitle, UITheme::TableBodySize);
+        if (titleTxt.getLocalBounds().size.x > 290.f) {
+            while (wTitle.length() > 3 && titleTxt.getLocalBounds().size.x > 280.f) {
+                wTitle.pop_back();
+                titleTxt.setString(wTitle + L"...");
             }
         }
         titleTxt.setFillColor(UITheme::TextPrimary);
-        titleTxt.setPosition({col2X + 50.f, rY + 10.f});
+        titleTxt.setPosition({col2X + 50.f, rY + 8.f});
         window.draw(titleTxt);
 
-        // Format Pill (e.g. 2D / Atmos, IMAX 3D, 4DX/3D, 2D Lồng tiếng) - Co dãn tự động theo độ dài chữ
-        Text fmtTxt(boldFont, s2ws(fmtStr), 13);
+        // Format Pill (e.g. 2D / Atmos, IMAX 3D, 4DX/3D, 2D Lồng tiếng)
+        Text fmtTxt(boldFont, s2ws(fmtStr), UITheme::SmallBadgeSize);
         FloatRect fb = fmtTxt.getLocalBounds();
         float fmtPillW = fb.size.x + 16.f;
-        float fmtPillH = 20.f;
-        RoundedRectRenderer::draw(window, {col2X + 50.f, rY + 33.f}, {fmtPillW, fmtPillH}, 4.f, UITheme::SurfaceSubtle, 1.f, UITheme::BorderMedium);
+        float fmtPillH = 22.f;
+        RoundedRectRenderer::draw(window, {col2X + 50.f, rY + 32.f}, {fmtPillW, fmtPillH}, 4.f, UITheme::SurfaceSubtle, 1.f, UITheme::BorderMedium);
         fmtTxt.setFillColor(Color(30, 41, 59));
-        fmtTxt.setPosition({col2X + 58.f - fb.position.x, rY + 33.f + (fmtPillH - fb.size.y) / 2.f - fb.position.y});
+        fmtTxt.setPosition({col2X + 58.f - fb.position.x, rY + 32.f + (fmtPillH - fb.size.y) / 2.f - fb.position.y - 1.f});
         window.draw(fmtTxt);
 
-        // Genre text - Xuống hàng riêng biệt bên dưới định dạng 2D/3D
+        // Genre text
         string genreStr = (row.size() > 5) ? row[5] : "";
         wstring wGenre = s2ws(genreStr);
-        Text gTxt(font, wGenre, 13);
-        if (gTxt.getLocalBounds().size.x > 295.f) {
-            while (wGenre.length() > 3 && gTxt.getLocalBounds().size.x > 285.f) {
+        Text gTxt(font, wGenre, UITheme::HelperTextSize);
+        if (gTxt.getLocalBounds().size.x > 290.f) {
+            while (wGenre.length() > 3 && gTxt.getLocalBounds().size.x > 280.f) {
                 wGenre.pop_back();
                 gTxt.setString(wGenre + L"...");
             }
         }
         gTxt.setFillColor(UITheme::TextSecondary);
-        gTxt.setPosition({col2X + 50.f, rY + 56.f});
+        gTxt.setPosition({col2X + 50.f, rY + 57.f});
         window.draw(gTxt);
 
         // Col 3: Director
-        float col3X = startX + 500.f;
+        float col3X = startX + 495.f;
         string dirStr = (row.size() > 9) ? row[9] : "";
         wstring wDir = s2ws(dirStr);
-        Text dirTxt(boldFont, wDir, 13);
-        if (dirTxt.getLocalBounds().size.x > 135.f) {
-            dirTxt.setCharacterSize(13);
+        Text dirTxt(font, wDir, UITheme::TableBodySize);
+        if (dirTxt.getLocalBounds().size.x > 130.f) {
+            while (wDir.length() > 3 && dirTxt.getLocalBounds().size.x > 120.f) {
+                wDir.pop_back();
+                dirTxt.setString(wDir + L"...");
+            }
         }
         dirTxt.setFillColor(Color(30, 41, 59));
-        dirTxt.setPosition({col3X + 12.f, rY + 31.f});
+        FloatRect db = dirTxt.getLocalBounds();
+        dirTxt.setPosition({col3X + 10.f, rY + (rowH - db.size.y) / 2.f - db.position.y - 1.f});
         window.draw(dirTxt);
 
         // Col 4: Country pill (e.g. VN Việt Nam, US Mỹ, KR Hàn Quốc, RU Nga, JP Nhật Bản)
@@ -1194,13 +1215,13 @@ void MoviePanel::render(RenderWindow& window) {
             code = "JP ";
         }
 
-        float pillW = 104.f;
-        float pillH = 26.f;
+        float pillW = 112.f;
+        float pillH = 28.f;
         float pillX = col4X + (col4W - pillW) / 2.f;
         float pillY = rY + (rowH - pillH) / 2.f;
 
         RoundedRectRenderer::draw(window, {pillX, pillY}, {pillW, pillH}, pillH / 2.f, ctryBg);
-        Text ctryDisplay(boldFont, s2ws(code + ctry), 13);
+        Text ctryDisplay(boldFont, s2ws(code + ctry), UITheme::SmallBadgeSize);
         ctryDisplay.setFillColor(ctryText);
         FloatRect ctb = ctryDisplay.getLocalBounds();
         ctryDisplay.setPosition({
@@ -1212,21 +1233,24 @@ void MoviePanel::render(RenderWindow& window) {
         // Col 5: Duration
         float col5X = startX + 770.f;
         string dur = (row.size() > 6) ? row[6] : "120";
-        Text durVal(boldFont, s2ws(dur), 14);
+        Text durVal(boldFont, s2ws(dur), UITheme::TableBodySize);
         durVal.setFillColor(UITheme::TextPrimary);
-        durVal.setPosition({col5X + 10.f, rY + 23.f});
+        FloatRect dvb = durVal.getLocalBounds();
+        durVal.setPosition({col5X + (105.f - dvb.size.x) / 2.f - dvb.position.x, rY + 21.f});
         window.draw(durVal);
-        Text durUnit(boldFont, L"ph\u00fat", 13);
+        Text durUnit(font, L"ph\u00fat", UITheme::HelperTextSize);
         durUnit.setFillColor(UITheme::TextSecondary);
-        durUnit.setPosition({col5X + 10.f, rY + 41.f});
+        FloatRect dub = durUnit.getLocalBounds();
+        durUnit.setPosition({col5X + (105.f - dub.size.x) / 2.f - dub.position.x, rY + 43.f});
         window.draw(durUnit);
 
         // Col 6: Release Date
-        float col6X = startX + 870.f;
+        float col6X = startX + 875.f;
         string relDate = (row.size() > 7) ? row[7] : "";
-        Text dateTxt(boldFont, s2ws(relDate), 13);
+        Text dateTxt(font, s2ws(relDate), UITheme::TableBodySize);
         dateTxt.setFillColor(Color(30, 41, 59));
-        dateTxt.setPosition({col6X + 10.f, rY + 31.f});
+        FloatRect dtb = dateTxt.getLocalBounds();
+        dateTxt.setPosition({col6X + 10.f, rY + (rowH - dtb.size.y) / 2.f - dtb.position.y - 1.f});
         window.draw(dateTxt);
 
         // Col 7: Status Pill with standardized UITheme badge
@@ -1234,22 +1258,22 @@ void MoviePanel::render(RenderWindow& window) {
         string st = (row.size() >= 14) ? row[13] : "Đang chiếu";
         if (st.empty()) st = "Đang chiếu";
         bool isPlaying = (st == "Đang chiếu");
-        UITheme::drawBadge(window, {col7X + 6.f, rY + 26.f},
+        UITheme::drawBadge(window, {col7X + 8.f, rY + (rowH - 28.f) / 2.f},
                            isPlaying ? L"Đang chiếu" : L"Sắp chiếu",
                            isPlaying ? UITheme::BadgeVariant::Success : UITheme::BadgeVariant::Warning,
-                           boldFont, true, 26.f);
+                           boldFont, true, 28.f);
 
         // Col 8: Action Icons (Edit & Delete) with standard hover & border
-        float col8X = startX + 1125.f;
+        float col8X = startX + 1124.f;
         Color editBg = (idx == hoveredEditRow) ? UITheme::WarningLight : UITheme::SurfaceSubtle;
         Color editIcon = (idx == hoveredEditRow) ? UITheme::WarningDark : UITheme::TextSecondary;
-        RoundedRectRenderer::draw(window, {col8X + 8.f, rY + 23.f}, {34.f, 34.f}, 8.f, editBg, 1.f, UITheme::BorderLight);
-        drawPencilIcon(window, {col8X + 17.f, rY + 31.f}, editIcon);
+        RoundedRectRenderer::draw(window, {col8X + 20.f, rY + (rowH - 34.f) / 2.f}, {34.f, 34.f}, 8.f, editBg, 1.f, UITheme::BorderLight);
+        drawPencilIcon(window, {col8X + 29.f, rY + (rowH - 34.f) / 2.f + 8.f}, editIcon);
 
         Color delBg = (idx == hoveredDeleteRow) ? UITheme::DangerLight : UITheme::SurfaceSubtle;
         Color delIcon = (idx == hoveredDeleteRow) ? UITheme::DangerDark : UITheme::TextSecondary;
-        RoundedRectRenderer::draw(window, {col8X + 50.f, rY + 23.f}, {34.f, 34.f}, 8.f, delBg, 1.f, UITheme::BorderLight);
-        drawTrashIcon(window, {col8X + 58.f, rY + 31.f}, delIcon);
+        RoundedRectRenderer::draw(window, {col8X + 64.f, rY + (rowH - 34.f) / 2.f}, {34.f, 34.f}, 8.f, delBg, 1.f, UITheme::BorderLight);
+        drawTrashIcon(window, {col8X + 72.f, rY + (rowH - 34.f) / 2.f + 8.f}, delIcon);
     }
 
     // 8b. THANH PHÂN TRANG (PAGINATION BAR)
@@ -1259,7 +1283,7 @@ void MoviePanel::render(RenderWindow& window) {
     wstring pageInfoStr = filteredIndices.empty()
         ? L"Không có phim nào phù hợp"
         : (L"Hiển thị " + to_wstring(fromIdx) + L" – " + to_wstring(toIdx) + L" trên tổng số " + to_wstring(filteredIndices.size()) + L" phim");
-    Text pageInfo(font, pageInfoStr, 13);
+    Text pageInfo(font, pageInfoStr, UITheme::HelperTextSize);
     pageInfo.setFillColor(Color(100, 116, 139));
     pageInfo.setPosition({startX, pagY + 7.f});
     window.draw(pageInfo);
@@ -1268,9 +1292,9 @@ void MoviePanel::render(RenderWindow& window) {
     int numPageBtns = min(5, totalPages);
     int startP = max(1, min(currentPage - 2, totalPages - numPageBtns + 1));
     int endP = min(totalPages, startP + numPageBtns - 1);
-    float btnPrevW = 64.f;
-    float btnNextW = 64.f;
-    float btnPageW = 34.f;
+    float btnPrevW = 72.f;
+    float btnNextW = 68.f;
+    float btnPageW = 36.f;
     float gap = 6.f;
     float totalBtnsW = btnPrevW + gap + (endP - startP + 1) * (btnPageW + gap) - gap + gap + btnNextW;
     float curBtnX = rightEdge - totalBtnsW;
@@ -1278,7 +1302,7 @@ void MoviePanel::render(RenderWindow& window) {
     // Nút Trước
     bool canPrev = (currentPage > 1);
     RoundedRectRenderer::draw(window, {curBtnX, pagY}, {btnPrevW, 34.f}, 6.f, Color::White, 1.2f, Color(226, 232, 240));
-    Text prTxt(boldFont, L"Trước", 13);
+    Text prTxt(boldFont, L"Trước", UITheme::ButtonTextSize);
     prTxt.setFillColor(canPrev ? Color(71, 85, 105) : Color(203, 213, 225));
     FloatRect prb = prTxt.getLocalBounds();
     prTxt.setPosition({curBtnX + (btnPrevW - prb.size.x) / 2.f - prb.position.x, pagY + (34.f - prb.size.y) / 2.f - prb.position.y});
@@ -1293,7 +1317,7 @@ void MoviePanel::render(RenderWindow& window) {
         Color pFg = isAct ? Color::White : Color(51, 65, 85);
 
         RoundedRectRenderer::draw(window, {curBtnX, pagY}, {btnPageW, 34.f}, 6.f, pBg, 1.2f, pBorder);
-        Text pTxt(boldFont, to_wstring(p), 13);
+        Text pTxt(boldFont, to_wstring(p), UITheme::ButtonTextSize);
         pTxt.setFillColor(pFg);
         FloatRect pb = pTxt.getLocalBounds();
         pTxt.setPosition({curBtnX + (btnPageW - pb.size.x) / 2.f - pb.position.x, pagY + (34.f - pb.size.y) / 2.f - pb.position.y});
@@ -1304,7 +1328,7 @@ void MoviePanel::render(RenderWindow& window) {
     // Nút Tiếp
     bool canNext = (currentPage < totalPages);
     RoundedRectRenderer::draw(window, {curBtnX, pagY}, {btnNextW, 34.f}, 6.f, Color::White, 1.2f, Color(226, 232, 240));
-    Text nxTxt(boldFont, L"Tiếp", 13);
+    Text nxTxt(boldFont, L"Tiếp", UITheme::ButtonTextSize);
     nxTxt.setFillColor(canNext ? Color(71, 85, 105) : Color(203, 213, 225));
     FloatRect nxb = nxTxt.getLocalBounds();
     nxTxt.setPosition({curBtnX + (btnNextW - nxb.size.x) / 2.f - nxb.position.x, pagY + (34.f - nxb.size.y) / 2.f - nxb.position.y});
@@ -1317,7 +1341,7 @@ void MoviePanel::render(RenderWindow& window) {
         for (size_t g = 0; g < genres.size(); ++g) {
             Color itemBg = (static_cast<int>(g) == hoveredGenreIndex) ? Color(241, 245, 249) : Color::White;
             RoundedRectRenderer::draw(window, {startX + 376.f, toolY + 47.f + g * 36.f}, {158.f, 34.f}, 4.f, itemBg);
-            Text it(boldFont, s2ws(genres[g]), 13);
+            Text it(boldFont, s2ws(genres[g]), 14);
             it.setFillColor(Color(23, 32, 51));
             it.setPosition({startX + 386.f, toolY + 55.f + g * 36.f});
             window.draw(it);
@@ -1330,7 +1354,7 @@ void MoviePanel::render(RenderWindow& window) {
         for (size_t s = 0; s < statuses.size(); ++s) {
             Color itemBg = (static_cast<int>(s) == hoveredStatusIndex) ? Color(241, 245, 249) : Color::White;
             RoundedRectRenderer::draw(window, {startX + 551.f, toolY + 47.f + s * 36.f}, {158.f, 34.f}, 4.f, itemBg);
-            Text it(boldFont, s2ws(statuses[s]), 13);
+            Text it(boldFont, s2ws(statuses[s]), 14);
             it.setFillColor(Color(23, 32, 51));
             it.setPosition({startX + 561.f, toolY + 55.f + s * 36.f});
             window.draw(it);
@@ -1351,33 +1375,33 @@ void MoviePanel::render(RenderWindow& window) {
         RoundedRectRenderer::draw(window, {popupX, popupY}, {popupW, popupH}, 16.f, Color::White, 1.f, Color(226, 232, 240));
 
         if (currentPopup == DELETE_CONFIRM) {
-            Text pTitle(boldFont, L"X\u00c1C NH\u1eacN X\u00d3A PHIM", 22);
+            Text pTitle(boldFont, L"X\u00c1C NH\u1eacN X\u00d3A PHIM", 24);
             pTitle.setFillColor(Color(220, 38, 38));
             pTitle.setPosition({popupX + 40.f, popupY + 35.f});
             window.draw(pTitle);
 
             string delName = (selectedRow >= 0 && selectedRow < static_cast<int>(allMovies.size())) ? allMovies[selectedRow][1] : "";
-            Text pMsg(font, L"B\u1ea1n c\u00f3 ch\u1eafc ch\u1eafn mu\u1ed1n x\u00f3a phim \"" + s2ws(delName) + L"\" kh\u00f4ng?\nThao t\u00e1c n\u00e0y kh\u00f4ng th\u1ec3 ho\u00e0n t\u00e1c.", 13);
+            Text pMsg(font, L"B\u1ea1n c\u00f3 ch\u1eafc ch\u1eafn mu\u1ed1n x\u00f3a phim \"" + s2ws(delName) + L"\" kh\u00f4ng?\nThao t\u00e1c n\u00e0y kh\u00f4ng th\u1ec3 ho\u00e0n t\u00e1c.", 14);
             pMsg.setFillColor(Color(71, 85, 105));
             pMsg.setPosition({popupX + 40.f, popupY + 80.f});
             window.draw(pMsg);
 
             Color cBg = btnDeleteCancelHover ? Color(203, 213, 225) : Color(226, 232, 240);
             RoundedRectRenderer::draw(window, {popupX + 40.f, popupY + 160.f}, {280.f, 44.f}, 8.f, cBg);
-            Text cTxt(boldFont, L"H\u1ee7y b\u1ecf", 13);
+            Text cTxt(boldFont, L"H\u1ee7y b\u1ecf", 14);
             cTxt.setFillColor(Color(51, 65, 85));
             cTxt.setPosition({popupX + 155.f, popupY + 172.f});
             window.draw(cTxt);
 
             Color okBg = btnDeleteOkHover ? Color(220, 38, 38) : Color(220, 38, 38);
             RoundedRectRenderer::draw(window, {popupX + 360.f, popupY + 160.f}, {280.f, 44.f}, 8.f, okBg);
-            Text okTxt(boldFont, L"\u0110\u1ed3ng \u00fd x\u00f3a", 13);
+            Text okTxt(boldFont, L"\u0110\u1ed3ng \u00fd x\u00f3a", 14);
             okTxt.setFillColor(Color::White);
             okTxt.setPosition({popupX + 465.f, popupY + 172.f});
             window.draw(okTxt);
         } else {
             wstring mTitle = (currentPopup == ADD) ? L"TH\u00caM PHIM M\u1edaI" : L"CH\u1ec8NH S\u1eecA TH\u00d4NG TIN PHIM";
-            Text pTitle(boldFont, mTitle, 22);
+            Text pTitle(boldFont, mTitle, 24);
             pTitle.setFillColor(Color(23, 32, 51));
             pTitle.setPosition({popupX + 40.f, popupY + 30.f});
             window.draw(pTitle);
@@ -1409,7 +1433,7 @@ void MoviePanel::render(RenderWindow& window) {
             for (int i = 0; i < 4; ++i) {
                 // Left
                 bool lAct = (activeInputBox == leftFields[i].idx);
-                Text lbl1(boldFont, leftFields[i].label, 13);
+                Text lbl1(boldFont, leftFields[i].label, 14);
                 lbl1.setFillColor(Color(30, 41, 59));
                 lbl1.setPosition({leftX, startY + i * gapY});
                 window.draw(lbl1);
@@ -1417,14 +1441,14 @@ void MoviePanel::render(RenderWindow& window) {
                 Color b1 = lAct ? Color(8, 125, 181) : Color(203, 213, 225);
                 RoundedRectRenderer::draw(window, {leftX, startY + i * gapY + 20.f}, {280.f, 40.f}, 8.f,
                                           lAct ? Color::White : Color(248, 250, 252), lAct ? 1.8f : 1.2f, b1);
-                Text v1(boldFont, *leftFields[i].val + (lAct ? L"|" : L""), 13);
+                Text v1(boldFont, *leftFields[i].val + (lAct ? L"|" : L""), 14);
                 v1.setFillColor(Color(23, 32, 51));
                 v1.setPosition({leftX + 10.f, startY + i * gapY + 29.f});
                 window.draw(v1);
 
                 // Right
                 bool rAct = (activeInputBox == rightFields[i].idx);
-                Text lbl2(boldFont, rightFields[i].label, 13);
+                Text lbl2(boldFont, rightFields[i].label, 14);
                 lbl2.setFillColor(Color(30, 41, 59));
                 lbl2.setPosition({rightX, startY + i * gapY});
                 window.draw(lbl2);
@@ -1432,7 +1456,7 @@ void MoviePanel::render(RenderWindow& window) {
                 Color b2 = rAct ? Color(8, 125, 181) : Color(203, 213, 225);
                 RoundedRectRenderer::draw(window, {rightX, startY + i * gapY + 20.f}, {280.f, 40.f}, 8.f,
                                           rAct ? Color::White : Color(248, 250, 252), rAct ? 1.8f : 1.2f, b2);
-                Text v2(boldFont, *rightFields[i].val + (rAct ? L"|" : L""), 13);
+                Text v2(boldFont, *rightFields[i].val + (rAct ? L"|" : L""), 14);
                 v2.setFillColor(Color(23, 32, 51));
                 v2.setPosition({rightX + 10.f, startY + i * gapY + 29.f});
                 window.draw(v2);
@@ -1465,7 +1489,7 @@ void MoviePanel::render(RenderWindow& window) {
             const float toastY = 972.f - 70.f;
             RoundedRectRenderer::draw(window, {toastX, toastY}, {toastW, 44.f}, 10.f, notificationColor);
             drawCheckmark(window, {toastX + 16.f, toastY + 16.f}, Color::White);
-            Text nMsg(boldFont, notificationMessage, 13);
+            Text nMsg(boldFont, notificationMessage, 14);
             nMsg.setFillColor(Color::White);
             nMsg.setPosition({toastX + 36.f, toastY + 12.f});
             window.draw(nMsg);

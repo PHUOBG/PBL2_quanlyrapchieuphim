@@ -575,13 +575,13 @@ void LoginScreen::draw(RenderWindow& window) {
 
     Text headerTitle(boldFont);
     headerTitle.setString(L"PBL2 \u2013 H\u1ec6 TH\u1ed0NG \u0110\u1eb6T V\u00c9 XEM PHIM K\u1ebeT H\u1ee2P TH\u1ed0NG K\u00ca PH\u00c2N T\u00cdCH DOANH THU");
-    headerTitle.setCharacterSize(13);
+    headerTitle.setCharacterSize(14);
     headerTitle.setFillColor(Color(30, 41, 59));
     headerTitle.setPosition({56.f, 19.f});
     window.draw(headerTitle);
 
     // Top-right version pill badge (sized dynamically with even padding)
-    Text verText(font, L"Phi\u00ean b\u1ea3n Desktop v2.4", 13);
+    Text verText(font, L"Phi\u00ean b\u1ea3n Desktop v2.4", 14);
     verText.setFillColor(Color(100, 116, 139));
     FloatRect vb = verText.getLocalBounds();
     float verPillW = vb.size.x + 28.f;
@@ -649,7 +649,7 @@ void LoginScreen::draw(RenderWindow& window) {
 
         float brandTextX = leftPadX + (float)logoTexture.getSize().x * scale + 12.f;
 
-        Text brandTop(boldFont, L"CINECORE ENTERPRISE", 13);
+        Text brandTop(boldFont, L"CINECORE ENTERPRISE", 14);
         brandTop.setFillColor(Color(255, 255, 255, 210));
         brandTop.setPosition({brandTextX, cardY + 44.f});
         window.draw(brandTop);
@@ -662,7 +662,7 @@ void LoginScreen::draw(RenderWindow& window) {
         RoundedRectRenderer::draw(window, {leftPadX, cardY + 42.f}, {50.f, 50.f}, 12.f, Color(255, 255, 255, 38));
         drawVectorClapper(window, {leftPadX + 13.f, cardY + 57.f}, Color::White);
 
-        Text brandTop(boldFont, L"CINECORE ENTERPRISE", 13);
+        Text brandTop(boldFont, L"CINECORE ENTERPRISE", 14);
         brandTop.setFillColor(Color(255, 255, 255, 210));
         brandTop.setPosition({leftPadX + 64.f, cardY + 44.f});
         window.draw(brandTop);
@@ -680,7 +680,7 @@ void LoginScreen::draw(RenderWindow& window) {
     window.draw(brandLine);
 
     // Section title
-    Text modelTitle(boldFont, L"C\u00c1C CH\u1ee8C N\u0102NG C\u1ed0T L\u00d5I", 13);
+    Text modelTitle(boldFont, L"C\u00c1C CH\u1ee8C N\u0102NG C\u1ed0T L\u00d5I", 14);
     modelTitle.setFillColor(Color(255, 255, 255, 230));
     modelTitle.setPosition({leftPadX, cardY + 126.f});
     window.draw(modelTitle);
@@ -780,7 +780,7 @@ void LoginScreen::draw(RenderWindow& window) {
     const float formX = rightX + (rightW - formW) / 2.f; // 834.f
 
     // Top Badge: "CỔNG QUẢN TRỊ NỘI BỘ"
-    Text topBadgeText(boldFont, L"C\u1ed4NG QU\u1ea2N TR\u1eca N\u1ed8I B\u1ed8", 13);
+    Text topBadgeText(boldFont, L"C\u1ed4NG QU\u1ea2N TR\u1eca N\u1ed8I B\u1ed8", 14);
     topBadgeText.setFillColor(Color(8, 125, 181));
     FloatRect tbb = topBadgeText.getLocalBounds();
 
@@ -814,13 +814,13 @@ void LoginScreen::draw(RenderWindow& window) {
     window.draw(topBadgeText);
 
     // Heading: ĐĂNG NHẬP QUẢN TRỊ VIÊN
-    Text formHeading(boldFont, L"\u0110\u0102NG NH\u1eacP QU\u1ea2N TR\u1eca VI\u00caN", 31);
+    Text formHeading(boldFont, L"\u0110\u0102NG NH\u1eacP QU\u1ea2N TR\u1eca VI\u00caN", 24);
     formHeading.setFillColor(Color(23, 32, 51)); // Dark Navy #0F172A
     formHeading.setPosition({formX, cardY + 98.f});
     window.draw(formHeading);
 
     // Subtitle
-    Text formSub(font, L"Vui l\u00f2ng x\u00e1c th\u1ef1c t\u00e0i kho\u1ea3n \u0111\u1ec3 truy c\u1eadp b\u1ea3ng \u0111i\u1ec1u khi\u1ec3n r\u1ea1p chi\u1ebfu phim", 17);
+    Text formSub(font, L"Vui l\u00f2ng x\u00e1c th\u1ef1c t\u00e0i kho\u1ea3n \u0111\u1ec3 truy c\u1eadp b\u1ea3ng \u0111i\u1ec1u khi\u1ec3n r\u1ea1p chi\u1ebfu phim", 16);
     formSub.setFillColor(Color(100, 116, 139));
     formSub.setPosition({formX, cardY + 148.f});
     window.draw(formSub);
@@ -934,7 +934,7 @@ void LoginScreen::draw(RenderWindow& window) {
 
     // Status Message
     if (!statusMessage.empty()) {
-        Text msgText(boldFont, statusMessage, 13);
+        Text msgText(boldFont, statusMessage, 14);
         msgText.setFillColor(statusColor);
         FloatRect mb = msgText.getLocalBounds();
         msgText.setPosition({formX + (formW - mb.size.x) / 2.f, cardY + 506.f});
@@ -948,7 +948,7 @@ void LoginScreen::draw(RenderWindow& window) {
     hLine.setPosition({formX, divY});
     window.draw(hLine);
 
-    Text orText(boldFont, L"X\u00c1C TH\u1ef0C N\u1ed8I B\u1ed8", 13);
+    Text orText(boldFont, L"X\u00c1C TH\u1ef0C N\u1ed8I B\u1ed8", 14);
     orText.setFillColor(Color(148, 163, 184));
     FloatRect otb = orText.getLocalBounds();
     float otX = formX + (formW - otb.size.x) / 2.f;
@@ -966,7 +966,7 @@ void LoginScreen::draw(RenderWindow& window) {
     RoundedRectRenderer::draw(window, {formX, cardY + 580.f}, {formW, 50.f}, 10.f, posBg, 1.2f, Color(226, 232, 240));
     drawVectorPos(window, {formX + 76.f, cardY + 597.f}, Color(8, 125, 181));
 
-    Text posText(boldFont, L"\u0110\u0103ng nh\u1eadp b\u1eb1ng M\u00e3 Nh\u00e2n Vi\u00ean POS / Terminal Key", 13);
+    Text posText(boldFont, L"\u0110\u0103ng nh\u1eadp b\u1eb1ng M\u00e3 Nh\u00e2n Vi\u00ean POS / Terminal Key", 14);
     posText.setFillColor(Color(51, 65, 85));
     posText.setPosition({formX + 104.f, cardY + 595.f});
     window.draw(posText);
@@ -987,12 +987,12 @@ void LoginScreen::draw(RenderWindow& window) {
     window.draw(regLink);
 
     // 6. Bottom Footer Bar
-    Text footLeft(font, L"\u00a9 2025 PBL2 \u2013 B\u1ed9 m\u00f4n \u0110\u1ed3 \u00e1n L\u1eadp tr\u00ecnh t\u00ednh to\u00e1n", 13);
+    Text footLeft(font, L"\u00a9 2025 PBL2 \u2013 B\u1ed9 m\u00f4n \u0110\u1ed3 \u00e1n L\u1eadp tr\u00ecnh t\u00ednh to\u00e1n", 14);
     footLeft.setFillColor(Color(100, 116, 139));
     footLeft.setPosition({cardX, H - 32.f});
     window.draw(footLeft);
 
-    Text footRight(font, L"\u0110i\u1ec1u kho\u1ea3n d\u1ecbch v\u1ee5   \u2022   Tr\u1ee3 gi\u00fap k\u1ef9 thu\u1eadt", 13);
+    Text footRight(font, L"\u0110i\u1ec1u kho\u1ea3n d\u1ecbch v\u1ee5   \u2022   Tr\u1ee3 gi\u00fap k\u1ef9 thu\u1eadt", 14);
     footRight.setFillColor(Color(100, 116, 139));
     FloatRect frb = footRight.getLocalBounds();
     footRight.setPosition({cardX + cardW - frb.size.x, H - 32.f});
@@ -1019,7 +1019,7 @@ void LoginScreen::draw(RenderWindow& window) {
         fTitle.setPosition({fCardX + 40.f, fCardY + 32.f});
         window.draw(fTitle);
 
-        Text fSub(font, L"Nh\u1eadp email qu\u1ea3n tr\u1ecb v\u00e0 m\u1eadt kh\u1ea9u m\u1edbi \u0111\u1ec3 \u0111\u1eb7t l\u1ea1i m\u1eadt kh\u1ea9u.", 19);
+        Text fSub(font, L"Nh\u1eadp email qu\u1ea3n tr\u1ecb v\u00e0 m\u1eadt kh\u1ea9u m\u1edbi \u0111\u1ec3 \u0111\u1eb7t l\u1ea1i m\u1eadt kh\u1ea9u.", 16);
         fSub.setFillColor(Color(100, 116, 139));
         fSub.setPosition({fCardX + 40.f, fCardY + 66.f});
         window.draw(fSub);
@@ -1027,7 +1027,7 @@ void LoginScreen::draw(RenderWindow& window) {
         // Email input
         Color fEBorder = forgotEmailActive ? Color(8, 125, 181) : Color(203, 213, 225);
         RoundedRectRenderer::draw(window, {fCardX + 40.f, fCardY + 112.f}, {480.f, 48.f}, 8.f, Color(248, 250, 252), 1.2f, fEBorder);
-        Text fEmailText(font, forgotEmailInput.empty() ? L"Nh\u1eadp email qu\u1ea3n tr\u1ecb vi\u00ean" : forgotEmailInput, 20);
+        Text fEmailText(font, forgotEmailInput.empty() ? L"Nh\u1eadp email qu\u1ea3n tr\u1ecb vi\u00ean" : forgotEmailInput, 16);
         fEmailText.setFillColor(forgotEmailInput.empty() ? Color(148, 163, 184) : Color(23, 32, 51));
         fEmailText.setPosition({fCardX + 54.f, fCardY + 122.f});
         window.draw(fEmailText);
@@ -1035,14 +1035,14 @@ void LoginScreen::draw(RenderWindow& window) {
         // New password input
         Color fPBorder = forgotPassActive ? Color(8, 125, 181) : Color(203, 213, 225);
         RoundedRectRenderer::draw(window, {fCardX + 40.f, fCardY + 180.f}, {480.f, 48.f}, 8.f, Color(248, 250, 252), 1.2f, fPBorder);
-        Text fPassText(font, forgotPassInput.empty() ? L"Nh\u1eadp m\u1eadt kh\u1ea9u m\u1edbi" : bullets(forgotPassInput.size()), 20);
+        Text fPassText(font, forgotPassInput.empty() ? L"Nh\u1eadp m\u1eadt kh\u1ea9u m\u1edbi" : bullets(forgotPassInput.size()), 16);
         fPassText.setFillColor(forgotPassInput.empty() ? Color(148, 163, 184) : Color(23, 32, 51));
         fPassText.setPosition({fCardX + 54.f, fCardY + 190.f});
         window.draw(fPassText);
 
         // Status message
         if (!forgotMsg.empty()) {
-            Text fMsgDisplay(boldFont, forgotMsg, 13);
+            Text fMsgDisplay(boldFont, forgotMsg, 14);
             fMsgDisplay.setFillColor(forgotMsgColor);
             fMsgDisplay.setPosition({fCardX + 40.f, fCardY + 246.f});
             window.draw(fMsgDisplay);
