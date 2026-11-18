@@ -464,7 +464,7 @@ void TicketPanel::render(RenderWindow& win) {
     wstring sDisplay = searchQuery.empty()
         ? (searchActive ? L"|" : L"T\u00ecm theo ID v\u00e9, Email, Phim...")
         : (searchQuery + (searchActive ? L"|" : L""));
-    Text searchTxt(font, sDisplay, 12.5f);
+    Text searchTxt(font, sDisplay, 13);
     searchTxt.setFillColor(searchQuery.empty() && !searchActive ? Color(148, 163, 184) : Color(15, 23, 42));
     searchTxt.setPosition({position.x + 314.f, barY + 10.f});
     win.draw(searchTxt);
@@ -474,7 +474,7 @@ void TicketPanel::render(RenderWindow& win) {
     }
 
     // Badge hiển thị tổng số kết quả tìm được
-    Text cntBadge(boldFont, L"K\u1ebft qu\u1ea3: " + to_wstring(filteredTickets.size()) + L" v\u00e9", 12);
+    Text cntBadge(boldFont, L"K\u1ebft qu\u1ea3: " + to_wstring(filteredTickets.size()) + L" v\u00e9", 13);
     cntBadge.setFillColor(Color(100, 116, 139));
     cntBadge.setPosition({position.x + 595.f, barY + 11.f});
     win.draw(cntBadge);
@@ -566,7 +566,7 @@ void TicketPanel::render(RenderWindow& win) {
     wstring pageInfoStr = filteredTickets.empty()
         ? L"Không có vé nào phù hợp"
         : (L"Hiển thị " + to_wstring(fromIdx) + L" – " + to_wstring(toIdx) + L" trên tổng số " + to_wstring(filteredTickets.size()) + L" vé");
-    Text pageInfo(font, pageInfoStr, 12.5f);
+    Text pageInfo(font, pageInfoStr, 13);
     pageInfo.setFillColor(Color(100, 116, 139));
     pageInfo.setPosition({position.x + 30.f, pagY + 7.f});
     win.draw(pageInfo);
@@ -585,7 +585,7 @@ void TicketPanel::render(RenderWindow& win) {
     // Nút Trước
     bool canPrev = (currentPage > 1);
     drawRoundedCard(win, {curBtnX, pagY}, {btnPrevW, 34.f}, 6.f, Color::White, 1.2f, Color(226, 232, 240));
-    Text prTxt(boldFont, L"Trước", 12.5f);
+    Text prTxt(boldFont, L"Trước", 13);
     prTxt.setFillColor(canPrev ? Color(71, 85, 105) : Color(203, 213, 225));
     FloatRect prb = prTxt.getLocalBounds();
     prTxt.setPosition({curBtnX + (btnPrevW - prb.size.x) / 2.f - prb.position.x, pagY + (34.f - prb.size.y) / 2.f - prb.position.y});
@@ -600,7 +600,7 @@ void TicketPanel::render(RenderWindow& win) {
         Color pFg = isAct ? Color::White : Color(51, 65, 85);
 
         drawRoundedCard(win, {curBtnX, pagY}, {btnPageW, 34.f}, 6.f, pBg, 1.2f, pBorder);
-        Text pTxt(boldFont, to_wstring(p), 12.5f);
+        Text pTxt(boldFont, to_wstring(p), 13);
         pTxt.setFillColor(pFg);
         FloatRect pb = pTxt.getLocalBounds();
         pTxt.setPosition({curBtnX + (btnPageW - pb.size.x) / 2.f - pb.position.x, pagY + (34.f - pb.size.y) / 2.f - pb.position.y});
@@ -611,7 +611,7 @@ void TicketPanel::render(RenderWindow& win) {
     // Nút Tiếp
     bool canNext = (currentPage < totalPages);
     drawRoundedCard(win, {curBtnX, pagY}, {btnNextW, 34.f}, 6.f, Color::White, 1.2f, Color(226, 232, 240));
-    Text nxTxt(boldFont, L"Tiếp", 12.5f);
+    Text nxTxt(boldFont, L"Tiếp", 13);
     nxTxt.setFillColor(canNext ? Color(71, 85, 105) : Color(203, 213, 225));
     FloatRect nxb = nxTxt.getLocalBounds();
     nxTxt.setPosition({curBtnX + (btnNextW - nxb.size.x) / 2.f - nxb.position.x, pagY + (34.f - nxb.size.y) / 2.f - nxb.position.y});
@@ -634,7 +634,7 @@ void TicketPanel::render(RenderWindow& win) {
         drawRoundedCard(win, {popX, popY}, {popW, popH}, 12.f, Color::White);
 
         // Header Popup
-        Text popTitle(boldFont, L"TH\u00d4NG TIN CHI TI\u1ebeT V\u00c9", 18);
+        Text popTitle(boldFont, L"TH\u00d4NG TIN CHI TI\u1ebeT V\u00c9", 22);
         popTitle.setFillColor(Color(15, 23, 42));
         popTitle.setPosition({popX + 30.f, popY + 22.f});
         win.draw(popTitle);
@@ -663,12 +663,12 @@ void TicketPanel::render(RenderWindow& win) {
 
         float curY = popY + 70.f;
         for (const auto& item : fields) {
-            Text lbl(boldFont, item.first, 12);
+            Text lbl(boldFont, item.first, 13);
             lbl.setFillColor(Color(100, 116, 139));
             lbl.setPosition({popX + 30.f, curY});
             win.draw(lbl);
 
-            Text val(boldFont, item.second, 12);
+            Text val(boldFont, item.second, 13);
             val.setFillColor(item.first == L"T\u1ed5ng ti\u1ec1n:" ? Color(2, 132, 199) : Color(15, 23, 42));
             val.setPosition({popX + 175.f, curY});
             win.draw(val);
@@ -701,7 +701,7 @@ void TicketPanel::render(RenderWindow& win) {
 
         drawRoundedCard(win, {popX, popY}, {popW, popH}, 12.f, Color::White);
 
-        Text pTitle(boldFont, L"X\u00e1c nh\u1eadn h\u1ee7y / x\u00f3a v\u00e9", 17);
+        Text pTitle(boldFont, L"X\u00e1c nh\u1eadn h\u1ee7y / x\u00f3a v\u00e9", 14);
         pTitle.setFillColor(Color(220, 38, 38));
         pTitle.setPosition({popX + 28.f, popY + 22.f});
         win.draw(pTitle);
@@ -741,7 +741,7 @@ void TicketPanel::render(RenderWindow& win) {
             float notX = position.x + (width - notW) / 2.f;
             float notY = position.y + height - 60.f;
             drawRoundedCard(win, {notX, notY}, {notW, notH}, 8.f, Color(15, 23, 42, 240), 1.f, Color(2, 132, 199));
-            Text notText(boldFont, s2ws(notificationMessage), 12);
+            Text notText(boldFont, s2ws(notificationMessage), 13);
             notText.setFillColor(Color::White);
             FloatRect ntb = notText.getLocalBounds();
             notText.setPosition({

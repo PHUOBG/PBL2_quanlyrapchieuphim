@@ -393,7 +393,7 @@ void UserSelectPopup::render(sf::RenderWindow& window) {
         std::string scrollInfo = std::to_string(startIdx + 1) + "-" + 
                                  std::to_string(endIdx) + "/" + 
                                  std::to_string(filteredIndices_.size());
-        sf::Text scrollText(font_, toUtf8(scrollInfo), 11);
+        sf::Text scrollText(font_, toUtf8(scrollInfo), 13);
         scrollText.setFillColor(sf::Color(120, 120, 120));
         scrollText.setPosition({listBackground_.getPosition().x + listBackground_.getSize().x - 60.f,
                                listBackground_.getPosition().y + listBackground_.getSize().y + 5.f});
@@ -488,7 +488,7 @@ void UserSelectPopup::renderUserList(sf::RenderWindow& window) {
         if (name.length() > 20) {
             name = name.substr(0, 17) + "...";
         }
-        sf::Text nameText(font_, toUtf8(name), 11);
+        sf::Text nameText(font_, toUtf8(name), 13);
         nameText.setFillColor(sf::Color(100, 100, 100));
         nameText.setPosition({listArea.position.x + 300.f, itemY + 11.f});
         window.draw(nameText);

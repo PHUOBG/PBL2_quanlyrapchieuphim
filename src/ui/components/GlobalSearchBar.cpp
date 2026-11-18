@@ -21,12 +21,12 @@ GlobalSearchBar::GlobalSearchBar(Font& f, Vector2f position, Vector2f size)
     inputBox.setOutlineThickness(0.f); // Không có viền
     
     // Input text - căn chỉnh vào giữa search bar với font size lớn hơn
-    inputText.setCharacterSize(18);
+    inputText.setCharacterSize(22);
     inputText.setFillColor(Color::Black); // Chữ màu đen để thấy trên nền trắng
     inputText.setPosition(Vector2f(position.x + 18.f, position.y + 3.f)); // Dịch vào trong, căn giữa dọc
     
     // Placeholder text
-    placeholderText.setCharacterSize(18);
+    placeholderText.setCharacterSize(22);
     placeholderText.setFillColor(Color(120, 120, 120)); // Màu xám đậm hơn
     placeholderText.setString("Search...");
     placeholderText.setPosition(Vector2f(position.x + 18.f, position.y + 3.f));
@@ -191,7 +191,7 @@ void GlobalSearchBar::draw(RenderWindow& window) {
         
         for (size_t i = 0; i < suggestions.size(); i++) {
             Text suggestionText(font);
-            suggestionText.setCharacterSize(16);
+            suggestionText.setCharacterSize(14);
             
             // Convert string to SFML String with UTF-8 support
             String originalText = String::fromUtf8(suggestions[i].title.begin(), suggestions[i].title.end());

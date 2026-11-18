@@ -1002,7 +1002,7 @@ void MoviePanel::render(RenderWindow& window) {
     // Right count badge
     wstring countStr = L"Trang " + to_wstring(currentPage) + L"/" + to_wstring(totalPages) + L" (" + to_wstring(filteredIndices.size()) + L" phim)";
     RoundedRectRenderer::draw(window, {startX + 1244.f - 210.f, subY - 4.f}, {210.f, 28.f}, 14.f, Color(241, 245, 249), 1.2f, Color(203, 213, 225));
-    Text cBadge(boldFont, countStr, 12);
+    Text cBadge(boldFont, countStr, 13);
     cBadge.setFillColor(Color(30, 41, 59));
     FloatRect cbb = cBadge.getLocalBounds();
     cBadge.setPosition({startX + 1244.f - 210.f + (210.f - cbb.size.x) / 2.f - cbb.position.x, subY + 1.f});
@@ -1031,7 +1031,7 @@ void MoviePanel::render(RenderWindow& window) {
     float curColX = startX;
     for (size_t c = 0; c < cols.size(); ++c) {
         if (!cols[c].first.empty()) {
-            Text hText(boldFont, cols[c].first, 12);
+            Text hText(boldFont, cols[c].first, 13);
             hText.setFillColor(Color::White);
             if (c == 4) { // Cột QUỐC GIA căn giữa theo cột
                 FloatRect hb = hText.getLocalBounds();
@@ -1122,7 +1122,7 @@ void MoviePanel::render(RenderWindow& window) {
         // Title
         string titleStr = (row.size() > 1) ? row[1] : "";
         wstring wTitle = s2ws(titleStr);
-        Text titleTxt(boldFont, wTitle, 14.5f);
+        Text titleTxt(boldFont, wTitle, 14);
         if (titleTxt.getLocalBounds().size.x > 295.f) {
             titleTxt.setCharacterSize(13.f);
             if (titleTxt.getLocalBounds().size.x > 295.f) {
@@ -1137,7 +1137,7 @@ void MoviePanel::render(RenderWindow& window) {
         window.draw(titleTxt);
 
         // Format Pill (e.g. 2D / Atmos, IMAX 3D, 4DX/3D, 2D Lồng tiếng) - Co dãn tự động theo độ dài chữ
-        Text fmtTxt(boldFont, s2ws(fmtStr), 11.5f);
+        Text fmtTxt(boldFont, s2ws(fmtStr), 13);
         FloatRect fb = fmtTxt.getLocalBounds();
         float fmtPillW = fb.size.x + 16.f;
         float fmtPillH = 20.f;
@@ -1149,7 +1149,7 @@ void MoviePanel::render(RenderWindow& window) {
         // Genre text - Xuống hàng riêng biệt bên dưới định dạng 2D/3D
         string genreStr = (row.size() > 5) ? row[5] : "";
         wstring wGenre = s2ws(genreStr);
-        Text gTxt(font, wGenre, 13.5f);
+        Text gTxt(font, wGenre, 13);
         if (gTxt.getLocalBounds().size.x > 295.f) {
             while (wGenre.length() > 3 && gTxt.getLocalBounds().size.x > 285.f) {
                 wGenre.pop_back();
@@ -1166,7 +1166,7 @@ void MoviePanel::render(RenderWindow& window) {
         wstring wDir = s2ws(dirStr);
         Text dirTxt(boldFont, wDir, 13);
         if (dirTxt.getLocalBounds().size.x > 135.f) {
-            dirTxt.setCharacterSize(11.5f);
+            dirTxt.setCharacterSize(13);
         }
         dirTxt.setFillColor(Color(30, 41, 59));
         dirTxt.setPosition({col3X + 12.f, rY + 31.f});
@@ -1204,7 +1204,7 @@ void MoviePanel::render(RenderWindow& window) {
         float pillY = rY + (rowH - pillH) / 2.f;
 
         RoundedRectRenderer::draw(window, {pillX, pillY}, {pillW, pillH}, pillH / 2.f, ctryBg);
-        Text ctryDisplay(boldFont, s2ws(code + ctry), 12);
+        Text ctryDisplay(boldFont, s2ws(code + ctry), 13);
         ctryDisplay.setFillColor(ctryText);
         FloatRect ctb = ctryDisplay.getLocalBounds();
         ctryDisplay.setPosition({
@@ -1220,7 +1220,7 @@ void MoviePanel::render(RenderWindow& window) {
         durVal.setFillColor(UITheme::TextPrimary);
         durVal.setPosition({col5X + 10.f, rY + 23.f});
         window.draw(durVal);
-        Text durUnit(boldFont, L"ph\u00fat", 12);
+        Text durUnit(boldFont, L"ph\u00fat", 13);
         durUnit.setFillColor(UITheme::TextSecondary);
         durUnit.setPosition({col5X + 10.f, rY + 41.f});
         window.draw(durUnit);
@@ -1263,7 +1263,7 @@ void MoviePanel::render(RenderWindow& window) {
     wstring pageInfoStr = filteredIndices.empty()
         ? L"Không có phim nào phù hợp"
         : (L"Hiển thị " + to_wstring(fromIdx) + L" – " + to_wstring(toIdx) + L" trên tổng số " + to_wstring(filteredIndices.size()) + L" phim");
-    Text pageInfo(font, pageInfoStr, 12.5f);
+    Text pageInfo(font, pageInfoStr, 13);
     pageInfo.setFillColor(Color(100, 116, 139));
     pageInfo.setPosition({startX, pagY + 7.f});
     window.draw(pageInfo);
@@ -1282,7 +1282,7 @@ void MoviePanel::render(RenderWindow& window) {
     // Nút Trước
     bool canPrev = (currentPage > 1);
     RoundedRectRenderer::draw(window, {curBtnX, pagY}, {btnPrevW, 34.f}, 6.f, Color::White, 1.2f, Color(226, 232, 240));
-    Text prTxt(boldFont, L"Trước", 12.5f);
+    Text prTxt(boldFont, L"Trước", 13);
     prTxt.setFillColor(canPrev ? Color(71, 85, 105) : Color(203, 213, 225));
     FloatRect prb = prTxt.getLocalBounds();
     prTxt.setPosition({curBtnX + (btnPrevW - prb.size.x) / 2.f - prb.position.x, pagY + (34.f - prb.size.y) / 2.f - prb.position.y});
@@ -1297,7 +1297,7 @@ void MoviePanel::render(RenderWindow& window) {
         Color pFg = isAct ? Color::White : Color(51, 65, 85);
 
         RoundedRectRenderer::draw(window, {curBtnX, pagY}, {btnPageW, 34.f}, 6.f, pBg, 1.2f, pBorder);
-        Text pTxt(boldFont, to_wstring(p), 12.5f);
+        Text pTxt(boldFont, to_wstring(p), 13);
         pTxt.setFillColor(pFg);
         FloatRect pb = pTxt.getLocalBounds();
         pTxt.setPosition({curBtnX + (btnPageW - pb.size.x) / 2.f - pb.position.x, pagY + (34.f - pb.size.y) / 2.f - pb.position.y});
@@ -1308,7 +1308,7 @@ void MoviePanel::render(RenderWindow& window) {
     // Nút Tiếp
     bool canNext = (currentPage < totalPages);
     RoundedRectRenderer::draw(window, {curBtnX, pagY}, {btnNextW, 34.f}, 6.f, Color::White, 1.2f, Color(226, 232, 240));
-    Text nxTxt(boldFont, L"Tiếp", 12.5f);
+    Text nxTxt(boldFont, L"Tiếp", 13);
     nxTxt.setFillColor(canNext ? Color(71, 85, 105) : Color(203, 213, 225));
     FloatRect nxb = nxTxt.getLocalBounds();
     nxTxt.setPosition({curBtnX + (btnNextW - nxb.size.x) / 2.f - nxb.position.x, pagY + (34.f - nxb.size.y) / 2.f - nxb.position.y});
@@ -1355,7 +1355,7 @@ void MoviePanel::render(RenderWindow& window) {
         RoundedRectRenderer::draw(window, {popupX, popupY}, {popupW, popupH}, 16.f, Color::White, 1.f, Color(226, 232, 240));
 
         if (currentPopup == DELETE_CONFIRM) {
-            Text pTitle(boldFont, L"X\u00c1C NH\u1eacN X\u00d3A PHIM", 18);
+            Text pTitle(boldFont, L"X\u00c1C NH\u1eacN X\u00d3A PHIM", 22);
             pTitle.setFillColor(Color(239, 68, 68));
             pTitle.setPosition({popupX + 40.f, popupY + 35.f});
             window.draw(pTitle);
@@ -1381,7 +1381,7 @@ void MoviePanel::render(RenderWindow& window) {
             window.draw(okTxt);
         } else {
             wstring mTitle = (currentPopup == ADD) ? L"TH\u00caM PHIM M\u1edaI" : L"CH\u1ec8NH S\u1eecA TH\u00d4NG TIN PHIM";
-            Text pTitle(boldFont, mTitle, 18);
+            Text pTitle(boldFont, mTitle, 22);
             pTitle.setFillColor(Color(15, 23, 42));
             pTitle.setPosition({popupX + 40.f, popupY + 30.f});
             window.draw(pTitle);
@@ -1413,7 +1413,7 @@ void MoviePanel::render(RenderWindow& window) {
             for (int i = 0; i < 4; ++i) {
                 // Left
                 bool lAct = (activeInputBox == leftFields[i].idx);
-                Text lbl1(boldFont, leftFields[i].label, 12);
+                Text lbl1(boldFont, leftFields[i].label, 13);
                 lbl1.setFillColor(Color(30, 41, 59));
                 lbl1.setPosition({leftX, startY + i * gapY});
                 window.draw(lbl1);
@@ -1428,7 +1428,7 @@ void MoviePanel::render(RenderWindow& window) {
 
                 // Right
                 bool rAct = (activeInputBox == rightFields[i].idx);
-                Text lbl2(boldFont, rightFields[i].label, 12);
+                Text lbl2(boldFont, rightFields[i].label, 13);
                 lbl2.setFillColor(Color(30, 41, 59));
                 lbl2.setPosition({rightX, startY + i * gapY});
                 window.draw(lbl2);
@@ -1469,7 +1469,7 @@ void MoviePanel::render(RenderWindow& window) {
             const float toastY = 972.f - 70.f;
             RoundedRectRenderer::draw(window, {toastX, toastY}, {toastW, 44.f}, 10.f, notificationColor);
             drawCheckmark(window, {toastX + 16.f, toastY + 16.f}, Color::White);
-            Text nMsg(boldFont, notificationMessage, 12);
+            Text nMsg(boldFont, notificationMessage, 13);
             nMsg.setFillColor(Color::White);
             nMsg.setPosition({toastX + 36.f, toastY + 12.f});
             window.draw(nMsg);

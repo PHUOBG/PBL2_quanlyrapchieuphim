@@ -312,7 +312,7 @@ void EditableTable::render(RenderWindow& window) {
     for (size_t i = 0; i < headers.size() && i < columnWidths.size(); i++) {
         Text headerText(font);
         headerText.setString(String::fromUtf8(headers[i].begin(), headers[i].end()));
-        headerText.setCharacterSize(15);
+        headerText.setCharacterSize(14);
         headerText.setFillColor(headerTextColor);
         headerText.setStyle(Text::Bold);
         

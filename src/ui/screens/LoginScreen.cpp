@@ -583,7 +583,7 @@ void LoginScreen::draw(RenderWindow& window) {
     RoundedRectRenderer::draw(window, {W - 220.f, 15.f}, {145.f, 26.f}, 13.f, Color(226, 232, 240), 1.f, Color(203, 213, 225));
     Text verText(font);
     verText.setString(L"Phi\u00ean b\u1ea3n Desktop v2.4");
-    verText.setCharacterSize(11);
+    verText.setCharacterSize(13);
     verText.setFillColor(Color(100, 116, 139));
     verText.setPosition({W - 212.f, 20.f});
     window.draw(verText);
@@ -642,7 +642,7 @@ void LoginScreen::draw(RenderWindow& window) {
 
         float brandTextX = leftPadX + (float)logoTexture.getSize().x * scale + 12.f;
 
-        Text brandTop(boldFont, L"CINECORE ENTERPRISE", 11);
+        Text brandTop(boldFont, L"CINECORE ENTERPRISE", 13);
         brandTop.setFillColor(Color(255, 255, 255, 210));
         brandTop.setPosition({brandTextX, cardY + 44.f});
         window.draw(brandTop);
@@ -655,12 +655,12 @@ void LoginScreen::draw(RenderWindow& window) {
         RoundedRectRenderer::draw(window, {leftPadX, cardY + 42.f}, {50.f, 50.f}, 12.f, Color(255, 255, 255, 38));
         drawVectorClapper(window, {leftPadX + 13.f, cardY + 57.f}, Color::White);
 
-        Text brandTop(boldFont, L"CINECORE ENTERPRISE", 11);
+        Text brandTop(boldFont, L"CINECORE ENTERPRISE", 13);
         brandTop.setFillColor(Color(255, 255, 255, 210));
         brandTop.setPosition({leftPadX + 64.f, cardY + 44.f});
         window.draw(brandTop);
 
-        Text brandMain(boldFont, L"PBL2", 26);
+        Text brandMain(boldFont, L"PBL2", 24);
         brandMain.setFillColor(Color::White);
         brandMain.setPosition({leftPadX + 64.f, cardY + 60.f});
         window.draw(brandMain);
@@ -673,7 +673,7 @@ void LoginScreen::draw(RenderWindow& window) {
     window.draw(brandLine);
 
     // Section title
-    Text modelTitle(boldFont, L"C\u00c1C CH\u1ee8C N\u0102NG C\u1ed0T L\u00d5I", 12);
+    Text modelTitle(boldFont, L"C\u00c1C CH\u1ee8C N\u0102NG C\u1ed0T L\u00d5I", 13);
     modelTitle.setFillColor(Color(255, 255, 255, 230));
     modelTitle.setPosition({leftPadX, cardY + 126.f});
     window.draw(modelTitle);
@@ -773,7 +773,7 @@ void LoginScreen::draw(RenderWindow& window) {
     const float formX = rightX + (rightW - formW) / 2.f; // 834.f
 
     // Top Badge: "CỔNG QUẢN TRỊ NỘI BỘ"
-    Text topBadgeText(boldFont, L"C\u1ed4NG QU\u1ea2N TR\u1eca N\u1ed8I B\u1ed8", 11);
+    Text topBadgeText(boldFont, L"C\u1ed4NG QU\u1ea2N TR\u1eca N\u1ed8I B\u1ed8", 13);
     topBadgeText.setFillColor(Color(2, 132, 199));
     FloatRect tbb = topBadgeText.getLocalBounds();
 
@@ -807,7 +807,7 @@ void LoginScreen::draw(RenderWindow& window) {
     window.draw(topBadgeText);
 
     // Heading: ĐĂNG NHẬP QUẢN TRỊ VIÊN
-    Text formHeading(boldFont, L"\u0110\u0102NG NH\u1eacP QU\u1ea2N TR\u1eca VI\u00caN", 28);
+    Text formHeading(boldFont, L"\u0110\u0102NG NH\u1eacP QU\u1ea2N TR\u1eca VI\u00caN", 24);
     formHeading.setFillColor(Color(15, 23, 42)); // Dark Navy #0F172A
     formHeading.setPosition({formX, cardY + 102.f});
     window.draw(formHeading);
@@ -819,7 +819,7 @@ void LoginScreen::draw(RenderWindow& window) {
     window.draw(formSub);
 
     // Field 1: TÀI KHOẢN QUẢN TRỊ VIÊN / MÃ ĐỊNH DANH
-    Text lblEmail(boldFont, L"T\u00c0I KHO\u1ea2N QU\u1ea2N TR\u1eca VI\u00caN / M\u00c3 \u0110\u1ecaNH DANH", 11);
+    Text lblEmail(boldFont, L"T\u00c0I KHO\u1ea2N QU\u1ea2N TR\u1eca VI\u00caN / M\u00c3 \u0110\u1ecaNH DANH", 13);
     lblEmail.setFillColor(Color(51, 65, 85));
     lblEmail.setPosition({formX, cardY + 196.f});
     window.draw(lblEmail);
@@ -849,7 +849,7 @@ void LoginScreen::draw(RenderWindow& window) {
     }
 
     // Field 2: MẬT KHẨU TRUY CẬP
-    Text lblPass(boldFont, L"M\u1eacT KH\u1ea8U TRUY C\u1eacP", 11);
+    Text lblPass(boldFont, L"M\u1eacT KH\u1ea8U TRUY C\u1eacP", 13);
     lblPass.setFillColor(Color(51, 65, 85));
     lblPass.setPosition({formX, cardY + 296.f});
     window.draw(lblPass);
@@ -899,12 +899,12 @@ void LoginScreen::draw(RenderWindow& window) {
         window.draw(c2);
     }
 
-    Text remText(font, L"Ghi nh\u1edb \u0111\u0103ng nh\u1eadp", 12);
+    Text remText(font, L"Ghi nh\u1edb \u0111\u0103ng nh\u1eadp", 13);
     remText.setFillColor(Color(71, 85, 105));
     remText.setPosition({formX + 28.f, cardY + 396.f});
     window.draw(remText);
 
-    Text forgotText(boldFont, L"Qu\u00ean m\u1eadt kh\u1ea9u?", 12);
+    Text forgotText(boldFont, L"Qu\u00ean m\u1eadt kh\u1ea9u?", 13);
     if (linkForgotHovered) forgotText.setStyle(Text::Underlined);
     forgotText.setFillColor(Color(2, 132, 199));
     forgotText.setPosition({formX + formW - forgotText.getLocalBounds().size.x, cardY + 396.f});
@@ -914,7 +914,7 @@ void LoginScreen::draw(RenderWindow& window) {
     Color btnCol = btnHovered ? Color(3, 105, 161) : Color(0, 119, 182);
     RoundedRectRenderer::draw(window, {formX, cardY + 438.f}, {formW, 54.f}, 10.f, btnCol);
 
-    Text submitText(boldFont, L"\u0110\u0102NG NH\u1eacP QU\u1ea2N TR\u1eca", 15);
+    Text submitText(boldFont, L"\u0110\u0102NG NH\u1eacP QU\u1ea2N TR\u1eca", 14);
     submitText.setFillColor(Color::White);
     FloatRect stb = submitText.getLocalBounds();
     float totalBtnContentW = stb.size.x + 28.f;
@@ -927,7 +927,7 @@ void LoginScreen::draw(RenderWindow& window) {
 
     // Status Message
     if (!statusMessage.empty()) {
-        Text msgText(boldFont, statusMessage, 12);
+        Text msgText(boldFont, statusMessage, 13);
         msgText.setFillColor(statusColor);
         FloatRect mb = msgText.getLocalBounds();
         msgText.setPosition({formX + (formW - mb.size.x) / 2.f, cardY + 504.f});
@@ -941,7 +941,7 @@ void LoginScreen::draw(RenderWindow& window) {
     hLine.setPosition({formX, divY});
     window.draw(hLine);
 
-    Text orText(boldFont, L"X\u00c1C TH\u1ef0C N\u1ed8I B\u1ed8", 11);
+    Text orText(boldFont, L"X\u00c1C TH\u1ef0C N\u1ed8I B\u1ed8", 13);
     orText.setFillColor(Color(148, 163, 184));
     FloatRect otb = orText.getLocalBounds();
     float otX = formX + (formW - otb.size.x) / 2.f;
@@ -980,12 +980,12 @@ void LoginScreen::draw(RenderWindow& window) {
     window.draw(regLink);
 
     // 6. Bottom Footer Bar
-    Text footLeft(font, L"\u00a9 2025 PBL2 \u2013 B\u1ed9 m\u00f4n \u0110\u1ed3 \u00e1n L\u1eadp tr\u00ecnh t\u00ednh to\u00e1n", 11);
+    Text footLeft(font, L"\u00a9 2025 PBL2 \u2013 B\u1ed9 m\u00f4n \u0110\u1ed3 \u00e1n L\u1eadp tr\u00ecnh t\u00ednh to\u00e1n", 13);
     footLeft.setFillColor(Color(100, 116, 139));
     footLeft.setPosition({cardX, H - 32.f});
     window.draw(footLeft);
 
-    Text footRight(font, L"\u0110i\u1ec1u kho\u1ea3n d\u1ecbch v\u1ee5   \u2022   Tr\u1ee3 gi\u00fap k\u1ef9 thu\u1eadt", 11);
+    Text footRight(font, L"\u0110i\u1ec1u kho\u1ea3n d\u1ecbch v\u1ee5   \u2022   Tr\u1ee3 gi\u00fap k\u1ef9 thu\u1eadt", 13);
     footRight.setFillColor(Color(100, 116, 139));
     FloatRect frb = footRight.getLocalBounds();
     footRight.setPosition({cardX + cardW - frb.size.x, H - 32.f});
@@ -1007,7 +1007,7 @@ void LoginScreen::draw(RenderWindow& window) {
         RoundedRectRenderer::draw(window, {fCardX - 3.f, fCardY + 3.f}, {fCardW + 6.f, fCardH + 6.f}, 18.f, Color(0, 0, 0, 30));
         RoundedRectRenderer::draw(window, {fCardX, fCardY}, {fCardW, fCardH}, 16.f, Color::White, 1.f, Color(226, 232, 240));
 
-        Text fTitle(boldFont, L"QU\u00caN M\u1eacT KH\u1ea8U ADMIN", 21);
+        Text fTitle(boldFont, L"QU\u00caN M\u1eacT KH\u1ea8U ADMIN", 24);
         fTitle.setFillColor(Color(15, 23, 42));
         fTitle.setPosition({fCardX + 40.f, fCardY + 32.f});
         window.draw(fTitle);
@@ -1035,7 +1035,7 @@ void LoginScreen::draw(RenderWindow& window) {
 
         // Status message
         if (!forgotMsg.empty()) {
-            Text fMsgDisplay(boldFont, forgotMsg, 12);
+            Text fMsgDisplay(boldFont, forgotMsg, 13);
             fMsgDisplay.setFillColor(forgotMsgColor);
             fMsgDisplay.setPosition({fCardX + 40.f, fCardY + 246.f});
             window.draw(fMsgDisplay);

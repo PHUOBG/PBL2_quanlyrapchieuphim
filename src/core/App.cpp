@@ -3,8 +3,14 @@
 
 using namespace sf;
 
+static sf::ContextSettings makeWindowSettings() {
+    sf::ContextSettings s;
+    s.antiAliasingLevel = 8;
+    return s;
+}
+
 App::App()
-    : window(VideoMode({1728, 972}), L"PBL2 - HỆ THỐNG ĐẶT VÉ XEM PHIM KẾT HỢP THỐNG KÊ PHÂN TÍCH DOANH THU", Style::Titlebar | Style::Close),
+    : window(VideoMode({1728, 972}), L"PBL2 - HỆ THỐNG ĐẶT VÉ XEM PHIM KẾT HỢP THỐNG KÊ PHÂN TÍCH DOANH THU", Style::Titlebar | Style::Close, State::Windowed, makeWindowSettings()),
       state(AppState::LOGIN),
       previousState(AppState::LOGIN)
 {

@@ -14,18 +14,18 @@ namespace UITheme {
     // ==========================================
     // 1. TYPOGRAPHY TOKENS (Font Sizes & Weights)
     // ==========================================
-    inline constexpr unsigned int PageTitleSize    = 22; // 22px, Weight 700 (boldFont)
-    inline constexpr unsigned int SectionTitleSize = 16; // 16px, Weight 600 (boldFont)
-    inline constexpr unsigned int CardTitleSize    = 14; // 14px, Weight 600 (boldFont)
-    inline constexpr unsigned int BodySize         = 13; // 13px, Weight 400 (font)
-    inline constexpr unsigned int TableHeaderSize  = 13; // 12.5-13px, Weight 600 (boldFont)
-    inline constexpr unsigned int TableBodySize    = 13; // 13px, Weight 400-500
-    inline constexpr unsigned int FormLabelSize    = 13; // 13px, Weight 500
-    inline constexpr unsigned int ButtonTextSize   = 13; // 13px, Weight 600 (boldFont)
-    inline constexpr unsigned int BreadcrumbSize   = 13; // 13px, Weight 500 (boldFont)
-    inline constexpr unsigned int HelperTextSize   = 12; // 12px, Weight 400
-    inline constexpr unsigned int SmallBadgeSize   = 12; // 12px, Weight 600
-    inline constexpr unsigned int KpiValueSize     = 22; // 22-24px, Weight 700 (boldFont)
+    inline constexpr unsigned int PageTitleSize    = 22; // Tier 1: Page titles & KPI values
+    inline constexpr unsigned int SectionTitleSize = 14; // Tier 2: Section/Card titles
+    inline constexpr unsigned int CardTitleSize    = 14; // Tier 2: Card titles
+    inline constexpr unsigned int BodySize         = 14; // Tier 2: Primary body text
+    inline constexpr unsigned int TableHeaderSize  = 13; // Tier 3: Table headers & labels
+    inline constexpr unsigned int TableBodySize    = 14; // Tier 2: Table rows
+    inline constexpr unsigned int FormLabelSize    = 13; // Tier 3: Form labels
+    inline constexpr unsigned int ButtonTextSize   = 13; // Tier 3: Button text
+    inline constexpr unsigned int BreadcrumbSize   = 13; // Tier 3: Breadcrumbs
+    inline constexpr unsigned int HelperTextSize   = 13; // Tier 3: Helper & secondary text
+    inline constexpr unsigned int SmallBadgeSize   = 13; // Tier 3: Badges & pills
+    inline constexpr unsigned int KpiValueSize     = 22; // Tier 1: KPI values
 
     // ==========================================
     // 2. SPACING SCALE (Multiples of 4px)
@@ -145,7 +145,7 @@ namespace UITheme {
 
         // 1. "CỔNG QUẢN TRỊ" Pill Badge (Tự co giãn chuẩn xác theo nội dung, căn giữa hoàn hảo)
         float bcY = panelY + 18.f;
-        Text bc1(boldFont, L"CỔNG QUẢN TRỊ", 11.5f);
+        Text bc1(boldFont, L"CỔNG QUẢN TRỊ", 13);
         bc1.setFillColor(Color(2, 132, 199));
         FloatRect bcb = bc1.getLocalBounds();
 
@@ -183,7 +183,7 @@ namespace UITheme {
         target.draw(av);
 
         // Ký tự "AD" căn giữa tuyệt đối trong vòng tròn
-        Text avTxt(boldFont, L"AD", 12);
+        Text avTxt(boldFont, L"AD", 13);
         avTxt.setFillColor(Color::White);
         FloatRect atb = avTxt.getLocalBounds();
         avTxt.setPosition({
@@ -203,7 +203,7 @@ namespace UITheme {
         });
         target.draw(uName);
 
-        Text uRole(boldFont, L"Toàn quyền • SuperAdmin", 11.5f);
+        Text uRole(boldFont, L"Toàn quyền • SuperAdmin", 13);
         uRole.setFillColor(Color(100, 116, 139));
         FloatRect urb = uRole.getLocalBounds();
         uRole.setPosition({
