@@ -432,14 +432,14 @@ void MoviePanel::drawBellIcon(RenderTarget& target, Vector2f pos, Color col) {
 void MoviePanel::drawFunnelIcon(RenderTarget& target, Vector2f pos, Color col) {
     ConvexShape top(3);
     top.setPoint(0, {pos.x, pos.y});
-    top.setPoint(1, {pos.x + 10.f, pos.y});
-    top.setPoint(2, {pos.x + 5.f, pos.y + 6.f});
+    top.setPoint(1, {pos.x + 14.f, pos.y});
+    top.setPoint(2, {pos.x + 7.f, pos.y + 8.f});
     top.setFillColor(col);
     target.draw(top);
 
-    RectangleShape stem({2.f, 5.f});
+    RectangleShape stem({2.6f, 6.5f});
     stem.setFillColor(col);
-    stem.setPosition({pos.x + 4.f, pos.y + 5.f});
+    stem.setPosition({pos.x + 5.7f, pos.y + 7.5f});
     target.draw(stem);
 }
 
@@ -998,11 +998,11 @@ void MoviePanel::render(RenderWindow& window) {
 
     // 6. DATA TABLE SUBHEADER
     const float subY = 280.f;
-    drawFunnelIcon(window, {startX + 2.f, subY + 3.f}, Color(8, 125, 181));
-
     Text subTitle(boldFont, L"DANH S\u00c1CH PHIM CHI\u1ebeU R\u1ea0P", UITheme::SectionTitleSize);
     subTitle.setFillColor(Color(23, 32, 51));
-    subTitle.setPosition({startX + 20.f, subY + 1.f});
+    subTitle.setPosition({std::round(startX + 24.f), std::round(subY + 1.f)});
+    FloatRect subB = subTitle.getGlobalBounds();
+    drawFunnelIcon(window, {std::round(startX + 2.f), std::round(subB.position.y + (subB.size.y - 14.f) / 2.f)}, Color(8, 125, 181));
     window.draw(subTitle);
 
     // Right count badge
@@ -1107,8 +1107,8 @@ void MoviePanel::render(RenderWindow& window) {
         idText.setFillColor(Color(8, 125, 181));
         FloatRect idb = idText.getLocalBounds();
         idText.setPosition({
-            colX[1] + (cols[1].second - idb.size.x) / 2.f - idb.position.x,
-            rY + (rowH - idb.size.y) / 2.f - idb.position.y - 1.f
+            std::round(colX[1] + (cols[1].second - idb.size.x) / 2.f - idb.position.x),
+            std::round(rY + (rowH - idb.size.y) / 2.f - idb.position.y - 1.f)
         });
         window.draw(idText);
 
@@ -1204,8 +1204,8 @@ void MoviePanel::render(RenderWindow& window) {
         dirTxt.setFillColor(Color(30, 41, 59));
         FloatRect db = dirTxt.getLocalBounds();
         dirTxt.setPosition({
-            col3X + (col3W - db.size.x) / 2.f - db.position.x,
-            rY + (rowH - db.size.y) / 2.f - db.position.y - 1.f
+            std::round(col3X + (col3W - db.size.x) / 2.f - db.position.x),
+            std::round(rY + (rowH - db.size.y) / 2.f - db.position.y - 1.f)
         });
         window.draw(dirTxt);
 
@@ -1245,8 +1245,8 @@ void MoviePanel::render(RenderWindow& window) {
         ctryDisplay.setFillColor(ctryText);
         FloatRect ctb = ctryDisplay.getLocalBounds();
         ctryDisplay.setPosition({
-            pillX + (pillW - ctb.size.x) / 2.f - ctb.position.x,
-            pillY + (pillH - ctb.size.y) / 2.f - ctb.position.y - 1.f
+            std::round(pillX + (pillW - ctb.size.x) / 2.f - ctb.position.x),
+            std::round(pillY + (pillH - ctb.size.y) / 2.f - ctb.position.y - 1.f)
         });
         window.draw(ctryDisplay);
 
@@ -1258,8 +1258,8 @@ void MoviePanel::render(RenderWindow& window) {
         durTxt.setFillColor(UITheme::TextPrimary);
         FloatRect dvb = durTxt.getLocalBounds();
         durTxt.setPosition({
-            col5X + (col5W - dvb.size.x) / 2.f - dvb.position.x,
-            rY + (rowH - dvb.size.y) / 2.f - dvb.position.y - 1.f
+            std::round(col5X + (col5W - dvb.size.x) / 2.f - dvb.position.x),
+            std::round(rY + (rowH - dvb.size.y) / 2.f - dvb.position.y - 1.f)
         });
         window.draw(durTxt);
 
@@ -1271,8 +1271,8 @@ void MoviePanel::render(RenderWindow& window) {
         dateTxt.setFillColor(Color(30, 41, 59));
         FloatRect dtb = dateTxt.getLocalBounds();
         dateTxt.setPosition({
-            col6X + (col6W - dtb.size.x) / 2.f - dtb.position.x,
-            rY + (rowH - dtb.size.y) / 2.f - dtb.position.y - 1.f
+            std::round(col6X + (col6W - dtb.size.x) / 2.f - dtb.position.x),
+            std::round(rY + (rowH - dtb.size.y) / 2.f - dtb.position.y - 1.f)
         });
         window.draw(dateTxt);
 
