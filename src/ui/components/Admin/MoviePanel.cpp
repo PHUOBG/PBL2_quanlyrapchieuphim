@@ -862,10 +862,10 @@ void MoviePanel::render(RenderWindow& window) {
     // 1. Standardized Top Navigation Bar & Profile Header
     UITheme::drawTopBar(window, startX, position.y, 1244.f, L"QUẢN LÝ PHIM", font, boldFont);
 
-    // 2. Standardized Page Heading & Subtitle
+    // 2. Standardized Page Heading
     UITheme::drawPageHeader(window, startX, position.y + 64.f,
                             L"DANH SÁCH & ĐIỀU PHỐI PHIM",
-                            L"Hệ thống quản lý kho phim rạp CineCore, phân loại định dạng và trạng thái phát hành",
+                            L"",
                             boldFont, font);
 
     // 4. 4 KPI STAT CARDS
@@ -1149,7 +1149,7 @@ void MoviePanel::render(RenderWindow& window) {
         // Genre text - Xuống hàng riêng biệt bên dưới định dạng 2D/3D
         string genreStr = (row.size() > 5) ? row[5] : "";
         wstring wGenre = s2ws(genreStr);
-        Text gTxt(font, wGenre, 11.5f);
+        Text gTxt(font, wGenre, 13.5f);
         if (gTxt.getLocalBounds().size.x > 295.f) {
             while (wGenre.length() > 3 && gTxt.getLocalBounds().size.x > 285.f) {
                 wGenre.pop_back();
