@@ -8,6 +8,10 @@
 
 namespace {
 bool isValidMovieId(const string& id) {
+    if (id.size() > 5 && id.rfind("#PBL-", 0) == 0 &&
+        all_of(id.begin() + 5, id.end(), [](unsigned char ch){ return std::isdigit(ch); })) {
+        return true;
+    }
     return id.size() >= 2 && id[0] == 'F' &&
            all_of(id.begin() + 1, id.end(), [](unsigned char ch){ return std::isdigit(ch); });
 }
@@ -45,7 +49,9 @@ string AdminMovieRepository::generateNewId() {
         const string& candidate = row[0];
         if (!isValidMovieId(candidate)) continue;
         try {
-            int n = stoi(candidate.substr(1));
+            int n = (candidate.rfind("#PBL-", 0) == 0)
+                ? stoi(candidate.substr(5))
+                : stoi(candidate.substr(1));
             if (n > maxNum) maxNum = n;
         } catch (...) {
             continue;
@@ -54,7 +60,7 @@ string AdminMovieRepository::generateNewId() {
 
     int next = maxNum + 1;
     stringstream ss;
-    ss << "F" << setfill('0') << setw(4) << next;
+    ss << "#PBL-" << setfill('0') << setw(3) << next;
     return ss.str();
 }
 
