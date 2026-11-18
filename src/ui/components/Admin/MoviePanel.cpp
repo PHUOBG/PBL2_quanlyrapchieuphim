@@ -869,7 +869,7 @@ void MoviePanel::render(RenderWindow& window) {
                             boldFont, font);
 
     // 4. 4 KPI STAT CARDS
-    const float cardY = 126.f;
+    const float cardY = 104.f;
     const float cardW = 296.f;
     const float cardH = 104.f;
     const float cardGap = 20.f;

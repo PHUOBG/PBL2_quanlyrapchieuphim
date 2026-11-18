@@ -238,22 +238,25 @@ namespace UITheme {
         RoundedRectRenderer::draw(target, pos, size, 12.f, Surface, 1.2f, BorderLight);
         (void)iconBg;
 
-        // Title
+        // Title (centered)
         Text t(boldFont, title, TableHeaderSize);
         t.setFillColor(TextSecondary);
-        t.setPosition({pos.x + 18.f, pos.y + 14.f});
+        FloatRect tb = t.getLocalBounds();
+        t.setPosition({pos.x + (size.x - tb.size.x) / 2.f - tb.position.x, pos.y + 14.f});
         target.draw(t);
 
-        // Value
+        // Value (centered)
         Text v(boldFont, value, KpiValueSize);
         v.setFillColor(TextPrimary);
-        v.setPosition({pos.x + 18.f, pos.y + 36.f});
+        FloatRect vb = v.getLocalBounds();
+        v.setPosition({pos.x + (size.x - vb.size.x) / 2.f - vb.position.x, pos.y + 38.f});
         target.draw(v);
 
-        // Subtext / Badge
+        // Subtext / Badge (centered)
         Text s(boldFont, subtext, HelperTextSize);
         s.setFillColor(iconColor);
-        s.setPosition({pos.x + 18.f, pos.y + size.y - 28.f});
+        FloatRect sb = s.getLocalBounds();
+        s.setPosition({pos.x + (size.x - sb.size.x) / 2.f - sb.position.x, pos.y + size.y - 26.f});
         target.draw(s);
     }
 
