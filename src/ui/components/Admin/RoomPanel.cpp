@@ -623,9 +623,9 @@ void RoomPanel::render(RenderWindow& win) {
     });
     win.draw(gTxt);
 
-    Text subTitle(font, L"H\u1ec7 th\u1ed1ng c\u1ea5u h\u00ecnh s\u01a1 \u0111\u1ed3 gh\u1ebf v\u00e0 gi\u00e1m s\u00e1t tr\u1ea1ng th\u00e1i ph\u00f2ng chi\u1ebfu t\u1ea1i c\u1ee5m r\u1ea1p \u0110\u00e0 N\u1eb5ng", 14);
+    Text subTitle(font, L"H\u1ec7 th\u1ed1ng c\u1ea5u h\u00ecnh s\u01a1 \u0111\u1ed3 gh\u1ebf v\u00e0 gi\u00e1m s\u00e1t tr\u1ea1ng th\u00e1i ph\u00f2ng chi\u1ebfu t\u1ea1i c\u1ee5m r\u1ea1p \u0110\u00e0 N\u1eb5ng", 17);
     subTitle.setFillColor(Color(100, 116, 139));
-    subTitle.setPosition({position.x + 115.f, position.y + 62.f});
+    subTitle.setPosition({std::round(position.x + 115.f), std::round(position.y + 61.f)});
     win.draw(subTitle);
 
     // 3 nút góc phải: Làm mới, Thêm phòng chiếu, Xóa phòng chiếu

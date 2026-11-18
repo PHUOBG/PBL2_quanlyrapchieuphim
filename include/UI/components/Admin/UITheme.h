@@ -133,8 +133,8 @@ namespace UITheme {
             target.draw(cDot);
         }
 
-        float textX = pos.x + (withDot ? 20.f : paddingH) - b.position.x;
-        float textY = pos.y + (height - b.size.y) / 2.f - b.position.y - 1.f;
+        float textX = std::round(pos.x + (withDot ? 20.f : paddingH) - b.position.x);
+        float textY = std::round(pos.y + (height - b.size.y) / 2.f - b.position.y - 1.f);
         txt.setPosition({textX, textY});
         target.draw(txt);
     }
@@ -255,8 +255,8 @@ namespace UITheme {
             target.draw(logoSpr);
         }
 
-        float textX = startX + 85.f;
-        float titleY = subtitle.empty() ? (posY + 28.f) : (posY + 14.f);
+        float textX = std::round(startX + 85.f);
+        float titleY = std::round(subtitle.empty() ? (posY + 28.f) : (posY + 13.f));
         Text titleTxt(boldFont, title, PageTitleSize);
         titleTxt.setFillColor(TextPrimary);
         titleTxt.setPosition({textX, titleY});
@@ -271,28 +271,31 @@ namespace UITheme {
             float dotGap = 6.f;
             float padH = 12.f;
             float innerW = (withDot ? (dotR * 2.f + dotGap) : 0.f) + btb.size.x;
-            float badgeW = padH * 2.f + innerW;
+            float badgeW = std::round(padH * 2.f + innerW);
             float badgeH = 24.f;
-            float badgeX = tb.position.x + tb.size.x + 14.f;
-            float badgeY = titleY + 3.f;
+            float badgeX = std::round(tb.position.x + tb.size.x + 14.f);
+            float badgeY = std::round(titleY + 3.f);
             RoundedRectRenderer::draw(target, {badgeX, badgeY}, {badgeW, badgeH}, 12.f, badgeBg);
 
             float cStartX = badgeX + (badgeW - innerW) / 2.f;
             if (withDot) {
                 CircleShape dot(dotR);
                 dot.setFillColor(badgeFg);
-                dot.setPosition({cStartX, badgeY + (badgeH - dotR * 2.f) / 2.f});
+                dot.setPosition({std::round(cStartX), std::round(badgeY + (badgeH - dotR * 2.f) / 2.f)});
                 target.draw(dot);
                 cStartX += dotR * 2.f + dotGap;
             }
-            bTxt.setPosition({cStartX - btb.position.x, badgeY + (badgeH - btb.size.y) / 2.f - btb.position.y});
+            bTxt.setPosition({
+                std::round(cStartX - btb.position.x),
+                std::round(badgeY + (badgeH - btb.size.y) / 2.f - btb.position.y)
+            });
             target.draw(bTxt);
         }
 
         if (!subtitle.empty()) {
-            Text subTxt(font, subtitle, HelperTextSize);
+            Text subTxt(font, subtitle, 17);
             subTxt.setFillColor(TextSecondary);
-            subTxt.setPosition({textX, posY + 46.f});
+            subTxt.setPosition({textX, std::round(posY + 45.f)});
             target.draw(subTxt);
         }
     }

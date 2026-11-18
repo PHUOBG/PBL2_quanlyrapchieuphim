@@ -880,10 +880,10 @@ void MoviePanel::render(RenderWindow& window) {
 
     // 1. Unified Section Header Card (matching RoomPanel card style)
     UITheme::drawSectionHeaderCard(window, startX, position.y + 16.f, contentW,
-                                   L"Danh sách & điều phối phim",
+                                   L"Danh s\u00e1ch v\u00e0 \u0111i\u1ec1u ph\u1ed1i phim",
                                    to_wstring(allMovies.size()) + L" Phim",
                                    Color(224, 242, 254), Color(8, 125, 181),
-                                   L"Quản lý thông tin phim, định dạng chiếu, lịch phát hành và trạng thái trình chiếu.",
+                                   L"Qu\u1ea3n l\u00fd th\u00f4ng tin phim, \u0111\u1ecbnh d\u1ea1ng chi\u1ebfu, l\u1ecbch ph\u00e1t h\u00e0nh v\u00e0 tr\u1ea1ng th\u00e1i tr\u00ecnh chi\u1ebfu.",
                                    boldFont, font, false);
 
     // 2. 4 KPI STAT CARDS (-20% card height & typography)
@@ -909,7 +909,7 @@ void MoviePanel::render(RenderWindow& window) {
     drawMovieKpi({startX, cardY}, L"Phim đang chiếu", to_wstring(countActive), L"Đang tạo doanh thu", UITheme::SuccessDark);
     drawMovieKpi({startX + cardW + cardGap, cardY}, L"Phim sắp khởi chiếu", to_wstring(countUpcoming), L"Đã mở bán sớm", UITheme::InfoDark);
     drawMovieKpi({startX + (cardW + cardGap) * 2.f, cardY}, L"Tổng suất hôm nay", L"42", L"12 phòng chiếu full", Color(126, 34, 206));
-    drawMovieKpi({startX + (cardW + cardGap) * 3.f, cardY}, L"Tổng phim quản lý", to_wstring(allMovies.size()), L"Kho dữ liệu CineCore", UITheme::TextSecondary);
+    drawMovieKpi({startX + (cardW + cardGap) * 3.f, cardY}, L"Tổng phim quản lý", to_wstring(allMovies.size()), L"Kho dữ liệu CineCore", UITheme::PrimaryNavy);
 
     // 5. TOOLBAR (Search & Filters & Actions)
     const float toolY = 220.f;
@@ -1417,16 +1417,24 @@ void MoviePanel::render(RenderWindow& window) {
 
             Color cBg = btnDeleteCancelHover ? Color(203, 213, 225) : Color(226, 232, 240);
             RoundedRectRenderer::draw(window, {popupX + 40.f, popupY + 160.f}, {280.f, 44.f}, 8.f, cBg);
-            Text cTxt(boldFont, L"H\u1ee7y b\u1ecf", 14);
+            Text cTxt(boldFont, L"H\u1ee7y b\u1ecf", 17);
             cTxt.setFillColor(Color(51, 65, 85));
-            cTxt.setPosition({popupX + 155.f, popupY + 172.f});
+            FloatRect cb = cTxt.getLocalBounds();
+            cTxt.setPosition({
+                std::round(popupX + 40.f + (280.f - cb.size.x) / 2.f - cb.position.x),
+                std::round(popupY + 160.f + (44.f - cb.size.y) / 2.f - cb.position.y)
+            });
             window.draw(cTxt);
 
             Color okBg = btnDeleteOkHover ? Color(220, 38, 38) : Color(220, 38, 38);
             RoundedRectRenderer::draw(window, {popupX + 360.f, popupY + 160.f}, {280.f, 44.f}, 8.f, okBg);
-            Text okTxt(boldFont, L"\u0110\u1ed3ng \u00fd x\u00f3a", 14);
+            Text okTxt(boldFont, L"\u0110\u1ed3ng \u00fd x\u00f3a", 17);
             okTxt.setFillColor(Color::White);
-            okTxt.setPosition({popupX + 465.f, popupY + 172.f});
+            FloatRect okb = okTxt.getLocalBounds();
+            okTxt.setPosition({
+                std::round(popupX + 360.f + (280.f - okb.size.x) / 2.f - okb.position.x),
+                std::round(popupY + 160.f + (44.f - okb.size.y) / 2.f - okb.position.y)
+            });
             window.draw(okTxt);
         } else {
             wstring mTitle = (currentPopup == ADD) ? L"TH\u00caM PHIM M\u1edaI" : L"CH\u1ec8NH S\u1eecA TH\u00d4NG TIN PHIM";
@@ -1470,7 +1478,7 @@ void MoviePanel::render(RenderWindow& window) {
                 Color b1 = lAct ? Color(8, 125, 181) : Color(203, 213, 225);
                 RoundedRectRenderer::draw(window, {leftX, startY + i * gapY + 20.f}, {280.f, 40.f}, 8.f,
                                           lAct ? Color::White : Color(248, 250, 252), lAct ? 1.8f : 1.2f, b1);
-                Text v1(boldFont, *leftFields[i].val + (lAct ? L"|" : L""), 14);
+                Text v1(font, *leftFields[i].val + (lAct ? L"|" : L""), 14);
                 v1.setFillColor(Color(23, 32, 51));
                 v1.setPosition({leftX + 10.f, startY + i * gapY + 29.f});
                 window.draw(v1);
@@ -1485,7 +1493,7 @@ void MoviePanel::render(RenderWindow& window) {
                 Color b2 = rAct ? Color(8, 125, 181) : Color(203, 213, 225);
                 RoundedRectRenderer::draw(window, {rightX, startY + i * gapY + 20.f}, {280.f, 40.f}, 8.f,
                                           rAct ? Color::White : Color(248, 250, 252), rAct ? 1.8f : 1.2f, b2);
-                Text v2(boldFont, *rightFields[i].val + (rAct ? L"|" : L""), 14);
+                Text v2(font, *rightFields[i].val + (rAct ? L"|" : L""), 14);
                 v2.setFillColor(Color(23, 32, 51));
                 v2.setPosition({rightX + 10.f, startY + i * gapY + 29.f});
                 window.draw(v2);
@@ -1494,16 +1502,24 @@ void MoviePanel::render(RenderWindow& window) {
             // Buttons
             Color cBg = btnPopupCancelHover ? Color(203, 213, 225) : Color(226, 232, 240);
             RoundedRectRenderer::draw(window, {leftX, popupY + 450.f}, {280.f, 44.f}, 8.f, cBg);
-            Text cTxt(boldFont, L"\u0110\u00f3ng", 14);
+            Text cTxt(boldFont, L"\u0110\u00f3ng", 17);
             cTxt.setFillColor(Color(51, 65, 85));
-            cTxt.setPosition({leftX + 120.f, popupY + 460.f});
+            FloatRect cb = cTxt.getLocalBounds();
+            cTxt.setPosition({
+                std::round(leftX + (280.f - cb.size.x) / 2.f - cb.position.x),
+                std::round(popupY + 450.f + (44.f - cb.size.y) / 2.f - cb.position.y)
+            });
             window.draw(cTxt);
 
             Color sBg = btnPopupSaveHover ? Color(18, 59, 93) : Color(8, 125, 181);
             RoundedRectRenderer::draw(window, {rightX, popupY + 450.f}, {280.f, 44.f}, 8.f, sBg);
-            Text sTxt(boldFont, L"L\u01b0u th\u00f4ng tin", 14);
+            Text sTxt(boldFont, L"L\u01b0u th\u00f4ng tin", 17);
             sTxt.setFillColor(Color::White);
-            sTxt.setPosition({rightX + 90.f, popupY + 460.f});
+            FloatRect sb = sTxt.getLocalBounds();
+            sTxt.setPosition({
+                std::round(rightX + (280.f - sb.size.x) / 2.f - sb.position.x),
+                std::round(popupY + 450.f + (44.f - sb.size.y) / 2.f - sb.position.y)
+            });
             window.draw(sTxt);
         }
     }
