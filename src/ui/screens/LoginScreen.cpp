@@ -524,7 +524,7 @@ bool LoginScreen::update(Vector2f mouse, bool mousePressed, string& currentUser,
         if (posBtnHovered) {
             emailInput = L"admin@cinexine.vn";
             passInput = L"admin123";
-            statusColor = Color(8, 125, 181);
+            statusColor = Color(21, 128, 61);
             statusMessage = L"Đã nạp sẵn tài khoản Admin POS!";
         }
     }
