@@ -79,7 +79,10 @@ private:
     wstring inputDuration;
     wstring inputReleaseDate;
     wstring inputStatus;
-    int activeInputBox = -1; // 0 to 7
+    wstring inputPosterPath;
+    int editingRecordIndex = -1;
+    int posterPresetIdx = 0;
+    int activeInputBox = -1; // 0 to 8
     bool btnPopupSaveHover = false;
     bool btnPopupCancelHover = false;
     bool btnDeleteOkHover = false;

@@ -215,6 +215,7 @@ void MoviePanel::showToast(const wstring& msg, Color col) {
 
 void MoviePanel::openAddModal() {
     currentPopup = ADD;
+    editingRecordIndex = -1;
     inputTitle = L"";
     inputGenres = L"Hành động, Phiêu lưu";
     inputFormat = L"2D / Atmos";
@@ -223,35 +224,45 @@ void MoviePanel::openAddModal() {
     inputDuration = L"120";
     inputReleaseDate = L"28/04/2024";
     inputStatus = L"Đang chiếu";
+    inputPosterPath = L"../assets/posters/godzilla-x-kong.png";
+    posterPresetIdx = 0;
     activeInputBox = 0;
 }
 
 void MoviePanel::openEditModal(int recordIndex) {
     if (recordIndex < 0 || recordIndex >= static_cast<int>(allMovies.size())) return;
     currentPopup = EDIT;
-    selectedRow = recordIndex;
+    editingRecordIndex = recordIndex;
 
     const auto& row = allMovies[recordIndex];
     inputTitle = s2ws(row.size() > 1 ? row[1] : "");
     inputCountry = s2ws(row.size() > 3 ? row[3] : "Việt Nam");
+    string fmtVal = (row.size() > 4) ? row[4] : "";
+    if (fmtVal.find("2D") != string::npos || fmtVal.find("IMAX") != string::npos ||
+        fmtVal.find("4DX") != string::npos || fmtVal.find("Lồng tiếng") != string::npos) {
+        inputFormat = s2ws(fmtVal);
+    } else {
+        inputFormat = L"2D / Atmos";
+    }
     inputGenres = s2ws(row.size() > 5 ? row[5] : "");
     inputDuration = s2ws(row.size() > 6 ? row[6] : "120");
     inputReleaseDate = s2ws(row.size() > 7 ? row[7] : "");
     inputDirector = s2ws(row.size() > 9 ? row[9] : "");
+    inputPosterPath = s2ws(row.size() > 12 ? row[12] : "");
     inputStatus = s2ws(row.size() >= 14 ? row[13] : "Đang chiếu");
     if (inputStatus.empty()) inputStatus = L"Đang chiếu";
-    inputFormat = L"2D / Atmos";
     activeInputBox = 0;
 }
 
 void MoviePanel::openDeleteModal(int recordIndex) {
     if (recordIndex < 0 || recordIndex >= static_cast<int>(allMovies.size())) return;
     currentPopup = DELETE_CONFIRM;
-    selectedRow = recordIndex;
+    editingRecordIndex = recordIndex;
 }
 
 void MoviePanel::closePopupModal() {
     currentPopup = NONE;
+    editingRecordIndex = -1;
     activeInputBox = -1;
 }
 
@@ -262,44 +273,65 @@ void MoviePanel::saveMovie() {
     }
 
     if (currentPopup == ADD) {
-        string newId = "#PBL-" + to_string(allMovies.size() + 1);
+        int maxNum = static_cast<int>(allMovies.size());
+        for (const auto& r : allMovies) {
+            if (!r.empty() && r[0].size() > 5 && r[0].rfind("#PBL-", 0) == 0) {
+                try {
+                    int n = stoi(r[0].substr(5));
+                    if (n > maxNum) maxNum = n;
+                } catch (...) {}
+            }
+        }
+        string newId = "#PBL-" + to_string(maxNum + 1);
         if (newId.size() < 8) newId.insert(5, string(8 - newId.size(), '0'));
+
+        string posterStr = ws2s(inputPosterPath);
+        if (posterStr.empty()) posterStr = "../assets/posters/godzilla-x-kong.png";
+        string fmtStr = ws2s(inputFormat);
+        if (fmtStr.empty()) fmtStr = "2D / Atmos";
 
         vector<string> newRow = {
             newId,
             ws2s(inputTitle),
             "T16",
             ws2s(inputCountry),
-            "Tiếng Việt",
+            fmtStr,
             ws2s(inputGenres),
             ws2s(inputDuration),
             ws2s(inputReleaseDate),
-            "30/12/2024",
+            "30/12/2030",
             ws2s(inputDirector),
             "Diễn viên chính",
             "Mô tả phim...",
-            "../assets/posters/default.jpg",
+            posterStr,
             ws2s(inputStatus)
         };
         repository->addRecord(newRow);
         repository->saveToFile();
+        selectedGenre = "all";
+        selectedStatus = "all";
+        searchQuery.clear();
         refreshData();
+        currentPage = totalPages;
+        selectedRow = filteredIndices.empty() ? -1 : static_cast<int>(filteredIndices.size()) - 1;
         closePopupModal();
         showToast(L"Thêm phim mới thành công!");
     }
     else if (currentPopup == EDIT) {
-        if (selectedRow >= 0 && selectedRow < static_cast<int>(allMovies.size())) {
-            auto row = allMovies[selectedRow];
+        if (editingRecordIndex >= 0 && editingRecordIndex < static_cast<int>(allMovies.size())) {
+            auto row = allMovies[editingRecordIndex];
             while (row.size() < 14) row.push_back("");
             row[1] = ws2s(inputTitle);
             row[3] = ws2s(inputCountry);
+            if (!inputFormat.empty()) row[4] = ws2s(inputFormat);
             row[5] = ws2s(inputGenres);
             row[6] = ws2s(inputDuration);
             row[7] = ws2s(inputReleaseDate);
             row[9] = ws2s(inputDirector);
+            if (!inputPosterPath.empty()) row[12] = ws2s(inputPosterPath);
             row[13] = ws2s(inputStatus);
 
-            repository->updateRecord(selectedRow, row);
+            repository->updateRecord(editingRecordIndex, row);
             repository->saveToFile();
             refreshData();
             closePopupModal();
@@ -309,9 +341,10 @@ void MoviePanel::saveMovie() {
 }
 
 void MoviePanel::confirmDelete() {
-    if (selectedRow >= 0 && selectedRow < static_cast<int>(allMovies.size())) {
-        repository->deleteRecord(selectedRow);
+    if (editingRecordIndex >= 0 && editingRecordIndex < static_cast<int>(allMovies.size())) {
+        repository->deleteRecord(editingRecordIndex);
         repository->saveToFile();
+        selectedRow = -1;
         refreshData();
         closePopupModal();
         selectedRow = -1;
@@ -478,7 +511,7 @@ void MoviePanel::handleEvent(const Event& event, const RenderWindow& window) {
     // 1. ƯU TIÊN XỬ LÝ POPUP MODAL (ADD / EDIT / DELETE_CONFIRM)
     if (currentPopup != NONE) {
         const float popupW = 680.f;
-        const float popupH = (currentPopup == DELETE_CONFIRM) ? 240.f : 530.f;
+        const float popupH = (currentPopup == DELETE_CONFIRM) ? 240.f : 590.f;
         const float popupX = (1728.f - popupW) / 2.f;
         const float popupY = (972.f - popupH) / 2.f;
 
@@ -499,19 +532,43 @@ void MoviePanel::handleEvent(const Event& event, const RenderWindow& window) {
 
                     for (int c = 0; c < 4; ++c) {
                         FloatRect lb({leftX, startY + c * gapY + 20.f}, {280.f, 40.f});
-                        FloatRect rb({rightX, startY + c * gapY + 20.f}, {280.f, 40.f});
                         if (lb.contains(mouse)) { activeInputBox = c; return; }
-                        if (rb.contains(mouse)) {
-                            if (c + 4 == 7 && activeInputBox == 7) {
-                                inputStatus = (inputStatus == L"Đang chiếu") ? L"Sắp chiếu" : L"Đang chiếu";
-                            }
-                            activeInputBox = c + 4;
-                            return;
+                        if (c < 3) {
+                            FloatRect rb({rightX, startY + c * gapY + 20.f}, {280.f, 40.f});
+                            if (rb.contains(mouse)) { activeInputBox = c + 4; return; }
+                        } else {
+                            // Status pick selector: Đang chiếu vs Sắp chiếu
+                            FloatRect pickPlaying({rightX, startY + 3 * gapY + 20.f}, {135.f, 40.f});
+                            FloatRect pickUpcoming({rightX + 145.f, startY + 3 * gapY + 20.f}, {135.f, 40.f});
+                            if (pickPlaying.contains(mouse)) { inputStatus = L"Đang chiếu"; activeInputBox = -1; return; }
+                            if (pickUpcoming.contains(mouse)) { inputStatus = L"Sắp chiếu"; activeInputBox = -1; return; }
                         }
                     }
 
-                    FloatRect cancelBtn({leftX, popupY + 450.f}, {280.f, 44.f});
-                    FloatRect saveBtn({rightX, popupY + 450.f}, {280.f, 44.f});
+                    // Poster input + preset picker
+                    float posterY = startY + 4 * gapY + 20.f;
+                    FloatRect posterBox({leftX, posterY}, {490.f, 40.f});
+                    FloatRect posterPickBtn({leftX + 500.f, posterY}, {100.f, 40.f});
+                    if (posterBox.contains(mouse)) { activeInputBox = 8; return; }
+                    if (posterPickBtn.contains(mouse)) {
+                        static const wchar_t* kPresets[] = {
+                            L"../assets/posters/godzilla-x-kong.png",
+                            L"../assets/posters/inside-out.png",
+                            L"../assets/posters/spirited-away.png",
+                            L"../assets/posters/blue-beetle.png",
+                            L"../assets/posters/dao-pho-va-piano.png",
+                            L"../assets/posters/bo-gia-remastered.png",
+                            L"../assets/posters/lat-mat-48h.png",
+                            L"../assets/posters/tu-chien-tren-khong.png"
+                        };
+                        posterPresetIdx = (posterPresetIdx + 1) % 8;
+                        inputPosterPath = kPresets[posterPresetIdx];
+                        activeInputBox = 8;
+                        return;
+                    }
+
+                    FloatRect cancelBtn({leftX, popupY + 516.f}, {280.f, 44.f});
+                    FloatRect saveBtn({rightX, popupY + 516.f}, {280.f, 44.f});
                     if (cancelBtn.contains(mouse)) { closePopupModal(); return; }
                     if (saveBtn.contains(mouse)) { saveMovie(); return; }
                 }
@@ -531,7 +588,8 @@ void MoviePanel::handleEvent(const Event& event, const RenderWindow& window) {
             }
             if (keyEvent->code == Keyboard::Key::Tab) {
                 if (currentPopup != DELETE_CONFIRM) {
-                    activeInputBox = (activeInputBox + 1) % 8;
+                    activeInputBox = (activeInputBox + 1) % 9;
+                    if (activeInputBox == 7) activeInputBox = 8;
                 }
                 return;
             }
@@ -543,7 +601,7 @@ void MoviePanel::handleEvent(const Event& event, const RenderWindow& window) {
                 else if (activeInputBox == 4 && !inputCountry.empty()) inputCountry.pop_back();
                 else if (activeInputBox == 5 && !inputDuration.empty()) inputDuration.pop_back();
                 else if (activeInputBox == 6 && !inputReleaseDate.empty()) inputReleaseDate.pop_back();
-                else if (activeInputBox == 7 && !inputStatus.empty()) inputStatus.pop_back();
+                else if (activeInputBox == 8 && !inputPosterPath.empty()) inputPosterPath.pop_back();
                 return;
             }
         }
@@ -557,7 +615,7 @@ void MoviePanel::handleEvent(const Event& event, const RenderWindow& window) {
                 else if (activeInputBox == 4 && inputCountry.size() < 30) inputCountry.push_back((wchar_t)uc);
                 else if (activeInputBox == 5 && inputDuration.size() < 10) inputDuration.push_back((wchar_t)uc);
                 else if (activeInputBox == 6 && inputReleaseDate.size() < 20) inputReleaseDate.push_back((wchar_t)uc);
-                else if (activeInputBox == 7 && inputStatus.size() < 20) inputStatus.push_back((wchar_t)uc);
+                else if (activeInputBox == 8 && inputPosterPath.size() < 100) inputPosterPath.push_back((wchar_t)uc);
             }
             return;
         }
@@ -790,7 +848,7 @@ void MoviePanel::handleEvent(const Event& event, const RenderWindow& window) {
 void MoviePanel::update(Vector2f mouse, bool /*mousePressed*/) {
     if (currentPopup != NONE) {
         const float popupW = 680.f;
-        const float popupH = (currentPopup == DELETE_CONFIRM) ? 240.f : 530.f;
+        const float popupH = (currentPopup == DELETE_CONFIRM) ? 240.f : 590.f;
         const float popupX = (1728.f - popupW) / 2.f;
         const float popupY = (972.f - popupH) / 2.f;
 
@@ -800,8 +858,8 @@ void MoviePanel::update(Vector2f mouse, bool /*mousePressed*/) {
             btnDeleteCancelHover = cancelBtn.contains(mouse);
             btnDeleteOkHover = okBtn.contains(mouse);
         } else {
-            FloatRect cancelBtn({popupX + 40.f, popupY + 450.f}, {280.f, 44.f});
-            FloatRect saveBtn({popupX + 360.f, popupY + 450.f}, {280.f, 44.f});
+            FloatRect cancelBtn({popupX + 40.f, popupY + 516.f}, {280.f, 44.f});
+            FloatRect saveBtn({popupX + 360.f, popupY + 516.f}, {280.f, 44.f});
             btnPopupCancelHover = cancelBtn.contains(mouse);
             btnPopupSaveHover = saveBtn.contains(mouse);
         }
@@ -882,9 +940,9 @@ void MoviePanel::render(RenderWindow& window) {
     UITheme::drawSectionHeaderCard(window, startX, position.y + 16.f, contentW,
                                    L"Danh s\u00e1ch v\u00e0 \u0111i\u1ec1u ph\u1ed1i phim",
                                    to_wstring(allMovies.size()) + L" Phim",
-                                   Color(209, 250, 229), Color(4, 120, 87),
+                                   Color(224, 242, 254), Color(8, 125, 181),
                                    L"Qu\u1ea3n l\u00fd th\u00f4ng tin phim, \u0111\u1ecbnh d\u1ea1ng chi\u1ebfu, l\u1ecbch ph\u00e1t h\u00e0nh v\u00e0 tr\u1ea1ng th\u00e1i tr\u00ecnh chi\u1ebfu.",
-                                   boldFont, font, false);
+                                   boldFont, font, true);
 
     // 2. 4 KPI STAT CARDS (-20% card height & typography)
     const float cardY = 114.f;
@@ -1117,8 +1175,9 @@ void MoviePanel::render(RenderWindow& window) {
         float maxTitleW = cols[2].second - 68.f;
         string lang = (row.size() > 4) ? row[4] : "";
         string fmtStr = "2D / Atmos";
-        if (lang.find("Lồng tiếng") != string::npos) {
-            fmtStr = "2D Lồng tiếng";
+        if (lang.find("2D") != string::npos || lang.find("IMAX") != string::npos ||
+            lang.find("4DX") != string::npos || lang.find("Lồng tiếng") != string::npos) {
+            fmtStr = (lang == "Lồng tiếng") ? "2D Lồng tiếng" : lang;
         } else if (idx % 4 == 1) {
             fmtStr = "IMAX 3D";
         } else if (idx % 4 == 2) {
@@ -1369,9 +1428,13 @@ void MoviePanel::render(RenderWindow& window) {
         for (size_t g = 0; g < genres.size(); ++g) {
             Color itemBg = (static_cast<int>(g) == hoveredGenreIndex) ? Color(241, 245, 249) : Color::White;
             RoundedRectRenderer::draw(window, {toolRightX + 1.f, toolY + 47.f + g * 36.f}, {158.f, 34.f}, 4.f, itemBg);
-            Text it(font, s2ws(genres[g]), 14);
+            Text it(font, s2ws(genres[g]), UITheme::BodySize);
             it.setFillColor(Color(23, 32, 51));
-            it.setPosition({toolRightX + 11.f, toolY + 55.f + g * 36.f});
+            FloatRect itb = it.getLocalBounds();
+            it.setPosition({
+                std::round(toolRightX + 11.f - itb.position.x),
+                std::round(toolY + 47.f + g * 36.f + (34.f - itb.size.y) / 2.f - itb.position.y)
+            });
             window.draw(it);
         }
     }
@@ -1382,9 +1445,13 @@ void MoviePanel::render(RenderWindow& window) {
         for (size_t s = 0; s < statuses.size(); ++s) {
             Color itemBg = (static_cast<int>(s) == hoveredStatusIndex) ? Color(241, 245, 249) : Color::White;
             RoundedRectRenderer::draw(window, {toolRightX + 176.f, toolY + 47.f + s * 36.f}, {158.f, 34.f}, 4.f, itemBg);
-            Text it(font, s2ws(statuses[s]), 14);
+            Text it(font, s2ws(statuses[s]), UITheme::BodySize);
             it.setFillColor(Color(23, 32, 51));
-            it.setPosition({toolRightX + 186.f, toolY + 55.f + s * 36.f});
+            FloatRect itb = it.getLocalBounds();
+            it.setPosition({
+                std::round(toolRightX + 185.f - itb.position.x),
+                std::round(toolY + 47.f + s * 36.f + (34.f - itb.size.y) / 2.f - itb.position.y)
+            });
             window.draw(it);
         }
     }
@@ -1396,7 +1463,7 @@ void MoviePanel::render(RenderWindow& window) {
         window.draw(overlay);
 
         const float popupW = 680.f;
-        const float popupH = (currentPopup == DELETE_CONFIRM) ? 240.f : 530.f;
+        const float popupH = (currentPopup == DELETE_CONFIRM) ? 240.f : 590.f;
         const float popupX = (1728.f - popupW) / 2.f;
         const float popupY = (972.f - popupH) / 2.f;
 
@@ -1484,41 +1551,95 @@ void MoviePanel::render(RenderWindow& window) {
                 window.draw(v1);
 
                 // Right
-                bool rAct = (activeInputBox == rightFields[i].idx);
                 Text lbl2(boldFont, rightFields[i].label, 14);
                 lbl2.setFillColor(Color(30, 41, 59));
                 lbl2.setPosition({rightX, startY + i * gapY});
                 window.draw(lbl2);
 
-                Color b2 = rAct ? Color(8, 125, 181) : Color(203, 213, 225);
-                RoundedRectRenderer::draw(window, {rightX, startY + i * gapY + 20.f}, {280.f, 40.f}, 8.f,
-                                          rAct ? Color::White : Color(248, 250, 252), rAct ? 1.8f : 1.2f, b2);
-                Text v2(font, *rightFields[i].val + (rAct ? L"|" : L""), 14);
-                v2.setFillColor(Color(23, 32, 51));
-                v2.setPosition({rightX + 10.f, startY + i * gapY + 29.f});
-                window.draw(v2);
+                if (i < 3) {
+                    bool rAct = (activeInputBox == rightFields[i].idx);
+                    Color b2 = rAct ? Color(8, 125, 181) : Color(203, 213, 225);
+                    RoundedRectRenderer::draw(window, {rightX, startY + i * gapY + 20.f}, {280.f, 40.f}, 8.f,
+                                              rAct ? Color::White : Color(248, 250, 252), rAct ? 1.8f : 1.2f, b2);
+                    Text v2(font, *rightFields[i].val + (rAct ? L"|" : L""), 14);
+                    v2.setFillColor(Color(23, 32, 51));
+                    v2.setPosition({rightX + 10.f, startY + i * gapY + 29.f});
+                    window.draw(v2);
+                } else {
+                    // Pick selector for Status (Đang chiếu / Sắp chiếu)
+                    bool isPlayingPick = (inputStatus != L"Sắp chiếu");
+                    float pickY = startY + i * gapY + 20.f;
+
+                    Color p1Bg = isPlayingPick ? Color(220, 252, 231) : Color(248, 250, 252);
+                    Color p1Border = isPlayingPick ? Color(21, 128, 61) : Color(203, 213, 225);
+                    Color p1TxtCol = isPlayingPick ? Color(21, 128, 61) : Color(71, 85, 105);
+                    RoundedRectRenderer::draw(window, {rightX, pickY}, {135.f, 40.f}, 8.f, p1Bg, isPlayingPick ? 1.6f : 1.1f, p1Border);
+                    CircleShape d1(4.f); d1.setFillColor(p1TxtCol); d1.setPosition({rightX + 14.f, pickY + 16.f}); window.draw(d1);
+                    Text p1Txt(isPlayingPick ? boldFont : font, L"\u0110ang chi\u1ebfu", 14);
+                    p1Txt.setFillColor(p1TxtCol);
+                    FloatRect p1b = p1Txt.getLocalBounds();
+                    p1Txt.setPosition({std::round(rightX + 28.f - p1b.position.x), std::round(pickY + (40.f - p1b.size.y) / 2.f - p1b.position.y)});
+                    window.draw(p1Txt);
+
+                    Color p2Bg = !isPlayingPick ? Color(254, 243, 199) : Color(248, 250, 252);
+                    Color p2Border = !isPlayingPick ? Color(217, 119, 6) : Color(203, 213, 225);
+                    Color p2TxtCol = !isPlayingPick ? Color(180, 83, 9) : Color(71, 85, 105);
+                    RoundedRectRenderer::draw(window, {rightX + 145.f, pickY}, {135.f, 40.f}, 8.f, p2Bg, !isPlayingPick ? 1.6f : 1.1f, p2Border);
+                    CircleShape d2(4.f); d2.setFillColor(p2TxtCol); d2.setPosition({rightX + 159.f, pickY + 16.f}); window.draw(d2);
+                    Text p2Txt(!isPlayingPick ? boldFont : font, L"S\u1eafp chi\u1ebfu", 14);
+                    p2Txt.setFillColor(p2TxtCol);
+                    FloatRect p2b = p2Txt.getLocalBounds();
+                    p2Txt.setPosition({std::round(rightX + 173.f - p2b.position.x), std::round(pickY + (40.f - p2b.size.y) / 2.f - p2b.position.y)});
+                    window.draw(p2Txt);
+                }
             }
+
+            // Poster row (full-width input + preset picker button)
+            float posterRowY = startY + 4 * gapY;
+            Text lblPoster(boldFont, L"Poster (t\u00ean file ho\u1eb7c \u0111\u01b0\u1eddng d\u1eabn)", 14);
+            lblPoster.setFillColor(Color(30, 41, 59));
+            lblPoster.setPosition({leftX, posterRowY});
+            window.draw(lblPoster);
+
+            bool pAct = (activeInputBox == 8);
+            Color pbCol = pAct ? Color(8, 125, 181) : Color(203, 213, 225);
+            RoundedRectRenderer::draw(window, {leftX, posterRowY + 20.f}, {490.f, 40.f}, 8.f,
+                                      pAct ? Color::White : Color(248, 250, 252), pAct ? 1.8f : 1.2f, pbCol);
+            Text pVal(font, inputPosterPath + (pAct ? L"|" : L""), 14);
+            pVal.setFillColor(Color(23, 32, 51));
+            pVal.setPosition({leftX + 10.f, posterRowY + 29.f});
+            window.draw(pVal);
+
+            RoundedRectRenderer::draw(window, {leftX + 500.f, posterRowY + 20.f}, {100.f, 40.f}, 8.f, Color(224, 242, 254), 1.f, Color(147, 197, 253));
+            Text pBtnTxt(boldFont, L"Ch\u1ecdn m\u1eabu", 14);
+            pBtnTxt.setFillColor(Color(8, 125, 181));
+            FloatRect pbb = pBtnTxt.getLocalBounds();
+            pBtnTxt.setPosition({
+                std::round(leftX + 500.f + (100.f - pbb.size.x) / 2.f - pbb.position.x),
+                std::round(posterRowY + 20.f + (40.f - pbb.size.y) / 2.f - pbb.position.y)
+            });
+            window.draw(pBtnTxt);
 
             // Buttons
             Color cBg = btnPopupCancelHover ? Color(203, 213, 225) : Color(226, 232, 240);
-            RoundedRectRenderer::draw(window, {leftX, popupY + 450.f}, {280.f, 44.f}, 8.f, cBg);
+            RoundedRectRenderer::draw(window, {leftX, popupY + 516.f}, {280.f, 44.f}, 8.f, cBg);
             Text cTxt(boldFont, L"\u0110\u00f3ng", 17);
             cTxt.setFillColor(Color(51, 65, 85));
             FloatRect cb = cTxt.getLocalBounds();
             cTxt.setPosition({
                 std::round(leftX + (280.f - cb.size.x) / 2.f - cb.position.x),
-                std::round(popupY + 450.f + (44.f - cb.size.y) / 2.f - cb.position.y)
+                std::round(popupY + 516.f + (44.f - cb.size.y) / 2.f - cb.position.y)
             });
             window.draw(cTxt);
 
             Color sBg = btnPopupSaveHover ? Color(18, 59, 93) : Color(8, 125, 181);
-            RoundedRectRenderer::draw(window, {rightX, popupY + 450.f}, {280.f, 44.f}, 8.f, sBg);
+            RoundedRectRenderer::draw(window, {rightX, popupY + 516.f}, {280.f, 44.f}, 8.f, sBg);
             Text sTxt(boldFont, L"L\u01b0u th\u00f4ng tin", 17);
             sTxt.setFillColor(Color::White);
             FloatRect sb = sTxt.getLocalBounds();
             sTxt.setPosition({
                 std::round(rightX + (280.f - sb.size.x) / 2.f - sb.position.x),
-                std::round(popupY + 450.f + (44.f - sb.size.y) / 2.f - sb.position.y)
+                std::round(popupY + 516.f + (44.f - sb.size.y) / 2.f - sb.position.y)
             });
             window.draw(sTxt);
         }
