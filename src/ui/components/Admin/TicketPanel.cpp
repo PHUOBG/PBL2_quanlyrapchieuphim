@@ -205,7 +205,7 @@ void TicketPanel::handleEvent(const Event& event, const RenderWindow& win) {
             Vector2f mousePos = win.mapPixelToCoords(Mouse::getPosition(win));
 
             // Toolbar buttons
-            float barY = position.y + 104.f;
+            float barY = position.y + 56.f;
             FloatRect btnViewRect({position.x + 30.f, barY}, {135.f, 38.f});
             FloatRect btnDeleteRect({position.x + 175.f, barY}, {95.f, 38.f});
             FloatRect searchRect({position.x + 280.f, barY}, {300.f, 38.f});
@@ -256,7 +256,7 @@ void TicketPanel::handleEvent(const Event& event, const RenderWindow& win) {
             }
 
             // Click vào các dòng của bảng
-            float tableY = position.y + 158.f;
+            float tableY = position.y + 110.f;
             float tableW = width - 60.f;
             float rowH = 42.f;
             int startIdx = (currentPage - 1) * ticketsPerPage;
@@ -379,13 +379,13 @@ void TicketPanel::handleEvent(const Event& event, const RenderWindow& win) {
 
 void TicketPanel::update(Vector2f mousePos, bool) {
     hoveredRow = -1;
-    float barY = position.y + 104.f;
+    float barY = position.y + 56.f;
     btnViewHover = FloatRect({position.x + 30.f, barY}, {135.f, 38.f}).contains(mousePos);
     btnDeleteHover = FloatRect({position.x + 175.f, barY}, {95.f, 38.f}).contains(mousePos);
     btnReloadHover = FloatRect({position.x + width - 75.f, barY}, {45.f, 38.f}).contains(mousePos);
 
     if (!detailVisible) {
-        float tableY = position.y + 158.f;
+        float tableY = position.y + 110.f;
         float rowH = 42.f;
         int startIdx = (currentPage - 1) * ticketsPerPage;
         int count = min((int)filteredTickets.size() - startIdx, ticketsPerPage);
@@ -410,20 +410,18 @@ void TicketPanel::render(RenderWindow& win) {
     // ==========================================
     // 2. TOP BAR (Standardized Navigation & Profile)
     // ==========================================
-    UITheme::drawTopBar(win, position.x + 30.f, position.y, width - 60.f, L"QUẢN LÝ VÉ", font, boldFont);
-
     // ==========================================
     // 3. PAGE TITLE
     // ==========================================
     Text title(boldFont, L"Qu\u1ea3n l\u00fd v\u00e9", UITheme::PageTitleSize);
     title.setFillColor(UITheme::TextPrimary);
-    title.setPosition({position.x + 30.f, position.y + 64.f});
+    title.setPosition({position.x + 30.f, position.y + 16.f});
     win.draw(title);
 
     // ==========================================
     // 4. TOOLBAR
     // ==========================================
-    float barY = position.y + 104.f;
+    float barY = position.y + 56.f;
 
     // Nút 1: Xem thông tin (Màu xanh dương)
     Color viewBg = btnViewHover ? Color(18, 59, 93) : Color(8, 125, 181);
@@ -495,7 +493,7 @@ void TicketPanel::render(RenderWindow& win) {
     // 5. BẢNG DỮ LIỆU VÉ (DATA TABLE)
     // ==========================================
     float tableX = position.x + 30.f;
-    float tableY = position.y + 158.f;
+    float tableY = position.y + 110.f;
     float tableW = width - 60.f;
     float rowH = 42.f;
 

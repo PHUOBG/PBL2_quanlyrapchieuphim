@@ -456,7 +456,7 @@ void ShowtimePanel::handleEvent(const Event& event, const RenderWindow& win) {
     if (const auto* mouseBtn = event.getIf<Event::MouseButtonPressed>()) {
         if (mouseBtn->button == Mouse::Button::Left) {
             Vector2f mousePos = win.mapPixelToCoords(Mouse::getPosition(win));
-            float fCardY = position.y + 144.f;
+            float fCardY = position.y + 94.f;
 
             // Ưu tiên kiểm tra danh sách Dropdown đang mở trước khi kiểm tra bảng bên dưới
             if (roomDropdownOpen) {
@@ -506,7 +506,7 @@ void ShowtimePanel::handleEvent(const Event& event, const RenderWindow& win) {
             }
 
             // Nút Header: Làm mới, Xếp lịch tự động, + Thêm suất chiếu mới
-            float btnY = position.y + 78.f;
+            float btnY = position.y + 28.f;
             FloatRect btnRef({position.x + width - 470.f, btnY}, {110.f, 38.f});
             FloatRect btnAuto({position.x + width - 350.f, btnY}, {170.f, 38.f});
             FloatRect btnAdd({position.x + width - 170.f, btnY}, {140.f, 38.f});
@@ -570,7 +570,7 @@ void ShowtimePanel::handleEvent(const Event& event, const RenderWindow& win) {
             }
 
             // Thao tác trên từng dòng bảng (Sửa, Xóa)
-            float tableY = position.y + 316.f;
+            float tableY = position.y + 266.f;
             float rowH = 46.f;
             int startIdx = (currentPage - 1) * pageSize;
             int count = max(0, min((int)filteredShowtimes.size() - startIdx, pageSize));
@@ -615,7 +615,7 @@ void ShowtimePanel::handleEvent(const Event& event, const RenderWindow& win) {
             }
 
             // Phân trang
-            float pagY = position.y + 830.f;
+            float pagY = position.y + 780.f;
             FloatRect btnPrev({position.x + width - 260.f, pagY}, {55.f, 32.f});
             FloatRect btnP1({position.x + width - 195.f, pagY}, {32.f, 32.f});
             FloatRect btnP2({position.x + width - 155.f, pagY}, {32.f, 32.f});
@@ -633,7 +633,7 @@ void ShowtimePanel::handleEvent(const Event& event, const RenderWindow& win) {
 
 void ShowtimePanel::update(Vector2f mousePos, bool) {
     hoveredRow = -1;
-    float tableY = position.y + 316.f;
+    float tableY = position.y + 266.f;
     float rowH = 46.f;
     int startIdx = (currentPage - 1) * pageSize;
     int count = min((int)filteredShowtimes.size() - startIdx, pageSize);
@@ -657,14 +657,12 @@ void ShowtimePanel::render(RenderWindow& win) {
     // ==========================================
     // 2. TOP BAR (Standardized Navigation & Profile)
     // ==========================================
-    UITheme::drawTopBar(win, position.x + 30.f, position.y, width - 60.f, L"QUẢN LÝ SUẤT CHIẾU", font, boldFont);
-
     // ==========================================
     // 3. PAGE HEADER CARD
     // ==========================================
     Text title(boldFont, L"Qu\u1ea3n l\u00fd su\u1ea5t chi\u1ebfu", UITheme::PageTitleSize);
     title.setFillColor(UITheme::TextPrimary);
-    title.setPosition({position.x + 30.f, position.y + 68.f});
+    title.setPosition({position.x + 30.f, position.y + 18.f});
     win.draw(title);
 
     FloatRect tb = title.getGlobalBounds();
@@ -672,7 +670,7 @@ void ShowtimePanel::render(RenderWindow& win) {
     bBadge.setFillColor(Color(8, 125, 181));
     FloatRect bb = bBadge.getLocalBounds();
     float bX = tb.position.x + tb.size.x + 14.f;
-    float bY = position.y + 72.f;
+    float bY = position.y + 22.f;
     float bW = bb.size.x + 24.f;
     float bH = 26.f;
     drawRoundedCard(win, {bX, bY}, {bW, bH}, bH / 2.f, Color(224, 242, 254));
@@ -681,11 +679,11 @@ void ShowtimePanel::render(RenderWindow& win) {
 
     Text subTitle(font, L"\u0110i\u1ec1u ph\u1ed1i l\u1ecbch chi\u1ebfu theo ph\u00f2ng, theo d\u00f5i t\u1ef7 l\u1ec7 l\u1ea5p \u0111\u1ea7y gh\u1ebf v\u00e0 ph\u00e2n b\u1ed1 khung gi\u1edd chi\u1ebfu.", 14);
     subTitle.setFillColor(Color(100, 116, 139));
-    subTitle.setPosition({position.x + 30.f, position.y + 104.f});
+    subTitle.setPosition({position.x + 30.f, position.y + 54.f});
     win.draw(subTitle);
 
     // 3 Nút Header
-    float btnY = position.y + 78.f;
+    float btnY = position.y + 28.f;
     float headRefX = position.x + width - 470.f;
     drawRoundedCard(win, {headRefX, btnY}, {110.f, 38.f}, 8.f, Color::White, 1.2f, Color(203, 213, 225));
     if (hasReloadTex) {
@@ -723,7 +721,7 @@ void ShowtimePanel::render(RenderWindow& win) {
     // ==========================================
     // 4. FILTER CARD & KPI SUMMARY
     // ==========================================
-    float fCardY = position.y + 144.f;
+    float fCardY = position.y + 94.f;
     drawRoundedCard(win, {position.x + 30.f, fCardY}, {width - 60.f, 166.f}, 12.f, Color::White, 1.f, Color(226, 232, 240));
 
     // Ngày chiếu
@@ -842,7 +840,7 @@ void ShowtimePanel::render(RenderWindow& win) {
     // 5. BẢNG DỮ LIỆU SUẤT CHIẾU
     // ==========================================
     float tableX = position.x + 30.f;
-    float tableY = position.y + 316.f;
+    float tableY = position.y + 266.f;
     float tableW = width - 60.f;
     float tableRight = tableX + tableW;
     float rowH = 46.f;
@@ -947,7 +945,7 @@ void ShowtimePanel::render(RenderWindow& win) {
     // ==========================================
     // 6. PHÂN TRANG (Pagination)
     // ==========================================
-    float pagY = position.y + 830.f;
+    float pagY = position.y + 780.f;
     wstring showInfo = L"Hi\u1ec3n th\u1ecb 1 \u2013 " + to_wstring(count) + L" tr\u00ean t\u1ed5ng s\u1ed1 " + to_wstring(filteredShowtimes.size()) + L" su\u1ea5t chi\u1ebfu";
     Text pageInfo(font, showInfo, 14); pageInfo.setFillColor(Color(100, 116, 139)); pageInfo.setPosition({position.x + 30.f, pagY + 6.f}); win.draw(pageInfo);
 
@@ -977,7 +975,7 @@ void ShowtimePanel::render(RenderWindow& win) {
     // ==========================================
     // 7. KHỐI CHÍNH SÁCH RẠP (POLICY NOTE BOX)
     // ==========================================
-    float noteY = position.y + 876.f;
+    float noteY = position.y + 826.f;
     drawRoundedCard(win, {position.x + 30.f, noteY}, {tableW, 60.f}, 8.f, Color(238, 248, 255), 1.f, Color(186, 230, 253));
 
     // Icon info

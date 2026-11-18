@@ -255,9 +255,9 @@ void RoomPanel::handleEvent(const Event& event, const RenderWindow& win) {
             Vector2f mousePos = win.mapPixelToCoords(Mouse::getPosition(win));
 
             // Header Buttons
-            FloatRect btnRefresh({position.x + width - 470.f, position.y + 78.f}, {110.f, 38.f});
-            FloatRect btnAdd({position.x + width - 350.f, position.y + 78.f}, {170.f, 38.f});
-            FloatRect btnDelete({position.x + width - 170.f, position.y + 78.f}, {145.f, 38.f});
+            FloatRect btnRefresh({position.x + width - 470.f, position.y + 38.f}, {110.f, 38.f});
+            FloatRect btnAdd({position.x + width - 350.f, position.y + 38.f}, {170.f, 38.f});
+            FloatRect btnDelete({position.x + width - 170.f, position.y + 38.f}, {145.f, 38.f});
 
             if (btnRefresh.contains(mousePos)) {
                 loadRoomsFromFile();
@@ -312,8 +312,8 @@ void RoomPanel::handleEvent(const Event& event, const RenderWindow& win) {
             }
 
             // 3. Zoom controls
-            FloatRect zoomOutBtn({position.x + width - 165.f, position.y + 224.f}, {28.f, 26.f});
-            FloatRect zoomInBtn({position.x + width - 68.f, position.y + 224.f}, {28.f, 26.f});
+            FloatRect zoomOutBtn({position.x + width - 165.f, position.y + 184.f}, {28.f, 26.f});
+            FloatRect zoomInBtn({position.x + width - 68.f, position.y + 184.f}, {28.f, 26.f});
             if (zoomOutBtn.contains(mousePos)) {
                 zoomFactor = max(0.7f, zoomFactor - 0.1f);
                 return;
@@ -323,7 +323,7 @@ void RoomPanel::handleEvent(const Event& event, const RenderWindow& win) {
                 return;
             }
 
-            float cardY = position.y + 204.f;
+            float cardY = position.y + 164.f;
             float leftCardW = 370.f;
             float cardH = height - 230.f;
 
@@ -465,7 +465,7 @@ void RoomPanel::handleEvent(const Event& event, const RenderWindow& win) {
             if (selectedRoomIndex >= 0 && selectedRoomIndex < (int)rooms.size()) {
                 auto& r = rooms[selectedRoomIndex];
                 float gridStartX = position.x + 440.f + 50.f;
-                float gridStartY = position.y + 360.f;
+                float gridStartY = position.y + 320.f;
                 float seatW = 46.f * zoomFactor;
                 float seatH = 46.f * zoomFactor;
                 float gapX = 18.f * zoomFactor;
@@ -548,7 +548,7 @@ void RoomPanel::update(Vector2f mousePos, bool) {
         float totalW = r.cols * seatW + (r.cols - 1) * gapX;
         float rightCardW = width - 470.f;
         float gridStartX = position.x + 440.f + (rightCardW - totalW) / 2.f;
-        float gridStartY = position.y + 360.f;
+        float gridStartY = position.y + 320.f;
 
         for (int row = 0; row < r.rows; ++row) {
             for (int col = 0; col < r.cols; ++col) {
@@ -574,28 +574,26 @@ void RoomPanel::render(RenderWindow& win) {
     // ==========================================
     // 2. TOP BAR (Standardized Navigation & Profile)
     // ==========================================
-    UITheme::drawTopBar(win, position.x + 30.f, position.y, width - 60.f, L"QUẢN LÝ PHÒNG CHIẾU", font, boldFont);
-
     // ==========================================
     // 3. PAGE HEADER CARD (Y = 56.f)
     // ==========================================
-    drawRoundedCard(win, {position.x + 30.f, position.y + 56.f}, {width - 60.f, 84.f}, 12.f, Color::White, 1.f, Color(226, 232, 240));
+    drawRoundedCard(win, {position.x + 30.f, position.y + 16.f}, {width - 60.f, 84.f}, 12.f, Color::White, 1.f, Color(226, 232, 240));
 
     // Logo CineXine trong ô bo tròn (thay thế 2 gạch theo yêu cầu)
-    drawRoundedCard(win, {position.x + 48.f, position.y + 72.f}, {52.f, 52.f}, 12.f, Color(224, 242, 254));
+    drawRoundedCard(win, {position.x + 48.f, position.y + 32.f}, {52.f, 52.f}, 12.f, Color(224, 242, 254));
     if (hasLogo) {
         Sprite logoSpr(logoTex);
         float targetS = 36.f;
         float sX = targetS / (float)logoTex.getSize().x;
         float sY = targetS / (float)logoTex.getSize().y;
         logoSpr.setScale({sX, sY});
-        logoSpr.setPosition({position.x + 48.f + (52.f - targetS) / 2.f, position.y + 72.f + (52.f - targetS) / 2.f});
+        logoSpr.setPosition({position.x + 48.f + (52.f - targetS) / 2.f, position.y + 32.f + (52.f - targetS) / 2.f});
         win.draw(logoSpr);
     }
 
     Text title(boldFont, L"Qu\u1ea3n l\u00fd ph\u00f2ng chi\u1ebfu", 24);
     title.setFillColor(Color(23, 32, 51));
-    title.setPosition({position.x + 115.f, position.y + 70.f});
+    title.setPosition({position.x + 115.f, position.y + 30.f});
     win.draw(title);
 
     // Badge "Hoạt động ổn định"
@@ -609,7 +607,7 @@ void RoomPanel::render(RenderWindow& win) {
     float badgeW = padH * 2.f + dotRadius * 2.f + dotGap + gtb.size.x;
     float badgeH = 24.f;
     float badgeX = tbBounds.position.x + tbBounds.size.x + 14.f;
-    float badgeY = position.y + 73.f;
+    float badgeY = position.y + 33.f;
     drawRoundedCard(win, {badgeX, badgeY}, {badgeW, badgeH}, 12.f, Color(220, 252, 231));
 
     float contentW = dotRadius * 2.f + dotGap + gtb.size.x;
@@ -627,11 +625,11 @@ void RoomPanel::render(RenderWindow& win) {
 
     Text subTitle(font, L"H\u1ec7 th\u1ed1ng c\u1ea5u h\u00ecnh s\u01a1 \u0111\u1ed3 gh\u1ebf v\u00e0 gi\u00e1m s\u00e1t tr\u1ea1ng th\u00e1i ph\u00f2ng chi\u1ebfu t\u1ea1i c\u1ee5m r\u1ea1p \u0110\u00e0 N\u1eb5ng", 14);
     subTitle.setFillColor(Color(100, 116, 139));
-    subTitle.setPosition({position.x + 115.f, position.y + 102.f});
+    subTitle.setPosition({position.x + 115.f, position.y + 62.f});
     win.draw(subTitle);
 
     // 3 nút góc phải: Làm mới, Thêm phòng chiếu, Xóa phòng chiếu
-    float btnY = position.y + 78.f;
+    float btnY = position.y + 38.f;
     // Nút 1: Làm mới
     float headRefX = position.x + width - 470.f;
     drawRoundedCard(win, {headRefX, btnY}, {110.f, 38.f}, 8.f, Color::White, 1.2f, Color(203, 213, 225));
@@ -672,20 +670,20 @@ void RoomPanel::render(RenderWindow& win) {
     // ==========================================
     // 4. SECTION HEADER (Thanh tiêu đề tĩnh, không click nhầm)
     // ==========================================
-    drawRoundedCard(win, {position.x + 30.f, position.y + 156.f}, {280.f, 36.f}, 8.f, Color::White, 1.f, Color(226, 232, 240));
+    drawRoundedCard(win, {position.x + 30.f, position.y + 116.f}, {280.f, 36.f}, 8.f, Color::White, 1.f, Color(226, 232, 240));
     Text secHeadTxt(boldFont, L"C\u1ea5u h\u00ecnh & S\u01a1 \u0111\u1ed3 gh\u1ebf tr\u1ef1c quan", 14);
     secHeadTxt.setFillColor(Color(8, 125, 181));
     FloatRect shb = secHeadTxt.getLocalBounds();
     secHeadTxt.setPosition({
         position.x + 30.f + (280.f - shb.size.x) / 2.f - shb.position.x,
-        position.y + 156.f + (36.f - shb.size.y) / 2.f - shb.position.y
+        position.y + 116.f + (36.f - shb.size.y) / 2.f - shb.position.y
     });
     win.draw(secHeadTxt);
 
     // ==========================================
     // 5. CỘT TRÁI: FORM "THÔNG TIN PHÒNG CHIẾU"
     // ==========================================
-    float cardY = position.y + 204.f;
+    float cardY = position.y + 164.f;
     float leftCardW = 370.f;
     float cardH = height - 230.f;
     drawRoundedCard(win, {position.x + 30.f, cardY}, {leftCardW, cardH}, 14.f, Color::White, 1.f, Color(226, 232, 240));
@@ -1037,7 +1035,7 @@ void RoomPanel::render(RenderWindow& win) {
             float notW = 400.f;
             float notH = 44.f;
             float notX = position.x + (width - notW) / 2.f;
-            float notY = position.y + 75.f; // Nằm ở giữa trên cao, cực kỳ rõ ràng và dễ thấy
+            float notY = position.y + 35.f; // Nằm ở giữa trên cao, cực kỳ rõ ràng và dễ thấy
             drawRoundedCard(win, {notX, notY}, {notW, notH}, 8.f, Color(15, 23, 42, 245), 1.5f, Color(8, 125, 181));
             Text notText(boldFont, s2ws(notificationMessage), 14);
             notText.setFillColor(Color::White);

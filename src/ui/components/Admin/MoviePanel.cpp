@@ -570,7 +570,7 @@ void MoviePanel::handleEvent(const Event& event, const RenderWindow& window) {
             const float contentW = max(1200.f, width - 60.f);
             const float searchW = max(320.f, contentW - 884.f);
             const float toolRightX = startX + searchW + 15.f;
-            const float toolY = 252.f;
+            const float toolY = 204.f;
 
             // Ưu tiên kiểm tra danh sách Dropdown đang mở trước khi kiểm tra bảng bên dưới
             if (genreDropdownOpen) {
@@ -669,7 +669,7 @@ void MoviePanel::handleEvent(const Event& event, const RenderWindow& window) {
             }
 
             // Click trên các dòng của bảng phim
-            const float tableY = 352.f;
+            const float tableY = 304.f;
             const float hdrH = 48.f;
             const float rowH = 82.f;
             const float tableW = contentW;
@@ -810,7 +810,7 @@ void MoviePanel::update(Vector2f mouse, bool /*mousePressed*/) {
     const float contentW = max(1200.f, width - 60.f);
     const float searchW = max(320.f, contentW - 884.f);
     const float toolRightX = startX + searchW + 15.f;
-    const float toolY = 252.f;
+    const float toolY = 204.f;
 
     FloatRect searchBox({startX, toolY}, {searchW, 44.f});
     FloatRect genreBtn({toolRightX, toolY}, {160.f, 44.f});
@@ -845,7 +845,7 @@ void MoviePanel::update(Vector2f mouse, bool /*mousePressed*/) {
     }
 
     // Table rows hover
-    const float tableY = 352.f;
+    const float tableY = 304.f;
     const float hdrH = 48.f;
     const float rowH = 82.f;
     const float tableW = contentW;
@@ -876,17 +876,14 @@ void MoviePanel::render(RenderWindow& window) {
     const float searchW = max(320.f, contentW - 884.f);
     const float toolRightX = startX + searchW + 15.f;
 
-    // 1. Standardized Top Navigation Bar & Profile Header
-    UITheme::drawTopBar(window, startX, position.y, contentW, L"QUẢN LÝ PHIM", font, boldFont);
-
-    // 2. Standardized Page Heading
-    UITheme::drawPageHeader(window, startX, position.y + 64.f,
+    // 1. Standardized Page Heading (aligned with Overview & Revenue panels)
+    UITheme::drawPageHeader(window, startX, position.y + 16.f,
                             L"DANH SÁCH & ĐIỀU PHỐI PHIM",
                             L"",
                             boldFont, font);
 
-    // 4. 4 KPI STAT CARDS (Centered vertically between page title and filter toolbar, +30% typography)
-    const float cardY = 113.f;
+    // 2. 4 KPI STAT CARDS (Centered vertically between page title and filter toolbar, +30% typography)
+    const float cardY = 65.f;
     const float cardH = 118.f;
     const float cardGap = 20.f;
     const float cardW = (contentW - 3.f * cardGap) / 4.f;
@@ -911,7 +908,7 @@ void MoviePanel::render(RenderWindow& window) {
     drawMovieKpi({startX + (cardW + cardGap) * 3.f, cardY}, L"Tổng phim quản lý", to_wstring(allMovies.size()), L"Kho dữ liệu CineCore", UITheme::TextSecondary);
 
     // 5. TOOLBAR (Search & Filters & Actions)
-    const float toolY = 252.f;
+    const float toolY = 204.f;
 
     // Search Input
     Color searchBorder = searchActive ? Color(8, 125, 181) : Color(203, 213, 225);
@@ -996,7 +993,7 @@ void MoviePanel::render(RenderWindow& window) {
     window.draw(addTxt);
 
     // 6. DATA TABLE SUBHEADER
-    const float subY = 318.f;
+    const float subY = 270.f;
     drawFunnelIcon(window, {startX + 2.f, subY + 3.f}, Color(8, 125, 181));
 
     Text subTitle(boldFont, L"DANH S\u00c1CH PHIM CHI\u1ebeU R\u1ea0P", UITheme::SectionTitleSize);
@@ -1014,7 +1011,7 @@ void MoviePanel::render(RenderWindow& window) {
     window.draw(cBadge);
 
     // 7. TABLE HEADER (Ocean Blue #0077B6)
-    const float tblY = 352.f;
+    const float tblY = 304.f;
     const float tblW = contentW;
     const float hdrH = 48.f;
     const float col2W = max(280.f, tblW - 915.f);
