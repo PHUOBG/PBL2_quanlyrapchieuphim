@@ -274,45 +274,30 @@ void AdminSidebar::render(RenderWindow& window) {
 
     const float padX = position.x + 16.f;
 
-    // 2. Tiêu đề thương hiệu (Logo + CineCore + PBL2 PORTAL + ADMIN badge)
+    // 2. Tiêu đề thương hiệu (Logo + CineCore + ADMIN badge bên dưới)
+    float brandTextX = padX + 46.f;
     if (logoSprite) {
         float targetH = 38.f;
         float scale = targetH / (float)logoTexture.getSize().y;
         logoSprite->setScale({scale, scale});
         logoSprite->setPosition({padX, position.y + 18.f});
         window.draw(*logoSprite);
-
-        float brandTextX = padX + (float)logoTexture.getSize().x * scale + 10.f;
-
-        Text brandLogo(boldFont, L"CineCore", 24);
-        brandLogo.setFillColor(Color::White);
-        brandLogo.setPosition({std::round(brandTextX), std::round(position.y + 14.f)});
-        window.draw(brandLogo);
-
-        Text brandPortal(boldFont, L"PBL2 PORTAL", 14);
-        brandPortal.setFillColor(Color(186, 230, 253));
-        brandPortal.setPosition({std::round(brandTextX + 1.f), std::round(position.y + 43.f)});
-        window.draw(brandPortal);
+        brandTextX = padX + (float)logoTexture.getSize().x * scale + 10.f;
     } else {
         RoundedRectRenderer::draw(window, {padX, position.y + 18.f}, {38.f, 38.f}, 8.f, Color(255, 255, 255, 45));
         RectangleShape prj1({6.f, 18.f}); prj1.setFillColor(Color::White); prj1.setPosition({padX + 9.f, position.y + 27.f}); window.draw(prj1);
         RectangleShape prj2({6.f, 18.f}); prj2.setFillColor(Color::White); prj2.setPosition({padX + 21.f, position.y + 27.f}); window.draw(prj2);
-
-        Text brandLogo(boldFont, L"CineCore", 24);
-        brandLogo.setFillColor(Color::White);
-        brandLogo.setPosition({std::round(padX + 46.f), std::round(position.y + 14.f)});
-        window.draw(brandLogo);
-
-        Text brandPortal(boldFont, L"PBL2 PORTAL", 14);
-        brandPortal.setFillColor(Color(186, 230, 253));
-        brandPortal.setPosition({std::round(padX + 47.f), std::round(position.y + 43.f)});
-        window.draw(brandPortal);
     }
 
-    // Badge ADMIN
-    Vector2f bPos(position.x + width - 108.f, position.y + 24.f);
-    Vector2f bSize(60.f, 24.f);
-    RoundedRectRenderer::draw(window, bPos, bSize, 12.f, Color(255, 255, 255, 42));
+    Text brandLogo(boldFont, L"CineCore", 24);
+    brandLogo.setFillColor(Color::White);
+    brandLogo.setPosition({std::round(brandTextX), std::round(position.y + 12.f)});
+    window.draw(brandLogo);
+
+    // Badge ADMIN đặt ngay bên dưới CineCore (vị trí cũ của PBL2 PORTAL)
+    Vector2f bPos(std::round(brandTextX), std::round(position.y + 42.f));
+    Vector2f bSize(62.f, 22.f);
+    RoundedRectRenderer::draw(window, bPos, bSize, 11.f, Color(255, 255, 255, 42));
     Text admTxt(boldFont, L"ADMIN", 14);
     admTxt.setFillColor(Color::White);
     FloatRect ab = admTxt.getLocalBounds();
