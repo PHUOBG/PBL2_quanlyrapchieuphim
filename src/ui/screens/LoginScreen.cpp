@@ -691,7 +691,7 @@ void LoginScreen::draw(RenderWindow& window) {
     itm1Title.setFillColor(Color::White);
     itm1Title.setPosition({leftPadX + 68.f, fY_1 + 12.f});
     window.draw(itm1Title);
-    Text itm1Sub(font, L"Th\u00f4ng tin phim, poster, tr\u1ea1ng th\u00e1i", 12);
+    Text itm1Sub(font, L"Th\u00f4ng tin phim, poster, tr\u1ea1ng th\u00e1i", 14);
     itm1Sub.setFillColor(Color(226, 232, 240));
     itm1Sub.setPosition({leftPadX + 68.f, fY_1 + 36.f});
     window.draw(itm1Sub);
@@ -705,7 +705,7 @@ void LoginScreen::draw(RenderWindow& window) {
     itm2Title.setFillColor(Color::White);
     itm2Title.setPosition({leftPadX + 68.f, fY_2 + 12.f});
     window.draw(itm2Title);
-    Text itm2Sub(font, L"Ph\u00f2ng chi\u1ebfu, su\u1ea5t chi\u1ebfu, gi\u00e1 v\u00e9", 12);
+    Text itm2Sub(font, L"Ph\u00f2ng chi\u1ebfu, su\u1ea5t chi\u1ebfu, gi\u00e1 v\u00e9", 14);
     itm2Sub.setFillColor(Color(226, 232, 240));
     itm2Sub.setPosition({leftPadX + 68.f, fY_2 + 36.f});
     window.draw(itm2Sub);
@@ -719,7 +719,7 @@ void LoginScreen::draw(RenderWindow& window) {
     itm3Title.setFillColor(Color::White);
     itm3Title.setPosition({leftPadX + 68.f, fY_3 + 12.f});
     window.draw(itm3Title);
-    Text itm3Sub(font, L"\u0110\u1eb7t v\u00e9, t\u00e0i kho\u1ea3n, l\u1ecbch s\u1eed giao d\u1ecbch", 12);
+    Text itm3Sub(font, L"\u0110\u1eb7t v\u00e9, t\u00e0i kho\u1ea3n, l\u1ecbch s\u1eed giao d\u1ecbch", 14);
     itm3Sub.setFillColor(Color(226, 232, 240));
     itm3Sub.setPosition({leftPadX + 68.f, fY_3 + 36.f});
     window.draw(itm3Sub);
@@ -733,7 +733,7 @@ void LoginScreen::draw(RenderWindow& window) {
     itm4Title.setFillColor(Color::White);
     itm4Title.setPosition({leftPadX + 68.f, fY_4 + 12.f});
     window.draw(itm4Title);
-    Text itm4Sub(font, L"Th\u1ef1c \u0111\u01a1n, gi\u00e1 b\u00e1n, voucher", 12);
+    Text itm4Sub(font, L"Th\u1ef1c \u0111\u01a1n, gi\u00e1 b\u00e1n, voucher", 14);
     itm4Sub.setFillColor(Color(226, 232, 240));
     itm4Sub.setPosition({leftPadX + 68.f, fY_4 + 36.f});
     window.draw(itm4Sub);
@@ -747,7 +747,7 @@ void LoginScreen::draw(RenderWindow& window) {
     itm5Title.setFillColor(Color::White);
     itm5Title.setPosition({leftPadX + 68.f, fY_5 + 12.f});
     window.draw(itm5Title);
-    Text itm5Sub(font, L"KPI, bi\u1ec3u \u0111\u1ed3, b\u00e1o c\u00e1o", 12);
+    Text itm5Sub(font, L"KPI, bi\u1ec3u \u0111\u1ed3, b\u00e1o c\u00e1o", 14);
     itm5Sub.setFillColor(Color(226, 232, 240));
     itm5Sub.setPosition({leftPadX + 68.f, fY_5 + 36.f});
     window.draw(itm5Sub);
@@ -761,7 +761,7 @@ void LoginScreen::draw(RenderWindow& window) {
     itm6Title.setFillColor(Color::White);
     itm6Title.setPosition({leftPadX + 68.f, fY_6 + 12.f});
     window.draw(itm6Title);
-    Text itm6Sub(font, L"H\u1ed3 s\u01a1, m\u1eadt kh\u1ea9u, b\u1ea3o m\u1eadt", 12);
+    Text itm6Sub(font, L"H\u1ed3 s\u01a1, m\u1eadt kh\u1ea9u, b\u1ea3o m\u1eadt", 14);
     itm6Sub.setFillColor(Color(226, 232, 240));
     itm6Sub.setPosition({leftPadX + 68.f, fY_6 + 36.f});
     window.draw(itm6Sub);
@@ -807,21 +807,21 @@ void LoginScreen::draw(RenderWindow& window) {
     window.draw(topBadgeText);
 
     // Heading: ĐĂNG NHẬP QUẢN TRỊ VIÊN
-    Text formHeading(boldFont, L"\u0110\u0102NG NH\u1eacP QU\u1ea2N TR\u1eca VI\u00caN", 24);
+    Text formHeading(boldFont, L"\u0110\u0102NG NH\u1eacP QU\u1ea2N TR\u1eca VI\u00caN", 31);
     formHeading.setFillColor(Color(15, 23, 42)); // Dark Navy #0F172A
-    formHeading.setPosition({formX, cardY + 102.f});
+    formHeading.setPosition({formX, cardY + 98.f});
     window.draw(formHeading);
 
     // Subtitle
-    Text formSub(font, L"Vui l\u00f2ng x\u00e1c th\u1ef1c t\u00e0i kho\u1ea3n \u0111\u1ec3 truy c\u1eadp b\u1ea3ng \u0111i\u1ec1u khi\u1ec3n r\u1ea1p chi\u1ebfu phim", 13);
+    Text formSub(font, L"Vui l\u00f2ng x\u00e1c th\u1ef1c t\u00e0i kho\u1ea3n \u0111\u1ec3 truy c\u1eadp b\u1ea3ng \u0111i\u1ec1u khi\u1ec3n r\u1ea1p chi\u1ebfu phim", 17);
     formSub.setFillColor(Color(100, 116, 139));
     formSub.setPosition({formX, cardY + 148.f});
     window.draw(formSub);
 
     // Field 1: TÀI KHOẢN QUẢN TRỊ VIÊN / MÃ ĐỊNH DANH
-    Text lblEmail(boldFont, L"T\u00c0I KHO\u1ea2N QU\u1ea2N TR\u1eca VI\u00caN / M\u00c3 \u0110\u1ecaNH DANH", 13);
+    Text lblEmail(boldFont, L"T\u00c0I KHO\u1ea2N QU\u1ea2N TR\u1eca VI\u00caN / M\u00c3 \u0110\u1ecaNH DANH", 16);
     lblEmail.setFillColor(Color(51, 65, 85));
-    lblEmail.setPosition({formX, cardY + 196.f});
+    lblEmail.setPosition({formX, cardY + 194.f});
     window.draw(lblEmail);
 
     Color eBorder = emailActive ? Color(2, 132, 199) : Color(226, 232, 240);
@@ -829,29 +829,29 @@ void LoginScreen::draw(RenderWindow& window) {
     drawVectorUser(window, {formX + 18.f, cardY + 242.f}, Color(148, 163, 184));
 
     if (emailInput.empty() && !emailActive) {
-        Text phEmail(font, L"VD: admin_danang01 ho\u1eb7c ADM-9842", 13);
+        Text phEmail(font, L"VD: admin_danang01 ho\u1eb7c ADM-9842", 16);
         phEmail.setFillColor(Color(148, 163, 184));
-        phEmail.setPosition({formX + 48.f, cardY + 239.f});
+        phEmail.setPosition({formX + 48.f, cardY + 237.f});
         window.draw(phEmail);
     } else {
-        Text valEmail(font, emailInput, 14);
+        Text valEmail(font, emailInput, 16);
         valEmail.setFillColor(Color(15, 23, 42));
-        valEmail.setPosition({formX + 48.f, cardY + 238.f});
+        valEmail.setPosition({formX + 48.f, cardY + 237.f});
         window.draw(valEmail);
 
         if (emailActive && caretVisible) {
             FloatRect eb = valEmail.getLocalBounds();
-            RectangleShape caretLine({1.8f, 20.f});
+            RectangleShape caretLine({1.8f, 22.f});
             caretLine.setFillColor(Color(2, 132, 199));
-            caretLine.setPosition({formX + 50.f + (emailInput.empty() ? 0.f : eb.size.x), cardY + 240.f});
+            caretLine.setPosition({formX + 50.f + (emailInput.empty() ? 0.f : eb.size.x), cardY + 239.f});
             window.draw(caretLine);
         }
     }
 
     // Field 2: MẬT KHẨU TRUY CẬP
-    Text lblPass(boldFont, L"M\u1eacT KH\u1ea8U TRUY C\u1eacP", 13);
+    Text lblPass(boldFont, L"M\u1eacT KH\u1ea8U TRUY C\u1eacP", 16);
     lblPass.setFillColor(Color(51, 65, 85));
-    lblPass.setPosition({formX, cardY + 296.f});
+    lblPass.setPosition({formX, cardY + 294.f});
     window.draw(lblPass);
 
     Color pBorder = passActive ? Color(2, 132, 199) : Color(226, 232, 240);
@@ -859,22 +859,22 @@ void LoginScreen::draw(RenderWindow& window) {
     drawVectorLock(window, {formX + 19.f, cardY + 345.f}, Color(148, 163, 184));
 
     if (passInput.empty() && !passActive) {
-        Text phPass(font, L"Nh\u1eadp m\u1eadt kh\u1ea9u an to\u00e0n", 13);
+        Text phPass(font, L"Nh\u1eadp m\u1eadt kh\u1ea9u an to\u00e0n", 16);
         phPass.setFillColor(Color(148, 163, 184));
-        phPass.setPosition({formX + 48.f, cardY + 339.f});
+        phPass.setPosition({formX + 48.f, cardY + 337.f});
         window.draw(phPass);
     } else {
         wstring dispPass = showPassword ? passInput : bullets(passInput.size());
-        Text valPass(font, dispPass, 14);
+        Text valPass(font, dispPass, 16);
         valPass.setFillColor(Color(15, 23, 42));
-        valPass.setPosition({formX + 48.f, cardY + 338.f});
+        valPass.setPosition({formX + 48.f, cardY + 337.f});
         window.draw(valPass);
 
         if (passActive && caretVisible) {
             FloatRect pb = valPass.getLocalBounds();
-            RectangleShape caretLine({1.8f, 20.f});
+            RectangleShape caretLine({1.8f, 22.f});
             caretLine.setFillColor(Color(2, 132, 199));
-            caretLine.setPosition({formX + 50.f + (passInput.empty() ? 0.f : pb.size.x), cardY + 340.f});
+            caretLine.setPosition({formX + 50.f + (passInput.empty() ? 0.f : pb.size.x), cardY + 339.f});
             window.draw(caretLine);
         }
     }
