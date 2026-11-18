@@ -580,13 +580,19 @@ void LoginScreen::draw(RenderWindow& window) {
     headerTitle.setPosition({56.f, 19.f});
     window.draw(headerTitle);
 
-    // Top-right version pill badge
-    RoundedRectRenderer::draw(window, {W - 220.f, 15.f}, {145.f, 26.f}, 13.f, Color(226, 232, 240), 1.f, Color(203, 213, 225));
-    Text verText(font);
-    verText.setString(L"Phi\u00ean b\u1ea3n Desktop v2.4");
-    verText.setCharacterSize(13);
+    // Top-right version pill badge (sized dynamically with even padding)
+    Text verText(font, L"Phi\u00ean b\u1ea3n Desktop v2.4", 13);
     verText.setFillColor(Color(100, 116, 139));
-    verText.setPosition({W - 212.f, 20.f});
+    FloatRect vb = verText.getLocalBounds();
+    float verPillW = vb.size.x + 28.f;
+    float verPillH = 28.f;
+    float verPillX = W - 72.f - verPillW;
+    float verPillY = 14.f;
+    RoundedRectRenderer::draw(window, {verPillX, verPillY}, {verPillW, verPillH}, 14.f, Color(226, 232, 240), 1.f, Color(203, 213, 225));
+    verText.setPosition({
+        std::round(verPillX + (verPillW - vb.size.x) / 2.f - vb.position.x),
+        std::round(verPillY + (verPillH - vb.size.y) / 2.f - vb.position.y)
+    });
     window.draw(verText);
 
     // Window control dots
@@ -900,15 +906,15 @@ void LoginScreen::draw(RenderWindow& window) {
         window.draw(c2);
     }
 
-    Text remText(font, L"Ghi nh\u1edb \u0111\u0103ng nh\u1eadp", 13);
+    Text remText(font, L"Ghi nh\u1edb \u0111\u0103ng nh\u1eadp", 16);
     remText.setFillColor(Color(71, 85, 105));
-    remText.setPosition({formX + 28.f, cardY + 396.f});
+    remText.setPosition({formX + 28.f, cardY + 394.f});
     window.draw(remText);
 
-    Text forgotText(boldFont, L"Qu\u00ean m\u1eadt kh\u1ea9u?", 13);
+    Text forgotText(boldFont, L"Qu\u00ean m\u1eadt kh\u1ea9u?", 16);
     if (linkForgotHovered) forgotText.setStyle(Text::Underlined);
     forgotText.setFillColor(Color(8, 125, 181));
-    forgotText.setPosition({formX + formW - forgotText.getLocalBounds().size.x, cardY + 396.f});
+    forgotText.setPosition({formX + formW - forgotText.getLocalBounds().size.x, cardY + 394.f});
     window.draw(forgotText);
 
     // Main Submit Button: ĐĂNG NHẬP QUẢN TRỊ ->
@@ -966,10 +972,10 @@ void LoginScreen::draw(RenderWindow& window) {
     window.draw(posText);
 
     // Register Link Row: Chưa có tài khoản quản trị? Đăng ký Admin mới  →
-    Text regPrefix(font, L"Ch\u01b0a c\u00f3 t\u00e0i kho\u1ea3n qu\u1ea3n tr\u1ecb? ", 13);
+    Text regPrefix(font, L"Ch\u01b0a c\u00f3 t\u00e0i kho\u1ea3n qu\u1ea3n tr\u1ecb? ", 16);
     regPrefix.setFillColor(Color(100, 116, 139));
 
-    Text regLink(boldFont, L"\u0110\u0103ng k\u00fd Admin m\u1edbi \u2192", 13);
+    Text regLink(boldFont, L"\u0110\u0103ng k\u00fd Admin m\u1edbi \u2192", 16);
     if (linkCreateHovered) regLink.setStyle(Text::Underlined);
     regLink.setFillColor(Color(8, 125, 181));
 
@@ -1013,25 +1019,25 @@ void LoginScreen::draw(RenderWindow& window) {
         fTitle.setPosition({fCardX + 40.f, fCardY + 32.f});
         window.draw(fTitle);
 
-        Text fSub(font, L"Nh\u1eadp email qu\u1ea3n tr\u1ecb v\u00e0 m\u1eadt kh\u1ea9u m\u1edbi \u0111\u1ec3 \u0111\u1eb7t l\u1ea1i m\u1eadt kh\u1ea9u.", 13);
+        Text fSub(font, L"Nh\u1eadp email qu\u1ea3n tr\u1ecb v\u00e0 m\u1eadt kh\u1ea9u m\u1edbi \u0111\u1ec3 \u0111\u1eb7t l\u1ea1i m\u1eadt kh\u1ea9u.", 19);
         fSub.setFillColor(Color(100, 116, 139));
         fSub.setPosition({fCardX + 40.f, fCardY + 66.f});
         window.draw(fSub);
 
         // Email input
         Color fEBorder = forgotEmailActive ? Color(8, 125, 181) : Color(203, 213, 225);
-        RoundedRectRenderer::draw(window, {fCardX + 40.f, fCardY + 112.f}, {480.f, 46.f}, 8.f, Color(248, 250, 252), 1.2f, fEBorder);
-        Text fEmailText(font, forgotEmailInput.empty() ? L"Nh\u1eadp email qu\u1ea3n tr\u1ecb vi\u00ean" : forgotEmailInput, 13);
+        RoundedRectRenderer::draw(window, {fCardX + 40.f, fCardY + 112.f}, {480.f, 48.f}, 8.f, Color(248, 250, 252), 1.2f, fEBorder);
+        Text fEmailText(font, forgotEmailInput.empty() ? L"Nh\u1eadp email qu\u1ea3n tr\u1ecb vi\u00ean" : forgotEmailInput, 20);
         fEmailText.setFillColor(forgotEmailInput.empty() ? Color(148, 163, 184) : Color(23, 32, 51));
-        fEmailText.setPosition({fCardX + 54.f, fCardY + 126.f});
+        fEmailText.setPosition({fCardX + 54.f, fCardY + 122.f});
         window.draw(fEmailText);
 
         // New password input
         Color fPBorder = forgotPassActive ? Color(8, 125, 181) : Color(203, 213, 225);
-        RoundedRectRenderer::draw(window, {fCardX + 40.f, fCardY + 180.f}, {480.f, 46.f}, 8.f, Color(248, 250, 252), 1.2f, fPBorder);
-        Text fPassText(font, forgotPassInput.empty() ? L"Nh\u1eadp m\u1eadt kh\u1ea9u m\u1edbi" : bullets(forgotPassInput.size()), 13);
+        RoundedRectRenderer::draw(window, {fCardX + 40.f, fCardY + 180.f}, {480.f, 48.f}, 8.f, Color(248, 250, 252), 1.2f, fPBorder);
+        Text fPassText(font, forgotPassInput.empty() ? L"Nh\u1eadp m\u1eadt kh\u1ea9u m\u1edbi" : bullets(forgotPassInput.size()), 20);
         fPassText.setFillColor(forgotPassInput.empty() ? Color(148, 163, 184) : Color(23, 32, 51));
-        fPassText.setPosition({fCardX + 54.f, fCardY + 194.f});
+        fPassText.setPosition({fCardX + 54.f, fCardY + 190.f});
         window.draw(fPassText);
 
         // Status message

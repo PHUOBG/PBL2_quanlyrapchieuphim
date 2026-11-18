@@ -22,11 +22,13 @@ private:
     wstring inputs[6];
     bool showPassword = false;
     bool agreeTerms = false;
+    bool showRules = false;
 
     // Hover states
     bool closeHovered = false;
     bool eyeHovered = false;
     bool checkHovered = false;
+    bool rulesLinkHovered = false;
     bool backHovered = false;
     bool registerHovered = false;
     bool loginLinkHovered = false;
@@ -42,6 +44,7 @@ private:
     FloatRect closeRect;
     FloatRect eyeRect;
     FloatRect checkRect;
+    FloatRect rulesLinkRect;
     FloatRect backRect;
     FloatRect registerRect;
     FloatRect loginLinkRect;

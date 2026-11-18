@@ -32,21 +32,21 @@ RegisterScreen::RegisterScreen(const Font& f, AuthService& authRef)
 }
 
 void RegisterScreen::computeLayout(float W, float H) {
-    const float cardW = 680.f;
-    const float cardH = 810.f;
+    const float cardW = 780.f;
+    const float cardH = 860.f;
     const float cardX = (W - cardW) / 2.f;
     const float cardY = (H - cardH) / 2.f;
-    const float padX = 46.f;
+    const float padX = 44.f;
     const float innerW = cardW - padX * 2.f;
     const float leftX = cardX + padX;
     const float halfGap = 16.f;
     const float halfW = (innerW - halfGap) / 2.f;
-    const float fieldH = 44.f;
+    const float fieldH = 46.f;
 
-    closeRect = FloatRect({cardX + cardW - padX - 24.f, cardY + 114.f}, {28.f, 28.f});
+    closeRect = FloatRect({cardX + cardW - padX - 24.f, cardY + 108.f}, {28.f, 28.f});
 
     // Row 1: Họ và tên (index 0)
-    float r1Y = cardY + 266.f;
+    float r1Y = cardY + 244.f;
     fieldRects[0] = FloatRect({leftX, r1Y}, {innerW, fieldH});
 
     // Row 2: Ngày sinh (index 1) + Số điện thoại (index 3)
@@ -63,18 +63,18 @@ void RegisterScreen::computeLayout(float W, float H) {
     fieldRects[4] = FloatRect({leftX, r4Y}, {halfW, fieldH});
     fieldRects[5] = FloatRect({leftX + halfW + halfGap, r4Y}, {halfW, fieldH});
 
-    eyeRect = FloatRect({leftX + halfW - 36.f, r4Y + 8.f}, {28.f, 28.f});
+    eyeRect = FloatRect({leftX + halfW - 36.f, r4Y + 9.f}, {28.f, 28.f});
 
-    float chkY = r4Y + 62.f;
-    checkRect = FloatRect({leftX - 2.f, chkY - 2.f}, {innerW, 24.f});
+    float chkY = r4Y + 60.f;
+    checkRect = FloatRect({leftX - 2.f, chkY - 2.f}, {innerW, 26.f});
 
-    float btnY = chkY + 46.f;
-    float backW = 190.f;
+    float btnY = showRules ? (chkY + 178.f) : (chkY + 46.f);
+    float backW = 200.f;
     float regW = innerW - backW - 14.f;
     backRect = FloatRect({leftX, btnY}, {backW, 46.f});
     registerRect = FloatRect({leftX + backW + 14.f, btnY}, {regW, 46.f});
 
-    loginLinkRect = FloatRect({cardX + cardW / 2.f + 50.f, cardY + cardH - 52.f}, {140.f, 24.f});
+    loginLinkRect = FloatRect({cardX + cardW / 2.f + 50.f, cardY + cardH - 48.f}, {170.f, 26.f});
 }
 
 wstring RegisterScreen::bullets(size_t n) const {
@@ -176,7 +176,8 @@ void RegisterScreen::handleEvent(const Event& event, AppState& state) {
 bool RegisterScreen::update(Vector2f mouse, bool mousePressed, AppState& state) {
     closeHovered = closeRect.contains(mouse);
     eyeHovered = eyeRect.contains(mouse);
-    checkHovered = checkRect.contains(mouse);
+    rulesLinkHovered = rulesLinkRect.contains(mouse);
+    checkHovered = checkRect.contains(mouse) && !rulesLinkHovered;
     backHovered = backRect.contains(mouse);
     registerHovered = registerRect.contains(mouse);
     loginLinkHovered = loginLinkRect.contains(mouse);
@@ -201,6 +202,11 @@ bool RegisterScreen::update(Vector2f mouse, bool mousePressed, AppState& state) 
 
         if (eyeHovered) {
             showPassword = !showPassword;
+            return false;
+        }
+
+        if (rulesLinkHovered) {
+            showRules = !showRules;
             return false;
         }
 
@@ -254,10 +260,18 @@ void RegisterScreen::draw(RenderWindow& window) {
     headerTitle.setPosition({56.f, 19.f});
     window.draw(headerTitle);
 
-    RoundedRectRenderer::draw(window, {W - 220.f, 15.f}, {145.f, 26.f}, 13.f, Color(226, 232, 240), 1.f, Color(203, 213, 225));
     Text verText(font, L"Phi\u00ean b\u1ea3n Desktop v2.4", 13);
     verText.setFillColor(Color(100, 116, 139));
-    verText.setPosition({W - 212.f, 20.f});
+    FloatRect verB = verText.getLocalBounds();
+    float verPillW = verB.size.x + 28.f;
+    float verPillH = 28.f;
+    float verPillX = W - 72.f - verPillW;
+    float verPillY = 14.f;
+    RoundedRectRenderer::draw(window, {verPillX, verPillY}, {verPillW, verPillH}, 14.f, Color(226, 232, 240), 1.f, Color(203, 213, 225));
+    verText.setPosition({
+        std::round(verPillX + (verPillW - verB.size.x) / 2.f - verB.position.x),
+        std::round(verPillY + (verPillH - verB.size.y) / 2.f - verB.position.y)
+    });
     window.draw(verText);
 
     CircleShape dotRed(4.5f, 12); dotRed.setFillColor(Color(220, 38, 38)); dotRed.setPosition({W - 55.f, 24.f}); window.draw(dotRed);
@@ -265,11 +279,11 @@ void RegisterScreen::draw(RenderWindow& window) {
     CircleShape dotGreen(4.5f, 12); dotGreen.setFillColor(Color(21, 128, 61)); dotGreen.setPosition({W - 25.f, 24.f}); window.draw(dotGreen);
 
     // 3. Central White Card
-    const float cardW = 680.f;
-    const float cardH = 810.f;
+    const float cardW = 780.f;
+    const float cardH = 860.f;
     const float cardX = (W - cardW) / 2.f;
     const float cardY = (H - cardH) / 2.f;
-    const float padX = 46.f;
+    const float padX = 44.f;
     const float leftX = cardX + padX;
     const float innerW = cardW - padX * 2.f;
 
@@ -283,35 +297,35 @@ void RegisterScreen::draw(RenderWindow& window) {
         float targetH = 44.f;
         float scale = targetH / (float)logoTexture.getSize().y;
         logoSprite->setScale({scale, scale});
-        logoSprite->setPosition({leftX, cardY + 32.f});
+        logoSprite->setPosition({leftX, cardY + 26.f});
         window.draw(*logoSprite);
         brandTextX = leftX + (float)logoTexture.getSize().x * scale + 14.f;
     } else {
-        drawVectorPortalLogo(window, {leftX, cardY + 32.f}, 44.f);
+        drawVectorPortalLogo(window, {leftX, cardY + 26.f}, 44.f);
     }
-    Text brandTop(boldFont, L"CINECORE ENTERPRISE", 13);
+    Text brandTop(boldFont, L"CINECORE ENTERPRISE", 14);
     brandTop.setFillColor(Color(100, 116, 139));
-    brandTop.setPosition({brandTextX, cardY + 35.f});
+    brandTop.setPosition({brandTextX, cardY + 26.f});
     window.draw(brandTop);
 
-    Text brandMain(boldFont, L"CineCore Portal", 17.f);
+    Text brandMain(boldFont, L"CineCore Portal", 20);
     brandMain.setFillColor(Color(23, 32, 51));
-    brandMain.setPosition({brandTextX, cardY + 51.f});
+    brandMain.setPosition({brandTextX, cardY + 46.f});
     window.draw(brandMain);
 
     RectangleShape topDiv({cardW, 1.f});
-    topDiv.setPosition({cardX, cardY + 96.f});
+    topDiv.setPosition({cardX, cardY + 88.f});
     topDiv.setFillColor(Color(241, 245, 249));
     window.draw(topDiv);
 
     // Portal Pill + Close X
-    Vector2f pillPos(leftX, cardY + 114.f);
-    Vector2f pillSize(188.f, 28.f);
-    RoundedRectRenderer::draw(window, pillPos, pillSize, 14.f, Color(240, 249, 255), 1.f, Color(186, 230, 253));
-    drawVectorCheck(window, {pillPos.x + 12.f, pillPos.y + 9.f}, Color(8, 125, 181));
-    Text pillTxt(boldFont, L"C\u1ed4NG QU\u1ea2N TR\u1eca N\u1ed8I B\u1ed8", 11.f);
+    Vector2f pillPos(leftX, cardY + 106.f);
+    Vector2f pillSize(218.f, 30.f);
+    RoundedRectRenderer::draw(window, pillPos, pillSize, 15.f, Color(240, 249, 255), 1.f, Color(186, 230, 253));
+    drawVectorCheck(window, {pillPos.x + 12.f, pillPos.y + 10.f}, Color(8, 125, 181));
+    Text pillTxt(boldFont, L"C\u1ed4NG QU\u1ea2N TR\u1eca N\u1ed8I B\u1ed8", 14);
     pillTxt.setFillColor(Color(8, 125, 181));
-    pillTxt.setPosition({pillPos.x + 30.f, pillPos.y + 7.f});
+    pillTxt.setPosition({pillPos.x + 30.f, pillPos.y + 6.f});
     window.draw(pillTxt);
 
     // Close X
@@ -324,14 +338,14 @@ void RegisterScreen::draw(RenderWindow& window) {
     window.draw(x2, 2, PrimitiveType::Lines);
 
     // Title & Subtitle
-    Text titleTxt(boldFont, L"\u0110\u0102NG K\u00dd T\u00c0I KHO\u1ea2N M\u1edaI", 25.f);
+    Text titleTxt(boldFont, L"\u0110\u0102NG K\u00dd T\u00c0I KHO\u1ea2N M\u1edaI", 28);
     titleTxt.setFillColor(Color(23, 32, 51));
-    titleTxt.setPosition({leftX, cardY + 158.f});
+    titleTxt.setPosition({leftX, cardY + 146.f});
     window.draw(titleTxt);
 
-    Text subTxt(font, L"\u0110i\u1ec1n \u0111\u1ea7y \u0111\u1ee7 th\u00f4ng tin \u0111\u1ec3 c\u1ea5p quy\u1ec1n truy c\u1eadp h\u1ec7 th\u1ed1ng qu\u1ea3n tr\u1ecb r\u1ea1p phim CineCore.", 13);
+    Text subTxt(font, L"\u0110i\u1ec1n \u0111\u1ea7y \u0111\u1ee7 th\u00f4ng tin \u0111\u1ec3 c\u1ea5p quy\u1ec1n truy c\u1eadp h\u1ec7 th\u1ed1ng qu\u1ea3n tr\u1ecb r\u1ea1p phim CineCore.", 17);
     subTxt.setFillColor(Color(100, 116, 139));
-    subTxt.setPosition({leftX, cardY + 196.f});
+    subTxt.setPosition({leftX, cardY + 184.f});
     window.draw(subTxt);
 
     // 4. Form Fields
@@ -354,15 +368,15 @@ void RegisterScreen::draw(RenderWindow& window) {
         const FloatRect& r = fieldRects[fm.idx];
         bool isActive = (activeField == fm.idx);
 
-        Text lbl(boldFont, fm.label, 11.f);
+        Text lbl(boldFont, fm.label, 15);
         lbl.setFillColor(Color(51, 65, 85));
-        lbl.setPosition({r.position.x, r.position.y - 21.f});
+        lbl.setPosition({r.position.x, r.position.y - 23.f});
         window.draw(lbl);
 
         FloatRect lb = lbl.getLocalBounds();
-        Text star(boldFont, L"*", 13);
+        Text star(boldFont, L"*", 15);
         star.setFillColor(Color(220, 38, 38));
-        star.setPosition({r.position.x + lb.size.x + 4.f, r.position.y - 21.f});
+        star.setPosition({r.position.x + lb.size.x + 4.f, r.position.y - 23.f});
         window.draw(star);
 
         Color boxFill = isActive ? Color::White : Color(248, 250, 252);
@@ -371,7 +385,7 @@ void RegisterScreen::draw(RenderWindow& window) {
         RoundedRectRenderer::draw(window, r.position, r.size, 10.f, boxFill, borderThick, boxBorder);
 
         Color icoColor = isActive ? Color(8, 125, 181) : Color(148, 163, 184);
-        Vector2f icoPos(r.position.x + 14.f, r.position.y + 15.f);
+        Vector2f icoPos(r.position.x + 14.f, r.position.y + 16.f);
         if (fm.idx == 0) drawVectorUser(window, icoPos, icoColor);
         else if (fm.idx == 1) drawVectorCalendar(window, icoPos, icoColor);
         else if (fm.idx == 3) drawVectorPhone(window, icoPos, icoColor);
@@ -380,30 +394,30 @@ void RegisterScreen::draw(RenderWindow& window) {
         else drawVectorShield(window, icoPos, icoColor);
 
         float textX = r.position.x + 38.f;
-        float textY = r.position.y + 12.f;
+        float textY = r.position.y + 10.f;
 
         if (inputs[fm.idx].empty()) {
-            Text ph(font, fm.placeholder, 13.f);
+            Text ph(font, fm.placeholder, 18);
             ph.setFillColor(Color(148, 163, 184));
             ph.setPosition({textX, textY});
             window.draw(ph);
 
             if (isActive && showCursor) {
-                RectangleShape cur({1.8f, 20.f});
+                RectangleShape cur({1.8f, 22.f});
                 cur.setFillColor(Color(8, 125, 181));
                 cur.setPosition({textX, r.position.y + 12.f});
                 window.draw(cur);
             }
         } else {
             wstring shown = (fm.isPass && !showPassword) ? bullets(inputs[fm.idx].size()) : inputs[fm.idx];
-            Text val(font, shown, 13);
+            Text val(font, shown, 18);
             val.setFillColor(Color(23, 32, 51));
             val.setPosition({textX, textY});
             window.draw(val);
 
             if (isActive && showCursor) {
                 FloatRect vb = val.getLocalBounds();
-                RectangleShape cur({1.8f, 20.f});
+                RectangleShape cur({1.8f, 22.f});
                 cur.setFillColor(Color(8, 125, 181));
                 cur.setPosition({textX + vb.size.x + 2.f, r.position.y + 12.f});
                 window.draw(cur);
@@ -415,44 +429,67 @@ void RegisterScreen::draw(RenderWindow& window) {
         }
     }
 
-    // 5. Terms Checkbox
+    // 5. Terms Checkbox + Clickable "Quy chế nội bộ"
     Vector2f chkBoxPos(leftX, checkRect.position.y + 3.f);
     Color chkBg = agreeTerms ? Color(8, 125, 181) : Color::White;
     Color chkBorder = agreeTerms ? Color(8, 125, 181) : (checkHovered ? Color(100, 116, 139) : Color(203, 213, 225));
-    RoundedRectRenderer::draw(window, chkBoxPos, {16.f, 16.f}, 4.f, chkBg, 1.3f, chkBorder);
+    RoundedRectRenderer::draw(window, chkBoxPos, {18.f, 18.f}, 4.f, chkBg, 1.3f, chkBorder);
     if (agreeTerms) {
-        drawVectorCheck(window, {chkBoxPos.x + 3.f, chkBoxPos.y + 4.f}, Color::White);
+        drawVectorCheck(window, {chkBoxPos.x + 4.f, chkBoxPos.y + 5.f}, Color::White);
     }
 
-    Text chk1(font, L"T\u00f4i \u0111\u1ed3ng \u00fd v\u1edbi ", 12.f);
+    Text chk1(font, L"T\u00f4i \u0111\u1ed3ng \u00fd v\u1edbi ", 16);
     chk1.setFillColor(Color(100, 116, 139));
-    chk1.setPosition({leftX + 26.f, chkBoxPos.y});
+    chk1.setPosition({leftX + 28.f, chkBoxPos.y - 2.f});
     window.draw(chk1);
     float chk1W = chk1.getLocalBounds().size.x;
 
-    Text chkLink(boldFont, L"Quy ch\u1ebf n\u1ed9i b\u1ed9", 12.f);
-    chkLink.setFillColor(Color(8, 125, 181));
-    chkLink.setPosition({leftX + 26.f + chk1W + 2.f, chkBoxPos.y});
+    Text chkLink(boldFont, L"Quy ch\u1ebf n\u1ed9i b\u1ed9", 16);
+    if (rulesLinkHovered) chkLink.setStyle(Text::Underlined);
+    chkLink.setFillColor(rulesLinkHovered ? Color(18, 59, 93) : Color(8, 125, 181));
+    chkLink.setPosition({leftX + 28.f + chk1W + 2.f, chkBoxPos.y - 2.f});
     window.draw(chkLink);
     float chkLinkW = chkLink.getLocalBounds().size.x;
+    rulesLinkRect = FloatRect({chkLink.getPosition().x - 2.f, chkBoxPos.y - 4.f}, {chkLinkW + 6.f, 24.f});
 
-    Text chk2(font, L" v\u00e0 cam k\u1ebft b\u1ea3o m\u1eadt d\u1eef li\u1ec7u doanh thu c\u1ee7a c\u1ee5m r\u1ea1p.", 12.f);
+    Text chk2(font, L" v\u00e0 cam k\u1ebft b\u1ea3o m\u1eadt d\u1eef li\u1ec7u doanh thu c\u1ee7a c\u1ee5m r\u1ea1p.", 16);
     chk2.setFillColor(Color(100, 116, 139));
-    chk2.setPosition({leftX + 26.f + chk1W + chkLinkW + 3.f, chkBoxPos.y});
+    chk2.setPosition({leftX + 28.f + chk1W + chkLinkW + 4.f, chkBoxPos.y - 2.f});
     window.draw(chk2);
+
+    // Expandable 5-item Internal Rules Panel
+    if (showRules) {
+        float rulesY = checkRect.position.y + 32.f;
+        float rulesH = 132.f;
+        RoundedRectRenderer::draw(window, {leftX, rulesY}, {innerW, rulesH}, 10.f, Color(240, 249, 255), 1.f, Color(186, 230, 253));
+
+        const array<wstring, 5> rulesList = {
+            L"1. B\u1ea3o m\u1eadt tuy\u1ec7t \u0111\u1ed1i t\u00e0i kho\u1ea3n, m\u1eadt kh\u1ea9u v\u00e0 d\u1eef li\u1ec7u doanh thu n\u1ed9i b\u1ed9 c\u1ee7a r\u1ea1p.",
+            L"2. Kh\u00f4ng chia s\u1ebb quy\u1ec1n qu\u1ea3n tr\u1ecb ho\u1eb7c \u0111\u0103ng nh\u1eadp tr\u00ean thi\u1ebft b\u1ecb kh\u00f4ng \u0111\u01b0\u1ee3c c\u1ea5p ph\u00e9p.",
+            L"3. M\u1ecdi thao t\u00e1c th\u00eam, s\u1eeda, x\u00f3a phim, su\u1ea5t chi\u1ebfu, v\u00e9 v\u00e0 voucher \u0111\u1ec1u \u0111\u01b0\u1ee3c l\u01b0u v\u1ebft.",
+            L"4. Ch\u1ecbu tr\u00e1ch nhi\u1ec7m ki\u1ec3m tra t\u00ednh ch\u00ednh x\u00e1c c\u1ee7a s\u1ed1 li\u1ec7u tr\u01b0\u1edbc khi xu\u1ea5t b\u00e1o c\u00e1o.",
+            L"5. Tu\u00e2n th\u1ee7 quy tr\u00ecnh v\u1eadn h\u00e0nh h\u1ec7 th\u1ed1ng v\u00e0 \u0111\u1ed5i m\u1eadt kh\u1ea9u \u0111\u1ecbnh k\u1ef3 90 ng\u00e0y/l\u1ea7n."
+        };
+        for (size_t i = 0; i < rulesList.size(); ++i) {
+            Text rTxt(font, rulesList[i], 16);
+            rTxt.setFillColor(Color(18, 59, 93));
+            rTxt.setPosition({leftX + 14.f, rulesY + 8.f + i * 23.f});
+            window.draw(rTxt);
+        }
+    }
 
     // Status message (if any)
     if (!statusMessage.empty()) {
-        Text stTxt(boldFont, statusMessage, 12.f);
+        Text stTxt(boldFont, statusMessage, 15);
         stTxt.setFillColor(statusColor);
-        stTxt.setPosition({leftX, checkRect.position.y + 25.f});
+        stTxt.setPosition({leftX, backRect.position.y - 26.f});
         window.draw(stTxt);
     }
 
     // 6. Action Buttons Row
     Color backBg = backHovered ? Color(248, 250, 252) : Color::White;
     RoundedRectRenderer::draw(window, backRect.position, backRect.size, 11.f, backBg, 1.2f, Color(203, 213, 225));
-    Text backTxt(boldFont, L"Quay l\u1ea1i", 13);
+    Text backTxt(boldFont, L"Quay l\u1ea1i", 16);
     backTxt.setFillColor(Color(51, 65, 85));
     FloatRect bb = backTxt.getLocalBounds();
     float backTotalW = 16.f + bb.size.x;
@@ -463,7 +500,7 @@ void RegisterScreen::draw(RenderWindow& window) {
 
     Color regBg = registerHovered ? Color(18, 59, 93) : Color(8, 125, 181);
     RoundedRectRenderer::draw(window, registerRect.position, registerRect.size, 11.f, regBg);
-    Text regTxt(boldFont, L"\u0110\u0102NG K\u00dd T\u00c0I KHO\u1ea2N", 13);
+    Text regTxt(boldFont, L"\u0110\u0102NG K\u00dd T\u00c0I KHO\u1ea2N", 16);
     regTxt.setFillColor(Color::White);
     FloatRect rb = regTxt.getLocalBounds();
     float regTotalW = rb.size.x + 20.f;
@@ -474,21 +511,21 @@ void RegisterScreen::draw(RenderWindow& window) {
 
     // 7. Bottom Footer Link inside Card
     RectangleShape botDiv({innerW, 1.f});
-    botDiv.setPosition({leftX, cardY + cardH - 70.f});
+    botDiv.setPosition({leftX, cardY + cardH - 66.f});
     botDiv.setFillColor(Color(241, 245, 249));
     window.draw(botDiv);
 
-    Text footQ(font, L"\u0110\u00e3 c\u00f3 t\u00e0i kho\u1ea3n nh\u00e2n vi\u00ean ho\u1eb7c qu\u1ea3n tr\u1ecb? ", 12.f);
+    Text footQ(font, L"\u0110\u00e3 c\u00f3 t\u00e0i kho\u1ea3n nh\u00e2n vi\u00ean ho\u1eb7c qu\u1ea3n tr\u1ecb? ", 16);
     footQ.setFillColor(Color(100, 116, 139));
-    Text footL(boldFont, L"\u0110\u0103ng nh\u1eadp ngay \u2192", 12.f);
+    Text footL(boldFont, L"\u0110\u0103ng nh\u1eadp ngay \u2192", 16);
     footL.setFillColor(loginLinkHovered ? Color(18, 59, 93) : Color(8, 125, 181));
 
     float totalLinkW = footQ.getLocalBounds().size.x + footL.getLocalBounds().size.x;
     float linkStartX = cardX + (cardW - totalLinkW) / 2.f;
-    float linkY = cardY + cardH - 48.f;
+    float linkY = cardY + cardH - 46.f;
     footQ.setPosition({linkStartX, linkY});
     footL.setPosition({linkStartX + footQ.getLocalBounds().size.x + 2.f, linkY});
-    loginLinkRect = FloatRect({footL.getPosition().x - 4.f, linkY - 4.f}, {footL.getLocalBounds().size.x + 8.f, 24.f});
+    loginLinkRect = FloatRect({footL.getPosition().x - 4.f, linkY - 4.f}, {footL.getLocalBounds().size.x + 8.f, 26.f});
     window.draw(footQ);
     window.draw(footL);
 
@@ -510,6 +547,7 @@ void RegisterScreen::reset() {
     activeField = -1;
     showPassword = false;
     agreeTerms = false;
+    showRules = false;
     showSuccessMessage = false;
     statusMessage.clear();
 }
