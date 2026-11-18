@@ -227,6 +227,76 @@ namespace UITheme {
         }
     }
 
+    // Unified Section Header Card (matching RoomPanel card style)
+    inline void drawSectionHeaderCard(RenderTarget& target, float startX, float posY, float cardW,
+                                      const wstring& title, const wstring& badgeText,
+                                      Color badgeBg, Color badgeFg, const wstring& subtitle,
+                                      const Font& boldFont, const Font& font, bool withDot = false) {
+        RoundedRectRenderer::draw(target, {startX, posY}, {cardW, 84.f}, 12.f, Surface, 1.f, BorderLight);
+
+        // Soft blue icon container + CineCore logo
+        RoundedRectRenderer::draw(target, {startX + 18.f, posY + 16.f}, {52.f, 52.f}, 12.f, Color(224, 242, 254));
+        static Texture s_logoTex;
+        static bool s_logoLoaded = false;
+        static bool s_logoTried = false;
+        if (!s_logoTried) {
+            s_logoTried = true;
+            s_logoLoaded = s_logoTex.loadFromFile("assets/elements/cinexine_icon.png") ||
+                           s_logoTex.loadFromFile("../assets/elements/cinexine_icon.png") ||
+                           s_logoTex.loadFromFile("assets/elements/icon.png") ||
+                           s_logoTex.loadFromFile("../assets/elements/icon.png");
+            if (s_logoLoaded) s_logoTex.setSmooth(true);
+        }
+        if (s_logoLoaded) {
+            Sprite logoSpr(s_logoTex);
+            float targetS = 36.f;
+            logoSpr.setScale({targetS / (float)s_logoTex.getSize().x, targetS / (float)s_logoTex.getSize().y});
+            logoSpr.setPosition({startX + 18.f + (52.f - targetS) / 2.f, posY + 16.f + (52.f - targetS) / 2.f});
+            target.draw(logoSpr);
+        }
+
+        float textX = startX + 85.f;
+        float titleY = subtitle.empty() ? (posY + 28.f) : (posY + 14.f);
+        Text titleTxt(boldFont, title, PageTitleSize);
+        titleTxt.setFillColor(TextPrimary);
+        titleTxt.setPosition({textX, titleY});
+        target.draw(titleTxt);
+
+        if (!badgeText.empty()) {
+            FloatRect tb = titleTxt.getGlobalBounds();
+            Text bTxt(boldFont, badgeText, SmallBadgeSize);
+            bTxt.setFillColor(badgeFg);
+            FloatRect btb = bTxt.getLocalBounds();
+            float dotR = 3.5f;
+            float dotGap = 6.f;
+            float padH = 12.f;
+            float innerW = (withDot ? (dotR * 2.f + dotGap) : 0.f) + btb.size.x;
+            float badgeW = padH * 2.f + innerW;
+            float badgeH = 24.f;
+            float badgeX = tb.position.x + tb.size.x + 14.f;
+            float badgeY = titleY + 3.f;
+            RoundedRectRenderer::draw(target, {badgeX, badgeY}, {badgeW, badgeH}, 12.f, badgeBg);
+
+            float cStartX = badgeX + (badgeW - innerW) / 2.f;
+            if (withDot) {
+                CircleShape dot(dotR);
+                dot.setFillColor(badgeFg);
+                dot.setPosition({cStartX, badgeY + (badgeH - dotR * 2.f) / 2.f});
+                target.draw(dot);
+                cStartX += dotR * 2.f + dotGap;
+            }
+            bTxt.setPosition({cStartX - btb.position.x, badgeY + (badgeH - btb.size.y) / 2.f - btb.position.y});
+            target.draw(bTxt);
+        }
+
+        if (!subtitle.empty()) {
+            Text subTxt(font, subtitle, HelperTextSize);
+            subTxt.setFillColor(TextSecondary);
+            subTxt.setPosition({textX, posY + 46.f});
+            target.draw(subTxt);
+        }
+    }
+
     // Standard KPI Summary Stat Card
     inline void drawKpiCard(RenderTarget& target, Vector2f pos, Vector2f size,
                             const wstring& title, const wstring& value, const wstring& subtext,

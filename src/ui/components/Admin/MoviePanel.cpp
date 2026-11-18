@@ -570,7 +570,7 @@ void MoviePanel::handleEvent(const Event& event, const RenderWindow& window) {
             const float contentW = max(1200.f, width - 60.f);
             const float searchW = max(320.f, contentW - 884.f);
             const float toolRightX = startX + searchW + 15.f;
-            const float toolY = 204.f;
+            const float toolY = 242.f;
 
             // Ưu tiên kiểm tra danh sách Dropdown đang mở trước khi kiểm tra bảng bên dưới
             if (genreDropdownOpen) {
@@ -669,9 +669,9 @@ void MoviePanel::handleEvent(const Event& event, const RenderWindow& window) {
             }
 
             // Click trên các dòng của bảng phim
-            const float tableY = 304.f;
+            const float tableY = 336.f;
             const float hdrH = 48.f;
-            const float rowH = 82.f;
+            const float rowH = 76.f;
             const float tableW = contentW;
             const float col8X = startX + tableW - 120.f;
 
@@ -810,7 +810,7 @@ void MoviePanel::update(Vector2f mouse, bool /*mousePressed*/) {
     const float contentW = max(1200.f, width - 60.f);
     const float searchW = max(320.f, contentW - 884.f);
     const float toolRightX = startX + searchW + 15.f;
-    const float toolY = 204.f;
+    const float toolY = 242.f;
 
     FloatRect searchBox({startX, toolY}, {searchW, 44.f});
     FloatRect genreBtn({toolRightX, toolY}, {160.f, 44.f});
@@ -845,9 +845,9 @@ void MoviePanel::update(Vector2f mouse, bool /*mousePressed*/) {
     }
 
     // Table rows hover
-    const float tableY = 304.f;
+    const float tableY = 336.f;
     const float hdrH = 48.f;
-    const float rowH = 82.f;
+    const float rowH = 76.f;
     const float tableW = contentW;
     const float col8X = startX + tableW - 120.f;
 
@@ -876,15 +876,17 @@ void MoviePanel::render(RenderWindow& window) {
     const float searchW = max(320.f, contentW - 884.f);
     const float toolRightX = startX + searchW + 15.f;
 
-    // 1. Standardized Page Heading (aligned with Overview & Revenue panels)
-    UITheme::drawPageHeader(window, startX, position.y + 16.f,
-                            L"DANH SÁCH & ĐIỀU PHỐI PHIM",
-                            L"",
-                            boldFont, font);
+    // 1. Unified Section Header Card (matching RoomPanel card style)
+    UITheme::drawSectionHeaderCard(window, startX, position.y + 16.f, contentW,
+                                   L"DANH SÁCH & ĐIỀU PHỐI PHIM",
+                                   to_wstring(allMovies.size()) + L" Phim",
+                                   Color(224, 242, 254), Color(8, 125, 181),
+                                   L"Quản lý thông tin phim, định dạng chiếu, lịch phát hành và trạng thái trình chiếu.",
+                                   boldFont, font, false);
 
-    // 2. 4 KPI STAT CARDS (Centered vertically between page title and filter toolbar, +30% typography)
-    const float cardY = 65.f;
-    const float cardH = 118.f;
+    // 2. 4 KPI STAT CARDS
+    const float cardY = 114.f;
+    const float cardH = 112.f;
     const float cardGap = 20.f;
     const float cardW = (contentW - 3.f * cardGap) / 4.f;
 
@@ -908,7 +910,7 @@ void MoviePanel::render(RenderWindow& window) {
     drawMovieKpi({startX + (cardW + cardGap) * 3.f, cardY}, L"Tổng phim quản lý", to_wstring(allMovies.size()), L"Kho dữ liệu CineCore", UITheme::TextSecondary);
 
     // 5. TOOLBAR (Search & Filters & Actions)
-    const float toolY = 204.f;
+    const float toolY = 242.f;
 
     // Search Input
     Color searchBorder = searchActive ? Color(8, 125, 181) : Color(203, 213, 225);
@@ -993,7 +995,7 @@ void MoviePanel::render(RenderWindow& window) {
     window.draw(addTxt);
 
     // 6. DATA TABLE SUBHEADER
-    const float subY = 270.f;
+    const float subY = 302.f;
     drawFunnelIcon(window, {startX + 2.f, subY + 3.f}, Color(8, 125, 181));
 
     Text subTitle(boldFont, L"DANH S\u00c1CH PHIM CHI\u1ebeU R\u1ea0P", UITheme::SectionTitleSize);
@@ -1011,7 +1013,7 @@ void MoviePanel::render(RenderWindow& window) {
     window.draw(cBadge);
 
     // 7. TABLE HEADER (Ocean Blue #0077B6)
-    const float tblY = 304.f;
+    const float tblY = 336.f;
     const float tblW = contentW;
     const float hdrH = 48.f;
     const float col2W = max(280.f, tblW - 915.f);
@@ -1055,7 +1057,7 @@ void MoviePanel::render(RenderWindow& window) {
     }
 
     // 8. TABLE ROWS
-    const float rowH = 82.f;
+    const float rowH = 76.f;
     int startIdx = (currentPage - 1) * moviesPerPage;
     int displayCount = max(0, min(moviesPerPage, static_cast<int>(filteredIndices.size()) - startIdx));
 

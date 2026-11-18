@@ -322,8 +322,8 @@ void ComboPanel::handleEvent(const Event& event, const RenderWindow& win) {
             Vector2f mousePos = win.mapPixelToCoords(Mouse::getPosition(win));
 
             // Nút Header: Reload, Xuất Excel
-            FloatRect btnRel({position.x + width - 170.f, position.y + 26.f}, {40.f, 38.f});
-            FloatRect btnExp({position.x + width - 120.f, position.y + 26.f}, {90.f, 38.f});
+            FloatRect btnRel({position.x + width - 193.f, position.y + 39.f}, {40.f, 38.f});
+            FloatRect btnExp({position.x + width - 143.f, position.y + 39.f}, {95.f, 38.f});
 
             if (btnRel.contains(mousePos)) {
                 searchQuery.clear();
@@ -344,7 +344,7 @@ void ComboPanel::handleEvent(const Event& event, const RenderWindow& win) {
             }
 
             // Toolbar buttons: Thêm combo, Sửa combo, Xóa combo, Đồng bộ POS
-            float tbY = position.y + 196.f;
+            float tbY = position.y + 216.f;
             FloatRect btnAdd({position.x + 30.f, tbY}, {130.f, 38.f});
             FloatRect btnEdit({position.x + 170.f, tbY}, {120.f, 38.f});
             FloatRect btnDel({position.x + 300.f, tbY}, {120.f, 38.f});
@@ -417,7 +417,7 @@ void ComboPanel::handleEvent(const Event& event, const RenderWindow& win) {
             }
 
             // Search box click
-            float fltY = position.y + 246.f;
+            float fltY = position.y + 266.f;
             FloatRect searchBox({position.x + 30.f, fltY}, {300.f, 36.f});
             if (searchBox.contains(mousePos)) {
                 if (!searchQuery.empty() && mousePos.x >= position.x + 305.f) {
@@ -448,8 +448,8 @@ void ComboPanel::handleEvent(const Event& event, const RenderWindow& win) {
                 }
             }
 
-            // Table Row Click & Actions (khớp tableY = position.y + 296.f trong render)
-            float tableY = position.y + 296.f;
+            // Table Row Click & Actions (khớp tableY = position.y + 316.f trong render)
+            float tableY = position.y + 316.f;
             float rowH = 72.f;
             int count = max(0, min((int)filteredCombos.size() - scrollOffset, maxVisibleRows));
 
@@ -606,7 +606,7 @@ void ComboPanel::handleEvent(const Event& event, const RenderWindow& win) {
 void ComboPanel::update(Vector2f mousePos, bool) {
     hoveredRow = -1;
     if (!showPopup) {
-        float tableY = position.y + 300.f;
+        float tableY = position.y + 320.f;
         float rowH = 72.f;
         int count = min((int)filteredCombos.size() - scrollOffset, maxVisibleRows);
 
@@ -631,58 +631,43 @@ void ComboPanel::render(RenderWindow& win) {
     // 2. TOP BAR (Standardized Navigation & Profile)
     // ==========================================
     // ==========================================
-    // 3. PAGE HEADER
+    // 3. PAGE HEADER CARD (Unified RoomPanel style)
     // ==========================================
-    Text title(boldFont, L"Qu\u1ea3n l\u00fd combo b\u1eafp n\u01b0\u1edbc", UITheme::PageTitleSize);
-    title.setFillColor(UITheme::TextPrimary);
-    title.setPosition({position.x + 30.f, position.y + 18.f});
-    win.draw(title);
-
-    FloatRect tb = title.getGlobalBounds();
-    Text bBadge(boldFont, to_wstring(allCombos.size()) + L" Combo \u0110ang B\u00e1n", 14);
-    bBadge.setFillColor(Color(22, 101, 52));
-    FloatRect bb = bBadge.getLocalBounds();
-    float bX = tb.position.x + tb.size.x + 14.f;
-    float bY = position.y + 22.f;
-    float bW = bb.size.x + 24.f;
-    float bH = 26.f;
-    drawRoundedCard(win, {bX, bY}, {bW, bH}, bH / 2.f, Color(220, 252, 231));
-    bBadge.setPosition({bX + (bW - bb.size.x) / 2.f - bb.position.x, bY + (bH - bb.size.y) / 2.f - bb.position.y});
-    win.draw(bBadge);
-
-    Text subTitle(font, L"C\u1eadp nh\u1eadt b\u1ea3ng gi\u00e1, c\u00f4ng th\u1ee9c m\u00f3n b\u1eafp rang, n\u01b0\u1edbc ng\u1ecdt v\u00e0 c\u00e1c g\u00f3i \u01b0u \u0111\u00e3i t\u1ea1i qu\u1ea7y b\u1eafp n\u01b0\u1edbc.", 14);
-    subTitle.setFillColor(Color(100, 116, 139));
-    subTitle.setPosition({position.x + 30.f, position.y + 54.f});
-    win.draw(subTitle);
+    UITheme::drawSectionHeaderCard(win, position.x + 30.f, position.y + 16.f, width - 60.f,
+                                   L"Qu\u1ea3n l\u00fd combo b\u1eafp n\u01b0\u1edbc",
+                                   to_wstring(allCombos.size()) + L" Combo \u0110ang B\u00e1n",
+                                   Color(220, 252, 231), Color(22, 101, 52),
+                                   L"C\u1eadp nh\u1eadt b\u1ea3ng gi\u00e1, c\u00f4ng th\u1ee9c m\u00f3n b\u1eafp rang, n\u01b0\u1edbc ng\u1ecdt v\u00e0 c\u00e1c g\u00f3i \u01b0u \u0111\u00e3i t\u1ea1i qu\u1ea7y b\u1eafp n\u01b0\u1edbc.",
+                                   boldFont, font, false);
 
     // Nút Reload và Xuất Excel góc phải
-    drawRoundedCard(win, {position.x + width - 170.f, position.y + 26.f}, {40.f, 38.f}, 6.f, Color::White, 1.f, Color(203, 213, 225));
+    drawRoundedCard(win, {position.x + width - 193.f, position.y + 39.f}, {40.f, 38.f}, 8.f, Color::White, 1.f, Color(203, 213, 225));
     if (hasReloadTex) {
         Sprite spRel(reloadTex);
         spRel.setColor(Color(71, 85, 105));
         spRel.setScale({18.f / 500.f, 18.f / 500.f});
-        spRel.setPosition({position.x + width - 170.f + 11.f, position.y + 26.f + 10.f});
+        spRel.setPosition({position.x + width - 193.f + 11.f, position.y + 39.f + 10.f});
         win.draw(spRel);
     } else {
         CircleShape rCircle(7.f);
         rCircle.setFillColor(Color::Transparent);
         rCircle.setOutlineThickness(1.8f);
         rCircle.setOutlineColor(Color(71, 85, 105));
-        rCircle.setPosition({position.x + width - 170.f + 13.f, position.y + 26.f + 12.f});
+        rCircle.setPosition({position.x + width - 193.f + 13.f, position.y + 39.f + 12.f});
         win.draw(rCircle);
     }
 
-    drawRoundedCard(win, {position.x + width - 120.f, position.y + 26.f}, {95.f, 38.f}, 6.f, Color::White, 1.f, Color(203, 213, 225));
+    drawRoundedCard(win, {position.x + width - 143.f, position.y + 39.f}, {95.f, 38.f}, 8.f, Color::White, 1.f, Color(203, 213, 225));
     Text expTxt(boldFont, L"Xu\u1ea5t Excel", 14);
     expTxt.setFillColor(Color(22, 101, 52));
     FloatRect etb = expTxt.getLocalBounds();
-    expTxt.setPosition({position.x + width - 120.f + (95.f - etb.size.x) / 2.f - etb.position.x, position.y + 26.f + (38.f - etb.size.y) / 2.f - etb.position.y});
+    expTxt.setPosition({position.x + width - 143.f + (95.f - etb.size.x) / 2.f - etb.position.x, position.y + 39.f + (38.f - etb.size.y) / 2.f - etb.position.y});
     win.draw(expTxt);
 
     // ==========================================
     // 4. 4 THẺ THỐNG KÊ KPI (STAT CARDS GRID)
     // ==========================================
-    float statY = position.y + 94.f;
+    float statY = position.y + 114.f;
     float cardW = (width - 60.f - 45.f) / 4.f;
     float cardH = 88.f;
 
@@ -724,7 +709,7 @@ void ComboPanel::render(RenderWindow& win) {
     // ==========================================
     // 5. TOOLBAR & FILTER PILLS
     // ==========================================
-    float tbY = position.y + 196.f;
+    float tbY = position.y + 216.f;
 
     // Nút 1: + Thêm combo
     drawRoundedCard(win, {position.x + 30.f, tbY}, {130.f, 38.f}, 6.f, Color(21, 128, 61));
@@ -755,7 +740,7 @@ void ComboPanel::render(RenderWindow& win) {
     win.draw(syncTxt);
 
     // Dòng 2: Ô tìm kiếm & Bộ lọc
-    float fltY = position.y + 246.f;
+    float fltY = position.y + 266.f;
     drawRoundedCard(win, {position.x + 30.f, fltY}, {300.f, 36.f}, 6.f, Color::White, searchActive ? 1.5f : 1.f, searchActive ? Color(8, 125, 181) : Color(203, 213, 225));
 
     // Kính lúp vector SFML
@@ -809,7 +794,7 @@ void ComboPanel::render(RenderWindow& win) {
     // 6. BẢNG DỮ LIỆU COMBO (DATA TABLE)
     // ==========================================
     float tableX = position.x + 30.f;
-    float tableY = position.y + 296.f;
+    float tableY = position.y + 316.f;
     float tableW = width - 60.f;
     float tableRight = tableX + tableW;
     float rowH = 72.f;
