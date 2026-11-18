@@ -414,9 +414,9 @@ bool LoginScreen::update(Vector2f mouse, bool mousePressed, string& currentUser,
     FloatRect eyeBounds({formX + formW - 46.f, cardY + 324.f}, {44.f, 52.f});
     FloatRect checkBounds({formX, cardY + 394.f}, {180.f, 26.f});
     FloatRect forgotBounds({formX + formW - 140.f, cardY + 394.f}, {140.f, 26.f});
-    FloatRect btnBounds({formX, cardY + 438.f}, {formW, 54.f});
-    FloatRect posBtnBounds({formX, cardY + 570.f}, {formW, 50.f});
-    FloatRect linkRegBounds({formX + 40.f, cardY + 648.f}, {470.f, 28.f});
+    FloatRect btnBounds({formX, cardY + 436.f}, {formW, 54.f});
+    FloatRect posBtnBounds({formX, cardY + 580.f}, {formW, 50.f});
+    FloatRect linkRegBounds({formX + 40.f, cardY + 662.f}, {470.f, 28.f});
 
     // Hover states
     eyeHovered = eyeBounds.contains(mouse);
@@ -919,30 +919,30 @@ void LoginScreen::draw(RenderWindow& window) {
 
     // Main Submit Button: ĐĂNG NHẬP QUẢN TRỊ ->
     Color btnCol = btnHovered ? Color(18, 59, 93) : Color(8, 125, 181);
-    RoundedRectRenderer::draw(window, {formX, cardY + 438.f}, {formW, 54.f}, 10.f, btnCol);
+    RoundedRectRenderer::draw(window, {formX, cardY + 436.f}, {formW, 54.f}, 10.f, btnCol);
 
     Text submitText(boldFont, L"\u0110\u0102NG NH\u1eacP QU\u1ea2N TR\u1eca", 14);
     submitText.setFillColor(Color::White);
     FloatRect stb = submitText.getLocalBounds();
     float totalBtnContentW = stb.size.x + 28.f;
     float btnContentStartX = formX + (formW - totalBtnContentW) / 2.f;
-    submitText.setPosition({btnContentStartX, cardY + 454.f});
+    submitText.setPosition({btnContentStartX, cardY + 452.f});
     window.draw(submitText);
 
     // Draw crisp vector arrow right after the button text (No missing font glyphs!)
-    drawVectorArrow(window, {btnContentStartX + stb.size.x + 12.f, cardY + 465.f}, Color::White);
+    drawVectorArrow(window, {btnContentStartX + stb.size.x + 12.f, cardY + 463.f}, Color::White);
 
     // Status Message
     if (!statusMessage.empty()) {
         Text msgText(boldFont, statusMessage, 13);
         msgText.setFillColor(statusColor);
         FloatRect mb = msgText.getLocalBounds();
-        msgText.setPosition({formX + (formW - mb.size.x) / 2.f, cardY + 504.f});
+        msgText.setPosition({formX + (formW - mb.size.x) / 2.f, cardY + 506.f});
         window.draw(msgText);
     }
 
     // Divider line with "XÁC THỰC NỘI BỘ"
-    const float divY = cardY + 538.f;
+    const float divY = cardY + 548.f;
     RectangleShape hLine({formW, 1.f});
     hLine.setFillColor(Color(226, 232, 240));
     hLine.setPosition({formX, divY});
@@ -963,12 +963,12 @@ void LoginScreen::draw(RenderWindow& window) {
 
     // POS / Terminal Key Button
     Color posBg = posBtnHovered ? Color(241, 245, 249) : Color(248, 250, 252);
-    RoundedRectRenderer::draw(window, {formX, cardY + 570.f}, {formW, 50.f}, 10.f, posBg, 1.2f, Color(226, 232, 240));
-    drawVectorPos(window, {formX + 76.f, cardY + 587.f}, Color(8, 125, 181));
+    RoundedRectRenderer::draw(window, {formX, cardY + 580.f}, {formW, 50.f}, 10.f, posBg, 1.2f, Color(226, 232, 240));
+    drawVectorPos(window, {formX + 76.f, cardY + 597.f}, Color(8, 125, 181));
 
     Text posText(boldFont, L"\u0110\u0103ng nh\u1eadp b\u1eb1ng M\u00e3 Nh\u00e2n Vi\u00ean POS / Terminal Key", 13);
     posText.setFillColor(Color(51, 65, 85));
-    posText.setPosition({formX + 104.f, cardY + 585.f});
+    posText.setPosition({formX + 104.f, cardY + 595.f});
     window.draw(posText);
 
     // Register Link Row: Chưa có tài khoản quản trị? Đăng ký Admin mới  →
@@ -981,8 +981,8 @@ void LoginScreen::draw(RenderWindow& window) {
 
     float fullRegW = regPrefix.getLocalBounds().size.x + regLink.getLocalBounds().size.x;
     float regStartX = formX + (formW - fullRegW) / 2.f;
-    regPrefix.setPosition({regStartX, cardY + 648.f});
-    regLink.setPosition({regStartX + regPrefix.getLocalBounds().size.x, cardY + 648.f});
+    regPrefix.setPosition({regStartX, cardY + 662.f});
+    regLink.setPosition({regStartX + regPrefix.getLocalBounds().size.x, cardY + 662.f});
     window.draw(regPrefix);
     window.draw(regLink);
 
