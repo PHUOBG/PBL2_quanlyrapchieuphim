@@ -672,8 +672,8 @@ void MoviePanel::handleEvent(const Event& event, const RenderWindow& window) {
 
             // Click trên các dòng của bảng phim
             const float tableY = 314.f;
-            const float hdrH = 48.f;
-            const float rowH = 78.f;
+            const float hdrH = 44.f;
+            const float rowH = 68.f;
             const float tableW = contentW;
             const float col8X = startX + tableW - 120.f;
 
@@ -699,7 +699,7 @@ void MoviePanel::handleEvent(const Event& event, const RenderWindow& window) {
             }
 
             // Thanh phân trang bảng phim (Pagination)
-            float pagY = tableY + hdrH + moviesPerPage * rowH + 16.f;
+            float pagY = tableY + hdrH + moviesPerPage * rowH + 12.f;
             float rightEdge = startX + tableW;
             int numPageBtns = min(5, totalPages);
             int startP = max(1, min(currentPage - 2, totalPages - numPageBtns + 1));
@@ -848,8 +848,8 @@ void MoviePanel::update(Vector2f mouse, bool /*mousePressed*/) {
 
     // Table rows hover
     const float tableY = 314.f;
-    const float hdrH = 48.f;
-    const float rowH = 78.f;
+    const float hdrH = 44.f;
+    const float rowH = 68.f;
     const float tableW = contentW;
     const float col8X = startX + tableW - 120.f;
 
@@ -882,7 +882,7 @@ void MoviePanel::render(RenderWindow& window) {
     UITheme::drawSectionHeaderCard(window, startX, position.y + 16.f, contentW,
                                    L"Danh s\u00e1ch v\u00e0 \u0111i\u1ec1u ph\u1ed1i phim",
                                    to_wstring(allMovies.size()) + L" Phim",
-                                   Color(224, 242, 254), Color(8, 125, 181),
+                                   Color(209, 250, 229), Color(4, 120, 87),
                                    L"Qu\u1ea3n l\u00fd th\u00f4ng tin phim, \u0111\u1ecbnh d\u1ea1ng chi\u1ebfu, l\u1ecbch ph\u00e1t h\u00e0nh v\u00e0 tr\u1ea1ng th\u00e1i tr\u00ecnh chi\u1ebfu.",
                                    boldFont, font, false);
 
@@ -967,7 +967,7 @@ void MoviePanel::render(RenderWindow& window) {
     // Reload Button
     Color relCol = btnReloadHover ? Color(241, 245, 249) : Color::White;
     RoundedRectRenderer::draw(window, {toolRightX + 350.f, toolY}, {44.f, 44.f}, 10.f, relCol, 1.2f, Color(203, 213, 225));
-    drawReloadIcon(window, {toolRightX + 365.f, toolY + 15.f}, Color(30, 41, 59));
+    UITheme::drawReloadIcon(window, {toolRightX + 372.f, toolY + 22.f}, 16.f, Color(30, 41, 59));
 
     // Edit Button (Amber/Orange)
     Color editCol = btnEditHover ? Color(217, 119, 6) : Color(245, 158, 11);
@@ -1017,7 +1017,7 @@ void MoviePanel::render(RenderWindow& window) {
     // 7. TABLE HEADER (Ocean Blue #0077B6)
     const float tblY = 314.f;
     const float tblW = contentW;
-    const float hdrH = 48.f;
+    const float hdrH = 44.f;
     const float col2W = max(280.f, tblW - 915.f);
 
     RoundedRectRenderer::draw(window, {startX, tblY}, {tblW, hdrH}, 8.f, Color(8, 125, 181));
@@ -1059,7 +1059,7 @@ void MoviePanel::render(RenderWindow& window) {
     }
 
     // 8. TABLE ROWS
-    const float rowH = 78.f;
+    const float rowH = 68.f;
     int startIdx = (currentPage - 1) * moviesPerPage;
     int displayCount = max(0, min(moviesPerPage, static_cast<int>(filteredIndices.size()) - startIdx));
 
@@ -1132,22 +1132,22 @@ void MoviePanel::render(RenderWindow& window) {
         const Texture* pTex = getPosterTexture(pPath, idStr);
         if (pTex) {
             // Draw background card & border
-            RoundedRectRenderer::draw(window, {col2X - 1.f, rY + 11.f}, {44.f, 58.f}, 6.f, Color::White, 1.2f, UITheme::BorderLight);
+            RoundedRectRenderer::draw(window, {col2X - 1.f, rY + 8.f}, {40.f, 52.f}, 6.f, Color::White, 1.2f, UITheme::BorderLight);
             Sprite spr(*pTex);
             Vector2u sz = pTex->getSize();
-            spr.setScale({42.f / (float)sz.x, 56.f / (float)sz.y});
-            spr.setPosition({col2X, rY + 12.f});
+            spr.setScale({38.f / (float)sz.x, 50.f / (float)sz.y});
+            spr.setPosition({col2X, rY + 9.f});
             window.draw(spr);
             // Subtle glossy outline
-            RoundedRectRenderer::draw(window, {col2X, rY + 12.f}, {42.f, 56.f}, 5.f, Color::Transparent, 1.f, Color(255, 255, 255, 60));
+            RoundedRectRenderer::draw(window, {col2X, rY + 9.f}, {38.f, 50.f}, 5.f, Color::Transparent, 1.f, Color(255, 255, 255, 60));
         } else {
             // Fallback film frame
-            RoundedRectRenderer::draw(window, {col2X, rY + 12.f}, {42.f, 56.f}, 6.f, UITheme::TextPrimary);
-            RoundedRectRenderer::draw(window, {col2X + 2.f, rY + 14.f}, {38.f, 52.f}, 4.f, Color(30, 41, 59));
-            drawFilmIcon(window, {col2X + 13.f, rY + 28.f}, UITheme::PrimaryBorder);
+            RoundedRectRenderer::draw(window, {col2X, rY + 9.f}, {38.f, 50.f}, 6.f, UITheme::TextPrimary);
+            RoundedRectRenderer::draw(window, {col2X + 2.f, rY + 11.f}, {34.f, 46.f}, 4.f, Color(30, 41, 59));
+            drawFilmIcon(window, {col2X + 11.f, rY + 22.f}, UITheme::PrimaryBorder);
             Text postFmt(boldFont, s2ws(fmtStr.substr(0, 3)), 8);
             postFmt.setFillColor(UITheme::TextTertiary);
-            postFmt.setPosition({col2X + 11.f, rY + 48.f});
+            postFmt.setPosition({col2X + 9.f, rY + 42.f});
             window.draw(postFmt);
         }
 
@@ -1162,17 +1162,17 @@ void MoviePanel::render(RenderWindow& window) {
             }
         }
         titleTxt.setFillColor(UITheme::TextPrimary);
-        titleTxt.setPosition({col2X + 50.f, rY + 8.f});
+        titleTxt.setPosition({std::round(col2X + 46.f), std::round(rY + 4.f)});
         window.draw(titleTxt);
 
         // Format Pill (e.g. 2D / Atmos, IMAX 3D, 4DX/3D, 2D Lồng tiếng)
         Text fmtTxt(boldFont, s2ws(fmtStr), UITheme::SmallBadgeSize);
         FloatRect fb = fmtTxt.getLocalBounds();
-        float fmtPillW = fb.size.x + 16.f;
-        float fmtPillH = 22.f;
-        RoundedRectRenderer::draw(window, {col2X + 50.f, rY + 32.f}, {fmtPillW, fmtPillH}, 4.f, UITheme::SurfaceSubtle, 1.f, UITheme::BorderMedium);
+        float fmtPillW = fb.size.x + 14.f;
+        float fmtPillH = 20.f;
+        RoundedRectRenderer::draw(window, {col2X + 46.f, rY + 25.f}, {fmtPillW, fmtPillH}, 4.f, UITheme::SurfaceSubtle, 1.f, UITheme::BorderMedium);
         fmtTxt.setFillColor(Color(30, 41, 59));
-        fmtTxt.setPosition({col2X + 58.f - fb.position.x, rY + 32.f + (fmtPillH - fb.size.y) / 2.f - fb.position.y - 1.f});
+        fmtTxt.setPosition({std::round(col2X + 53.f - fb.position.x), std::round(rY + 25.f + (fmtPillH - fb.size.y) / 2.f - fb.position.y - 1.f)});
         window.draw(fmtTxt);
 
         // Genre text
@@ -1186,7 +1186,7 @@ void MoviePanel::render(RenderWindow& window) {
             }
         }
         gTxt.setFillColor(UITheme::TextSecondary);
-        gTxt.setPosition({col2X + 50.f, rY + 57.f});
+        gTxt.setPosition({std::round(col2X + 46.f), std::round(rY + 47.f)});
         window.draw(gTxt);
 
         // Col 3: Director (Centered)
@@ -1305,7 +1305,7 @@ void MoviePanel::render(RenderWindow& window) {
     }
 
     // 8b. THANH PHÂN TRANG (PAGINATION BAR)
-    float pagY = tblY + hdrH + moviesPerPage * rowH + 16.f;
+    float pagY = tblY + hdrH + moviesPerPage * rowH + 12.f;
     int fromIdx = filteredIndices.empty() ? 0 : (startIdx + 1);
     int toIdx = min(static_cast<int>(filteredIndices.size()), startIdx + moviesPerPage);
     wstring pageInfoStr = filteredIndices.empty()

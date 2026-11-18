@@ -51,7 +51,7 @@ private:
     int hoveredRow = -1;
     int scrollOffset = 0;
     int currentPage = 1;
-    const int moviesPerPage = 6;
+    const int moviesPerPage = 8;
     int totalPages = 1;
     int hoveredEditRow = -1;
     int hoveredDeleteRow = -1;

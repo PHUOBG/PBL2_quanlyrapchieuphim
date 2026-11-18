@@ -642,20 +642,7 @@ void ComboPanel::render(RenderWindow& win) {
 
     // Nút Reload và Xuất Excel góc phải
     drawRoundedCard(win, {position.x + width - 193.f, position.y + 39.f}, {40.f, 38.f}, 8.f, Color::White, 1.f, Color(203, 213, 225));
-    if (hasReloadTex) {
-        Sprite spRel(reloadTex);
-        spRel.setColor(Color(71, 85, 105));
-        spRel.setScale({18.f / 500.f, 18.f / 500.f});
-        spRel.setPosition({position.x + width - 193.f + 11.f, position.y + 39.f + 10.f});
-        win.draw(spRel);
-    } else {
-        CircleShape rCircle(7.f);
-        rCircle.setFillColor(Color::Transparent);
-        rCircle.setOutlineThickness(1.8f);
-        rCircle.setOutlineColor(Color(71, 85, 105));
-        rCircle.setPosition({position.x + width - 193.f + 13.f, position.y + 39.f + 12.f});
-        win.draw(rCircle);
-    }
+    UITheme::drawReloadIcon(win, {position.x + width - 193.f + 20.f, position.y + 39.f + 19.f}, 16.f, Color(71, 85, 105));
 
     drawRoundedCard(win, {position.x + width - 143.f, position.y + 39.f}, {95.f, 38.f}, 8.f, Color::White, 1.f, Color(203, 213, 225));
     Text expTxt(boldFont, L"Xu\u1ea5t Excel", 14);

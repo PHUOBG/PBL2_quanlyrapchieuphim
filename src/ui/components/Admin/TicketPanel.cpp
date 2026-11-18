@@ -484,12 +484,7 @@ void TicketPanel::render(RenderWindow& win) {
     float relX = position.x + width - 75.f;
     Color relBg = btnReloadHover ? Color(18, 59, 93) : Color(8, 125, 181);
     drawRoundedCard(win, {relX, barY}, {45.f, 38.f}, 6.f, relBg);
-    if (hasReloadTex) {
-        Sprite spRel(reloadTex);
-        spRel.setScale({20.f / 500.f, 20.f / 500.f});
-        spRel.setPosition({relX + 12.f, barY + 9.f});
-        win.draw(spRel);
-    }
+    UITheme::drawReloadIcon(win, {relX + 22.5f, barY + 19.f}, 17.f, Color::White);
 
     // ==========================================
     // 5. BẢNG DỮ LIỆU VÉ (DATA TABLE)

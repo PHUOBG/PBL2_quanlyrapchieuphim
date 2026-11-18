@@ -400,45 +400,41 @@ namespace UITheme {
         target.draw(chev);
     }
 
-    // Vẽ biểu tượng Làm mới (Reload): ưu tiên texture reload.png có mipmap chống răng cưa, dự phòng bằng vector
+    // Vẽ biểu tượng Làm mới (Reload) vector sắc nét, đồng bộ toàn dự án
     inline void drawReloadIcon(RenderTarget& target, Vector2f center, float size, Color color) {
-        static Texture reloadTex;
-        static bool attempted = false;
-        static bool loaded = false;
-        if (!attempted) {
-            attempted = true;
-            loaded = reloadTex.loadFromFile("../assets/elements/reload.png") ||
-                     reloadTex.loadFromFile("assets/elements/reload.png");
-            if (loaded) {
-                reloadTex.setSmooth(true);
-                (void)reloadTex.generateMipmap();
-            }
-        }
-        if (loaded && reloadTex.getSize().x > 0) {
-            Sprite sp(reloadTex);
-            sp.setColor(color);
-            // reload.png có khoảng đệm trong suốt quanh mũi tên (~38%), nhân 1.65f để kích thước hiển thị chuẩn
-            float drawSize = size * 1.65f;
-            float sc = drawSize / static_cast<float>(reloadTex.getSize().x);
-            sp.setScale({sc, sc});
-            sp.setPosition({center.x - drawSize / 2.f, center.y - drawSize / 2.f});
-            target.draw(sp);
-        } else {
-            float r = size * 0.38f;
-            CircleShape ring(r, 24);
-            ring.setFillColor(Color::Transparent);
-            ring.setOutlineThickness(2.f);
-            ring.setOutlineColor(color);
-            ring.setPosition({center.x - r, center.y - r});
-            target.draw(ring);
+        float outerR = max(7.0f, min(9.0f, size * 0.45f));
+        float innerR = outerR - 2.1f;
+        float midR = (outerR + innerR) * 0.5f;
+        constexpr float PI = 3.14159265f;
+        float startRad = 25.f * PI / 180.f;
+        float endRad = 305.f * PI / 180.f;
+        const int steps = 28;
 
-            ConvexShape arrow(3);
-            arrow.setPoint(0, {center.x + r - 3.5f, center.y - r - 2.5f});
-            arrow.setPoint(1, {center.x + r + 3.5f, center.y - r + 1.f});
-            arrow.setPoint(2, {center.x + r - 2.f, center.y - r + 4.5f});
-            arrow.setFillColor(color);
-            target.draw(arrow);
+        VertexArray arc(PrimitiveType::TriangleStrip, (steps + 1) * 2);
+        for (int i = 0; i <= steps; ++i) {
+            float t = static_cast<float>(i) / static_cast<float>(steps);
+            float a = startRad + (endRad - startRad) * t;
+            float ca = std::cos(a);
+            float sa = std::sin(a);
+            arc[i * 2].position = {center.x + ca * innerR, center.y + sa * innerR};
+            arc[i * 2].color = color;
+            arc[i * 2 + 1].position = {center.x + ca * outerR, center.y + sa * outerR};
+            arc[i * 2 + 1].color = color;
         }
+        target.draw(arc);
+
+        float nx = std::cos(endRad);
+        float ny = std::sin(endRad);
+        float tx = -ny;
+        float ty = nx;
+        Vector2f tipBase(center.x + nx * midR, center.y + ny * midR);
+
+        ConvexShape arrow(3);
+        arrow.setPoint(0, {tipBase.x + tx * 4.8f, tipBase.y + ty * 4.8f});
+        arrow.setPoint(1, {tipBase.x - tx * 1.0f + nx * 3.8f, tipBase.y - ty * 1.0f + ny * 3.8f});
+        arrow.setPoint(2, {tipBase.x - tx * 1.0f - nx * 3.8f, tipBase.y - ty * 1.0f - ny * 3.8f});
+        arrow.setFillColor(color);
+        target.draw(arrow);
     }
 
     // Vẽ biểu tượng Mắt ẩn/hiện mật khẩu (tái sử dụng eye-open.png / eye-close.png của PasswordField)

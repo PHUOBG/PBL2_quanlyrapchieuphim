@@ -596,10 +596,10 @@ void RoomPanel::render(RenderWindow& win) {
     title.setPosition({position.x + 115.f, position.y + 30.f});
     win.draw(title);
 
-    // Badge "Hoạt động ổn định" (cùng màu xanh với badge "BÌNH THƯỜNG")
+    // Badge "Hoạt động ổn định" (đồng bộ màu xanh dương với các chức năng khác)
     FloatRect tbBounds = title.getGlobalBounds();
     Text gTxt(boldFont, L"Ho\u1ea1t \u0111\u1ed9ng \u1ed5n \u0111\u1ecbnh", 14);
-    gTxt.setFillColor(Color(4, 120, 87));
+    gTxt.setFillColor(Color(8, 125, 181));
     FloatRect gtb = gTxt.getLocalBounds();
     float dotRadius = 3.5f;
     float dotGap = 6.f;
@@ -608,12 +608,12 @@ void RoomPanel::render(RenderWindow& win) {
     float badgeH = 26.f;
     float badgeX = tbBounds.position.x + tbBounds.size.x + 14.f;
     float badgeY = position.y + 32.f;
-    drawRoundedCard(win, {badgeX, badgeY}, {badgeW, badgeH}, 13.f, Color(209, 250, 229));
+    drawRoundedCard(win, {badgeX, badgeY}, {badgeW, badgeH}, 13.f, Color(224, 242, 254));
 
     float contentW = dotRadius * 2.f + dotGap + gtb.size.x;
     float startX = badgeX + (badgeW - contentW) / 2.f;
     CircleShape gDot(dotRadius);
-    gDot.setFillColor(Color(4, 120, 87));
+    gDot.setFillColor(Color(8, 125, 181));
     gDot.setPosition({startX, badgeY + (badgeH - dotRadius * 2.f) / 2.f});
     win.draw(gDot);
 
@@ -633,27 +633,7 @@ void RoomPanel::render(RenderWindow& win) {
     // Nút 1: Làm mới (vector refresh icon sắc nét)
     float headRefX = position.x + width - 470.f;
     drawRoundedCard(win, {headRefX, btnY}, {110.f, 38.f}, 8.f, Color::White, 1.2f, Color(203, 213, 225));
-    {
-        Vector2f icPos(headRefX + 16.f, btnY + 12.f);
-        CircleShape arc(6.5f, 24);
-        arc.setFillColor(Color::Transparent);
-        arc.setOutlineThickness(2.f);
-        arc.setOutlineColor(Color(51, 65, 85));
-        arc.setPosition(icPos);
-        win.draw(arc);
-
-        RectangleShape gap({5.f, 5.f});
-        gap.setFillColor(Color::White);
-        gap.setPosition({icPos.x + 9.5f, icPos.y + 4.f});
-        win.draw(gap);
-
-        ConvexShape arrow(3);
-        arrow.setPoint(0, {icPos.x + 14.5f, icPos.y + 5.5f});
-        arrow.setPoint(1, {icPos.x + 9.5f, icPos.y + 5.5f});
-        arrow.setPoint(2, {icPos.x + 12.5f, icPos.y + 1.f});
-        arrow.setFillColor(Color(51, 65, 85));
-        win.draw(arrow);
-    }
+    UITheme::drawReloadIcon(win, {headRefX + 22.f, btnY + 19.f}, 16.f, Color(51, 65, 85));
     Text refTxt(boldFont, L"L\u00e0m m\u1edbi", 14);
     refTxt.setFillColor(Color(51, 65, 85));
     refTxt.setPosition({headRefX + 38.f, btnY + 9.f});
@@ -989,7 +969,7 @@ void RoomPanel::render(RenderWindow& win) {
             if (i == (size_t)selectedRoomIndex) {
                 RoundedRectRenderer::draw(win, {position.x + 52.f, iY}, {leftCardW - 44.f, 35.f}, 4.f, Color(224, 242, 254));
             }
-            Text rItm(boldFont, rooms[i].name + L" - " + rooms[i].roomType, 14);
+            Text rItm(font, rooms[i].name + L" - " + rooms[i].roomType, 14);
             rItm.setFillColor((i == (size_t)selectedRoomIndex) ? Color(8, 125, 181) : Color(23, 32, 51));
             rItm.setPosition({position.x + 62.f, iY + 9.f});
             win.draw(rItm);
@@ -1010,7 +990,7 @@ void RoomPanel::render(RenderWindow& win) {
             if (sel) {
                 RoundedRectRenderer::draw(win, {position.x + 52.f, iY}, {leftCardW - 44.f, 35.f}, 4.f, Color(224, 242, 254));
             }
-            Text sItm(boldFont, statusOpts[i], 14);
+            Text sItm(font, statusOpts[i], 14);
             sItm.setFillColor(sel ? Color(8, 125, 181) : Color(23, 32, 51));
             sItm.setPosition({position.x + 62.f, iY + 9.f});
             win.draw(sItm);
@@ -1032,7 +1012,7 @@ void RoomPanel::render(RenderWindow& win) {
             if (types[i] == currentAssignType) {
                 RoundedRectRenderer::draw(win, {position.x + 52.f, iY}, {leftCardW - 44.f, 35.f}, 4.f, Color(224, 242, 254));
             }
-            Text tItm(boldFont, typeNames[i], 14);
+            Text tItm(font, typeNames[i], 14);
             tItm.setFillColor((types[i] == currentAssignType) ? Color(8, 125, 181) : Color(23, 32, 51));
             tItm.setPosition({position.x + 62.f, iY + 9.f});
             win.draw(tItm);

@@ -296,9 +296,9 @@ void AdminSidebar::render(RenderWindow& window) {
 
     // Badge ADMIN đặt ngay bên dưới CineCore (vị trí cũ của PBL2 PORTAL)
     Vector2f bPos(std::round(brandTextX), std::round(position.y + 42.f));
-    Vector2f bSize(62.f, 22.f);
-    RoundedRectRenderer::draw(window, bPos, bSize, 11.f, Color(255, 255, 255, 42));
-    Text admTxt(boldFont, L"ADMIN", 14);
+    Vector2f bSize(54.f, 20.f);
+    RoundedRectRenderer::draw(window, bPos, bSize, 10.f, Color(255, 255, 255, 42));
+    Text admTxt(boldFont, L"ADMIN", 12);
     admTxt.setFillColor(Color::White);
     FloatRect ab = admTxt.getLocalBounds();
     admTxt.setPosition({

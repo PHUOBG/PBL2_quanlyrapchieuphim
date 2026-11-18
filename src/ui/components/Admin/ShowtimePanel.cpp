@@ -671,16 +671,10 @@ void ShowtimePanel::render(RenderWindow& win) {
     float btnY = position.y + 39.f;
     float headRefX = position.x + width - 488.f;
     drawRoundedCard(win, {headRefX, btnY}, {110.f, 38.f}, 8.f, Color::White, 1.2f, Color(203, 213, 225));
-    if (hasReloadTex) {
-        Sprite spHead(reloadTex);
-        spHead.setColor(Color(51, 65, 85));
-        spHead.setScale({16.f / 500.f, 16.f / 500.f});
-        spHead.setPosition({headRefX + 14.f, btnY + 11.f});
-        win.draw(spHead);
-    }
+    UITheme::drawReloadIcon(win, {headRefX + 22.f, btnY + 19.f}, 16.f, Color(51, 65, 85));
     Text refTxt(boldFont, L"L\u00e0m m\u1edbi", 14);
     refTxt.setFillColor(Color(51, 65, 85));
-    refTxt.setPosition({headRefX + (hasReloadTex ? 36.f : 24.f), btnY + 9.f});
+    refTxt.setPosition({headRefX + 38.f, btnY + 9.f});
     win.draw(refTxt);
 
     drawRoundedCard(win, {position.x + width - 368.f, btnY}, {170.f, 38.f}, 8.f, Color::White, 1.2f, Color(203, 213, 225));
@@ -813,13 +807,7 @@ void ShowtimePanel::render(RenderWindow& win) {
     float refBtnW = 48.f;
     float refBtnH = 48.f;
     drawRoundedCard(win, {refBtnX, refBtnY}, {refBtnW, refBtnH}, 8.f, Color(8, 125, 181));
-
-    if (hasReloadTex) {
-        Sprite spReload(reloadTex);
-        spReload.setScale({26.f / 500.f, 26.f / 500.f});
-        spReload.setPosition({refBtnX + 11.f, refBtnY + 11.f});
-        win.draw(spReload);
-    }
+    UITheme::drawReloadIcon(win, {refBtnX + refBtnW / 2.f, refBtnY + refBtnH / 2.f}, 18.f, Color::White);
 
     // ==========================================
     // 5. BẢNG DỮ LIỆU SUẤT CHIẾU
