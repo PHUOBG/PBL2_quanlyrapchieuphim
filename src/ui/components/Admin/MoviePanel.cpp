@@ -444,16 +444,18 @@ void MoviePanel::drawFunnelIcon(RenderTarget& target, Vector2f pos, Color col) {
 }
 
 void MoviePanel::drawCheckmark(RenderTarget& target, Vector2f pos, Color col) {
-    RectangleShape c1({4.f, 1.8f});
+    RectangleShape c1({5.5f, 2.2f});
+    c1.setOrigin({0.f, 1.1f});
     c1.setFillColor(col);
     c1.setRotation(degrees(45.f));
-    c1.setPosition(pos);
+    c1.setPosition({pos.x + 1.f, pos.y + 5.f});
     target.draw(c1);
 
-    RectangleShape c2({8.f, 1.8f});
+    RectangleShape c2({10.f, 2.2f});
+    c2.setOrigin({0.f, 1.1f});
     c2.setFillColor(col);
-    c2.setRotation(degrees(-55.f));
-    c2.setPosition({pos.x + 2.8f, pos.y + 2.8f});
+    c2.setRotation(degrees(-48.f));
+    c2.setPosition({pos.x + 4.5f, pos.y + 8.6f});
     target.draw(c2);
 }
 
@@ -570,7 +572,7 @@ void MoviePanel::handleEvent(const Event& event, const RenderWindow& window) {
             const float contentW = max(1200.f, width - 60.f);
             const float searchW = max(320.f, contentW - 884.f);
             const float toolRightX = startX + searchW + 15.f;
-            const float toolY = 242.f;
+            const float toolY = 220.f;
 
             // Ưu tiên kiểm tra danh sách Dropdown đang mở trước khi kiểm tra bảng bên dưới
             if (genreDropdownOpen) {
@@ -669,9 +671,9 @@ void MoviePanel::handleEvent(const Event& event, const RenderWindow& window) {
             }
 
             // Click trên các dòng của bảng phim
-            const float tableY = 336.f;
+            const float tableY = 314.f;
             const float hdrH = 48.f;
-            const float rowH = 76.f;
+            const float rowH = 78.f;
             const float tableW = contentW;
             const float col8X = startX + tableW - 120.f;
 
@@ -810,7 +812,7 @@ void MoviePanel::update(Vector2f mouse, bool /*mousePressed*/) {
     const float contentW = max(1200.f, width - 60.f);
     const float searchW = max(320.f, contentW - 884.f);
     const float toolRightX = startX + searchW + 15.f;
-    const float toolY = 242.f;
+    const float toolY = 220.f;
 
     FloatRect searchBox({startX, toolY}, {searchW, 44.f});
     FloatRect genreBtn({toolRightX, toolY}, {160.f, 44.f});
@@ -845,9 +847,9 @@ void MoviePanel::update(Vector2f mouse, bool /*mousePressed*/) {
     }
 
     // Table rows hover
-    const float tableY = 336.f;
+    const float tableY = 314.f;
     const float hdrH = 48.f;
-    const float rowH = 76.f;
+    const float rowH = 78.f;
     const float tableW = contentW;
     const float col8X = startX + tableW - 120.f;
 
@@ -878,15 +880,15 @@ void MoviePanel::render(RenderWindow& window) {
 
     // 1. Unified Section Header Card (matching RoomPanel card style)
     UITheme::drawSectionHeaderCard(window, startX, position.y + 16.f, contentW,
-                                   L"DANH SÁCH & ĐIỀU PHỐI PHIM",
+                                   L"Danh sách & điều phối phim",
                                    to_wstring(allMovies.size()) + L" Phim",
                                    Color(224, 242, 254), Color(8, 125, 181),
                                    L"Quản lý thông tin phim, định dạng chiếu, lịch phát hành và trạng thái trình chiếu.",
                                    boldFont, font, false);
 
-    // 2. 4 KPI STAT CARDS
+    // 2. 4 KPI STAT CARDS (-20% card height & typography)
     const float cardY = 114.f;
-    const float cardH = 112.f;
+    const float cardH = 90.f;
     const float cardGap = 20.f;
     const float cardW = (contentW - 3.f * cardGap) / 4.f;
 
@@ -899,9 +901,9 @@ void MoviePanel::render(RenderWindow& window) {
 
     auto drawMovieKpi = [&](Vector2f pos, const wstring& title, const wstring& value, const wstring& sub, Color subCol) {
         RoundedRectRenderer::draw(window, pos, {cardW, cardH}, 8.f, UITheme::Surface, 1.f, UITheme::BorderLight);
-        FontManager::drawCenteredText(window, boldFont, title, 18, UITheme::TextSecondary, {pos, {cardW, 34.f}});
-        FontManager::drawCenteredText(window, boldFont, value, 31, UITheme::TextPrimary, {{pos.x, pos.y + 34.f}, {cardW, 46.f}});
-        FontManager::drawCenteredText(window, boldFont, sub, 18, subCol, {{pos.x, pos.y + cardH - 36.f}, {cardW, 28.f}});
+        FontManager::drawCenteredText(window, boldFont, title, 14, UITheme::TextSecondary, {{pos.x, pos.y + 4.f}, {cardW, 24.f}});
+        FontManager::drawCenteredText(window, boldFont, value, 24, UITheme::TextPrimary, {{pos.x, pos.y + 28.f}, {cardW, 34.f}});
+        FontManager::drawCenteredText(window, boldFont, sub, 14, subCol, {{pos.x, pos.y + cardH - 28.f}, {cardW, 22.f}});
     };
 
     drawMovieKpi({startX, cardY}, L"Phim đang chiếu", to_wstring(countActive), L"Đang tạo doanh thu", UITheme::SuccessDark);
@@ -910,7 +912,7 @@ void MoviePanel::render(RenderWindow& window) {
     drawMovieKpi({startX + (cardW + cardGap) * 3.f, cardY}, L"Tổng phim quản lý", to_wstring(allMovies.size()), L"Kho dữ liệu CineCore", UITheme::TextSecondary);
 
     // 5. TOOLBAR (Search & Filters & Actions)
-    const float toolY = 242.f;
+    const float toolY = 220.f;
 
     // Search Input
     Color searchBorder = searchActive ? Color(8, 125, 181) : Color(203, 213, 225);
@@ -995,7 +997,7 @@ void MoviePanel::render(RenderWindow& window) {
     window.draw(addTxt);
 
     // 6. DATA TABLE SUBHEADER
-    const float subY = 302.f;
+    const float subY = 280.f;
     drawFunnelIcon(window, {startX + 2.f, subY + 3.f}, Color(8, 125, 181));
 
     Text subTitle(boldFont, L"DANH S\u00c1CH PHIM CHI\u1ebeU R\u1ea0P", UITheme::SectionTitleSize);
@@ -1013,7 +1015,7 @@ void MoviePanel::render(RenderWindow& window) {
     window.draw(cBadge);
 
     // 7. TABLE HEADER (Ocean Blue #0077B6)
-    const float tblY = 336.f;
+    const float tblY = 314.f;
     const float tblW = contentW;
     const float hdrH = 48.f;
     const float col2W = max(280.f, tblW - 915.f);
@@ -1057,7 +1059,7 @@ void MoviePanel::render(RenderWindow& window) {
     }
 
     // 8. TABLE ROWS
-    const float rowH = 76.f;
+    const float rowH = 78.f;
     int startIdx = (currentPage - 1) * moviesPerPage;
     int displayCount = max(0, min(moviesPerPage, static_cast<int>(filteredIndices.size()) - startIdx));
 
@@ -1093,14 +1095,15 @@ void MoviePanel::render(RenderWindow& window) {
 
         // Checkbox column
         Color cbBorder = isSelected ? Color(8, 125, 181) : Color(203, 213, 225);
-        RoundedRectRenderer::draw(window, {startX + 13.f, rY + (rowH - 20.f) / 2.f}, {20.f, 20.f}, 4.f, Color::White, 1.2f, cbBorder);
+        float cbY = rY + (rowH - 20.f) / 2.f;
+        RoundedRectRenderer::draw(window, {startX + 13.f, cbY}, {20.f, 20.f}, 4.f, Color::White, 1.2f, cbBorder);
         if (isSelected) {
-            drawCheckmark(window, {startX + 17.f, rY + (rowH - 20.f) / 2.f + 8.f}, Color(8, 125, 181));
+            drawCheckmark(window, {startX + 17.f, cbY + 5.f}, Color(8, 125, 181));
         }
 
-        // Col 1: ID Phim (30% smaller, regular weight, centered)
+        // Col 1: ID Phim (12px bold, centered)
         string idStr = (row.size() > 0) ? row[0] : "";
-        Text idText(font, s2ws(idStr), 12);
+        Text idText(boldFont, s2ws(idStr), 12);
         idText.setFillColor(Color(8, 125, 181));
         FloatRect idb = idText.getLocalBounds();
         idText.setPosition({
@@ -1289,15 +1292,16 @@ void MoviePanel::render(RenderWindow& window) {
 
         // Col 8: Action Icons (Edit & Delete, centered)
         float col8X = colX[8];
+        float actBtnY = rY + (rowH - 34.f) / 2.f;
         Color editBg = (idx == hoveredEditRow) ? UITheme::WarningLight : UITheme::SurfaceSubtle;
         Color editIcon = (idx == hoveredEditRow) ? UITheme::WarningDark : UITheme::TextSecondary;
-        RoundedRectRenderer::draw(window, {col8X + 20.f, rY + (rowH - 34.f) / 2.f}, {34.f, 34.f}, 8.f, editBg, 1.f, UITheme::BorderLight);
-        drawPencilIcon(window, {col8X + 29.f, rY + (rowH - 34.f) / 2.f + 8.f}, editIcon);
+        RoundedRectRenderer::draw(window, {col8X + 20.f, actBtnY}, {34.f, 34.f}, 8.f, editBg, 1.f, UITheme::BorderLight);
+        drawPencilIcon(window, {col8X + 31.5f, actBtnY + 10.75f}, editIcon);
 
         Color delBg = (idx == hoveredDeleteRow) ? UITheme::DangerLight : UITheme::SurfaceSubtle;
         Color delIcon = (idx == hoveredDeleteRow) ? UITheme::DangerDark : UITheme::TextSecondary;
-        RoundedRectRenderer::draw(window, {col8X + 64.f, rY + (rowH - 34.f) / 2.f}, {34.f, 34.f}, 8.f, delBg, 1.f, UITheme::BorderLight);
-        drawTrashIcon(window, {col8X + 74.f, rY + (rowH - 34.f) / 2.f + 10.f}, delIcon);
+        RoundedRectRenderer::draw(window, {col8X + 64.f, actBtnY}, {34.f, 34.f}, 8.f, delBg, 1.f, UITheme::BorderLight);
+        drawTrashIcon(window, {col8X + 74.f, actBtnY + 10.f}, delIcon);
     }
 
     // 8b. THANH PHÂN TRANG (PAGINATION BAR)
@@ -1365,7 +1369,7 @@ void MoviePanel::render(RenderWindow& window) {
         for (size_t g = 0; g < genres.size(); ++g) {
             Color itemBg = (static_cast<int>(g) == hoveredGenreIndex) ? Color(241, 245, 249) : Color::White;
             RoundedRectRenderer::draw(window, {toolRightX + 1.f, toolY + 47.f + g * 36.f}, {158.f, 34.f}, 4.f, itemBg);
-            Text it(boldFont, s2ws(genres[g]), 14);
+            Text it(font, s2ws(genres[g]), 14);
             it.setFillColor(Color(23, 32, 51));
             it.setPosition({toolRightX + 11.f, toolY + 55.f + g * 36.f});
             window.draw(it);
@@ -1378,7 +1382,7 @@ void MoviePanel::render(RenderWindow& window) {
         for (size_t s = 0; s < statuses.size(); ++s) {
             Color itemBg = (static_cast<int>(s) == hoveredStatusIndex) ? Color(241, 245, 249) : Color::White;
             RoundedRectRenderer::draw(window, {toolRightX + 176.f, toolY + 47.f + s * 36.f}, {158.f, 34.f}, 4.f, itemBg);
-            Text it(boldFont, s2ws(statuses[s]), 14);
+            Text it(font, s2ws(statuses[s]), 14);
             it.setFillColor(Color(23, 32, 51));
             it.setPosition({toolRightX + 186.f, toolY + 55.f + s * 36.f});
             window.draw(it);
@@ -1405,9 +1409,10 @@ void MoviePanel::render(RenderWindow& window) {
             window.draw(pTitle);
 
             string delName = (selectedRow >= 0 && selectedRow < static_cast<int>(allMovies.size())) ? allMovies[selectedRow][1] : "";
-            Text pMsg(font, L"B\u1ea1n c\u00f3 ch\u1eafc ch\u1eafn mu\u1ed1n x\u00f3a phim \"" + s2ws(delName) + L"\" kh\u00f4ng?\nThao t\u00e1c n\u00e0y kh\u00f4ng th\u1ec3 ho\u00e0n t\u00e1c.", 14);
+            Text pMsg(font, L"B\u1ea1n c\u00f3 ch\u1eafc ch\u1eafn mu\u1ed1n x\u00f3a phim \"" + s2ws(delName) + L"\" kh\u00f4ng?\nThao t\u00e1c n\u00e0y kh\u00f4ng th\u1ec3 ho\u00e0n t\u00e1c.", 18);
+            pMsg.setLineSpacing(1.25f);
             pMsg.setFillColor(Color(71, 85, 105));
-            pMsg.setPosition({popupX + 40.f, popupY + 80.f});
+            pMsg.setPosition({popupX + 40.f, popupY + 76.f});
             window.draw(pMsg);
 
             Color cBg = btnDeleteCancelHover ? Color(203, 213, 225) : Color(226, 232, 240);
@@ -1509,13 +1514,39 @@ void MoviePanel::render(RenderWindow& window) {
             notificationVisible = false;
         } else {
             const float toastW = 380.f;
+            const float toastH = 48.f;
             const float toastX = (1728.f - toastW) / 2.f;
-            const float toastY = 972.f - 70.f;
-            RoundedRectRenderer::draw(window, {toastX, toastY}, {toastW, 44.f}, 10.f, notificationColor);
-            drawCheckmark(window, {toastX + 16.f, toastY + 16.f}, Color::White);
-            Text nMsg(boldFont, notificationMessage, 14);
+            const float toastY = 972.f - 74.f;
+            RoundedRectRenderer::draw(window, {toastX, toastY}, {toastW, toastH}, 10.f, notificationColor);
+
+            Text nMsg(boldFont, notificationMessage, 18);
             nMsg.setFillColor(Color::White);
-            nMsg.setPosition({toastX + 36.f, toastY + 12.f});
+            FloatRect nmb = nMsg.getLocalBounds();
+            float iconW = 16.f;
+            float iconGap = 10.f;
+            float totalContentW = iconW + iconGap + nmb.size.x;
+            float cStartX = toastX + (toastW - totalContentW) / 2.f;
+
+            // Larger crisp checkmark centered vertically
+            float ckY = toastY + (toastH - 13.f) / 2.f;
+            RectangleShape tc1({7.f, 2.8f});
+            tc1.setOrigin({0.f, 1.4f});
+            tc1.setFillColor(Color::White);
+            tc1.setRotation(degrees(45.f));
+            tc1.setPosition({cStartX + 1.f, ckY + 6.5f});
+            window.draw(tc1);
+
+            RectangleShape tc2({13.f, 2.8f});
+            tc2.setOrigin({0.f, 1.4f});
+            tc2.setFillColor(Color::White);
+            tc2.setRotation(degrees(-48.f));
+            tc2.setPosition({cStartX + 5.5f, ckY + 11.f});
+            window.draw(tc2);
+
+            nMsg.setPosition({
+                cStartX + iconW + iconGap - nmb.position.x,
+                toastY + (toastH - nmb.size.y) / 2.f - nmb.position.y - 1.f
+            });
             window.draw(nMsg);
         }
     }
