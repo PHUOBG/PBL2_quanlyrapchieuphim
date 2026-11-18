@@ -1,5 +1,6 @@
 #include "UI/screens/RegisterScreen.h"
 #include "UI/components/Admin/RoundedRectRenderer.h"
+#include "UI/components/Admin/FontManager.h"
 #ifdef _WIN32
 #include <windows.h>
 #endif
@@ -19,10 +20,7 @@ static std::string wstring_to_utf8(const std::wstring& wstr) {
 }
 
 RegisterScreen::RegisterScreen(const Font& f, AuthService& authRef)
-    : auth(authRef), font(f) {
-    if (!boldFont.openFromFile("../assets/fonts/segoeuib.ttf")) {
-        boldFont = f;
-    }
+    : auth(authRef), font(f), boldFont(FontManager::instance().bold()) {
     if (logoTexture.loadFromFile("../assets/elements/cinexine_logo.png") ||
         logoTexture.loadFromFile("assets/elements/cinexine_logo.png") ||
         logoTexture.loadFromFile("../assets/elements/icon.png") ||
@@ -125,7 +123,7 @@ void RegisterScreen::submitRegistration() {
     string password = wstring_to_utf8(inputs[4]);
 
     if (auth.registerUser(email, password, fullName, birthDate, phone, AppRole::Admin)) {
-        statusColor = Color(16, 185, 129);
+        statusColor = Color(21, 128, 61);
         statusMessage = L"Đăng ký thành công! Đang chuyển sang đăng nhập...";
         showSuccessMessage = true;
         messageTimer.restart();
@@ -262,9 +260,9 @@ void RegisterScreen::draw(RenderWindow& window) {
     verText.setPosition({W - 212.f, 20.f});
     window.draw(verText);
 
-    CircleShape dotRed(4.5f, 12); dotRed.setFillColor(Color(239, 68, 68)); dotRed.setPosition({W - 55.f, 24.f}); window.draw(dotRed);
+    CircleShape dotRed(4.5f, 12); dotRed.setFillColor(Color(220, 38, 38)); dotRed.setPosition({W - 55.f, 24.f}); window.draw(dotRed);
     CircleShape dotYellow(4.5f, 12); dotYellow.setFillColor(Color(245, 158, 11)); dotYellow.setPosition({W - 40.f, 24.f}); window.draw(dotYellow);
-    CircleShape dotGreen(4.5f, 12); dotGreen.setFillColor(Color(16, 185, 129)); dotGreen.setPosition({W - 25.f, 24.f}); window.draw(dotGreen);
+    CircleShape dotGreen(4.5f, 12); dotGreen.setFillColor(Color(21, 128, 61)); dotGreen.setPosition({W - 25.f, 24.f}); window.draw(dotGreen);
 
     // 3. Central White Card
     const float cardW = 680.f;
@@ -297,7 +295,7 @@ void RegisterScreen::draw(RenderWindow& window) {
     window.draw(brandTop);
 
     Text brandMain(boldFont, L"CineCore Portal", 17.f);
-    brandMain.setFillColor(Color(15, 23, 42));
+    brandMain.setFillColor(Color(23, 32, 51));
     brandMain.setPosition({brandTextX, cardY + 51.f});
     window.draw(brandMain);
 
@@ -310,14 +308,14 @@ void RegisterScreen::draw(RenderWindow& window) {
     Vector2f pillPos(leftX, cardY + 114.f);
     Vector2f pillSize(188.f, 28.f);
     RoundedRectRenderer::draw(window, pillPos, pillSize, 14.f, Color(240, 249, 255), 1.f, Color(186, 230, 253));
-    drawVectorCheck(window, {pillPos.x + 12.f, pillPos.y + 9.f}, Color(2, 132, 199));
+    drawVectorCheck(window, {pillPos.x + 12.f, pillPos.y + 9.f}, Color(8, 125, 181));
     Text pillTxt(boldFont, L"C\u1ed4NG QU\u1ea2N TR\u1eca N\u1ed8I B\u1ed8", 11.f);
-    pillTxt.setFillColor(Color(2, 132, 199));
+    pillTxt.setFillColor(Color(8, 125, 181));
     pillTxt.setPosition({pillPos.x + 30.f, pillPos.y + 7.f});
     window.draw(pillTxt);
 
     // Close X
-    Color xColor = closeHovered ? Color(15, 23, 42) : Color(148, 163, 184);
+    Color xColor = closeHovered ? Color(23, 32, 51) : Color(148, 163, 184);
     Vertex x1[2] = {Vertex({closeRect.position.x + 7.f, closeRect.position.y + 7.f}, xColor),
                     Vertex({closeRect.position.x + 19.f, closeRect.position.y + 19.f}, xColor)};
     Vertex x2[2] = {Vertex({closeRect.position.x + 19.f, closeRect.position.y + 7.f}, xColor),
@@ -327,7 +325,7 @@ void RegisterScreen::draw(RenderWindow& window) {
 
     // Title & Subtitle
     Text titleTxt(boldFont, L"\u0110\u0102NG K\u00dd T\u00c0I KHO\u1ea2N M\u1edaI", 25.f);
-    titleTxt.setFillColor(Color(15, 23, 42));
+    titleTxt.setFillColor(Color(23, 32, 51));
     titleTxt.setPosition({leftX, cardY + 158.f});
     window.draw(titleTxt);
 
@@ -363,16 +361,16 @@ void RegisterScreen::draw(RenderWindow& window) {
 
         FloatRect lb = lbl.getLocalBounds();
         Text star(boldFont, L"*", 13);
-        star.setFillColor(Color(239, 68, 68));
+        star.setFillColor(Color(220, 38, 38));
         star.setPosition({r.position.x + lb.size.x + 4.f, r.position.y - 21.f});
         window.draw(star);
 
         Color boxFill = isActive ? Color::White : Color(248, 250, 252);
-        Color boxBorder = isActive ? Color(2, 132, 199) : Color(226, 232, 240);
+        Color boxBorder = isActive ? Color(8, 125, 181) : Color(226, 232, 240);
         float borderThick = isActive ? 1.6f : 1.f;
         RoundedRectRenderer::draw(window, r.position, r.size, 10.f, boxFill, borderThick, boxBorder);
 
-        Color icoColor = isActive ? Color(2, 132, 199) : Color(148, 163, 184);
+        Color icoColor = isActive ? Color(8, 125, 181) : Color(148, 163, 184);
         Vector2f icoPos(r.position.x + 14.f, r.position.y + 15.f);
         if (fm.idx == 0) drawVectorUser(window, icoPos, icoColor);
         else if (fm.idx == 1) drawVectorCalendar(window, icoPos, icoColor);
@@ -392,21 +390,21 @@ void RegisterScreen::draw(RenderWindow& window) {
 
             if (isActive && showCursor) {
                 RectangleShape cur({1.8f, 20.f});
-                cur.setFillColor(Color(2, 132, 199));
+                cur.setFillColor(Color(8, 125, 181));
                 cur.setPosition({textX, r.position.y + 12.f});
                 window.draw(cur);
             }
         } else {
             wstring shown = (fm.isPass && !showPassword) ? bullets(inputs[fm.idx].size()) : inputs[fm.idx];
             Text val(font, shown, 13);
-            val.setFillColor(Color(15, 23, 42));
+            val.setFillColor(Color(23, 32, 51));
             val.setPosition({textX, textY});
             window.draw(val);
 
             if (isActive && showCursor) {
                 FloatRect vb = val.getLocalBounds();
                 RectangleShape cur({1.8f, 20.f});
-                cur.setFillColor(Color(2, 132, 199));
+                cur.setFillColor(Color(8, 125, 181));
                 cur.setPosition({textX + vb.size.x + 2.f, r.position.y + 12.f});
                 window.draw(cur);
             }
@@ -419,8 +417,8 @@ void RegisterScreen::draw(RenderWindow& window) {
 
     // 5. Terms Checkbox
     Vector2f chkBoxPos(leftX, checkRect.position.y + 3.f);
-    Color chkBg = agreeTerms ? Color(2, 132, 199) : Color::White;
-    Color chkBorder = agreeTerms ? Color(2, 132, 199) : (checkHovered ? Color(100, 116, 139) : Color(203, 213, 225));
+    Color chkBg = agreeTerms ? Color(8, 125, 181) : Color::White;
+    Color chkBorder = agreeTerms ? Color(8, 125, 181) : (checkHovered ? Color(100, 116, 139) : Color(203, 213, 225));
     RoundedRectRenderer::draw(window, chkBoxPos, {16.f, 16.f}, 4.f, chkBg, 1.3f, chkBorder);
     if (agreeTerms) {
         drawVectorCheck(window, {chkBoxPos.x + 3.f, chkBoxPos.y + 4.f}, Color::White);
@@ -433,7 +431,7 @@ void RegisterScreen::draw(RenderWindow& window) {
     float chk1W = chk1.getLocalBounds().size.x;
 
     Text chkLink(boldFont, L"Quy ch\u1ebf n\u1ed9i b\u1ed9", 12.f);
-    chkLink.setFillColor(Color(2, 132, 199));
+    chkLink.setFillColor(Color(8, 125, 181));
     chkLink.setPosition({leftX + 26.f + chk1W + 2.f, chkBoxPos.y});
     window.draw(chkLink);
     float chkLinkW = chkLink.getLocalBounds().size.x;
@@ -463,7 +461,7 @@ void RegisterScreen::draw(RenderWindow& window) {
     backTxt.setPosition({backStartX + 18.f, backRect.position.y + (backRect.size.y - bb.size.y) / 2.f - bb.position.y});
     window.draw(backTxt);
 
-    Color regBg = registerHovered ? Color(3, 105, 161) : Color(0, 119, 182);
+    Color regBg = registerHovered ? Color(18, 59, 93) : Color(8, 125, 181);
     RoundedRectRenderer::draw(window, registerRect.position, registerRect.size, 11.f, regBg);
     Text regTxt(boldFont, L"\u0110\u0102NG K\u00dd T\u00c0I KHO\u1ea2N", 13);
     regTxt.setFillColor(Color::White);
@@ -483,7 +481,7 @@ void RegisterScreen::draw(RenderWindow& window) {
     Text footQ(font, L"\u0110\u00e3 c\u00f3 t\u00e0i kho\u1ea3n nh\u00e2n vi\u00ean ho\u1eb7c qu\u1ea3n tr\u1ecb? ", 12.f);
     footQ.setFillColor(Color(100, 116, 139));
     Text footL(boldFont, L"\u0110\u0103ng nh\u1eadp ngay \u2192", 12.f);
-    footL.setFillColor(loginLinkHovered ? Color(3, 105, 161) : Color(2, 132, 199));
+    footL.setFillColor(loginLinkHovered ? Color(18, 59, 93) : Color(8, 125, 181));
 
     float totalLinkW = footQ.getLocalBounds().size.x + footL.getLocalBounds().size.x;
     float linkStartX = cardX + (cardW - totalLinkW) / 2.f;
@@ -532,7 +530,7 @@ void RegisterScreen::drawDotGrid(RenderTarget& target, float W, float H) const {
 }
 
 void RegisterScreen::drawVectorPortalLogo(RenderTarget& target, Vector2f pos, float size) const {
-    RoundedRectRenderer::draw(target, pos, {size, size}, size * 0.27f, Color(0, 119, 182));
+    RoundedRectRenderer::draw(target, pos, {size, size}, size * 0.27f, Color(8, 125, 181));
     float cx = pos.x + size / 2.f;
     float cy = pos.y + size / 2.f;
     float r = size * 0.28f;
@@ -601,7 +599,7 @@ void RegisterScreen::drawVectorShield(RenderTarget& target, Vector2f pos, Color 
 }
 
 void RegisterScreen::drawVectorEye(RenderTarget& target, Vector2f pos, bool open, bool hovered) const {
-    Color c = hovered ? Color(2, 132, 199) : Color(148, 163, 184);
+    Color c = hovered ? Color(8, 125, 181) : Color(148, 163, 184);
     RoundedRectRenderer::draw(target, {pos.x, pos.y + 3.f}, {16.f, 10.f}, 5.f, Color::Transparent, 1.4f, c);
     CircleShape pupil(2.5f, 12);
     pupil.setFillColor(c);

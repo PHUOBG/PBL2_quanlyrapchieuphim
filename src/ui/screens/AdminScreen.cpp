@@ -1,14 +1,10 @@
 #include "UI/screens/AdminScreen.h"
+#include "UI/components/Admin/FontManager.h"
 
 AdminScreen::AdminScreen(Font& font, RenderWindow& win, AppState& state, AuthService* auth)
     : BaseScreen(font), window(win), appState(state), authService(auth),
+      boldFont(FontManager::instance().bold()),
       currentPanelState(AppState::ADMIN_DASHBOARD) {
-    if (!boldFont.openFromFile("assets/fonts/segoeuib.ttf") &&
-        !boldFont.openFromFile("../assets/fonts/segoeuib.ttf") &&
-        !boldFont.openFromFile("assets/fonts/Montserrat_SemiBold.ttf") &&
-        !boldFont.openFromFile("../assets/fonts/Montserrat_SemiBold.ttf")) {
-        boldFont.openFromFile("C:/Windows/Fonts/segoeuib.ttf");
-    }
     
     // Get current user
     User* currentUser = authService ? authService->getCurrentUser() : nullptr;
@@ -129,6 +125,10 @@ void AdminScreen::handleAdminLogout() {
 }
 
 void AdminScreen::handleEvent(const Event& event) {
+    if (event.is<Event::Resized>()) {
+        mainPanelBg.setSize(Vector2f((float)window.getSize().x, (float)window.getSize().y));
+        updateActivePanelLayout();
+    }
     sidebar->handleEvent(event, window);
     
     // Pass events to current panel

@@ -1,4 +1,5 @@
 #include "UI/components/Admin/RoomPanel.h"
+#include "UI/components/Admin/FontManager.h"
 #include "UI/components/Admin/UITheme.h"
 #include "UI/components/Admin/RoundedRectRenderer.h"
 #include "utils/FileUtils.h"
@@ -41,15 +42,10 @@ static wstring toUpperVi(const wstring& s) {
 
 RoomPanel::RoomPanel(Font& fontRef, float w, float h)
     : font(fontRef),
+      boldFont(FontManager::instance().bold()),
       width(w), height(h), position(280.f, 0.f),
       zoomFactor(1.0f)
 {
-    if (!boldFont.openFromFile("assets/fonts/segoeuib.ttf") &&
-        !boldFont.openFromFile("../assets/fonts/segoeuib.ttf") &&
-        !boldFont.openFromFile("assets/fonts/Montserrat_SemiBold.ttf") &&
-        !boldFont.openFromFile("../assets/fonts/Montserrat_SemiBold.ttf")) {
-        boldFont.openFromFile("C:/Windows/Fonts/segoeuib.ttf");
-    }
 
     if (!logoTex.loadFromFile("assets/elements/cinexine_icon.png") &&
         !logoTex.loadFromFile("../assets/elements/cinexine_icon.png") &&
@@ -219,7 +215,7 @@ void RoomPanel::drawSeat(RenderWindow& win, float x, float y, float w, float h, 
             textColor = Color::White;
             break;
         case SeatType::MAINTENANCE:
-            bodyColor = Color(239, 68, 68);         // Red alert
+            bodyColor = Color(220, 38, 38);         // Red alert
             cushionColor = Color(185, 28, 28);
             textColor = Color::White;
             break;
@@ -236,7 +232,7 @@ void RoomPanel::drawSeat(RenderWindow& win, float x, float y, float w, float h, 
     }
 
     // 1. Lưng ghế bo tròn phía trên
-    RoundedRectRenderer::draw(win, {x, y}, {w, h * 0.72f}, 6.f, bodyColor, hovered ? 1.5f : 0.f, Color(2, 132, 199));
+    RoundedRectRenderer::draw(win, {x, y}, {w, h * 0.72f}, 6.f, bodyColor, hovered ? 1.5f : 0.f, Color(8, 125, 181));
 
     // 2. Đệm ngồi bên dưới
     float cushionH = h * 0.20f;
@@ -598,7 +594,7 @@ void RoomPanel::render(RenderWindow& win) {
     }
 
     Text title(boldFont, L"Qu\u1ea3n l\u00fd ph\u00f2ng chi\u1ebfu", 22);
-    title.setFillColor(Color(15, 23, 42));
+    title.setFillColor(Color(23, 32, 51));
     title.setPosition({position.x + 115.f, position.y + 70.f});
     win.draw(title);
 
@@ -652,7 +648,7 @@ void RoomPanel::render(RenderWindow& win) {
     win.draw(refTxt);
 
     // Nút 2: + Thêm phòng chiếu
-    drawRoundedCard(win, {position.x + width - 350.f, btnY}, {170.f, 38.f}, 8.f, Color(2, 132, 199));
+    drawRoundedCard(win, {position.x + width - 350.f, btnY}, {170.f, 38.f}, 8.f, Color(8, 125, 181));
     Text addTxt(boldFont, L"+ Th\u00eam ph\u00f2ng chi\u1ebfu", 13);
     addTxt.setFillColor(Color::White);
     FloatRect addb = addTxt.getLocalBounds();
@@ -678,7 +674,7 @@ void RoomPanel::render(RenderWindow& win) {
     // ==========================================
     drawRoundedCard(win, {position.x + 30.f, position.y + 156.f}, {280.f, 36.f}, 8.f, Color::White, 1.f, Color(226, 232, 240));
     Text secHeadTxt(boldFont, L"C\u1ea5u h\u00ecnh & S\u01a1 \u0111\u1ed3 gh\u1ebf tr\u1ef1c quan", 13);
-    secHeadTxt.setFillColor(Color(2, 132, 199));
+    secHeadTxt.setFillColor(Color(8, 125, 181));
     FloatRect shb = secHeadTxt.getLocalBounds();
     secHeadTxt.setPosition({
         position.x + 30.f + (280.f - shb.size.x) / 2.f - shb.position.x,
@@ -696,7 +692,7 @@ void RoomPanel::render(RenderWindow& win) {
 
     // Tiêu đề form & Badge "BÌNH THƯỜNG" (cân đối, sắc nét)
     Text formTitle(boldFont, L"Th\u00f4ng tin ph\u00f2ng chi\u1ebfu", 14);
-    formTitle.setFillColor(Color(15, 23, 42));
+    formTitle.setFillColor(Color(23, 32, 51));
     formTitle.setPosition({position.x + 50.f, cardY + 20.f});
     win.draw(formTitle);
 
@@ -720,40 +716,40 @@ void RoomPanel::render(RenderWindow& win) {
     wstring currRoomLabel = (selectedRoomIndex >= 0 && selectedRoomIndex < (int)rooms.size())
         ? rooms[selectedRoomIndex].name + L" (" + rooms[selectedRoomIndex].roomType + L")"
         : L"Ch\u1ecdn ph\u00f2ng...";
-    Text currRoomTxt(font, currRoomLabel, 13); currRoomTxt.setFillColor(Color(15, 23, 42)); currRoomTxt.setPosition({position.x + 62.f, cardY + 89.f}); win.draw(currRoomTxt);
+    Text currRoomTxt(font, currRoomLabel, 13); currRoomTxt.setFillColor(Color(23, 32, 51)); currRoomTxt.setPosition({position.x + 62.f, cardY + 89.f}); win.draw(currRoomTxt);
     Text arr1(boldFont, L"\u25bc", 13); arr1.setFillColor(Color(100, 116, 139)); arr1.setPosition({position.x + leftCardW - 15.f, cardY + 91.f}); win.draw(arr1);
 
     // 2. Tên phòng chiếu
     Text lbl2(boldFont, L"T\u00ean ph\u00f2ng chi\u1ebfu:", 13); lbl2.setFillColor(Color(51, 65, 85)); lbl2.setPosition({position.x + 50.f, cardY + 130.f}); win.draw(lbl2);
-    drawRoundedCard(win, {position.x + 50.f, cardY + 152.f}, {leftCardW - 40.f, 38.f}, 8.f, Color(248, 250, 252), (activeInputBox == 0) ? 1.5f : 1.f, (activeInputBox == 0) ? Color(2, 132, 199) : Color(203, 213, 225));
-    Text nameInputTxt(boldFont, inputRoomName + ((activeInputBox == 0) ? L"|" : L""), 13); nameInputTxt.setFillColor(Color(15, 23, 42)); nameInputTxt.setPosition({position.x + 62.f, cardY + 161.f}); win.draw(nameInputTxt);
+    drawRoundedCard(win, {position.x + 50.f, cardY + 152.f}, {leftCardW - 40.f, 38.f}, 8.f, Color(248, 250, 252), (activeInputBox == 0) ? 1.5f : 1.f, (activeInputBox == 0) ? Color(8, 125, 181) : Color(203, 213, 225));
+    Text nameInputTxt(boldFont, inputRoomName + ((activeInputBox == 0) ? L"|" : L""), 13); nameInputTxt.setFillColor(Color(23, 32, 51)); nameInputTxt.setPosition({position.x + 62.f, cardY + 161.f}); win.draw(nameInputTxt);
 
     // 3. Số lượng hàng & cột ghế
     Text lbl3(boldFont, L"S\u1ed1 l\u01b0\u1ee3ng h\u00e0ng gh\u1ebf:", 13); lbl3.setFillColor(Color(51, 65, 85)); lbl3.setPosition({position.x + 50.f, cardY + 202.f}); win.draw(lbl3);
-    drawRoundedCard(win, {position.x + 50.f, cardY + 224.f}, {155.f, 38.f}, 8.f, Color(248, 250, 252), (activeInputBox == 1) ? 1.5f : 1.f, (activeInputBox == 1) ? Color(2, 132, 199) : Color(203, 213, 225));
-    Text rowsTxt(boldFont, s2ws(inputRows) + ((activeInputBox == 1) ? L"|" : L""), 13); rowsTxt.setFillColor(Color(15, 23, 42)); rowsTxt.setPosition({position.x + 62.f, cardY + 233.f}); win.draw(rowsTxt);
+    drawRoundedCard(win, {position.x + 50.f, cardY + 224.f}, {155.f, 38.f}, 8.f, Color(248, 250, 252), (activeInputBox == 1) ? 1.5f : 1.f, (activeInputBox == 1) ? Color(8, 125, 181) : Color(203, 213, 225));
+    Text rowsTxt(boldFont, s2ws(inputRows) + ((activeInputBox == 1) ? L"|" : L""), 13); rowsTxt.setFillColor(Color(23, 32, 51)); rowsTxt.setPosition({position.x + 62.f, cardY + 233.f}); win.draw(rowsTxt);
 
     Text lbl4(boldFont, L"S\u1ed1 l\u01b0\u1ee3ng c\u1ed9t gh\u1ebf:", 13); lbl4.setFillColor(Color(51, 65, 85)); lbl4.setPosition({position.x + 225.f, cardY + 202.f}); win.draw(lbl4);
-    drawRoundedCard(win, {position.x + 225.f, cardY + 224.f}, {155.f, 38.f}, 8.f, Color(248, 250, 252), (activeInputBox == 2) ? 1.5f : 1.f, (activeInputBox == 2) ? Color(2, 132, 199) : Color(203, 213, 225));
-    Text colsTxt(boldFont, s2ws(inputCols) + ((activeInputBox == 2) ? L"|" : L""), 13); colsTxt.setFillColor(Color(15, 23, 42)); colsTxt.setPosition({position.x + 237.f, cardY + 233.f}); win.draw(colsTxt);
+    drawRoundedCard(win, {position.x + 225.f, cardY + 224.f}, {155.f, 38.f}, 8.f, Color(248, 250, 252), (activeInputBox == 2) ? 1.5f : 1.f, (activeInputBox == 2) ? Color(8, 125, 181) : Color(203, 213, 225));
+    Text colsTxt(boldFont, s2ws(inputCols) + ((activeInputBox == 2) ? L"|" : L""), 13); colsTxt.setFillColor(Color(23, 32, 51)); colsTxt.setPosition({position.x + 237.f, cardY + 233.f}); win.draw(colsTxt);
 
     // 4. Trạng thái phòng chiếu
     Text lbl5(boldFont, L"Tr\u1ea1ng th\u00e1i ph\u00f2ng chi\u1ebfu:", 13); lbl5.setFillColor(Color(51, 65, 85)); lbl5.setPosition({position.x + 50.f, cardY + 274.f}); win.draw(lbl5);
-    drawRoundedCard(win, {position.x + 50.f, cardY + 296.f}, {leftCardW - 40.f, 38.f}, 8.f, Color(248, 250, 252), statusDropdownOpen ? 1.5f : 1.f, statusDropdownOpen ? Color(2, 132, 199) : Color(203, 213, 225));
-    Text stTxt(boldFont, inputStatus.empty() ? L"B\u00ecnh th\u01b0\u1eddng (\u0110ang \u0111\u00f3n kh\u00e1ch)" : inputStatus, 13); stTxt.setFillColor(statusDropdownOpen ? Color(2, 132, 199) : Color(15, 23, 42)); stTxt.setPosition({position.x + 62.f, cardY + 305.f}); win.draw(stTxt);
-    Text arr2(boldFont, L"\u25bc", 13); arr2.setFillColor(statusDropdownOpen ? Color(2, 132, 199) : Color(100, 116, 139)); arr2.setPosition({position.x + leftCardW - 15.f, cardY + 307.f}); win.draw(arr2);
+    drawRoundedCard(win, {position.x + 50.f, cardY + 296.f}, {leftCardW - 40.f, 38.f}, 8.f, Color(248, 250, 252), statusDropdownOpen ? 1.5f : 1.f, statusDropdownOpen ? Color(8, 125, 181) : Color(203, 213, 225));
+    Text stTxt(boldFont, inputStatus.empty() ? L"B\u00ecnh th\u01b0\u1eddng (\u0110ang \u0111\u00f3n kh\u00e1ch)" : inputStatus, 13); stTxt.setFillColor(statusDropdownOpen ? Color(8, 125, 181) : Color(23, 32, 51)); stTxt.setPosition({position.x + 62.f, cardY + 305.f}); win.draw(stTxt);
+    Text arr2(boldFont, L"\u25bc", 13); arr2.setFillColor(statusDropdownOpen ? Color(8, 125, 181) : Color(100, 116, 139)); arr2.setPosition({position.x + leftCardW - 15.f, cardY + 307.f}); win.draw(arr2);
 
     // 5. Chọn loại ghế để gán / chỉnh sửa
     Text lbl6(boldFont, L"Ch\u1ecdn lo\u1ea1i gh\u1ebf \u0111\u1ec3 g\u00e1n / ch\u1ec9nh s\u1eeda:", 13); lbl6.setFillColor(Color(51, 65, 85)); lbl6.setPosition({position.x + 50.f, cardY + 346.f}); win.draw(lbl6);
-    drawRoundedCard(win, {position.x + 50.f, cardY + 368.f}, {leftCardW - 40.f, 38.f}, 8.f, Color(248, 250, 252), 1.2f, Color(2, 132, 199));
+    drawRoundedCard(win, {position.x + 50.f, cardY + 368.f}, {leftCardW - 40.f, 38.f}, 8.f, Color(248, 250, 252), 1.2f, Color(8, 125, 181));
 
     wstring seatLabel = L"Gh\u1ebf VIP (M\u00e0u V\u00e0ng / Cao c\u1ea5p)";
     if (currentAssignType == SeatType::STANDARD) seatLabel = L"Gh\u1ebf Th\u01b0\u1eddng (M\u00e0u Xanh Nh\u1ea1t)";
     else if (currentAssignType == SeatType::SWEETBOX) seatLabel = L"Gh\u1ebf \u0110\u00f4i Sweetbox (M\u00e0u Xanh \u0110\u1eadm)";
     else if (currentAssignType == SeatType::MAINTENANCE) seatLabel = L"Gh\u1ebf b\u1ea3o tr\u00ec (T\u1ea1m ng\u1eebng)";
 
-    Text seatTypeTxt(boldFont, seatLabel, 13); seatTypeTxt.setFillColor(Color(2, 132, 199)); seatTypeTxt.setPosition({position.x + 62.f, cardY + 377.f}); win.draw(seatTypeTxt);
-    Text arr3(boldFont, L"\u25bc", 13); arr3.setFillColor(Color(2, 132, 199)); arr3.setPosition({position.x + leftCardW - 15.f, cardY + 379.f}); win.draw(arr3);
+    Text seatTypeTxt(boldFont, seatLabel, 13); seatTypeTxt.setFillColor(Color(8, 125, 181)); seatTypeTxt.setPosition({position.x + 62.f, cardY + 377.f}); win.draw(seatTypeTxt);
+    Text arr3(boldFont, L"\u25bc", 13); arr3.setFillColor(Color(8, 125, 181)); arr3.setPosition({position.x + leftCardW - 15.f, cardY + 379.f}); win.draw(arr3);
 
     // Mẹo hướng dẫn (chia thành 2 dòng gọn gàng, không bị tràn ra ngoài khung)
     Text hintTxt(font, L"* M\u1eb9o: Click tr\u1ef1c ti\u1ebfp v\u00e0o gh\u1ebf tr\u00ean s\u01a1 \u0111\u1ed3 b\u00ean ph\u1ea3i\n  \u0111\u1ec3 chuy\u1ec3n \u0111\u1ed5i lo\u1ea1i gh\u1ebf t\u1ee9c th\u00ec.", 13);
@@ -769,8 +765,8 @@ void RoomPanel::render(RenderWindow& win) {
     float statCardY = cardY + 452.f;
     drawRoundedCard(win, {position.x + 50.f, statCardY}, {leftCardW - 40.f, 105.f}, 10.f, Color(241, 245, 249));
 
-    Text stHead(boldFont, L"Th\u1ed1ng k\u00ea lo\u1ea1i gh\u1ebf", 13); stHead.setFillColor(Color(15, 23, 42)); stHead.setPosition({position.x + 64.f, statCardY + 12.f}); win.draw(stHead);
-    Text stTotal(boldFont, to_wstring(totalSeats) + L" gh\u1ebf", 13); stTotal.setFillColor(Color(2, 132, 199)); stTotal.setPosition({position.x + leftCardW - 35.f, statCardY + 12.f}); win.draw(stTotal);
+    Text stHead(boldFont, L"Th\u1ed1ng k\u00ea lo\u1ea1i gh\u1ebf", 13); stHead.setFillColor(Color(23, 32, 51)); stHead.setPosition({position.x + 64.f, statCardY + 12.f}); win.draw(stHead);
+    Text stTotal(boldFont, to_wstring(totalSeats) + L" gh\u1ebf", 13); stTotal.setFillColor(Color(8, 125, 181)); stTotal.setPosition({position.x + leftCardW - 35.f, statCardY + 12.f}); win.draw(stTotal);
 
     // Ghế Thường
     CircleShape c1(3.5f); c1.setFillColor(Color(148, 163, 184)); c1.setPosition({position.x + 64.f, statCardY + 38.f}); win.draw(c1);
@@ -793,7 +789,7 @@ void RoomPanel::render(RenderWindow& win) {
     float actBtnH = 40.f;
 
     // Nút LƯU
-    drawRoundedCard(win, {position.x + 50.f, actBtnY}, {actBtnW, actBtnH}, 8.f, Color(2, 132, 199));
+    drawRoundedCard(win, {position.x + 50.f, actBtnY}, {actBtnW, actBtnH}, 8.f, Color(8, 125, 181));
     Text svTxt(boldFont, L"L\u01afU", 13);
     svTxt.setFillColor(Color::White);
     FloatRect svb = svTxt.getLocalBounds();
@@ -827,7 +823,7 @@ void RoomPanel::render(RenderWindow& win) {
         : L"S\u01a0 \u0110\u1ed2 PH\u00d2NG CHI\u1ebeU";
 
     Text head1(boldFont, roomHead, 14);
-    head1.setFillColor(Color(15, 23, 42));
+    head1.setFillColor(Color(23, 32, 51));
     head1.setPosition({rightX + 24.f, cardY + 22.f});
     win.draw(head1);
 
@@ -841,7 +837,7 @@ void RoomPanel::render(RenderWindow& win) {
     drawRoundedCard(win, {rightX + rightW - 135.f, cardY + 18.f}, {115.f, 28.f}, 14.f, Color(241, 245, 249), 1.f, Color(226, 232, 240));
     Text zMinus(boldFont, L"-", 14); zMinus.setFillColor(Color(71, 85, 105)); zMinus.setPosition({rightX + rightW - 124.f, cardY + 20.f}); win.draw(zMinus);
     int zoomPercent = (int)(zoomFactor * 100.f + 0.5f);
-    Text zVal(boldFont, to_wstring(zoomPercent) + L"%", 13); zVal.setFillColor(Color(15, 23, 42)); zVal.setPosition({rightX + rightW - 95.f, cardY + 24.f}); win.draw(zVal);
+    Text zVal(boldFont, to_wstring(zoomPercent) + L"%", 13); zVal.setFillColor(Color(23, 32, 51)); zVal.setPosition({rightX + rightW - 95.f, cardY + 24.f}); win.draw(zVal);
     Text zPlus(boldFont, L"+", 14); zPlus.setFillColor(Color(71, 85, 105)); zPlus.setPosition({rightX + rightW - 40.f, cardY + 22.f}); win.draw(zPlus);
 
     // Khối MÀN HÌNH CHIẾU DẠNG CONG (Curved Cinema Screen)
@@ -949,7 +945,7 @@ void RoomPanel::render(RenderWindow& win) {
     // 1. Ghế Thường (100.000đ)
     drawRoundedCard(win, {rightX + 24.f, legY}, {legW - 10.f, 44.f}, 8.f, Color(241, 245, 249), 1.f, Color(226, 232, 240));
     drawSeat(win, rightX + 34.f, legY + 8.f, 22.f, 24.f, SeatType::STANDARD, "", false);
-    Text lg1T(boldFont, L"Gh\u1ebf Th\u01b0\u1eddng", 13); lg1T.setFillColor(Color(15, 23, 42)); lg1T.setPosition({rightX + 64.f, legY + 6.f}); win.draw(lg1T);
+    Text lg1T(boldFont, L"Gh\u1ebf Th\u01b0\u1eddng", 13); lg1T.setFillColor(Color(23, 32, 51)); lg1T.setPosition({rightX + 64.f, legY + 6.f}); win.draw(lg1T);
     Text lg1P(font, L"100.000\u0111", 13); lg1P.setFillColor(Color(100, 116, 139)); lg1P.setPosition({rightX + 64.f, legY + 22.f}); win.draw(lg1P);
 
     // 2. Ghế VIP Gold (140.000đ)
@@ -968,21 +964,21 @@ void RoomPanel::render(RenderWindow& win) {
     drawRoundedCard(win, {rightX + 24.f + legW * 3.f, legY}, {legW - 10.f, 44.f}, 8.f, Color(254, 242, 242), 1.f, Color(254, 202, 202));
     drawSeat(win, rightX + 34.f + legW * 3.f, legY + 8.f, 22.f, 24.f, SeatType::MAINTENANCE, "", false);
     Text lg4T(boldFont, L"Gh\u1ebf b\u1ea3o tr\u00ec", 13); lg4T.setFillColor(Color(185, 28, 28)); lg4T.setPosition({rightX + 64.f + legW * 3.f, legY + 6.f}); win.draw(lg4T);
-    Text lg4P(font, L"T\u1ea1m ng\u1eebng b\u00e1n", 13); lg4P.setFillColor(Color(239, 68, 68)); lg4P.setPosition({rightX + 64.f + legW * 3.f, legY + 22.f}); win.draw(lg4P);
+    Text lg4P(font, L"T\u1ea1m ng\u1eebng b\u00e1n", 13); lg4P.setFillColor(Color(220, 38, 38)); lg4P.setPosition({rightX + 64.f + legW * 3.f, legY + 22.f}); win.draw(lg4P);
 
     // ==========================================
     // 7. POPUP / DROPDOWN MENUS (Render trên cùng)
     // ==========================================
     if (roomDropdownOpen) {
         float ddY = cardY + 120.f;
-        drawRoundedCard(win, {position.x + 50.f, ddY}, {leftCardW - 40.f, (float)rooms.size() * 36.f}, 8.f, Color::White, 1.5f, Color(2, 132, 199));
+        drawRoundedCard(win, {position.x + 50.f, ddY}, {leftCardW - 40.f, (float)rooms.size() * 36.f}, 8.f, Color::White, 1.5f, Color(8, 125, 181));
         for (size_t i = 0; i < rooms.size(); ++i) {
             float iY = ddY + i * 36.f;
             if (i == (size_t)selectedRoomIndex) {
                 RoundedRectRenderer::draw(win, {position.x + 52.f, iY}, {leftCardW - 44.f, 35.f}, 4.f, Color(224, 242, 254));
             }
             Text rItm(boldFont, rooms[i].name + L" - " + rooms[i].roomType, 13);
-            rItm.setFillColor((i == (size_t)selectedRoomIndex) ? Color(2, 132, 199) : Color(15, 23, 42));
+            rItm.setFillColor((i == (size_t)selectedRoomIndex) ? Color(8, 125, 181) : Color(23, 32, 51));
             rItm.setPosition({position.x + 62.f, iY + 9.f});
             win.draw(rItm);
         }
@@ -990,7 +986,7 @@ void RoomPanel::render(RenderWindow& win) {
 
     if (statusDropdownOpen) {
         float ddY = cardY + 336.f;
-        drawRoundedCard(win, {position.x + 50.f, ddY}, {leftCardW - 40.f, 72.f}, 8.f, Color::White, 1.5f, Color(2, 132, 199));
+        drawRoundedCard(win, {position.x + 50.f, ddY}, {leftCardW - 40.f, 72.f}, 8.f, Color::White, 1.5f, Color(8, 125, 181));
         const wstring statusOpts[2] = {
             L"B\u00ecnh th\u01b0\u1eddng (\u0110ang \u0111\u00f3n kh\u00e1ch)",
             L"\u0110ang b\u1ea3o tr\u00ec k\u1ef9 thu\u1eadt"
@@ -1003,7 +999,7 @@ void RoomPanel::render(RenderWindow& win) {
                 RoundedRectRenderer::draw(win, {position.x + 52.f, iY}, {leftCardW - 44.f, 35.f}, 4.f, Color(224, 242, 254));
             }
             Text sItm(boldFont, statusOpts[i], 13);
-            sItm.setFillColor(sel ? Color(2, 132, 199) : Color(15, 23, 42));
+            sItm.setFillColor(sel ? Color(8, 125, 181) : Color(23, 32, 51));
             sItm.setPosition({position.x + 62.f, iY + 9.f});
             win.draw(sItm);
         }
@@ -1011,7 +1007,7 @@ void RoomPanel::render(RenderWindow& win) {
 
     if (seatTypeDropdownOpen) {
         float ddY = cardY + 408.f;
-        drawRoundedCard(win, {position.x + 50.f, ddY}, {leftCardW - 40.f, 144.f}, 8.f, Color::White, 1.5f, Color(2, 132, 199));
+        drawRoundedCard(win, {position.x + 50.f, ddY}, {leftCardW - 40.f, 144.f}, 8.f, Color::White, 1.5f, Color(8, 125, 181));
         wstring typeNames[4] = {
             L"Gh\u1ebf Th\u01b0\u1eddng (M\u00e0u Xanh Nh\u1ea1t)",
             L"Gh\u1ebf VIP (M\u00e0u V\u00e0ng / Cao c\u1ea5p)",
@@ -1025,7 +1021,7 @@ void RoomPanel::render(RenderWindow& win) {
                 RoundedRectRenderer::draw(win, {position.x + 52.f, iY}, {leftCardW - 44.f, 35.f}, 4.f, Color(224, 242, 254));
             }
             Text tItm(boldFont, typeNames[i], 13);
-            tItm.setFillColor((types[i] == currentAssignType) ? Color(2, 132, 199) : Color(15, 23, 42));
+            tItm.setFillColor((types[i] == currentAssignType) ? Color(8, 125, 181) : Color(23, 32, 51));
             tItm.setPosition({position.x + 62.f, iY + 9.f});
             win.draw(tItm);
         }
@@ -1042,7 +1038,7 @@ void RoomPanel::render(RenderWindow& win) {
             float notH = 44.f;
             float notX = position.x + (width - notW) / 2.f;
             float notY = position.y + 75.f; // Nằm ở giữa trên cao, cực kỳ rõ ràng và dễ thấy
-            drawRoundedCard(win, {notX, notY}, {notW, notH}, 8.f, Color(15, 23, 42, 245), 1.5f, Color(2, 132, 199));
+            drawRoundedCard(win, {notX, notY}, {notW, notH}, 8.f, Color(15, 23, 42, 245), 1.5f, Color(8, 125, 181));
             Text notText(boldFont, s2ws(notificationMessage), 13);
             notText.setFillColor(Color::White);
             FloatRect ntb = notText.getLocalBounds();

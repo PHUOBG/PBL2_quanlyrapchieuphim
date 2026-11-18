@@ -10,7 +10,7 @@ StatCard::StatCard(sf::Font& fontRef, const sf::Vector2f& size, const sf::Color&
     box.setOutlineColor(outlineColor);
 
     titleText.setFillColor(sf::Color(71, 85, 105));
-    valueText.setFillColor(sf::Color(15, 23, 42));
+    valueText.setFillColor(sf::Color(23, 32, 51));
     valueText.setStyle(sf::Text::Bold);
 }
 

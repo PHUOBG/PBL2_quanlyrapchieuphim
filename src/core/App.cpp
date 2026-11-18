@@ -1,4 +1,5 @@
 #include "core/App.h"
+#include "UI/components/Admin/FontManager.h"
 #include <SFML/Graphics.hpp>
 
 using namespace sf;
@@ -16,12 +17,8 @@ App::App()
 {
     window.setFramerateLimit(60);
 
-    if (!font.openFromFile("assets/fonts/segoeui.ttf") &&
-        !font.openFromFile("../assets/fonts/segoeui.ttf") &&
-        !font.openFromFile("assets/fonts/Montserrat.ttf") &&
-        !font.openFromFile("../assets/fonts/Montserrat.ttf")) {
-        font.openFromFile("C:/Windows/Fonts/segoeui.ttf");
-    }
+    FontManager::instance().init();
+    font = FontManager::instance().regular();
 
     if (!detail_font.openFromFile("assets/fonts/quicksand_medium.ttf") &&
         !detail_font.openFromFile("../assets/fonts/quicksand_medium.ttf")) {

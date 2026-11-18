@@ -1,4 +1,5 @@
 #include "UI/components/Admin/MoviePanel.h"
+#include "UI/components/Admin/FontManager.h"
 #include "UI/components/Admin/UITheme.h"
 #include "utils/FileUtils.h"
 #include <algorithm>
@@ -26,14 +27,9 @@ static string ws2s(const wstring& ws) {
 
 MoviePanel::MoviePanel(Font& fontRef, float w, float h)
     : font(fontRef),
+      boldFont(FontManager::instance().bold()),
       width(w), height(h), position(280.f, 0.f)
 {
-    if (!boldFont.openFromFile("assets/fonts/Montserrat_SemiBold.ttf") &&
-        !boldFont.openFromFile("../assets/fonts/Montserrat_SemiBold.ttf") &&
-        !boldFont.openFromFile("assets/fonts/segoeuib.ttf") &&
-        !boldFont.openFromFile("../assets/fonts/segoeuib.ttf")) {
-        boldFont.openFromFile("C:/Windows/Fonts/segoeuib.ttf");
-    }
     repository = make_unique<AdminMovieRepository>(FileUtils::resolveDataPath("data/movies.txt"));
     refreshData();
 }
@@ -261,7 +257,7 @@ void MoviePanel::closePopupModal() {
 
 void MoviePanel::saveMovie() {
     if (inputTitle.empty()) {
-        showToast(L"Vui lòng nhập tên phim!", Color(239, 68, 68));
+        showToast(L"Vui lòng nhập tên phim!", Color(220, 38, 38));
         return;
     }
 
@@ -652,7 +648,7 @@ void MoviePanel::handleEvent(const Event& event, const RenderWindow& window) {
                 if (selectedRow >= 0 && selectedRow < static_cast<int>(filteredIndices.size())) {
                     openDeleteModal(filteredIndices[selectedRow]);
                 } else {
-                    showToast(L"Vui lòng chọn 1 phim để xóa!", Color(239, 68, 68));
+                    showToast(L"Vui lòng chọn 1 phim để xóa!", Color(220, 38, 38));
                 }
                 return;
             }
@@ -909,9 +905,9 @@ void MoviePanel::render(RenderWindow& window) {
     const float toolY = 252.f;
 
     // Search Input
-    Color searchBorder = searchActive ? Color(2, 132, 199) : Color(203, 213, 225);
+    Color searchBorder = searchActive ? Color(8, 125, 181) : Color(203, 213, 225);
     RoundedRectRenderer::draw(window, {startX, toolY}, {360.f, 44.f}, 10.f, Color::White, searchActive ? 1.8f : 1.2f, searchBorder);
-    drawSearchIcon(window, {startX + 14.f, toolY + 14.f}, searchActive ? Color(2, 132, 199) : Color(100, 116, 139));
+    drawSearchIcon(window, {startX + 14.f, toolY + 14.f}, searchActive ? Color(8, 125, 181) : Color(100, 116, 139));
 
     if (searchQuery.empty()) {
         Text ph(boldFont, L"T\u00ecm t\u00ean phim...", 13);
@@ -920,19 +916,19 @@ void MoviePanel::render(RenderWindow& window) {
         window.draw(ph);
         if (searchActive && caretVisible) {
             RectangleShape caret({2.f, 20.f});
-            caret.setFillColor(Color(2, 132, 199));
+            caret.setFillColor(Color(8, 125, 181));
             caret.setPosition({startX + 38.f, toolY + 12.f});
             window.draw(caret);
         }
     } else {
         Text val(boldFont, searchQuery, 14);
-        val.setFillColor(Color(15, 23, 42));
+        val.setFillColor(Color(23, 32, 51));
         val.setPosition({startX + 38.f, toolY + 11.f});
         window.draw(val);
 
         if (searchActive && caretVisible) {
             RectangleShape caret({2.f, 20.f});
-            caret.setFillColor(Color(2, 132, 199));
+            caret.setFillColor(Color(8, 125, 181));
             caret.setPosition({startX + 40.f + val.getLocalBounds().size.x, toolY + 12.f});
             window.draw(caret);
         }
@@ -973,7 +969,7 @@ void MoviePanel::render(RenderWindow& window) {
     window.draw(editTxt);
 
     // Delete Button (Crimson)
-    Color delCol = btnDeleteHover ? Color(220, 38, 38) : Color(239, 68, 68);
+    Color delCol = btnDeleteHover ? Color(220, 38, 38) : Color(220, 38, 38);
     RoundedRectRenderer::draw(window, {startX + 941.f, toolY}, {125.f, 44.f}, 10.f, delCol);
     drawTrashIcon(window, {startX + 955.f, toolY + 15.f}, Color::White);
     Text delTxt(boldFont, L"X\u00f3a phim", 14);
@@ -982,7 +978,7 @@ void MoviePanel::render(RenderWindow& window) {
     window.draw(delTxt);
 
     // Add Button (Ocean Blue)
-    Color addCol = btnAddHover ? Color(3, 105, 161) : Color(0, 119, 182);
+    Color addCol = btnAddHover ? Color(18, 59, 93) : Color(8, 125, 181);
     RoundedRectRenderer::draw(window, {startX + 1079.f, toolY}, {165.f, 44.f}, 10.f, addCol);
     drawPlusIcon(window, {startX + 1095.f, toolY + 17.f}, Color::White);
     Text addTxt(boldFont, L"Th\u00eam phim m\u1edbi", 14);
@@ -992,10 +988,10 @@ void MoviePanel::render(RenderWindow& window) {
 
     // 6. DATA TABLE SUBHEADER
     const float subY = 318.f;
-    drawFunnelIcon(window, {startX + 2.f, subY + 3.f}, Color(2, 132, 199));
+    drawFunnelIcon(window, {startX + 2.f, subY + 3.f}, Color(8, 125, 181));
 
     Text subTitle(boldFont, L"DANH S\u00c1CH PHIM CHI\u1ebeU R\u1ea0P", 13);
-    subTitle.setFillColor(Color(15, 23, 42));
+    subTitle.setFillColor(Color(23, 32, 51));
     subTitle.setPosition({startX + 20.f, subY + 2.f});
     window.draw(subTitle);
 
@@ -1013,7 +1009,7 @@ void MoviePanel::render(RenderWindow& window) {
     const float tblW = 1244.f;
     const float hdrH = 48.f;
 
-    RoundedRectRenderer::draw(window, {startX, tblY}, {tblW, hdrH}, 8.f, Color(0, 119, 182));
+    RoundedRectRenderer::draw(window, {startX, tblY}, {tblW, hdrH}, 8.f, Color(8, 125, 181));
 
     // Column headers
     vector<pair<wstring, float>> cols = {
@@ -1068,16 +1064,16 @@ void MoviePanel::render(RenderWindow& window) {
         window.draw(rLine);
 
         // Checkbox column
-        Color cbBorder = isSelected ? Color(2, 132, 199) : Color(203, 213, 225);
+        Color cbBorder = isSelected ? Color(8, 125, 181) : Color(203, 213, 225);
         RoundedRectRenderer::draw(window, {startX + 14.f, rY + 30.f}, {20.f, 20.f}, 4.f, Color::White, 1.2f, cbBorder);
         if (isSelected) {
-            drawCheckmark(window, {startX + 18.f, rY + 38.f}, Color(2, 132, 199));
+            drawCheckmark(window, {startX + 18.f, rY + 38.f}, Color(8, 125, 181));
         }
 
         // Col 1: ID Phim (e.g. #PBL-001)
         string idStr = (row.size() > 0) ? row[0] : "";
         Text idText(boldFont, s2ws(idStr), 13);
-        idText.setFillColor(Color(2, 132, 199));
+        idText.setFillColor(Color(8, 125, 181));
         idText.setPosition({startX + 50.f, rY + 31.f});
         window.draw(idText);
 
@@ -1182,7 +1178,7 @@ void MoviePanel::render(RenderWindow& window) {
         string code = "VN ";
         if (ctry.find("Mỹ") != string::npos) {
             ctryBg = Color(224, 242, 254);
-            ctryText = Color(2, 132, 199);
+            ctryText = Color(8, 125, 181);
             code = "US ";
         } else if (ctry.find("Hàn") != string::npos) {
             ctryBg = Color(243, 232, 255);
@@ -1292,8 +1288,8 @@ void MoviePanel::render(RenderWindow& window) {
     // Các nút số trang 1, 2, 3, ...
     for (int p = startP; p <= endP; ++p) {
         bool isAct = (p == currentPage);
-        Color pBg = isAct ? Color(0, 119, 182) : Color::White;
-        Color pBorder = isAct ? Color(0, 119, 182) : Color(226, 232, 240);
+        Color pBg = isAct ? Color(8, 125, 181) : Color::White;
+        Color pBorder = isAct ? Color(8, 125, 181) : Color(226, 232, 240);
         Color pFg = isAct ? Color::White : Color(51, 65, 85);
 
         RoundedRectRenderer::draw(window, {curBtnX, pagY}, {btnPageW, 34.f}, 6.f, pBg, 1.2f, pBorder);
@@ -1322,7 +1318,7 @@ void MoviePanel::render(RenderWindow& window) {
             Color itemBg = (static_cast<int>(g) == hoveredGenreIndex) ? Color(241, 245, 249) : Color::White;
             RoundedRectRenderer::draw(window, {startX + 376.f, toolY + 47.f + g * 36.f}, {158.f, 34.f}, 4.f, itemBg);
             Text it(boldFont, s2ws(genres[g]), 13);
-            it.setFillColor(Color(15, 23, 42));
+            it.setFillColor(Color(23, 32, 51));
             it.setPosition({startX + 386.f, toolY + 55.f + g * 36.f});
             window.draw(it);
         }
@@ -1335,7 +1331,7 @@ void MoviePanel::render(RenderWindow& window) {
             Color itemBg = (static_cast<int>(s) == hoveredStatusIndex) ? Color(241, 245, 249) : Color::White;
             RoundedRectRenderer::draw(window, {startX + 551.f, toolY + 47.f + s * 36.f}, {158.f, 34.f}, 4.f, itemBg);
             Text it(boldFont, s2ws(statuses[s]), 13);
-            it.setFillColor(Color(15, 23, 42));
+            it.setFillColor(Color(23, 32, 51));
             it.setPosition({startX + 561.f, toolY + 55.f + s * 36.f});
             window.draw(it);
         }
@@ -1356,7 +1352,7 @@ void MoviePanel::render(RenderWindow& window) {
 
         if (currentPopup == DELETE_CONFIRM) {
             Text pTitle(boldFont, L"X\u00c1C NH\u1eacN X\u00d3A PHIM", 22);
-            pTitle.setFillColor(Color(239, 68, 68));
+            pTitle.setFillColor(Color(220, 38, 38));
             pTitle.setPosition({popupX + 40.f, popupY + 35.f});
             window.draw(pTitle);
 
@@ -1373,7 +1369,7 @@ void MoviePanel::render(RenderWindow& window) {
             cTxt.setPosition({popupX + 155.f, popupY + 172.f});
             window.draw(cTxt);
 
-            Color okBg = btnDeleteOkHover ? Color(220, 38, 38) : Color(239, 68, 68);
+            Color okBg = btnDeleteOkHover ? Color(220, 38, 38) : Color(220, 38, 38);
             RoundedRectRenderer::draw(window, {popupX + 360.f, popupY + 160.f}, {280.f, 44.f}, 8.f, okBg);
             Text okTxt(boldFont, L"\u0110\u1ed3ng \u00fd x\u00f3a", 13);
             okTxt.setFillColor(Color::White);
@@ -1382,7 +1378,7 @@ void MoviePanel::render(RenderWindow& window) {
         } else {
             wstring mTitle = (currentPopup == ADD) ? L"TH\u00caM PHIM M\u1edaI" : L"CH\u1ec8NH S\u1eecA TH\u00d4NG TIN PHIM";
             Text pTitle(boldFont, mTitle, 22);
-            pTitle.setFillColor(Color(15, 23, 42));
+            pTitle.setFillColor(Color(23, 32, 51));
             pTitle.setPosition({popupX + 40.f, popupY + 30.f});
             window.draw(pTitle);
 
@@ -1418,11 +1414,11 @@ void MoviePanel::render(RenderWindow& window) {
                 lbl1.setPosition({leftX, startY + i * gapY});
                 window.draw(lbl1);
 
-                Color b1 = lAct ? Color(2, 132, 199) : Color(203, 213, 225);
+                Color b1 = lAct ? Color(8, 125, 181) : Color(203, 213, 225);
                 RoundedRectRenderer::draw(window, {leftX, startY + i * gapY + 20.f}, {280.f, 40.f}, 8.f,
                                           lAct ? Color::White : Color(248, 250, 252), lAct ? 1.8f : 1.2f, b1);
                 Text v1(boldFont, *leftFields[i].val + (lAct ? L"|" : L""), 13);
-                v1.setFillColor(Color(15, 23, 42));
+                v1.setFillColor(Color(23, 32, 51));
                 v1.setPosition({leftX + 10.f, startY + i * gapY + 29.f});
                 window.draw(v1);
 
@@ -1433,11 +1429,11 @@ void MoviePanel::render(RenderWindow& window) {
                 lbl2.setPosition({rightX, startY + i * gapY});
                 window.draw(lbl2);
 
-                Color b2 = rAct ? Color(2, 132, 199) : Color(203, 213, 225);
+                Color b2 = rAct ? Color(8, 125, 181) : Color(203, 213, 225);
                 RoundedRectRenderer::draw(window, {rightX, startY + i * gapY + 20.f}, {280.f, 40.f}, 8.f,
                                           rAct ? Color::White : Color(248, 250, 252), rAct ? 1.8f : 1.2f, b2);
                 Text v2(boldFont, *rightFields[i].val + (rAct ? L"|" : L""), 13);
-                v2.setFillColor(Color(15, 23, 42));
+                v2.setFillColor(Color(23, 32, 51));
                 v2.setPosition({rightX + 10.f, startY + i * gapY + 29.f});
                 window.draw(v2);
             }
@@ -1450,7 +1446,7 @@ void MoviePanel::render(RenderWindow& window) {
             cTxt.setPosition({leftX + 120.f, popupY + 460.f});
             window.draw(cTxt);
 
-            Color sBg = btnPopupSaveHover ? Color(3, 105, 161) : Color(0, 119, 182);
+            Color sBg = btnPopupSaveHover ? Color(18, 59, 93) : Color(8, 125, 181);
             RoundedRectRenderer::draw(window, {rightX, popupY + 450.f}, {280.f, 44.f}, 8.f, sBg);
             Text sTxt(boldFont, L"L\u01b0u th\u00f4ng tin", 14);
             sTxt.setFillColor(Color::White);

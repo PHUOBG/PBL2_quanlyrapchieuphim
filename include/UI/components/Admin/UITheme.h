@@ -6,6 +6,7 @@
 #include <cmath>
 #include <algorithm>
 #include "UI/components/Admin/RoundedRectRenderer.h"
+#include "UI/components/Admin/FontManager.h"
 
 namespace UITheme {
     using namespace sf;
@@ -14,18 +15,18 @@ namespace UITheme {
     // ==========================================
     // 1. TYPOGRAPHY TOKENS (Font Sizes & Weights)
     // ==========================================
-    inline constexpr unsigned int PageTitleSize    = 22; // Tier 1: Page titles & KPI values
-    inline constexpr unsigned int SectionTitleSize = 14; // Tier 2: Section/Card titles
-    inline constexpr unsigned int CardTitleSize    = 14; // Tier 2: Card titles
-    inline constexpr unsigned int BodySize         = 14; // Tier 2: Primary body text
-    inline constexpr unsigned int TableHeaderSize  = 13; // Tier 3: Table headers & labels
-    inline constexpr unsigned int TableBodySize    = 14; // Tier 2: Table rows
-    inline constexpr unsigned int FormLabelSize    = 13; // Tier 3: Form labels
-    inline constexpr unsigned int ButtonTextSize   = 13; // Tier 3: Button text
-    inline constexpr unsigned int BreadcrumbSize   = 13; // Tier 3: Breadcrumbs
-    inline constexpr unsigned int HelperTextSize   = 13; // Tier 3: Helper & secondary text
-    inline constexpr unsigned int SmallBadgeSize   = 13; // Tier 3: Badges & pills
-    inline constexpr unsigned int KpiValueSize     = 22; // Tier 1: KPI values
+    inline constexpr unsigned int PageTitleSize    = 24;
+    inline constexpr unsigned int SectionTitleSize = 18;
+    inline constexpr unsigned int CardTitleSize    = 14;
+    inline constexpr unsigned int BodySize         = 14;
+    inline constexpr unsigned int TableHeaderSize  = 12;
+    inline constexpr unsigned int TableBodySize    = 13;
+    inline constexpr unsigned int FormLabelSize    = 12;
+    inline constexpr unsigned int ButtonTextSize   = 13;
+    inline constexpr unsigned int BreadcrumbSize   = 12;
+    inline constexpr unsigned int HelperTextSize   = 12;
+    inline constexpr unsigned int SmallBadgeSize   = 12;
+    inline constexpr unsigned int KpiValueSize     = 24;
 
     // ==========================================
     // 2. SPACING SCALE (Multiples of 4px)
@@ -42,9 +43,10 @@ namespace UITheme {
     // 3. COLOR PALETTE TOKENS
     // ==========================================
     // Primary Brand Blue (CinExiNe / CineCore)
-    inline const Color Primary         = Color(0, 119, 182);    // #0077B6
-    inline const Color PrimaryHover    = Color(2, 132, 199);    // #0284C7
-    inline const Color PrimaryActive   = Color(0, 95, 146);     // #005F92
+    inline const Color PrimaryNavy     = Color(18, 59, 93);     // #123B5D
+    inline const Color Primary         = Color(8, 125, 181);    // #087DB5
+    inline const Color PrimaryHover    = Color(6, 103, 150);    // #066796
+    inline const Color PrimaryActive   = Color(18, 59, 93);     // #123B5D
     inline const Color PrimaryLight    = Color(239, 246, 255);  // #EFF6FF
     inline const Color PrimaryBorder   = Color(186, 230, 253);  // #BAE6FD
 
@@ -56,30 +58,30 @@ namespace UITheme {
     inline const Color SurfaceSubtle   = Color(241, 245, 249);  // #F1F5F9 Badge / Input bg
 
     // Typography Colors
-    inline const Color TextPrimary     = Color(15, 23, 42);     // #0F172A Deep Charcoal/Navy
-    inline const Color TextSecondary   = Color(100, 116, 139);  // #64748B Muted Slate
-    inline const Color TextTertiary    = Color(148, 163, 184);  // #94A3B8 Dim Slate
+    inline const Color TextPrimary     = Color(23, 32, 51);     // #172033
+    inline const Color TextSecondary   = Color(100, 116, 139);  // #64748B
+    inline const Color TextTertiary    = Color(148, 163, 184);  // #94A3B8
     inline const Color TextWhite       = Color(255, 255, 255);  // #FFFFFF
 
     // Borders & Dividers
-    inline const Color BorderLight     = Color(226, 232, 240);  // #E2E8F0 Card borders
-    inline const Color BorderMedium    = Color(203, 213, 225);  // #CBD5E1 Inputs & pills
+    inline const Color BorderLight     = Color(226, 232, 240);  // #E2E8F0
+    inline const Color BorderMedium    = Color(203, 213, 225);  // #CBD5E1
 
     // Semantic Colors
-    inline const Color Success         = Color(16, 185, 129);   // #10B981
+    inline const Color Success         = Color(21, 128, 61);    // #15803D
     inline const Color SuccessDark     = Color(21, 128, 61);    // #15803D
     inline const Color SuccessLight    = Color(220, 252, 231);  // #DCFCE7
 
-    inline const Color Warning         = Color(245, 158, 11);   // #F59E0B
+    inline const Color Warning         = Color(217, 119, 6);    // #D97706
     inline const Color WarningDark     = Color(180, 83, 9);     // #B45309
     inline const Color WarningLight    = Color(254, 243, 199);  // #FEF3C7
 
-    inline const Color Danger          = Color(239, 68, 68);    // #EF4444
+    inline const Color Danger          = Color(220, 38, 38);    // #DC2626
     inline const Color DangerDark      = Color(185, 28, 28);    // #B91C1C
     inline const Color DangerLight     = Color(254, 226, 226);  // #FEE2E2
 
-    inline const Color Info            = Color(2, 132, 199);    // #0284C7
-    inline const Color InfoDark        = Color(3, 105, 161);    // #0369A1
+    inline const Color Info            = Color(8, 125, 181);    // #087DB5
+    inline const Color InfoDark        = Color(18, 59, 93);     // #123B5D
     inline const Color InfoLight       = Color(224, 242, 254);  // #E0F2FE
 
     // ==========================================
@@ -217,16 +219,9 @@ namespace UITheme {
     inline void drawPageHeader(RenderTarget& target, float startX, float posY,
                                const wstring& title, const wstring& subtitle,
                                const Font& boldFont, const Font& font) {
-        Text heading(boldFont, title, PageTitleSize);
-        heading.setFillColor(TextPrimary);
-        heading.setPosition({startX, posY});
-        target.draw(heading);
-
+        FontManager::drawText(target, boldFont, title, PageTitleSize, TextPrimary, {startX, posY});
         if (!subtitle.empty()) {
-            Text sub(font, subtitle, HelperTextSize + 1);
-            sub.setFillColor(TextSecondary);
-            sub.setPosition({startX, posY + 36.f});
-            target.draw(sub);
+            FontManager::drawText(target, font, subtitle, BodySize, TextSecondary, {startX, posY + 34.f});
         }
     }
 
@@ -234,30 +229,57 @@ namespace UITheme {
     inline void drawKpiCard(RenderTarget& target, Vector2f pos, Vector2f size,
                             const wstring& title, const wstring& value, const wstring& subtext,
                             Color iconBg, Color iconColor, const Font& boldFont) {
-        // Card Body
-        RoundedRectRenderer::draw(target, pos, size, 12.f, Surface, 1.2f, BorderLight);
+        RoundedRectRenderer::draw(target, pos, size, 8.f, Surface, 1.f, BorderLight);
         (void)iconBg;
 
-        // Title (centered)
-        Text t(boldFont, title, TableHeaderSize);
-        t.setFillColor(TextSecondary);
-        FloatRect tb = t.getLocalBounds();
-        t.setPosition({pos.x + (size.x - tb.size.x) / 2.f - tb.position.x, pos.y + 14.f});
-        target.draw(t);
+        FontManager::drawCenteredText(target, boldFont, title, FormLabelSize, TextSecondary,
+                                      {pos, {size.x, 32.f}});
+        FontManager::drawCenteredText(target, boldFont, value, KpiValueSize, TextPrimary,
+                                      {{pos.x, pos.y + 30.f}, {size.x, 36.f}});
+        FontManager::drawCenteredText(target, boldFont, subtext, HelperTextSize, iconColor,
+                                      {{pos.x, pos.y + size.y - 32.f}, {size.x, 24.f}});
+    }
 
-        // Value (centered)
-        Text v(boldFont, value, KpiValueSize);
-        v.setFillColor(TextPrimary);
-        FloatRect vb = v.getLocalBounds();
-        v.setPosition({pos.x + (size.x - vb.size.x) / 2.f - vb.position.x, pos.y + 38.f});
-        target.draw(v);
+    inline void drawPrimaryButton(RenderTarget& target, FloatRect rect, const wstring& label,
+                                  const Font& boldFont, bool hovered = false, float radius = 6.f) {
+        RoundedRectRenderer::draw(target, rect.position, rect.size, radius,
+                                  hovered ? PrimaryHover : Primary);
+        FontManager::drawCenteredText(target, boldFont, label, ButtonTextSize, TextWhite, rect);
+    }
 
-        // Subtext / Badge (centered)
-        Text s(boldFont, subtext, HelperTextSize);
-        s.setFillColor(iconColor);
-        FloatRect sb = s.getLocalBounds();
-        s.setPosition({pos.x + (size.x - sb.size.x) / 2.f - sb.position.x, pos.y + size.y - 26.f});
-        target.draw(s);
+    inline void drawSecondaryButton(RenderTarget& target, FloatRect rect, const wstring& label,
+                                    const Font& boldFont, bool hovered = false, float radius = 6.f) {
+        RoundedRectRenderer::draw(target, rect.position, rect.size, radius,
+                                  hovered ? SurfaceHover : Surface, 1.f, BorderMedium);
+        FontManager::drawCenteredText(target, boldFont, label, ButtonTextSize, TextPrimary, rect);
+    }
+
+    inline void drawDangerButton(RenderTarget& target, FloatRect rect, const wstring& label,
+                                 const Font& boldFont, bool hovered = false, float radius = 6.f) {
+        RoundedRectRenderer::draw(target, rect.position, rect.size, radius,
+                                  hovered ? DangerDark : Danger);
+        FontManager::drawCenteredText(target, boldFont, label, ButtonTextSize, TextWhite, rect);
+    }
+
+    inline void drawStatusBadge(RenderTarget& target, FloatRect rect, const wstring& label,
+                                Color bg, Color fg, const Font& boldFont, float radius = 12.f) {
+        RoundedRectRenderer::draw(target, rect.position, rect.size, radius, bg);
+        FontManager::drawCenteredText(target, boldFont, label, SmallBadgeSize, fg, rect);
+    }
+
+    inline void drawEmptyState(RenderTarget& target, FloatRect area, const wstring& message,
+                               const Font& font) {
+        FontManager::drawCenteredText(target, font, message, BodySize, TextSecondary, area);
+    }
+
+    inline void drawToastNotification(RenderTarget& target, Vector2f panelPos, float panelW, float panelH,
+                                      const wstring& message, const Font& boldFont) {
+        Text measure(boldFont, message, ButtonTextSize);
+        float tw = measure.getLocalBounds().size.x + 40.f;
+        float th = 40.f;
+        Vector2f tPos(std::round(panelPos.x + (panelW - tw) / 2.f), std::round(panelPos.y + panelH - 76.f));
+        RoundedRectRenderer::draw(target, tPos, {tw, th}, 8.f, PrimaryNavy);
+        FontManager::drawCenteredText(target, boldFont, message, ButtonTextSize, TextWhite, {tPos, {tw, th}});
     }
 
     // ==========================================

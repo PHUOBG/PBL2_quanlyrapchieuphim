@@ -1,4 +1,5 @@
 #include "UI/components/Admin/AdminProfilePanel.h"
+#include "UI/components/Admin/FontManager.h"
 #include "UI/components/Admin/RoundedRectRenderer.h"
 #include "UI/components/Admin/UITheme.h"
 #include "utils/PasswordHasher.h"
@@ -21,7 +22,7 @@ static wstring s2ws(const string& s) {
 
 AdminProfilePanel::AdminProfilePanel(Font& fontRef, float w, float h, AuthService* auth)
     : font(fontRef),
-      boldFont("../assets/fonts/segoeuib.ttf"),
+      boldFont(FontManager::instance().bold()),
       width(w),
       height(h),
       position(280.f, 0.f),
@@ -340,7 +341,7 @@ void AdminProfilePanel::drawHeaderBanner(RenderTarget& target) const {
 
     // Large Square Avatar
     Vector2f avPos(cardX + 24.f, cardY + 21.f);
-    RoundedRectRenderer::draw(target, avPos, {80.f, 80.f}, 16.f, Color(0, 119, 182));
+    RoundedRectRenderer::draw(target, avPos, {80.f, 80.f}, 16.f, Color(8, 125, 181));
 
     // Letter 'A' in Avatar
     Text avText(boldFont);
@@ -355,7 +356,7 @@ void AdminProfilePanel::drawHeaderBanner(RenderTarget& target) const {
     Vector2f chkPos(avPos.x + 80.f - 18.f, avPos.y + 80.f - 18.f);
     CircleShape chkCircle(10.5f);
     chkCircle.setPosition(chkPos);
-    chkCircle.setFillColor(Color(16, 185, 129));
+    chkCircle.setFillColor(Color(21, 128, 61));
     chkCircle.setOutlineThickness(2.f);
     chkCircle.setOutlineColor(Color::White);
     target.draw(chkCircle);
@@ -366,27 +367,27 @@ void AdminProfilePanel::drawHeaderBanner(RenderTarget& target) const {
     Text title(boldFont);
     title.setString(L"HỒ SƠ CỦA ADMIN");
     title.setCharacterSize(22);
-    title.setFillColor(Color(15, 23, 42));
+    title.setFillColor(Color(23, 32, 51));
     title.setPosition({textX, cardY + 26.f});
     target.draw(title);
 
     float tW = title.getGlobalBounds().size.x;
     Vector2f bPos(textX + tW + 14.f, cardY + 28.f);
     RoundedRectRenderer::draw(target, bPos, {180.f, 26.f}, 13.f, Color(224, 242, 254), 1.f, Color(186, 230, 253));
-    UITheme::drawShieldIcon(target, {bPos.x + 15.f, bPos.y + 13.f}, 5.5f, Color(2, 132, 199));
+    UITheme::drawShieldIcon(target, {bPos.x + 15.f, bPos.y + 13.f}, 5.5f, Color(8, 125, 181));
     Text bTxt(boldFont, L"Quản trị viên cấp cao", 13.f);
-    bTxt.setFillColor(Color(2, 132, 199));
+    bTxt.setFillColor(Color(8, 125, 181));
     bTxt.setPosition({bPos.x + 25.f, bPos.y + 4.f});
     target.draw(bTxt);
 
     Vector2f stPos(bPos.x + 190.f, cardY + 28.f);
     RoundedRectRenderer::draw(target, stPos, {178.f, 26.f}, 13.f, Color(220, 252, 231), 1.f, Color(167, 243, 208));
     CircleShape stDot(3.2f);
-    stDot.setFillColor(Color(16, 185, 129));
+    stDot.setFillColor(Color(21, 128, 61));
     stDot.setPosition({stPos.x + 10.f, stPos.y + 10.f});
     target.draw(stDot);
     Text stTxt(boldFont, L"Đang hoạt động (Active)", 13.f);
-    stTxt.setFillColor(Color(5, 150, 105));
+    stTxt.setFillColor(Color(21, 128, 61));
     stTxt.setPosition({stPos.x + 20.f, stPos.y + 4.f});
     target.draw(stTxt);
 
@@ -435,11 +436,11 @@ void AdminProfilePanel::drawPersonalInfoCard(RenderTarget& target) const {
     // Header Icon (vector ID Card icon)
     Vector2f icPos(cardX + 24.f, cardY + 20.f);
     RoundedRectRenderer::draw(target, icPos, {34.f, 34.f}, 8.f, Color(224, 242, 254));
-    UITheme::drawIdCardIcon(target, {icPos.x + 17.f, icPos.y + 17.f}, Color(2, 132, 199));
+    UITheme::drawIdCardIcon(target, {icPos.x + 17.f, icPos.y + 17.f}, Color(8, 125, 181));
 
     // Title
     Text title(boldFont, L"THÔNG TIN CÁ NHÂN", 13.f);
-    title.setFillColor(Color(15, 23, 42));
+    title.setFillColor(Color(23, 32, 51));
     title.setPosition({cardX + 68.f, cardY + 18.f});
     target.draw(title);
 
@@ -472,22 +473,22 @@ void AdminProfilePanel::drawPersonalInfoCard(RenderTarget& target) const {
         if (required) {
             FloatRect lb = lbl.getLocalBounds();
             Text star(boldFont, L"*", 13.f);
-            star.setFillColor(Color(239, 68, 68));
+            star.setFillColor(Color(220, 38, 38));
             star.setPosition({x + lb.size.x + 3.f, y});
             target.draw(star);
         }
 
         if (hasVerifiedBadge) {
             float badgeStartX = x + inW - 100.f;
-            UITheme::drawCheckmark(target, {badgeStartX + 4.f, y + 7.f}, 0.72f, Color(5, 150, 105), 2.f);
+            UITheme::drawCheckmark(target, {badgeStartX + 4.f, y + 7.f}, 0.72f, Color(21, 128, 61), 2.f);
             Text vBadge(boldFont, L"Đã xác minh", 13.f);
-            vBadge.setFillColor(Color(5, 150, 105));
+            vBadge.setFillColor(Color(21, 128, 61));
             vBadge.setPosition({badgeStartX + 13.f, y});
             target.draw(vBadge);
         }
 
         Vector2f bPos(x, y + 20.f);
-        Color borderCol = isAct ? Color(2, 132, 199) : Color(226, 232, 240);
+        Color borderCol = isAct ? Color(8, 125, 181) : Color(226, 232, 240);
         RoundedRectRenderer::draw(target, bPos, {inW, inH}, 6.f, Color::White, 1.f, borderCol);
 
         Text vTxt(font, s2ws(val) + (isAct ? L"|" : L""), 13.f);
@@ -512,7 +513,7 @@ void AdminProfilePanel::drawPersonalInfoCard(RenderTarget& target) const {
     Vector2f notPos(cardX + 24.f, cardY + 306.f);
     RoundedRectRenderer::draw(target, notPos, {cardW - 48.f, 54.f}, 8.f, Color(248, 250, 252), 1.f, Color(226, 232, 240));
     CircleShape infoBg(8.5f, 16);
-    infoBg.setFillColor(Color(2, 132, 199));
+    infoBg.setFillColor(Color(8, 125, 181));
     infoBg.setPosition({notPos.x + 14.f, notPos.y + 18.f});
     target.draw(infoBg);
     Text notIc(boldFont, L"i", 13);
@@ -527,7 +528,7 @@ void AdminProfilePanel::drawPersonalInfoCard(RenderTarget& target) const {
 
     // Save Button: LƯU THÔNG TIN
     Vector2f savePos(cardX + 24.f, cardY + 386.f);
-    Color saveBg = saveInfoHovered ? Color(3, 105, 161) : Color(0, 119, 182);
+    Color saveBg = saveInfoHovered ? Color(18, 59, 93) : Color(8, 125, 181);
     RoundedRectRenderer::draw(target, savePos, {170.f, 42.f}, 8.f, saveBg);
     Text saveTxt(boldFont, L"LƯU THÔNG TIN", 13.f);
     saveTxt.setFillColor(Color::White);
@@ -553,7 +554,7 @@ void AdminProfilePanel::drawPasswordCard(RenderTarget& target) const {
 
     // Title
     Text title(boldFont, L"ĐỔI MẬT KHẨU", 13.f);
-    title.setFillColor(Color(15, 23, 42));
+    title.setFillColor(Color(23, 32, 51));
     title.setPosition({cardX + 68.f, cardY + 18.f});
     target.draw(title);
 
@@ -581,15 +582,15 @@ void AdminProfilePanel::drawPasswordCard(RenderTarget& target) const {
 
         FloatRect lb = l.getLocalBounds();
         Text star(boldFont, L"*", 13.f);
-        star.setFillColor(Color(239, 68, 68));
+        star.setFillColor(Color(220, 38, 38));
         star.setPosition({cardX + 24.f + lb.size.x + 3.f, y});
         target.draw(star);
 
         Vector2f bPos(cardX + 24.f, y + 20.f);
-        Color borderCol = isAct ? Color(2, 132, 199) : Color(226, 232, 240);
+        Color borderCol = isAct ? Color(8, 125, 181) : Color(226, 232, 240);
         RoundedRectRenderer::draw(target, bPos, {passW, passH}, 6.f, Color::White, 1.f, borderCol);
 
-        UITheme::drawLockIcon(target, {bPos.x + 18.f, bPos.y + 20.f}, isAct ? Color(2, 132, 199) : Color(148, 163, 184));
+        UITheme::drawLockIcon(target, {bPos.x + 18.f, bPos.y + 20.f}, isAct ? Color(8, 125, 181) : Color(148, 163, 184));
 
         wstring displayStr;
         if (val.empty()) {
@@ -601,12 +602,12 @@ void AdminProfilePanel::drawPasswordCard(RenderTarget& target) const {
         }
 
         Text vTxt((val.empty() && !isAct) ? font : boldFont, displayStr, 13.f);
-        vTxt.setFillColor((val.empty() && !isAct) ? Color(148, 163, 184) : Color(15, 23, 42));
+        vTxt.setFillColor((val.empty() && !isAct) ? Color(148, 163, 184) : Color(23, 32, 51));
         vTxt.setPosition({bPos.x + 36.f, bPos.y + 11.f});
         target.draw(vTxt);
 
         // Clean light-gray vector eye icon
-        Color eyeCol = showEye ? Color(2, 132, 199) : Color(148, 163, 184);
+        Color eyeCol = showEye ? Color(8, 125, 181) : Color(148, 163, 184);
         Vector2f ePos(bPos.x + passW - 28.f, bPos.y + 15.f);
         RoundedRectRenderer::draw(target, ePos, {15.f, 10.f}, 5.f, Color::Transparent, 1.3f, eyeCol);
         CircleShape pupil(2.2f, 12);
@@ -629,7 +630,7 @@ void AdminProfilePanel::drawPasswordCard(RenderTarget& target) const {
     target.draw(sLbl);
 
     Text sVal(boldFont, L"Rất mạnh", 13.f);
-    sVal.setFillColor(Color(16, 185, 129));
+    sVal.setFillColor(Color(21, 128, 61));
     sVal.setPosition({cardX + cardW - 24.f - sVal.getGlobalBounds().size.x, meterY});
     target.draw(sVal);
 
@@ -637,7 +638,7 @@ void AdminProfilePanel::drawPasswordCard(RenderTarget& target) const {
     float segW = (passW - 3 * barGap) / 4.f;
     for (int i = 0; i < 4; ++i) {
         Vector2f segPos(cardX + 24.f + i * (segW + barGap), meterY + 19.f);
-        RoundedRectRenderer::draw(target, segPos, {segW, 8.f}, 4.f, Color(16, 185, 129));
+        RoundedRectRenderer::draw(target, segPos, {segW, 8.f}, 4.f, Color(21, 128, 61));
     }
 
     // 3. Xác thực mật khẩu (Field 8)
@@ -654,7 +655,7 @@ void AdminProfilePanel::drawPasswordCard(RenderTarget& target) const {
         CircleShape dot(3.2f);
         dot.setPosition({x + 2.f, y + 5.f});
         if (checked) {
-            dot.setFillColor(Color(16, 185, 129));
+            dot.setFillColor(Color(21, 128, 61));
         } else {
             dot.setFillColor(Color::Transparent);
             dot.setOutlineThickness(1.3f);
@@ -675,7 +676,7 @@ void AdminProfilePanel::drawPasswordCard(RenderTarget& target) const {
 
     // Change Password Button: ĐỔI MẬT KHẨU
     Vector2f chgPos(cardX + 24.f, cardY + 430.f);
-    Color chgBg = changePassHovered ? Color(3, 105, 161) : Color(0, 119, 182);
+    Color chgBg = changePassHovered ? Color(18, 59, 93) : Color(8, 125, 181);
     RoundedRectRenderer::draw(target, chgPos, {165.f, 42.f}, 8.f, chgBg);
     Text chgTxt(boldFont, L"ĐỔI MẬT KHẨU", 13.f);
     chgTxt.setFillColor(Color::White);
@@ -700,12 +701,12 @@ void AdminProfilePanel::drawTwoFactorCard(RenderTarget& target) const {
     ic.setPosition(icPos);
     ic.setFillColor(Color(220, 252, 231));
     target.draw(ic);
-    UITheme::drawShieldIcon(target, {icPos.x + 16.f, icPos.y + 16.f}, 7.5f, Color(5, 150, 105));
+    UITheme::drawShieldIcon(target, {icPos.x + 16.f, icPos.y + 16.f}, 7.5f, Color(21, 128, 61));
     UITheme::drawCheckmark(target, {icPos.x + 16.f, icPos.y + 16.f}, 0.55f, Color::White, 2.f);
 
     // Title & Subtitle
     Text title(boldFont, L"Xác thực 2 yếu tố (2FA Google Authenticator)", 13.f);
-    title.setFillColor(Color(15, 23, 42));
+    title.setFillColor(Color(23, 32, 51));
     title.setPosition({cardX + 60.f, cardY + 12.f});
     target.draw(title);
 
@@ -718,11 +719,11 @@ void AdminProfilePanel::drawTwoFactorCard(RenderTarget& target) const {
     Vector2f bPos(cardX + cardW - 114.f, cardY + 18.f);
     RoundedRectRenderer::draw(target, bPos, {92.f, 26.f}, 13.f, Color(220, 252, 231), 1.f, Color(167, 243, 208));
     CircleShape bDot(3.2f);
-    bDot.setFillColor(Color(5, 150, 105));
+    bDot.setFillColor(Color(21, 128, 61));
     bDot.setPosition({bPos.x + 11.f, bPos.y + 10.f});
     target.draw(bDot);
     Text bTxt(boldFont, L"ĐÃ BẬT", 13.f);
-    bTxt.setFillColor(Color(5, 150, 105));
+    bTxt.setFillColor(Color(21, 128, 61));
     bTxt.setPosition({bPos.x + 22.f, bPos.y + 4.f});
     target.draw(bTxt);
 }

@@ -1,4 +1,5 @@
 #include "UI/components/Admin/UserPanel.h"
+#include "UI/components/Admin/FontManager.h"
 #include "UI/components/Admin/RoundedRectRenderer.h"
 #include "UI/components/Admin/UITheme.h"
 #include "utils/FileUtils.h"
@@ -43,7 +44,7 @@ static string formatCurrency(long long amount) {
 
 UserPanel::UserPanel(Font& fontRef, float w, float h)
     : font(fontRef),
-      boldFont("../assets/fonts/segoeuib.ttf"),
+      boldFont(FontManager::instance().bold()),
       width(w),
       height(h),
       position(280.f, 0.f),
@@ -693,7 +694,7 @@ void UserPanel::drawHeader(RenderTarget& target) const {
     Text title(boldFont);
     title.setString(L"Quản lý khách hàng");
     title.setCharacterSize(22);
-    title.setFillColor(Color(15, 23, 42));
+    title.setFillColor(Color(23, 32, 51));
     title.setPosition({position.x + 20.f, topY});
     target.draw(title);
 
@@ -703,7 +704,7 @@ void UserPanel::drawHeader(RenderTarget& target) const {
     Text b1Txt(boldFont);
     b1Txt.setString(L"Hội viên CineCore Rewards");
     b1Txt.setCharacterSize(13);
-    b1Txt.setFillColor(Color(2, 132, 199));
+    b1Txt.setFillColor(Color(8, 125, 181));
     FloatRect b1b = b1Txt.getLocalBounds();
     float b1W = b1b.size.x + 24.f;
     float b1H = 24.f;
@@ -741,18 +742,18 @@ void UserPanel::drawHeader(RenderTarget& target) const {
     // Right action buttons:
     // 1. Xuất Excel
     Vector2f expPos(position.x + width - 275.f, topY + 12.f);
-    RoundedRectRenderer::draw(target, expPos, {110.f, 36.f}, 6.f, Color::White, 1.f, Color(16, 185, 129));
+    RoundedRectRenderer::draw(target, expPos, {110.f, 36.f}, 6.f, Color::White, 1.f, Color(21, 128, 61));
     Text expTxt(boldFont);
     expTxt.setString(L"Xuất Excel");
     expTxt.setCharacterSize(13);
-    expTxt.setFillColor(Color(5, 150, 105));
+    expTxt.setFillColor(Color(21, 128, 61));
     FloatRect expB = expTxt.getLocalBounds();
     expTxt.setPosition({expPos.x + (110.f - expB.size.x) / 2.f - expB.position.x, expPos.y + (36.f - expB.size.y) / 2.f - expB.position.y});
     target.draw(expTxt);
 
     // 2. + Thêm hội viên mới
     Vector2f addPos(position.x + width - 155.f, topY + 12.f);
-    RoundedRectRenderer::draw(target, addPos, {150.f, 36.f}, 6.f, Color(2, 132, 199));
+    RoundedRectRenderer::draw(target, addPos, {150.f, 36.f}, 6.f, Color(8, 125, 181));
     Text addTxt(boldFont);
     addTxt.setString(L"+ Thêm hội viên mới");
     addTxt.setCharacterSize(13);
@@ -784,19 +785,19 @@ void UserPanel::drawKpiCards(RenderTarget& target) const {
 
         Vector2f iconPos(cPos.x + cardW - 36.f, cardY + 12.f);
         CircleShape ic(13.f); ic.setPosition(iconPos); ic.setFillColor(Color(224, 242, 254)); target.draw(ic);
-        UITheme::drawUserIcon(target, {iconPos.x + 13.f, iconPos.y + 13.f}, Color(2, 132, 199));
+        UITheme::drawUserIcon(target, {iconPos.x + 13.f, iconPos.y + 13.f}, Color(8, 125, 181));
 
         Text val(boldFont);
         val.setString(to_string(totalCount));
         val.setCharacterSize(22);
-        val.setFillColor(Color(15, 23, 42));
+        val.setFillColor(Color(23, 32, 51));
         val.setPosition({cPos.x + 16.f, cPos.y + 36.f});
         target.draw(val);
 
         Text badge(boldFont);
         badge.setString(L"\u2191 +2 tuần này");
         badge.setCharacterSize(13);
-        badge.setFillColor(Color(16, 185, 129));
+        badge.setFillColor(Color(21, 128, 61));
         badge.setPosition({val.getPosition().x + val.getGlobalBounds().size.x + 10.f, cPos.y + 44.f});
         target.draw(badge);
 
@@ -822,12 +823,12 @@ void UserPanel::drawKpiCards(RenderTarget& target) const {
 
         Vector2f iconPos(cPos.x + cardW - 36.f, cPos.y + 12.f);
         CircleShape ic(13.f); ic.setPosition(iconPos); ic.setFillColor(Color(220, 252, 231)); target.draw(ic);
-        UITheme::drawCheckmark(target, {iconPos.x + 13.f, iconPos.y + 13.f}, 0.85f, Color(5, 150, 105), 2.f);
+        UITheme::drawCheckmark(target, {iconPos.x + 13.f, iconPos.y + 13.f}, 0.85f, Color(21, 128, 61), 2.f);
 
         Text val(boldFont);
         val.setString(to_string(activeCount));
         val.setCharacterSize(22);
-        val.setFillColor(Color(15, 23, 42));
+        val.setFillColor(Color(23, 32, 51));
         val.setPosition({cPos.x + 16.f, cPos.y + 36.f});
         target.draw(val);
 
@@ -841,7 +842,7 @@ void UserPanel::drawKpiCards(RenderTarget& target) const {
         Text foot(boldFont);
         foot.setString(L"Đã đặt vé trong 30 ngày qua");
         foot.setCharacterSize(12.f);
-        foot.setFillColor(Color(5, 150, 105));
+        foot.setFillColor(Color(21, 128, 61));
         foot.setPosition({cPos.x + 16.f, cPos.y + 74.f});
         target.draw(foot);
     }
@@ -877,7 +878,7 @@ void UserPanel::drawKpiCards(RenderTarget& target) const {
 
         drawTierPill(0, goldCount, L"Vàng", Color(254, 243, 199), Color(180, 83, 9));
         drawTierPill(1, silverCount, L"Bạc", Color(241, 245, 249), Color(71, 85, 105));
-        drawTierPill(2, standardCount, L"Chuẩn", Color(224, 242, 254), Color(2, 132, 199));
+        drawTierPill(2, standardCount, L"Chuẩn", Color(224, 242, 254), Color(8, 125, 181));
 
         Text foot(font);
         foot.setString(L"Tỷ lệ khách hàng thân thiết cao");
@@ -910,7 +911,7 @@ void UserPanel::drawKpiCards(RenderTarget& target) const {
         Text val(boldFont);
         val.setString(s2ws(formatCurrency(avgSpending)));
         val.setCharacterSize(22);
-        val.setFillColor(Color(15, 23, 42));
+        val.setFillColor(Color(23, 32, 51));
         val.setPosition({cPos.x + 16.f, cPos.y + 36.f});
         target.draw(val);
 
@@ -925,7 +926,7 @@ void UserPanel::drawKpiCards(RenderTarget& target) const {
         Text foot(boldFont);
         foot.setString(L"Trung bình " + s2ws(ss.str()) + L" vé / khách");
         foot.setCharacterSize(12.f);
-        foot.setFillColor(Color(2, 132, 199));
+        foot.setFillColor(Color(8, 125, 181));
         foot.setPosition({cPos.x + 16.f, cPos.y + 74.f});
         target.draw(foot);
     }
@@ -937,7 +938,7 @@ void UserPanel::drawActionToolbar(RenderTarget& target) const {
 
     // Action buttons:
     // 1. Xem thông tin (blue)
-    RoundedRectRenderer::draw(target, {actX, actY}, {125.f, 34.f}, 6.f, Color(2, 132, 199));
+    RoundedRectRenderer::draw(target, {actX, actY}, {125.f, 34.f}, 6.f, Color(8, 125, 181));
     Text vTxt(boldFont); vTxt.setString(L"Xem thông tin"); vTxt.setCharacterSize(13); vTxt.setFillColor(Color::White); vTxt.setPosition({actX + 16.f, actY + 8.f}); target.draw(vTxt);
 
     // 2. Chỉnh sửa (amber)
@@ -945,7 +946,7 @@ void UserPanel::drawActionToolbar(RenderTarget& target) const {
     Text eTxt(boldFont); eTxt.setString(L"Chỉnh sửa"); eTxt.setCharacterSize(13); eTxt.setFillColor(Color::White); eTxt.setPosition({actX + 148.f, actY + 8.f}); target.draw(eTxt);
 
     // 3. Xóa tài khoản (red)
-    RoundedRectRenderer::draw(target, {actX + 240.f, actY}, {115.f, 34.f}, 6.f, Color(239, 68, 68));
+    RoundedRectRenderer::draw(target, {actX + 240.f, actY}, {115.f, 34.f}, 6.f, Color(220, 38, 38));
     Text dTxt(boldFont); dTxt.setString(L"Xóa tài khoản"); dTxt.setCharacterSize(13); dTxt.setFillColor(Color::White); dTxt.setPosition({actX + 252.f, actY + 8.f}); target.draw(dTxt);
 
     // 4. Đặt lại mật khẩu (white with border)
@@ -955,11 +956,11 @@ void UserPanel::drawActionToolbar(RenderTarget& target) const {
     // Right Filters:
     // 1. Search Box
     Vector2f searchPos(position.x + width - 620.f, actY);
-    RoundedRectRenderer::draw(target, searchPos, {220.f, 34.f}, 6.f, Color::White, searchActive ? 1.8f : 1.f, searchActive ? Color(2, 132, 199) : Color(203, 213, 225));
+    RoundedRectRenderer::draw(target, searchPos, {220.f, 34.f}, 6.f, Color::White, searchActive ? 1.8f : 1.f, searchActive ? Color(8, 125, 181) : Color(203, 213, 225));
 
     // Kính lúp tìm kiếm
     Vector2f uIconPos(searchPos.x + 10.f, searchPos.y + 10.f);
-    Color uIcCol = searchActive ? Color(2, 132, 199) : Color(148, 163, 184);
+    Color uIcCol = searchActive ? Color(8, 125, 181) : Color(148, 163, 184);
     CircleShape uLens(5.f, 16);
     uLens.setFillColor(Color::Transparent);
     uLens.setOutlineThickness(1.6f);
@@ -979,7 +980,7 @@ void UserPanel::drawActionToolbar(RenderTarget& target) const {
         : (s2ws(searchText) + (searchActive ? L"|" : L""));
     sTxt.setString(dispS);
     sTxt.setCharacterSize(12.f);
-    sTxt.setFillColor(searchText.empty() && !searchActive ? Color(148, 163, 184) : Color(15, 23, 42));
+    sTxt.setFillColor(searchText.empty() && !searchActive ? Color(148, 163, 184) : Color(23, 32, 51));
     sTxt.setPosition({searchPos.x + 28.f, searchPos.y + 8.f});
     target.draw(sTxt);
 
@@ -1026,7 +1027,7 @@ void UserPanel::drawCustomerTable(RenderTarget& target) const {
     const float headerH = 44.f;
 
     // Dark Navy Header Bar
-    RoundedRectRenderer::draw(target, {tableX, tableY}, {tableW, headerH}, 6.f, Color(15, 23, 42));
+    RoundedRectRenderer::draw(target, {tableX, tableY}, {tableW, headerH}, 6.f, Color(23, 32, 51));
 
     // Column positions (evenly distributed across tableW)
     float col_stt    = tableX + 46.f;
@@ -1068,7 +1069,7 @@ void UserPanel::drawCustomerTable(RenderTarget& target) const {
 
         // Checkbox
         Vector2f rcPos(tableX + 16.f, ry + 16.f);
-        RoundedRectRenderer::draw(target, rcPos, {16.f, 16.f}, 3.f, c->selected ? Color(2, 132, 199) : Color::White, 1.f, Color(203, 213, 225));
+        RoundedRectRenderer::draw(target, rcPos, {16.f, 16.f}, 3.f, c->selected ? Color(8, 125, 181) : Color::White, 1.f, Color(203, 213, 225));
         if (c->selected) {
             UITheme::drawCheckmark(target, {rcPos.x + 8.f, rcPos.y + 8.f}, 0.72f, Color::White, 2.f);
         }
@@ -1083,7 +1084,7 @@ void UserPanel::drawCustomerTable(RenderTarget& target) const {
         FloatRect avb = avTxt.getLocalBounds(); avTxt.setPosition({avPos.x + 16.f - avb.size.x / 2.f, avPos.y + 16.f - avb.size.y / 2.f - 2.f}); target.draw(avTxt);
 
         // Name & UID
-        Text nameTxt(boldFont); nameTxt.setString(c->displayFullName); nameTxt.setCharacterSize(13); nameTxt.setFillColor(Color(15, 23, 42)); nameTxt.setPosition({col_name + 40.f, ry + 8.f}); target.draw(nameTxt);
+        Text nameTxt(boldFont); nameTxt.setString(c->displayFullName); nameTxt.setCharacterSize(13); nameTxt.setFillColor(Color(23, 32, 51)); nameTxt.setPosition({col_name + 40.f, ry + 8.f}); target.draw(nameTxt);
         Text uidTxt(font); uidTxt.setString(s2ws("UID: " + c->uid)); uidTxt.setCharacterSize(13); uidTxt.setFillColor(Color(148, 163, 184)); uidTxt.setPosition({col_name + 40.f, ry + 26.f}); target.draw(uidTxt);
 
         // Email
@@ -1102,18 +1103,18 @@ void UserPanel::drawCustomerTable(RenderTarget& target) const {
             Text tTxt(boldFont); tTxt.setString(L"Hạng Bạc"); tTxt.setCharacterSize(12.f); tTxt.setFillColor(Color(71, 85, 105)); tTxt.setPosition({tierPos.x + 18.f, tierPos.y + 4.f}); target.draw(tTxt);
         } else {
             RoundedRectRenderer::draw(target, tierPos, {95.f, 26.f}, 13.f, Color(224, 242, 254), 1.f, Color(186, 230, 253));
-            Text tTxt(boldFont); tTxt.setString(L"Tiêu chuẩn"); tTxt.setCharacterSize(12.f); tTxt.setFillColor(Color(2, 132, 199)); tTxt.setPosition({tierPos.x + 14.f, tierPos.y + 4.f}); target.draw(tTxt);
+            Text tTxt(boldFont); tTxt.setString(L"Tiêu chuẩn"); tTxt.setCharacterSize(12.f); tTxt.setFillColor(Color(8, 125, 181)); tTxt.setPosition({tierPos.x + 14.f, tierPos.y + 4.f}); target.draw(tTxt);
         }
 
         // Registration Date
         Text dtTxt(font); dtTxt.setString(s2ws(c->registeredDate)); dtTxt.setCharacterSize(13); dtTxt.setFillColor(Color(100, 116, 139)); dtTxt.setPosition({col_date, ry + 16.f}); target.draw(dtTxt);
 
         // Tickets Bought
-        Text tkTxt(boldFont); tkTxt.setString(to_wstring(c->ticketsBought) + L" vé"); tkTxt.setCharacterSize(13.f); tkTxt.setFillColor(Color(2, 132, 199)); tkTxt.setPosition({col_bought + 10.f, ry + 16.f}); target.draw(tkTxt);
+        Text tkTxt(boldFont); tkTxt.setString(to_wstring(c->ticketsBought) + L" vé"); tkTxt.setCharacterSize(13.f); tkTxt.setFillColor(Color(8, 125, 181)); tkTxt.setPosition({col_bought + 10.f, ry + 16.f}); target.draw(tkTxt);
 
         // Action buttons: Xem, Sửa, Xóa (cách đều 8px, thoáng đãng không dính nhau)
         RoundedRectRenderer::draw(target, {col_action, ry + 13.f}, {34.f, 26.f}, 4.f, Color(241, 245, 249), 1.f, Color(203, 213, 225));
-        Text aView(boldFont); aView.setString(L"Xem"); aView.setCharacterSize(13); aView.setFillColor(Color(2, 132, 199));
+        Text aView(boldFont); aView.setString(L"Xem"); aView.setCharacterSize(13); aView.setFillColor(Color(8, 125, 181));
         FloatRect vb = aView.getLocalBounds();
         aView.setPosition({col_action + (34.f - vb.size.x) / 2.f - vb.position.x, ry + 13.f + (26.f - vb.size.y) / 2.f - vb.position.y});
         target.draw(aView);
@@ -1125,7 +1126,7 @@ void UserPanel::drawCustomerTable(RenderTarget& target) const {
         target.draw(aEdit);
 
         RoundedRectRenderer::draw(target, {col_action + 84.f, ry + 13.f}, {34.f, 26.f}, 4.f, Color(254, 242, 242), 1.f, Color(254, 202, 202));
-        Text aDel(boldFont); aDel.setString(L"X\u00f3a"); aDel.setCharacterSize(13); aDel.setFillColor(Color(239, 68, 68));
+        Text aDel(boldFont); aDel.setString(L"X\u00f3a"); aDel.setCharacterSize(13); aDel.setFillColor(Color(220, 38, 38));
         FloatRect db = aDel.getLocalBounds();
         aDel.setPosition({col_action + 84.f + (34.f - db.size.x) / 2.f - db.position.x, ry + 13.f + (26.f - db.size.y) / 2.f - db.position.y});
         target.draw(aDel);
@@ -1172,8 +1173,8 @@ void UserPanel::drawCustomerTable(RenderTarget& target) const {
     // Number Buttons
     for (int p = startP; p <= endP; ++p) {
         bool isAct = (p == page);
-        Color pBg = isAct ? Color(2, 132, 199) : Color::White;
-        Color pBorder = isAct ? Color(2, 132, 199) : Color(203, 213, 225);
+        Color pBg = isAct ? Color(8, 125, 181) : Color::White;
+        Color pBorder = isAct ? Color(8, 125, 181) : Color(203, 213, 225);
         Color pFg = isAct ? Color::White : Color(71, 85, 105);
 
         RoundedRectRenderer::draw(target, {curBtnX, pageY}, {btnPageW, 30.f}, 4.f, pBg, 1.f, pBorder);
@@ -1218,7 +1219,7 @@ void UserPanel::drawDialog(RenderTarget& target) const {
         Text dTitle(boldFont);
         dTitle.setString(L"Thông tin chi tiết hội viên");
         dTitle.setCharacterSize(14);
-        dTitle.setFillColor(Color(15, 23, 42));
+        dTitle.setFillColor(Color(23, 32, 51));
         dTitle.setPosition({dPos.x + 24.f, dPos.y + 20.f});
         target.draw(dTitle);
 
@@ -1236,16 +1237,16 @@ void UserPanel::drawDialog(RenderTarget& target) const {
             lineY += 32.f;
         };
 
-        drawField(L"Họ và tên:", c->displayFullName, Color(15, 23, 42));
+        drawField(L"Họ và tên:", c->displayFullName, Color(23, 32, 51));
         drawField(L"Email tài khoản:", s2ws(c->email), Color(37, 99, 235));
-        drawField(L"Số điện thoại:", s2ws(c->phone), Color(15, 23, 42));
+        drawField(L"Số điện thoại:", s2ws(c->phone), Color(23, 32, 51));
         wstring tierName = (c->tier == CustomerTier::GOLD) ? L"Hạng Vàng (VIP)" : (c->tier == CustomerTier::SILVER ? L"Hạng Bạc" : L"Tiêu chuẩn");
         drawField(L"Cấp bậc thẻ:", tierName, Color(180, 83, 9));
-        drawField(L"Số vé đã mua:", to_wstring(c->ticketsBought) + L" vé", Color(5, 150, 105));
+        drawField(L"Số vé đã mua:", to_wstring(c->ticketsBought) + L" vé", Color(21, 128, 61));
         drawField(L"Tổng tích lũy chi tiêu:", s2ws(formatCurrency(c->totalSpent)) + L" VNĐ", Color(225, 29, 72));
 
         Vector2f btnP(dPos.x + dW - 130.f, dPos.y + dH - 50.f);
-        RoundedRectRenderer::draw(target, btnP, {105.f, 36.f}, 6.f, Color(2, 132, 199));
+        RoundedRectRenderer::draw(target, btnP, {105.f, 36.f}, 6.f, Color(8, 125, 181));
         Text btnT(boldFont); btnT.setString(L"Đóng"); btnT.setCharacterSize(13); btnT.setFillColor(Color::White); btnT.setPosition({btnP.x + 36.f, btnP.y + 8.f}); target.draw(btnT);
     } else if (activeDialog == DialogType::DELETE_CONFIRM && dialogUserIndex >= 0 && dialogUserIndex < (int)filteredCustomers.size()) {
         const auto* c = filteredCustomers[dialogUserIndex];
@@ -1253,7 +1254,7 @@ void UserPanel::drawDialog(RenderTarget& target) const {
         Text dTitle(boldFont);
         dTitle.setString(L"Xác nhận xóa tài khoản khách hàng");
         dTitle.setCharacterSize(14);
-        dTitle.setFillColor(Color(239, 68, 68));
+        dTitle.setFillColor(Color(220, 38, 38));
         dTitle.setPosition({dPos.x + 24.f, dPos.y + 20.f});
         target.draw(dTitle);
 
@@ -1269,13 +1270,13 @@ void UserPanel::drawDialog(RenderTarget& target) const {
         Text cT(boldFont); cT.setString(L"Hủy bỏ"); cT.setCharacterSize(13); cT.setFillColor(Color(71, 85, 105)); cT.setPosition({cancelP.x + 24.f, cancelP.y + 8.f}); target.draw(cT);
 
         Vector2f delP(dPos.x + dW - 120.f, dPos.y + dH - 50.f);
-        RoundedRectRenderer::draw(target, delP, {95.f, 36.f}, 6.f, Color(239, 68, 68));
+        RoundedRectRenderer::draw(target, delP, {95.f, 36.f}, 6.f, Color(220, 38, 38));
         Text dT(boldFont); dT.setString(L"Xác nhận"); dT.setCharacterSize(13); dT.setFillColor(Color::White); dT.setPosition({delP.x + 18.f, delP.y + 8.f}); target.draw(dT);
     } else if (activeDialog == DialogType::ADD_NEW || activeDialog == DialogType::EDIT) {
         Text dTitle(boldFont);
         dTitle.setString(activeDialog == DialogType::EDIT ? L"Chỉnh sửa hồ sơ hội viên" : L"Thêm hội viên CineCore Rewards mới");
         dTitle.setCharacterSize(14);
-        dTitle.setFillColor(Color(15, 23, 42));
+        dTitle.setFillColor(Color(23, 32, 51));
         dTitle.setPosition({dPos.x + 24.f, dPos.y + 20.f});
         target.draw(dTitle);
 
@@ -1288,14 +1289,14 @@ void UserPanel::drawDialog(RenderTarget& target) const {
             RoundedRectRenderer::draw(target, boxP, {dW - 48.f, 34.f}, 4.f,
                                       isAct ? Color::White : Color(248, 250, 252),
                                       isAct ? 1.8f : 1.f,
-                                      isAct ? Color(2, 132, 199) : Color(203, 213, 225));
+                                      isAct ? Color(8, 125, 181) : Color(203, 213, 225));
             wstring disp = val.empty()
                 ? (isAct ? L"|" : placeholder)
                 : (s2ws(val) + (isAct ? L"|" : L""));
             Text fv(font);
             fv.setString(disp);
             fv.setCharacterSize(13);
-            fv.setFillColor(val.empty() && !isAct ? Color(148, 163, 184) : Color(15, 23, 42));
+            fv.setFillColor(val.empty() && !isAct ? Color(148, 163, 184) : Color(23, 32, 51));
             fv.setPosition({boxP.x + 10.f, boxP.y + 7.f});
             target.draw(fv);
             inY += 60.f;
@@ -1311,7 +1312,7 @@ void UserPanel::drawDialog(RenderTarget& target) const {
         Text cT(boldFont); cT.setString(L"Hủy bỏ"); cT.setCharacterSize(13); cT.setFillColor(Color(71, 85, 105)); cT.setPosition({cancelP.x + 24.f, cancelP.y + 8.f}); target.draw(cT);
 
         Vector2f okP(dPos.x + dW - 120.f, dPos.y + dH - 50.f);
-        RoundedRectRenderer::draw(target, okP, {95.f, 36.f}, 6.f, Color(2, 132, 199));
+        RoundedRectRenderer::draw(target, okP, {95.f, 36.f}, 6.f, Color(8, 125, 181));
         Text okT(boldFont);
         okT.setString(activeDialog == DialogType::EDIT ? L"Lưu lại" : L"Thêm mới");
         okT.setCharacterSize(13);

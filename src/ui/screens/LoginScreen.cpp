@@ -1,5 +1,6 @@
 #include "UI/screens/LoginScreen.h"
 #include "UI/components/Admin/RoundedRectRenderer.h"
+#include "UI/components/Admin/FontManager.h"
 #include "core/AppState.h"
 #include "core/AppRole.h"
 #include <SFML/Graphics.hpp>
@@ -11,9 +12,9 @@ using namespace std;
 LoginScreen::LoginScreen(const Font& fontRef, AuthService& authRef)
     : auth(authRef),
       font(fontRef),
-      boldFont("../assets/fonts/segoeuib.ttf"),
-      statusColor(Color(239, 68, 68)),
-      forgotMsgColor(Color(239, 68, 68))
+      boldFont(FontManager::instance().bold()),
+      statusColor(Color(220, 38, 38)),
+      forgotMsgColor(Color(220, 38, 38))
 {
     if (logoTexture.loadFromFile("../assets/elements/cinexine_logo.png") ||
         logoTexture.loadFromFile("assets/elements/cinexine_logo.png") ||
@@ -42,7 +43,7 @@ void LoginScreen::drawDotGrid(RenderTarget& target, float W, float H) {
 }
 
 void LoginScreen::drawVectorEye(RenderTarget& target, Vector2f pos, bool open, bool hovered) {
-    Color col = hovered ? Color(2, 132, 199) : Color(148, 163, 184);
+    Color col = hovered ? Color(8, 125, 181) : Color(148, 163, 184);
 
     CircleShape outer(8.f, 24);
     outer.setFillColor(Color::Transparent);
@@ -100,17 +101,17 @@ void LoginScreen::drawVectorClapper(RenderTarget& target, Vector2f pos, Color co
     RoundedRectRenderer::draw(target, pos, {24.f, 20.f}, 3.f, color);
 
     RectangleShape cut1({3.f, 6.f});
-    cut1.setFillColor(Color(0, 119, 182));
+    cut1.setFillColor(Color(8, 125, 181));
     cut1.setPosition({pos.x + 4.f, pos.y});
     target.draw(cut1);
 
     RectangleShape cut2({3.f, 6.f});
-    cut2.setFillColor(Color(0, 119, 182));
+    cut2.setFillColor(Color(8, 125, 181));
     cut2.setPosition({pos.x + 11.f, pos.y});
     target.draw(cut2);
 
     RectangleShape cut3({3.f, 6.f});
-    cut3.setFillColor(Color(0, 119, 182));
+    cut3.setFillColor(Color(8, 125, 181));
     cut3.setPosition({pos.x + 18.f, pos.y});
     target.draw(cut3);
 }
@@ -325,19 +326,19 @@ void LoginScreen::handleEvent(const Event& event, AppState& state, string& user,
                 if (auth.login(uStr, pStr)) {
                     User* uObj = auth.getUser(uStr);
                     if (uObj && uObj->getRole() == AppRole::Admin) {
-                        statusColor = Color(16, 185, 129);
+                        statusColor = Color(21, 128, 61);
                         statusMessage = L"Đăng nhập Quản trị viên thành công!";
                         loginSuccess = true;
                         successFlag = true;
                         loggedUser = uStr;
                         loginClock.restart();
                     } else {
-                        statusColor = Color(239, 68, 68);
+                        statusColor = Color(220, 38, 38);
                         statusMessage = L"Tài khoản không có quyền Quản trị viên.";
                     }
                 } 
                 else {
-                    statusColor = Color(239, 68, 68);
+                    statusColor = Color(220, 38, 38);
                     statusMessage = L"Sai thông tin email hoặc mật khẩu.";
                 }
             }
@@ -356,17 +357,17 @@ void LoginScreen::handleEvent(const Event& event, AppState& state, string& user,
                 string fEmail(forgotEmailInput.begin(), forgotEmailInput.end());
                 string fPass(forgotPassInput.begin(), forgotPassInput.end());
                 if (fEmail.empty() || fPass.empty()) {
-                    forgotMsgColor = Color(239, 68, 68);
+                    forgotMsgColor = Color(220, 38, 38);
                     forgotMsg = L"Vui lòng nhập đầy đủ thông tin.";
                 } else {
                     User* userObj = auth.getUser(fEmail);
                     if (userObj) {
                         userObj->setPasswordHash(PasswordHasher::hashPassword(fPass));
                         if (auth.getRepository()) auth.getRepository()->saveToFile();
-                        forgotMsgColor = Color(16, 185, 129);
+                        forgotMsgColor = Color(21, 128, 61);
                         forgotMsg = L"Đặt lại mật khẩu thành công! Vui lòng đăng nhập.";
                     } else {
-                        forgotMsgColor = Color(239, 68, 68);
+                        forgotMsgColor = Color(220, 38, 38);
                         forgotMsg = L"Email không tồn tại trong hệ thống.";
                     }
                 }
@@ -447,17 +448,17 @@ bool LoginScreen::update(Vector2f mouse, bool mousePressed, string& currentUser,
                 string fEmail(forgotEmailInput.begin(), forgotEmailInput.end());
                 string fPass(forgotPassInput.begin(), forgotPassInput.end());
                 if (fEmail.empty() || fPass.empty()) {
-                    forgotMsgColor = Color(239, 68, 68);
+                    forgotMsgColor = Color(220, 38, 38);
                     forgotMsg = L"Vui lòng nhập đầy đủ thông tin.";
                 } else {
                     User* userObj = auth.getUser(fEmail);
                     if (userObj) {
                         userObj->setPasswordHash(PasswordHasher::hashPassword(fPass));
                         if (auth.getRepository()) auth.getRepository()->saveToFile();
-                        forgotMsgColor = Color(16, 185, 129);
+                        forgotMsgColor = Color(21, 128, 61);
                         forgotMsg = L"Đặt lại mật khẩu thành công! Vui lòng đăng nhập.";
                     } else {
-                        forgotMsgColor = Color(239, 68, 68);
+                        forgotMsgColor = Color(220, 38, 38);
                         forgotMsg = L"Email không tồn tại trong hệ thống.";
                     }
                 }
@@ -494,17 +495,17 @@ bool LoginScreen::update(Vector2f mouse, bool mousePressed, string& currentUser,
             if (auth.login(u, p)) {
                 User* uObj = auth.getUser(u);
                 if (uObj && uObj->getRole() == AppRole::Admin) {
-                    statusColor = Color(16, 185, 129);
+                    statusColor = Color(21, 128, 61);
                     statusMessage = L"Đăng nhập Quản trị viên thành công!";
                     loginSuccess = true;
                     loggedUser = u;
                     loginClock.restart();
                 } else {
-                    statusColor = Color(239, 68, 68);
+                    statusColor = Color(220, 38, 38);
                     statusMessage = L"Tài khoản không có quyền Quản trị viên.";
                 }
             } else {
-                statusColor = Color(239, 68, 68);
+                statusColor = Color(220, 38, 38);
                 statusMessage = L"Sai thông tin email hoặc mật khẩu.";
             }
         }
@@ -523,7 +524,7 @@ bool LoginScreen::update(Vector2f mouse, bool mousePressed, string& currentUser,
         if (posBtnHovered) {
             emailInput = L"admin@cinexine.vn";
             passInput = L"admin123";
-            statusColor = Color(2, 132, 199);
+            statusColor = Color(8, 125, 181);
             statusMessage = L"Đã nạp sẵn tài khoản Admin POS!";
         }
     }
@@ -590,7 +591,7 @@ void LoginScreen::draw(RenderWindow& window) {
 
     // Window control dots
     CircleShape dotRed(4.5f, 12);
-    dotRed.setFillColor(Color(239, 68, 68));
+    dotRed.setFillColor(Color(220, 38, 38));
     dotRed.setPosition({W - 55.f, 24.f});
     window.draw(dotRed);
 
@@ -598,7 +599,7 @@ void LoginScreen::draw(RenderWindow& window) {
     dotYellow.setFillColor(Color(245, 158, 11));
     dotYellow.setPosition({W - 40.f, 24.f});
     CircleShape dotGreen(4.5f, 12);
-    dotGreen.setFillColor(Color(16, 185, 129));
+    dotGreen.setFillColor(Color(21, 128, 61));
     dotGreen.setPosition({W - 25.f, 24.f});
     window.draw(dotGreen);
 
@@ -619,9 +620,9 @@ void LoginScreen::draw(RenderWindow& window) {
     RoundedRectRenderer::draw(window, {cardX, cardY}, {cardW, cardH}, 22.f, Color::White, 1.f, Color(226, 232, 240));
 
     // Left Section: Ocean Blue Panel (#0077B6 / #0084C7)
-    RoundedRectRenderer::draw(window, {cardX, cardY}, {leftW, cardH}, 22.f, Color(0, 119, 182));
+    RoundedRectRenderer::draw(window, {cardX, cardY}, {leftW, cardH}, 22.f, Color(8, 125, 181));
     RectangleShape leftFiller({22.f, cardH});
-    leftFiller.setFillColor(Color(0, 119, 182));
+    leftFiller.setFillColor(Color(8, 125, 181));
     leftFiller.setPosition({cardX + leftW - 22.f, cardY});
     window.draw(leftFiller);
 
@@ -774,7 +775,7 @@ void LoginScreen::draw(RenderWindow& window) {
 
     // Top Badge: "CỔNG QUẢN TRỊ NỘI BỘ"
     Text topBadgeText(boldFont, L"C\u1ed4NG QU\u1ea2N TR\u1eca N\u1ed8I B\u1ed8", 13);
-    topBadgeText.setFillColor(Color(2, 132, 199));
+    topBadgeText.setFillColor(Color(8, 125, 181));
     FloatRect tbb = topBadgeText.getLocalBounds();
 
     const float pillY = cardY + 52.f;
@@ -789,13 +790,13 @@ void LoginScreen::draw(RenderWindow& window) {
     const float ckX = formX + padH;
     const float pillCenterY = pillY + pillH / 2.f;
     RectangleShape ck1({5.5f, 2.f});
-    ck1.setFillColor(Color(2, 132, 199));
+    ck1.setFillColor(Color(8, 125, 181));
     ck1.setRotation(degrees(45.f));
     ck1.setPosition({ckX + 0.5f, pillCenterY - 1.5f});
     window.draw(ck1);
 
     RectangleShape ck2({9.5f, 2.f});
-    ck2.setFillColor(Color(2, 132, 199));
+    ck2.setFillColor(Color(8, 125, 181));
     ck2.setRotation(degrees(-45.f));
     ck2.setPosition({ckX + 2.8f, pillCenterY + 2.2f});
     window.draw(ck2);
@@ -808,7 +809,7 @@ void LoginScreen::draw(RenderWindow& window) {
 
     // Heading: ĐĂNG NHẬP QUẢN TRỊ VIÊN
     Text formHeading(boldFont, L"\u0110\u0102NG NH\u1eacP QU\u1ea2N TR\u1eca VI\u00caN", 31);
-    formHeading.setFillColor(Color(15, 23, 42)); // Dark Navy #0F172A
+    formHeading.setFillColor(Color(23, 32, 51)); // Dark Navy #0F172A
     formHeading.setPosition({formX, cardY + 98.f});
     window.draw(formHeading);
 
@@ -824,7 +825,7 @@ void LoginScreen::draw(RenderWindow& window) {
     lblEmail.setPosition({formX, cardY + 194.f});
     window.draw(lblEmail);
 
-    Color eBorder = emailActive ? Color(2, 132, 199) : Color(226, 232, 240);
+    Color eBorder = emailActive ? Color(8, 125, 181) : Color(226, 232, 240);
     RoundedRectRenderer::draw(window, {formX, cardY + 224.f}, {formW, 52.f}, 10.f, Color(248, 250, 252), 1.2f, eBorder);
     drawVectorUser(window, {formX + 18.f, cardY + 242.f}, Color(148, 163, 184));
 
@@ -835,14 +836,14 @@ void LoginScreen::draw(RenderWindow& window) {
         window.draw(phEmail);
     } else {
         Text valEmail(font, emailInput, 16);
-        valEmail.setFillColor(Color(15, 23, 42));
+        valEmail.setFillColor(Color(23, 32, 51));
         valEmail.setPosition({formX + 48.f, cardY + 237.f});
         window.draw(valEmail);
 
         if (emailActive && caretVisible) {
             FloatRect eb = valEmail.getLocalBounds();
             RectangleShape caretLine({1.8f, 22.f});
-            caretLine.setFillColor(Color(2, 132, 199));
+            caretLine.setFillColor(Color(8, 125, 181));
             caretLine.setPosition({formX + 50.f + (emailInput.empty() ? 0.f : eb.size.x), cardY + 239.f});
             window.draw(caretLine);
         }
@@ -854,7 +855,7 @@ void LoginScreen::draw(RenderWindow& window) {
     lblPass.setPosition({formX, cardY + 294.f});
     window.draw(lblPass);
 
-    Color pBorder = passActive ? Color(2, 132, 199) : Color(226, 232, 240);
+    Color pBorder = passActive ? Color(8, 125, 181) : Color(226, 232, 240);
     RoundedRectRenderer::draw(window, {formX, cardY + 324.f}, {formW, 52.f}, 10.f, Color(248, 250, 252), 1.2f, pBorder);
     drawVectorLock(window, {formX + 19.f, cardY + 345.f}, Color(148, 163, 184));
 
@@ -866,14 +867,14 @@ void LoginScreen::draw(RenderWindow& window) {
     } else {
         wstring dispPass = showPassword ? passInput : bullets(passInput.size());
         Text valPass(font, dispPass, 16);
-        valPass.setFillColor(Color(15, 23, 42));
+        valPass.setFillColor(Color(23, 32, 51));
         valPass.setPosition({formX + 48.f, cardY + 337.f});
         window.draw(valPass);
 
         if (passActive && caretVisible) {
             FloatRect pb = valPass.getLocalBounds();
             RectangleShape caretLine({1.8f, 22.f});
-            caretLine.setFillColor(Color(2, 132, 199));
+            caretLine.setFillColor(Color(8, 125, 181));
             caretLine.setPosition({formX + 50.f + (passInput.empty() ? 0.f : pb.size.x), cardY + 339.f});
             window.draw(caretLine);
         }
@@ -883,17 +884,17 @@ void LoginScreen::draw(RenderWindow& window) {
     drawVectorEye(window, {formX + formW - 24.f, cardY + 350.f}, showPassword, eyeHovered);
 
     // Options Row: Checkbox "Ghi nhớ đăng nhập" & Link "Quên mật khẩu?"
-    Color cbBorder = checkHovered ? Color(2, 132, 199) : Color(203, 213, 225);
+    Color cbBorder = checkHovered ? Color(8, 125, 181) : Color(203, 213, 225);
     RoundedRectRenderer::draw(window, {formX + 1.f, cardY + 397.f}, {18.f, 18.f}, 4.f, Color(248, 250, 252), 1.2f, cbBorder);
     if (rememberMe) {
         RectangleShape c1({4.5f, 2.f});
-        c1.setFillColor(Color(2, 132, 199));
+        c1.setFillColor(Color(8, 125, 181));
         c1.setRotation(degrees(45.f));
         c1.setPosition({formX + 4.f, cardY + 406.f});
         window.draw(c1);
 
         RectangleShape c2({9.f, 2.f});
-        c2.setFillColor(Color(2, 132, 199));
+        c2.setFillColor(Color(8, 125, 181));
         c2.setRotation(degrees(-55.f));
         c2.setPosition({formX + 7.5f, cardY + 409.f});
         window.draw(c2);
@@ -906,12 +907,12 @@ void LoginScreen::draw(RenderWindow& window) {
 
     Text forgotText(boldFont, L"Qu\u00ean m\u1eadt kh\u1ea9u?", 13);
     if (linkForgotHovered) forgotText.setStyle(Text::Underlined);
-    forgotText.setFillColor(Color(2, 132, 199));
+    forgotText.setFillColor(Color(8, 125, 181));
     forgotText.setPosition({formX + formW - forgotText.getLocalBounds().size.x, cardY + 396.f});
     window.draw(forgotText);
 
     // Main Submit Button: ĐĂNG NHẬP QUẢN TRỊ ->
-    Color btnCol = btnHovered ? Color(3, 105, 161) : Color(0, 119, 182);
+    Color btnCol = btnHovered ? Color(18, 59, 93) : Color(8, 125, 181);
     RoundedRectRenderer::draw(window, {formX, cardY + 438.f}, {formW, 54.f}, 10.f, btnCol);
 
     Text submitText(boldFont, L"\u0110\u0102NG NH\u1eacP QU\u1ea2N TR\u1eca", 14);
@@ -957,7 +958,7 @@ void LoginScreen::draw(RenderWindow& window) {
     // POS / Terminal Key Button
     Color posBg = posBtnHovered ? Color(241, 245, 249) : Color(248, 250, 252);
     RoundedRectRenderer::draw(window, {formX, cardY + 570.f}, {formW, 50.f}, 10.f, posBg, 1.2f, Color(226, 232, 240));
-    drawVectorPos(window, {formX + 76.f, cardY + 587.f}, Color(2, 132, 199));
+    drawVectorPos(window, {formX + 76.f, cardY + 587.f}, Color(8, 125, 181));
 
     Text posText(boldFont, L"\u0110\u0103ng nh\u1eadp b\u1eb1ng M\u00e3 Nh\u00e2n Vi\u00ean POS / Terminal Key", 13);
     posText.setFillColor(Color(51, 65, 85));
@@ -970,7 +971,7 @@ void LoginScreen::draw(RenderWindow& window) {
 
     Text regLink(boldFont, L"\u0110\u0103ng k\u00fd Admin m\u1edbi \u2192", 13);
     if (linkCreateHovered) regLink.setStyle(Text::Underlined);
-    regLink.setFillColor(Color(2, 132, 199));
+    regLink.setFillColor(Color(8, 125, 181));
 
     float fullRegW = regPrefix.getLocalBounds().size.x + regLink.getLocalBounds().size.x;
     float regStartX = formX + (formW - fullRegW) / 2.f;
@@ -1008,7 +1009,7 @@ void LoginScreen::draw(RenderWindow& window) {
         RoundedRectRenderer::draw(window, {fCardX, fCardY}, {fCardW, fCardH}, 16.f, Color::White, 1.f, Color(226, 232, 240));
 
         Text fTitle(boldFont, L"QU\u00caN M\u1eacT KH\u1ea8U ADMIN", 24);
-        fTitle.setFillColor(Color(15, 23, 42));
+        fTitle.setFillColor(Color(23, 32, 51));
         fTitle.setPosition({fCardX + 40.f, fCardY + 32.f});
         window.draw(fTitle);
 
@@ -1018,18 +1019,18 @@ void LoginScreen::draw(RenderWindow& window) {
         window.draw(fSub);
 
         // Email input
-        Color fEBorder = forgotEmailActive ? Color(2, 132, 199) : Color(203, 213, 225);
+        Color fEBorder = forgotEmailActive ? Color(8, 125, 181) : Color(203, 213, 225);
         RoundedRectRenderer::draw(window, {fCardX + 40.f, fCardY + 112.f}, {480.f, 46.f}, 8.f, Color(248, 250, 252), 1.2f, fEBorder);
         Text fEmailText(font, forgotEmailInput.empty() ? L"Nh\u1eadp email qu\u1ea3n tr\u1ecb vi\u00ean" : forgotEmailInput, 13);
-        fEmailText.setFillColor(forgotEmailInput.empty() ? Color(148, 163, 184) : Color(15, 23, 42));
+        fEmailText.setFillColor(forgotEmailInput.empty() ? Color(148, 163, 184) : Color(23, 32, 51));
         fEmailText.setPosition({fCardX + 54.f, fCardY + 126.f});
         window.draw(fEmailText);
 
         // New password input
-        Color fPBorder = forgotPassActive ? Color(2, 132, 199) : Color(203, 213, 225);
+        Color fPBorder = forgotPassActive ? Color(8, 125, 181) : Color(203, 213, 225);
         RoundedRectRenderer::draw(window, {fCardX + 40.f, fCardY + 180.f}, {480.f, 46.f}, 8.f, Color(248, 250, 252), 1.2f, fPBorder);
         Text fPassText(font, forgotPassInput.empty() ? L"Nh\u1eadp m\u1eadt kh\u1ea9u m\u1edbi" : bullets(forgotPassInput.size()), 13);
-        fPassText.setFillColor(forgotPassInput.empty() ? Color(148, 163, 184) : Color(15, 23, 42));
+        fPassText.setFillColor(forgotPassInput.empty() ? Color(148, 163, 184) : Color(23, 32, 51));
         fPassText.setPosition({fCardX + 54.f, fCardY + 194.f});
         window.draw(fPassText);
 
@@ -1050,7 +1051,7 @@ void LoginScreen::draw(RenderWindow& window) {
         fCloseText.setPosition({fCardX + 40.f + (230.f - ctb.size.x) / 2.f, fCardY + 303.f});
         window.draw(fCloseText);
 
-        Color fSubBg = forgotBtnHovered ? Color(3, 105, 161) : Color(0, 119, 182);
+        Color fSubBg = forgotBtnHovered ? Color(18, 59, 93) : Color(8, 125, 181);
         RoundedRectRenderer::draw(window, {fCardX + 290.f, fCardY + 290.f}, {230.f, 46.f}, 8.f, fSubBg);
         Text fSubText(boldFont, L"\u0110\u1eb7t l\u1ea1i MK", 14);
         fSubText.setFillColor(Color::White);

@@ -1,4 +1,5 @@
 #include "UI/components/Admin/TicketPanel.h"
+#include "UI/components/Admin/FontManager.h"
 #include "UI/components/Admin/UITheme.h"
 #include "UI/components/Admin/RoundedRectRenderer.h"
 #include "utils/FileUtils.h"
@@ -31,7 +32,7 @@ static string formatPrice(int price) {
 
 TicketPanel::TicketPanel(Font& fontRef, float w, float h)
     : font(fontRef),
-      boldFont("../assets/fonts/segoeuib.ttf"),
+      boldFont(FontManager::instance().bold()),
       width(w), height(h), position(280.f, 0.f),
       repository(FileUtils::resolveDataPath("data/tickets.txt"))
 {
@@ -425,7 +426,7 @@ void TicketPanel::render(RenderWindow& win) {
     float barY = position.y + 104.f;
 
     // Nút 1: Xem thông tin (Màu xanh dương)
-    Color viewBg = btnViewHover ? Color(3, 105, 161) : Color(2, 132, 199);
+    Color viewBg = btnViewHover ? Color(18, 59, 93) : Color(8, 125, 181);
     drawRoundedCard(win, {position.x + 30.f, barY}, {135.f, 38.f}, 6.f, viewBg);
     Text viewTxt(boldFont, L"Xem th\u00f4ng tin", 13);
     viewTxt.setFillColor(Color::White);
@@ -443,11 +444,11 @@ void TicketPanel::render(RenderWindow& win) {
     win.draw(delTxt);
 
     // Ô Input Tìm kiếm: Tìm theo ID vé, Email...
-    drawRoundedCard(win, {position.x + 280.f, barY}, {300.f, 38.f}, 6.f, Color::White, searchActive ? 1.8f : 1.f, searchActive ? Color(2, 132, 199) : Color(203, 213, 225));
+    drawRoundedCard(win, {position.x + 280.f, barY}, {300.f, 38.f}, 6.f, Color::White, searchActive ? 1.8f : 1.f, searchActive ? Color(8, 125, 181) : Color(203, 213, 225));
 
     // Ký hiệu kính lúp tìm kiếm vẽ bằng SFML shapes chuẩn sắc nét
     Vector2f iconPos(position.x + 293.f, barY + 12.f);
-    Color icCol = searchActive ? Color(2, 132, 199) : Color(148, 163, 184);
+    Color icCol = searchActive ? Color(8, 125, 181) : Color(148, 163, 184);
     CircleShape lens(5.f, 16);
     lens.setFillColor(Color::Transparent);
     lens.setOutlineThickness(1.6f);
@@ -465,7 +466,7 @@ void TicketPanel::render(RenderWindow& win) {
         ? (searchActive ? L"|" : L"T\u00ecm theo ID v\u00e9, Email, Phim...")
         : (searchQuery + (searchActive ? L"|" : L""));
     Text searchTxt(font, sDisplay, 13);
-    searchTxt.setFillColor(searchQuery.empty() && !searchActive ? Color(148, 163, 184) : Color(15, 23, 42));
+    searchTxt.setFillColor(searchQuery.empty() && !searchActive ? Color(148, 163, 184) : Color(23, 32, 51));
     searchTxt.setPosition({position.x + 314.f, barY + 10.f});
     win.draw(searchTxt);
 
@@ -481,7 +482,7 @@ void TicketPanel::render(RenderWindow& win) {
 
     // Nút Reload góc phải
     float relX = position.x + width - 75.f;
-    Color relBg = btnReloadHover ? Color(3, 105, 161) : Color(2, 132, 199);
+    Color relBg = btnReloadHover ? Color(18, 59, 93) : Color(8, 125, 181);
     drawRoundedCard(win, {relX, barY}, {45.f, 38.f}, 6.f, relBg);
     if (hasReloadTex) {
         Sprite spRel(reloadTex);
@@ -513,7 +514,7 @@ void TicketPanel::render(RenderWindow& win) {
     };
 
     // Header bảng (#0077B6 / #0284C7)
-    drawRoundedCard(win, {tableX, tableY}, {tableW, 46.f}, 4.f, Color(0, 119, 182));
+    drawRoundedCard(win, {tableX, tableY}, {tableW, 46.f}, 4.f, Color(8, 125, 181));
 
     for (float dx : {div1, div2, div3, div4}) {
         RectangleShape hDiv(Vector2f(1.f, 46.f));
@@ -550,7 +551,7 @@ void TicketPanel::render(RenderWindow& win) {
             win.draw(rDiv);
         }
 
-        drawCenteredText(boldFont, s2ws(t.ticketId), 13, isSel ? Color(2, 132, 199) : Color(71, 85, 105), tableX, div1, rY + 12.f);
+        drawCenteredText(boldFont, s2ws(t.ticketId), 13, isSel ? Color(8, 125, 181) : Color(71, 85, 105), tableX, div1, rY + 12.f);
         drawCenteredText(font, s2ws(t.showtimeId), 13, Color(51, 65, 85), div1, div2, rY + 12.f);
         drawCenteredText(font, s2ws(t.email), 13, Color(51, 65, 85), div2, div3, rY + 12.f);
         drawCenteredText(font, s2ws(t.bookedDate.empty() ? t.date : t.bookedDate), 13, Color(51, 65, 85), div3, div4, rY + 12.f);
@@ -595,8 +596,8 @@ void TicketPanel::render(RenderWindow& win) {
     // Các nút số trang 1, 2, 3, ...
     for (int p = startP; p <= endP; ++p) {
         bool isAct = (p == currentPage);
-        Color pBg = isAct ? Color(0, 119, 182) : Color::White;
-        Color pBorder = isAct ? Color(0, 119, 182) : Color(226, 232, 240);
+        Color pBg = isAct ? Color(8, 125, 181) : Color::White;
+        Color pBorder = isAct ? Color(8, 125, 181) : Color(226, 232, 240);
         Color pFg = isAct ? Color::White : Color(51, 65, 85);
 
         drawRoundedCard(win, {curBtnX, pagY}, {btnPageW, 34.f}, 6.f, pBg, 1.2f, pBorder);
@@ -635,7 +636,7 @@ void TicketPanel::render(RenderWindow& win) {
 
         // Header Popup
         Text popTitle(boldFont, L"TH\u00d4NG TIN CHI TI\u1ebeT V\u00c9", 22);
-        popTitle.setFillColor(Color(15, 23, 42));
+        popTitle.setFillColor(Color(23, 32, 51));
         popTitle.setPosition({popX + 30.f, popY + 22.f});
         win.draw(popTitle);
 
@@ -669,7 +670,7 @@ void TicketPanel::render(RenderWindow& win) {
             win.draw(lbl);
 
             Text val(boldFont, item.second, 13);
-            val.setFillColor(item.first == L"T\u1ed5ng ti\u1ec1n:" ? Color(2, 132, 199) : Color(15, 23, 42));
+            val.setFillColor(item.first == L"T\u1ed5ng ti\u1ec1n:" ? Color(8, 125, 181) : Color(23, 32, 51));
             val.setPosition({popX + 175.f, curY});
             win.draw(val);
 
@@ -677,7 +678,7 @@ void TicketPanel::render(RenderWindow& win) {
         }
 
         // Nút Đóng
-        drawRoundedCard(win, {popX + (popW - 140.f) / 2.f, popY + popH - 52.f}, {140.f, 36.f}, 6.f, Color(2, 132, 199));
+        drawRoundedCard(win, {popX + (popW - 140.f) / 2.f, popY + popH - 52.f}, {140.f, 36.f}, 6.f, Color(8, 125, 181));
         Text btnClTxt(boldFont, L"\u0110\u00f3ng", 13);
         btnClTxt.setFillColor(Color::White);
         FloatRect bctb = btnClTxt.getLocalBounds();
@@ -740,7 +741,7 @@ void TicketPanel::render(RenderWindow& win) {
             float notH = 42.f;
             float notX = position.x + (width - notW) / 2.f;
             float notY = position.y + height - 60.f;
-            drawRoundedCard(win, {notX, notY}, {notW, notH}, 8.f, Color(15, 23, 42, 240), 1.f, Color(2, 132, 199));
+            drawRoundedCard(win, {notX, notY}, {notW, notH}, 8.f, Color(15, 23, 42, 240), 1.f, Color(8, 125, 181));
             Text notText(boldFont, s2ws(notificationMessage), 13);
             notText.setFillColor(Color::White);
             FloatRect ntb = notText.getLocalBounds();
