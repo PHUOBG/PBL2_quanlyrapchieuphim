@@ -248,7 +248,7 @@ void AdminSidebar::render(RenderWindow& window) {
         window.draw(leftAccent);
 
         // Nút tròn mở lại thanh điều hướng ở góc trên bên trái
-        Color btnBg = toggleHovered ? Color(8, 125, 181) : Color(18, 59, 93);
+        Color btnBg = toggleHovered ? Color(6, 106, 155) : Color(8, 125, 181);
         RoundedRectRenderer::draw(window, {toggleBtnBounds.position.x, toggleBtnBounds.position.y + 1.5f}, toggleBtnBounds.size, 14.f, Color(0, 0, 0, 28));
         RoundedRectRenderer::draw(window, toggleBtnBounds.position, toggleBtnBounds.size, 14.f, btnBg);
         drawSidebarToggleIcon(
@@ -260,16 +260,16 @@ void AdminSidebar::render(RenderWindow& window) {
         return;
     }
 
-    // 1. Nền thanh điều hướng: Primary Navy (#123B5D)
+    // 1. Nền thanh điều hướng: Ocean Blue (#087DB5) đồng bộ với màn hình đăng nhập
     RectangleShape bg({width, height});
     bg.setPosition(position);
-    bg.setFillColor(Color(18, 59, 93));
+    bg.setFillColor(Color(8, 125, 181));
     window.draw(bg);
 
     // Đường viền ngăn cách bên phải (mờ nhẹ)
     RectangleShape rightBorder({1.f, height});
     rightBorder.setPosition({position.x + width - 1.f, position.y});
-    rightBorder.setFillColor(Color(14, 46, 74));
+    rightBorder.setFillColor(Color(6, 106, 155));
     window.draw(rightBorder);
 
     const float padX = position.x + 16.f;
@@ -312,7 +312,7 @@ void AdminSidebar::render(RenderWindow& window) {
     // Badge ADMIN
     Vector2f bPos(position.x + width - 108.f, position.y + 24.f);
     Vector2f bSize(60.f, 24.f);
-    RoundedRectRenderer::draw(window, bPos, bSize, 12.f, Color(8, 125, 181));
+    RoundedRectRenderer::draw(window, bPos, bSize, 12.f, Color(255, 255, 255, 42));
     Text admTxt(boldFont, L"ADMIN", 14);
     admTxt.setFillColor(Color::White);
     FloatRect ab = admTxt.getLocalBounds();
@@ -323,7 +323,7 @@ void AdminSidebar::render(RenderWindow& window) {
     window.draw(admTxt);
 
     // Nút tròn thu gọn thanh điều hướng nằm ngay bên phải badge ADMIN
-    Color toggleBg = toggleHovered ? Color(8, 125, 181) : Color(14, 46, 74);
+    Color toggleBg = toggleHovered ? Color(255, 255, 255, 55) : Color(255, 255, 255, 28);
     RoundedRectRenderer::draw(window, toggleBtnBounds.position, toggleBtnBounds.size, 13.f, toggleBg);
     drawSidebarToggleIcon(
         window,
@@ -351,7 +351,7 @@ void AdminSidebar::render(RenderWindow& window) {
             }
             // Tiêu đề nhóm (Text in hoa màu xanh phấn nhạt, không có nền hộp)
             Text secTitle(boldFont, elem.label, 14);
-            secTitle.setFillColor(Color(148, 197, 233));
+            secTitle.setFillColor(Color(224, 242, 254));
             FloatRect tb = secTitle.getLocalBounds();
             secTitle.setPosition({
                 std::round(elem.bounds.position.x + 8.f - tb.position.x),
@@ -375,9 +375,9 @@ void AdminSidebar::render(RenderWindow& window) {
             // Chữ hiển thị
             Text itemText(isActive ? boldFont : font, elem.label, 16);
             if (isActive) {
-                itemText.setFillColor(Color(18, 59, 93));
+                itemText.setFillColor(Color(8, 125, 181));
             } else {
-                itemText.setFillColor(Color(241, 245, 249));
+                itemText.setFillColor(Color::White);
             }
 
             FloatRect tb = itemText.getLocalBounds();
@@ -390,9 +390,9 @@ void AdminSidebar::render(RenderWindow& window) {
             if (elem.targetState == AppState::ADMIN_CUSTOMERS) {
                 Vector2f badgeSize(32.f, 22.f);
                 Vector2f badgePos(elem.bounds.position.x + elem.bounds.size.x - 44.f, elem.bounds.position.y + (elem.bounds.size.y - badgeSize.y) / 2.f);
-                RoundedRectRenderer::draw(window, badgePos, badgeSize, 11.f, isActive ? Color(224, 242, 254) : Color(8, 125, 181));
+                RoundedRectRenderer::draw(window, badgePos, badgeSize, 11.f, isActive ? Color(224, 242, 254) : Color(255, 255, 255, 42));
                 Text bTxt(boldFont, L"15", 14);
-                bTxt.setFillColor(isActive ? Color(18, 59, 93) : Color::White);
+                bTxt.setFillColor(isActive ? Color(8, 125, 181) : Color::White);
                 FloatRect bb = bTxt.getLocalBounds();
                 bTxt.setPosition({
                     std::round(badgePos.x + (badgeSize.x - bb.size.x) / 2.f - bb.position.x),
