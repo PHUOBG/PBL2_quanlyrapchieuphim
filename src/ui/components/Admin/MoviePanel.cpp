@@ -367,15 +367,27 @@ void MoviePanel::drawPencilIcon(RenderTarget& target, Vector2f pos, Color col) {
 }
 
 void MoviePanel::drawTrashIcon(RenderTarget& target, Vector2f pos, Color col) {
-    RoundedRectRenderer::draw(target, {pos.x + 1.f, pos.y + 3.f}, {10.f, 9.f}, 1.5f, Color::Transparent, 1.4f, col);
-    RectangleShape top({12.f, 1.8f});
-    top.setFillColor(col);
-    top.setPosition({pos.x, pos.y + 1.5f});
-    target.draw(top);
-    RectangleShape handle({4.f, 1.4f});
+    RectangleShape handle({4.f, 1.6f});
     handle.setFillColor(col);
-    handle.setPosition({pos.x + 4.f, pos.y});
+    handle.setPosition({pos.x + 5.f, pos.y});
     target.draw(handle);
+
+    RectangleShape top({14.f, 1.8f});
+    top.setFillColor(col);
+    top.setPosition({pos.x, pos.y + 1.8f});
+    target.draw(top);
+
+    RoundedRectRenderer::draw(target, {pos.x + 2.f, pos.y + 4.f}, {10.f, 10.f}, 1.5f, Color::Transparent, 1.4f, col);
+
+    RectangleShape bar1({1.4f, 5.5f});
+    bar1.setFillColor(col);
+    bar1.setPosition({pos.x + 4.8f, pos.y + 6.2f});
+    target.draw(bar1);
+
+    RectangleShape bar2({1.4f, 5.5f});
+    bar2.setFillColor(col);
+    bar2.setPosition({pos.x + 7.8f, pos.y + 6.2f});
+    target.draw(bar2);
 }
 
 void MoviePanel::drawPlusIcon(RenderTarget& target, Vector2f pos, Color col) {
@@ -554,14 +566,17 @@ void MoviePanel::handleEvent(const Event& event, const RenderWindow& window) {
     if (const auto* mouseBtn = event.getIf<Event::MouseButtonPressed>()) {
         if (mouseBtn->button == Mouse::Button::Left) {
             Vector2f mouse = window.mapPixelToCoords(Mouse::getPosition(window));
-            const float startX = position.x + (width - 1244.f) / 2.f;
+            const float startX = position.x + 30.f;
+            const float contentW = max(1200.f, width - 60.f);
+            const float searchW = max(320.f, contentW - 884.f);
+            const float toolRightX = startX + searchW + 15.f;
             const float toolY = 252.f;
 
             // Ưu tiên kiểm tra danh sách Dropdown đang mở trước khi kiểm tra bảng bên dưới
             if (genreDropdownOpen) {
                 vector<string> genres = {"Tất cả thể loại", "Hành động", "Hoạt hình", "Tội phạm", "Viễn tưởng", "Tâm lý", "Hài", "Kinh dị", "Gia đình"};
                 for (size_t g = 0; g < genres.size(); ++g) {
-                    FloatRect gb({startX + 375.f, toolY + 46.f + g * 36.f}, {160.f, 36.f});
+                    FloatRect gb({toolRightX, toolY + 46.f + g * 36.f}, {160.f, 36.f});
                     if (gb.contains(mouse)) {
                         selectedGenre = (g == 0) ? "all" : genres[g];
                         genreDropdownOpen = false;
@@ -576,7 +591,7 @@ void MoviePanel::handleEvent(const Event& event, const RenderWindow& window) {
             if (statusDropdownOpen) {
                 vector<pair<string, string>> statuses = {{"all", "Trạng thái: Tất cả"}, {"dang_chieu", "Đang chiếu"}, {"sap_chieu", "Sắp chiếu"}};
                 for (size_t s = 0; s < statuses.size(); ++s) {
-                    FloatRect sb({startX + 550.f, toolY + 46.f + s * 36.f}, {160.f, 36.f});
+                    FloatRect sb({toolRightX + 175.f, toolY + 46.f + s * 36.f}, {160.f, 36.f});
                     if (sb.contains(mouse)) {
                         selectedStatus = statuses[s].first;
                         statusDropdownOpen = false;
@@ -588,16 +603,16 @@ void MoviePanel::handleEvent(const Event& event, const RenderWindow& window) {
                 return;
             }
 
-            FloatRect searchBox({startX, toolY}, {360.f, 44.f});
-            FloatRect genreBtn({startX + 375.f, toolY}, {160.f, 44.f});
-            FloatRect statusBtn({startX + 550.f, toolY}, {160.f, 44.f});
-            FloatRect reloadBtn({startX + 725.f, toolY}, {44.f, 44.f});
-            FloatRect editBtn({startX + 779.f, toolY}, {150.f, 44.f});
-            FloatRect deleteBtn({startX + 941.f, toolY}, {125.f, 44.f});
-            FloatRect addBtn({startX + 1079.f, toolY}, {165.f, 44.f});
+            FloatRect searchBox({startX, toolY}, {searchW, 44.f});
+            FloatRect genreBtn({toolRightX, toolY}, {160.f, 44.f});
+            FloatRect statusBtn({toolRightX + 175.f, toolY}, {160.f, 44.f});
+            FloatRect reloadBtn({toolRightX + 350.f, toolY}, {44.f, 44.f});
+            FloatRect editBtn({toolRightX + 404.f, toolY}, {150.f, 44.f});
+            FloatRect deleteBtn({toolRightX + 566.f, toolY}, {125.f, 44.f});
+            FloatRect addBtn({toolRightX + 704.f, toolY}, {165.f, 44.f});
 
             if (searchBox.contains(mouse)) {
-                if (!searchQuery.empty() && mouse.x >= startX + 328.f) {
+                if (!searchQuery.empty() && mouse.x >= startX + searchW - 32.f) {
                     searchQuery.clear();
                     applyFilter();
                 }
@@ -657,8 +672,8 @@ void MoviePanel::handleEvent(const Event& event, const RenderWindow& window) {
             const float tableY = 352.f;
             const float hdrH = 48.f;
             const float rowH = 82.f;
-            const float tableW = 1244.f;
-            const float col8X = startX + 1124.f;
+            const float tableW = contentW;
+            const float col8X = startX + tableW - 120.f;
 
             int startIdx = (currentPage - 1) * moviesPerPage;
             int displayCount = max(0, min(moviesPerPage, static_cast<int>(filteredIndices.size()) - startIdx));
@@ -791,16 +806,19 @@ void MoviePanel::update(Vector2f mouse, bool /*mousePressed*/) {
         return;
     }
 
-    const float startX = position.x + (width - 1244.f) / 2.f;
+    const float startX = position.x + 30.f;
+    const float contentW = max(1200.f, width - 60.f);
+    const float searchW = max(320.f, contentW - 884.f);
+    const float toolRightX = startX + searchW + 15.f;
     const float toolY = 252.f;
 
-    FloatRect searchBox({startX, toolY}, {360.f, 44.f});
-    FloatRect genreBtn({startX + 375.f, toolY}, {160.f, 44.f});
-    FloatRect statusBtn({startX + 550.f, toolY}, {160.f, 44.f});
-    FloatRect reloadBtn({startX + 725.f, toolY}, {44.f, 44.f});
-    FloatRect editBtn({startX + 779.f, toolY}, {150.f, 44.f});
-    FloatRect deleteBtn({startX + 941.f, toolY}, {125.f, 44.f});
-    FloatRect addBtn({startX + 1079.f, toolY}, {165.f, 44.f});
+    FloatRect searchBox({startX, toolY}, {searchW, 44.f});
+    FloatRect genreBtn({toolRightX, toolY}, {160.f, 44.f});
+    FloatRect statusBtn({toolRightX + 175.f, toolY}, {160.f, 44.f});
+    FloatRect reloadBtn({toolRightX + 350.f, toolY}, {44.f, 44.f});
+    FloatRect editBtn({toolRightX + 404.f, toolY}, {150.f, 44.f});
+    FloatRect deleteBtn({toolRightX + 566.f, toolY}, {125.f, 44.f});
+    FloatRect addBtn({toolRightX + 704.f, toolY}, {165.f, 44.f});
 
     btnSearchHover = searchBox.contains(mouse);
     btnGenreHover = genreBtn.contains(mouse);
@@ -812,8 +830,8 @@ void MoviePanel::update(Vector2f mouse, bool /*mousePressed*/) {
 
     if (genreDropdownOpen) {
         hoveredGenreIndex = -1;
-        for (size_t g = 0; g < 6; ++g) {
-            FloatRect gb({startX + 375.f, toolY + 46.f + g * 36.f}, {160.f, 36.f});
+        for (size_t g = 0; g < 9; ++g) {
+            FloatRect gb({toolRightX, toolY + 46.f + g * 36.f}, {160.f, 36.f});
             if (gb.contains(mouse)) hoveredGenreIndex = static_cast<int>(g);
         }
     }
@@ -821,7 +839,7 @@ void MoviePanel::update(Vector2f mouse, bool /*mousePressed*/) {
     if (statusDropdownOpen) {
         hoveredStatusIndex = -1;
         for (size_t s = 0; s < 3; ++s) {
-            FloatRect sb({startX + 550.f, toolY + 46.f + s * 36.f}, {160.f, 36.f});
+            FloatRect sb({toolRightX + 175.f, toolY + 46.f + s * 36.f}, {160.f, 36.f});
             if (sb.contains(mouse)) hoveredStatusIndex = static_cast<int>(s);
         }
     }
@@ -830,8 +848,8 @@ void MoviePanel::update(Vector2f mouse, bool /*mousePressed*/) {
     const float tableY = 352.f;
     const float hdrH = 48.f;
     const float rowH = 82.f;
-    const float tableW = 1244.f;
-    const float col8X = startX + 1124.f;
+    const float tableW = contentW;
+    const float col8X = startX + tableW - 120.f;
 
     hoveredRow = -1;
     hoveredEditRow = -1;
@@ -853,10 +871,13 @@ void MoviePanel::update(Vector2f mouse, bool /*mousePressed*/) {
 }
 
 void MoviePanel::render(RenderWindow& window) {
-    const float startX = position.x + (width - 1244.f) / 2.f; // Centered inside panel width
+    const float startX = position.x + 30.f;
+    const float contentW = max(1200.f, width - 60.f);
+    const float searchW = max(320.f, contentW - 884.f);
+    const float toolRightX = startX + searchW + 15.f;
 
     // 1. Standardized Top Navigation Bar & Profile Header
-    UITheme::drawTopBar(window, startX, position.y, 1244.f, L"QUẢN LÝ PHIM", font, boldFont);
+    UITheme::drawTopBar(window, startX, position.y, contentW, L"QUẢN LÝ PHIM", font, boldFont);
 
     // 2. Standardized Page Heading
     UITheme::drawPageHeader(window, startX, position.y + 64.f,
@@ -864,13 +885,12 @@ void MoviePanel::render(RenderWindow& window) {
                             L"",
                             boldFont, font);
 
-    // 4. 4 KPI STAT CARDS
-    const float cardY = 104.f;
-    const float cardW = 296.f;
-    const float cardH = 104.f;
+    // 4. 4 KPI STAT CARDS (Centered vertically between page title and filter toolbar, +30% typography)
+    const float cardY = 113.f;
+    const float cardH = 118.f;
     const float cardGap = 20.f;
+    const float cardW = (contentW - 3.f * cardGap) / 4.f;
 
-    // Count statistics
     int countActive = 0, countUpcoming = 0;
     for (const auto& r : allMovies) {
         string st = (r.size() >= 14) ? r[13] : "Đang chiếu";
@@ -878,35 +898,24 @@ void MoviePanel::render(RenderWindow& window) {
         else countUpcoming++;
     }
 
-    // Card 1: Phim đang chiếu
-    UITheme::drawKpiCard(window, {startX, cardY}, {cardW, cardH},
-                         L"Phim đang chiếu", to_wstring(countActive), L"Đang tạo doanh thu",
-                         UITheme::SuccessLight, UITheme::SuccessDark, boldFont);
+    auto drawMovieKpi = [&](Vector2f pos, const wstring& title, const wstring& value, const wstring& sub, Color subCol) {
+        RoundedRectRenderer::draw(window, pos, {cardW, cardH}, 8.f, UITheme::Surface, 1.f, UITheme::BorderLight);
+        FontManager::drawCenteredText(window, boldFont, title, 18, UITheme::TextSecondary, {pos, {cardW, 34.f}});
+        FontManager::drawCenteredText(window, boldFont, value, 31, UITheme::TextPrimary, {{pos.x, pos.y + 34.f}, {cardW, 46.f}});
+        FontManager::drawCenteredText(window, boldFont, sub, 18, subCol, {{pos.x, pos.y + cardH - 36.f}, {cardW, 28.f}});
+    };
 
-    // Card 2: Phim sắp khởi chiếu
-    float c2X = startX + cardW + cardGap;
-    UITheme::drawKpiCard(window, {c2X, cardY}, {cardW, cardH},
-                         L"Phim sắp khởi chiếu", to_wstring(countUpcoming), L"Đã mở bán sớm",
-                         UITheme::InfoLight, UITheme::InfoDark, boldFont);
-
-    // Card 3: Tổng suất hôm nay
-    float c3X = c2X + cardW + cardGap;
-    UITheme::drawKpiCard(window, {c3X, cardY}, {cardW, cardH},
-                         L"Tổng suất hôm nay", L"42", L"12 phòng chiếu full",
-                         Color(243, 232, 255), Color(126, 34, 206), boldFont);
-
-    // Card 4: Tổng phim quản lý
-    float c4X = c3X + cardW + cardGap;
-    UITheme::drawKpiCard(window, {c4X, cardY}, {cardW, cardH},
-                         L"Tổng phim quản lý", to_wstring(allMovies.size()), L"Kho dữ liệu CineCore",
-                         UITheme::SurfaceSubtle, UITheme::TextSecondary, boldFont);
+    drawMovieKpi({startX, cardY}, L"Phim đang chiếu", to_wstring(countActive), L"Đang tạo doanh thu", UITheme::SuccessDark);
+    drawMovieKpi({startX + cardW + cardGap, cardY}, L"Phim sắp khởi chiếu", to_wstring(countUpcoming), L"Đã mở bán sớm", UITheme::InfoDark);
+    drawMovieKpi({startX + (cardW + cardGap) * 2.f, cardY}, L"Tổng suất hôm nay", L"42", L"12 phòng chiếu full", Color(126, 34, 206));
+    drawMovieKpi({startX + (cardW + cardGap) * 3.f, cardY}, L"Tổng phim quản lý", to_wstring(allMovies.size()), L"Kho dữ liệu CineCore", UITheme::TextSecondary);
 
     // 5. TOOLBAR (Search & Filters & Actions)
     const float toolY = 252.f;
 
     // Search Input
     Color searchBorder = searchActive ? Color(8, 125, 181) : Color(203, 213, 225);
-    RoundedRectRenderer::draw(window, {startX, toolY}, {360.f, 44.f}, 10.f, Color::White, searchActive ? 1.8f : 1.2f, searchBorder);
+    RoundedRectRenderer::draw(window, {startX, toolY}, {searchW, 44.f}, 10.f, Color::White, searchActive ? 1.8f : 1.2f, searchBorder);
     drawSearchIcon(window, {startX + 14.f, toolY + 14.f}, searchActive ? Color(8, 125, 181) : Color(100, 116, 139));
 
     if (searchQuery.empty()) {
@@ -933,57 +942,57 @@ void MoviePanel::render(RenderWindow& window) {
             window.draw(caret);
         }
 
-        UITheme::drawCloseIcon(window, {startX + 340.f, toolY + 22.f}, 11.f, Color(148, 163, 184), 1.8f);
+        UITheme::drawCloseIcon(window, {startX + searchW - 20.f, toolY + 22.f}, 11.f, Color(148, 163, 184), 1.8f);
     }
 
     // Genre Dropdown Button
-    RoundedRectRenderer::draw(window, {startX + 375.f, toolY}, {160.f, 44.f}, 10.f, Color::White, 1.2f, Color(203, 213, 225));
+    RoundedRectRenderer::draw(window, {toolRightX, toolY}, {160.f, 44.f}, 10.f, Color::White, 1.2f, Color(203, 213, 225));
     wstring gLabel = (selectedGenre == "all") ? L"T\u1ea5t c\u1ea3 th\u1ec3 lo\u1ea1i" : s2ws(selectedGenre);
     Text gt(font, gLabel, UITheme::BodySize);
     gt.setFillColor(Color(30, 41, 59));
-    gt.setPosition({startX + 386.f, toolY + 11.f});
+    gt.setPosition({toolRightX + 11.f, toolY + 11.f});
     window.draw(gt);
-    drawDownArrow(window, {startX + 514.f, toolY + 20.f}, Color(51, 65, 85));
+    drawDownArrow(window, {toolRightX + 139.f, toolY + 20.f}, Color(51, 65, 85));
 
     // Status Dropdown Button
-    RoundedRectRenderer::draw(window, {startX + 550.f, toolY}, {160.f, 44.f}, 10.f, Color::White, 1.2f, Color(203, 213, 225));
+    RoundedRectRenderer::draw(window, {toolRightX + 175.f, toolY}, {160.f, 44.f}, 10.f, Color::White, 1.2f, Color(203, 213, 225));
     wstring stLabel = (selectedStatus == "all") ? L"Tr\u1ea1ng th\u00e1i: T\u1ea5t c\u1ea3" : (selectedStatus == "dang_chieu" ? L"\u0110ang chi\u1ebfu" : L"S\u1eafp chi\u1ebfu");
     Text stt(font, stLabel, UITheme::BodySize);
     stt.setFillColor(Color(30, 41, 59));
-    stt.setPosition({startX + 560.f, toolY + 11.f});
+    stt.setPosition({toolRightX + 185.f, toolY + 11.f});
     window.draw(stt);
-    drawDownArrow(window, {startX + 692.f, toolY + 20.f}, Color(51, 65, 85));
+    drawDownArrow(window, {toolRightX + 317.f, toolY + 20.f}, Color(51, 65, 85));
 
     // Reload Button
     Color relCol = btnReloadHover ? Color(241, 245, 249) : Color::White;
-    RoundedRectRenderer::draw(window, {startX + 725.f, toolY}, {44.f, 44.f}, 10.f, relCol, 1.2f, Color(203, 213, 225));
-    drawReloadIcon(window, {startX + 740.f, toolY + 15.f}, Color(30, 41, 59));
+    RoundedRectRenderer::draw(window, {toolRightX + 350.f, toolY}, {44.f, 44.f}, 10.f, relCol, 1.2f, Color(203, 213, 225));
+    drawReloadIcon(window, {toolRightX + 365.f, toolY + 15.f}, Color(30, 41, 59));
 
     // Edit Button (Amber/Orange)
     Color editCol = btnEditHover ? Color(217, 119, 6) : Color(245, 158, 11);
-    RoundedRectRenderer::draw(window, {startX + 779.f, toolY}, {150.f, 44.f}, 10.f, editCol);
-    drawPencilIcon(window, {startX + 791.f, toolY + 15.f}, Color::White);
+    RoundedRectRenderer::draw(window, {toolRightX + 404.f, toolY}, {150.f, 44.f}, 10.f, editCol);
+    drawPencilIcon(window, {toolRightX + 416.f, toolY + 15.f}, Color::White);
     Text editTxt(boldFont, L"S\u1eeda th\u00f4ng tin", UITheme::ButtonTextSize);
     editTxt.setFillColor(Color::White);
-    editTxt.setPosition({startX + 811.f, toolY + 11.f});
+    editTxt.setPosition({toolRightX + 436.f, toolY + 11.f});
     window.draw(editTxt);
 
     // Delete Button (Crimson)
     Color delCol = btnDeleteHover ? Color(220, 38, 38) : Color(220, 38, 38);
-    RoundedRectRenderer::draw(window, {startX + 941.f, toolY}, {125.f, 44.f}, 10.f, delCol);
-    drawTrashIcon(window, {startX + 954.f, toolY + 15.f}, Color::White);
+    RoundedRectRenderer::draw(window, {toolRightX + 566.f, toolY}, {125.f, 44.f}, 10.f, delCol);
+    drawTrashIcon(window, {toolRightX + 578.f, toolY + 15.f}, Color::White);
     Text delTxt(boldFont, L"X\u00f3a phim", UITheme::ButtonTextSize);
     delTxt.setFillColor(Color::White);
-    delTxt.setPosition({startX + 976.f, toolY + 11.f});
+    delTxt.setPosition({toolRightX + 601.f, toolY + 11.f});
     window.draw(delTxt);
 
     // Add Button (Ocean Blue)
     Color addCol = btnAddHover ? Color(18, 59, 93) : Color(8, 125, 181);
-    RoundedRectRenderer::draw(window, {startX + 1079.f, toolY}, {165.f, 44.f}, 10.f, addCol);
-    drawPlusIcon(window, {startX + 1091.f, toolY + 17.f}, Color::White);
+    RoundedRectRenderer::draw(window, {toolRightX + 704.f, toolY}, {165.f, 44.f}, 10.f, addCol);
+    drawPlusIcon(window, {toolRightX + 716.f, toolY + 17.f}, Color::White);
     Text addTxt(boldFont, L"Th\u00eam phim m\u1edbi", UITheme::ButtonTextSize);
     addTxt.setFillColor(Color::White);
-    addTxt.setPosition({startX + 1110.f, toolY + 11.f});
+    addTxt.setPosition({toolRightX + 735.f, toolY + 11.f});
     window.draw(addTxt);
 
     // 6. DATA TABLE SUBHEADER
@@ -997,17 +1006,18 @@ void MoviePanel::render(RenderWindow& window) {
 
     // Right count badge
     wstring countStr = L"Trang " + to_wstring(currentPage) + L"/" + to_wstring(totalPages) + L" (" + to_wstring(filteredIndices.size()) + L" phim)";
-    RoundedRectRenderer::draw(window, {startX + 1244.f - 220.f, subY - 4.f}, {220.f, 30.f}, 15.f, Color(241, 245, 249), 1.2f, Color(203, 213, 225));
+    RoundedRectRenderer::draw(window, {startX + contentW - 220.f, subY - 4.f}, {220.f, 30.f}, 15.f, Color(241, 245, 249), 1.2f, Color(203, 213, 225));
     Text cBadge(boldFont, countStr, UITheme::SmallBadgeSize);
     cBadge.setFillColor(Color(30, 41, 59));
     FloatRect cbb = cBadge.getLocalBounds();
-    cBadge.setPosition({startX + 1244.f - 220.f + (220.f - cbb.size.x) / 2.f - cbb.position.x, subY + 2.f});
+    cBadge.setPosition({startX + contentW - 220.f + (220.f - cbb.size.x) / 2.f - cbb.position.x, subY + 2.f});
     window.draw(cBadge);
 
     // 7. TABLE HEADER (Ocean Blue #0077B6)
     const float tblY = 352.f;
-    const float tblW = 1244.f;
+    const float tblW = contentW;
     const float hdrH = 48.f;
+    const float col2W = max(280.f, tblW - 915.f);
 
     RoundedRectRenderer::draw(window, {startX, tblY}, {tblW, hdrH}, 8.f, Color(8, 125, 181));
 
@@ -1015,21 +1025,22 @@ void MoviePanel::render(RenderWindow& window) {
     vector<pair<wstring, float>> cols = {
         {L"", 45.f},
         {L"ID PHIM", 95.f},
-        {L"T\u00caN PHIM & TH\u1ec2 LO\u1ea0I", 355.f},
-        {L"\u0110\u1ea0O DI\u1ec4N", 150.f},
+        {L"T\u00caN PHIM & TH\u1ec2 LO\u1ea0I", col2W},
+        {L"\u0110\u1ea0O DI\u1ec4N", 155.f},
         {L"QU\u1ed0C GIA", 125.f},
-        {L"TH\u1edcI L\u01af\u1ee2NG", 105.f},
-        {L"NG\u00c0Y CHI\u1ebeU", 115.f},
-        {L"TR\u1ea0NG TH\u00c1I", 134.f},
+        {L"TH\u1edcI L\u01af\u1ee2NG", 115.f},
+        {L"NG\u00c0Y CHI\u1ebeU", 120.f},
+        {L"TR\u1ea0NG TH\u00c1I", 140.f},
         {L"THAO T\u00c1C", 120.f}
     };
 
-    float curColX = startX;
+    vector<float> colX(cols.size(), startX);
     for (size_t c = 0; c < cols.size(); ++c) {
         if (c > 0) {
+            colX[c] = colX[c - 1] + cols[c - 1].second;
             RectangleShape hSep({1.f, hdrH - 16.f});
             hSep.setFillColor(Color(255, 255, 255, 55));
-            hSep.setPosition({curColX, tblY + 8.f});
+            hSep.setPosition({colX[c], tblY + 8.f});
             window.draw(hSep);
         }
         if (!cols[c].first.empty()) {
@@ -1037,14 +1048,13 @@ void MoviePanel::render(RenderWindow& window) {
             hText.setFillColor(Color::White);
             FloatRect hb = hText.getLocalBounds();
             float hY = tblY + (hdrH - hb.size.y) / 2.f - hb.position.y - 1.f;
-            if (c == 4 || c == 5 || c == 8) {
-                hText.setPosition({curColX + (cols[c].second - hb.size.x) / 2.f - hb.position.x, hY});
+            if (c == 1 || c >= 3) {
+                hText.setPosition({colX[c] + (cols[c].second - hb.size.x) / 2.f - hb.position.x, hY});
             } else {
-                hText.setPosition({curColX + 10.f, hY});
+                hText.setPosition({colX[c] + 10.f, hY});
             }
             window.draw(hText);
         }
-        curColX += cols[c].second;
     }
 
     // 8. TABLE ROWS
@@ -1089,16 +1099,20 @@ void MoviePanel::render(RenderWindow& window) {
             drawCheckmark(window, {startX + 17.f, rY + (rowH - 20.f) / 2.f + 8.f}, Color(8, 125, 181));
         }
 
-        // Col 1: ID Phim (e.g. #PBL-001)
+        // Col 1: ID Phim (30% smaller, regular weight, centered)
         string idStr = (row.size() > 0) ? row[0] : "";
-        Text idText(boldFont, s2ws(idStr), UITheme::TableBodySize);
+        Text idText(font, s2ws(idStr), 12);
         idText.setFillColor(Color(8, 125, 181));
         FloatRect idb = idText.getLocalBounds();
-        idText.setPosition({startX + 52.f, rY + (rowH - idb.size.y) / 2.f - idb.position.y - 1.f});
+        idText.setPosition({
+            colX[1] + (cols[1].second - idb.size.x) / 2.f - idb.position.x,
+            rY + (rowH - idb.size.y) / 2.f - idb.position.y - 1.f
+        });
         window.draw(idText);
 
         // Col 2: Poster thumbnail + Title + Format & Genre
-        float col2X = startX + 140.f;
+        float col2X = colX[2] + 8.f;
+        float maxTitleW = cols[2].second - 68.f;
         string lang = (row.size() > 4) ? row[4] : "";
         string fmtStr = "2D / Atmos";
         if (lang.find("Lồng tiếng") != string::npos) {
@@ -1139,8 +1153,8 @@ void MoviePanel::render(RenderWindow& window) {
         string titleStr = (row.size() > 1) ? row[1] : "";
         wstring wTitle = s2ws(titleStr);
         Text titleTxt(boldFont, wTitle, UITheme::TableBodySize);
-        if (titleTxt.getLocalBounds().size.x > 290.f) {
-            while (wTitle.length() > 3 && titleTxt.getLocalBounds().size.x > 280.f) {
+        if (titleTxt.getLocalBounds().size.x > maxTitleW) {
+            while (wTitle.length() > 3 && titleTxt.getLocalBounds().size.x > maxTitleW - 10.f) {
                 wTitle.pop_back();
                 titleTxt.setString(wTitle + L"...");
             }
@@ -1163,8 +1177,8 @@ void MoviePanel::render(RenderWindow& window) {
         string genreStr = (row.size() > 5) ? row[5] : "";
         wstring wGenre = s2ws(genreStr);
         Text gTxt(font, wGenre, UITheme::HelperTextSize);
-        if (gTxt.getLocalBounds().size.x > 290.f) {
-            while (wGenre.length() > 3 && gTxt.getLocalBounds().size.x > 280.f) {
+        if (gTxt.getLocalBounds().size.x > maxTitleW) {
+            while (wGenre.length() > 3 && gTxt.getLocalBounds().size.x > maxTitleW - 10.f) {
                 wGenre.pop_back();
                 gTxt.setString(wGenre + L"...");
             }
@@ -1173,25 +1187,29 @@ void MoviePanel::render(RenderWindow& window) {
         gTxt.setPosition({col2X + 50.f, rY + 57.f});
         window.draw(gTxt);
 
-        // Col 3: Director
-        float col3X = startX + 495.f;
+        // Col 3: Director (Centered)
+        float col3X = colX[3];
+        float col3W = cols[3].second;
         string dirStr = (row.size() > 9) ? row[9] : "";
         wstring wDir = s2ws(dirStr);
         Text dirTxt(font, wDir, UITheme::TableBodySize);
-        if (dirTxt.getLocalBounds().size.x > 130.f) {
-            while (wDir.length() > 3 && dirTxt.getLocalBounds().size.x > 120.f) {
+        if (dirTxt.getLocalBounds().size.x > col3W - 18.f) {
+            while (wDir.length() > 3 && dirTxt.getLocalBounds().size.x > col3W - 24.f) {
                 wDir.pop_back();
                 dirTxt.setString(wDir + L"...");
             }
         }
         dirTxt.setFillColor(Color(30, 41, 59));
         FloatRect db = dirTxt.getLocalBounds();
-        dirTxt.setPosition({col3X + 10.f, rY + (rowH - db.size.y) / 2.f - db.position.y - 1.f});
+        dirTxt.setPosition({
+            col3X + (col3W - db.size.x) / 2.f - db.position.x,
+            rY + (rowH - db.size.y) / 2.f - db.position.y - 1.f
+        });
         window.draw(dirTxt);
 
-        // Col 4: Country pill (e.g. VN Việt Nam, US Mỹ, KR Hàn Quốc, RU Nga, JP Nhật Bản)
-        float col4X = startX + 645.f;
-        float col4W = 125.f;
+        // Col 4: Country pill (Centered)
+        float col4X = colX[4];
+        float col4W = cols[4].second;
         string ctry = (row.size() > 3) ? row[3] : "Việt Nam";
 
         Color ctryBg = Color(254, 226, 226);
@@ -1230,41 +1248,48 @@ void MoviePanel::render(RenderWindow& window) {
         });
         window.draw(ctryDisplay);
 
-        // Col 5: Duration
-        float col5X = startX + 770.f;
+        // Col 5: Duration (Single line, centered)
+        float col5X = colX[5];
+        float col5W = cols[5].second;
         string dur = (row.size() > 6) ? row[6] : "120";
-        Text durVal(boldFont, s2ws(dur), UITheme::TableBodySize);
-        durVal.setFillColor(UITheme::TextPrimary);
-        FloatRect dvb = durVal.getLocalBounds();
-        durVal.setPosition({col5X + (105.f - dvb.size.x) / 2.f - dvb.position.x, rY + 21.f});
-        window.draw(durVal);
-        Text durUnit(font, L"ph\u00fat", UITheme::HelperTextSize);
-        durUnit.setFillColor(UITheme::TextSecondary);
-        FloatRect dub = durUnit.getLocalBounds();
-        durUnit.setPosition({col5X + (105.f - dub.size.x) / 2.f - dub.position.x, rY + 43.f});
-        window.draw(durUnit);
+        Text durTxt(font, s2ws(dur) + L" ph\u00fat", UITheme::TableBodySize);
+        durTxt.setFillColor(UITheme::TextPrimary);
+        FloatRect dvb = durTxt.getLocalBounds();
+        durTxt.setPosition({
+            col5X + (col5W - dvb.size.x) / 2.f - dvb.position.x,
+            rY + (rowH - dvb.size.y) / 2.f - dvb.position.y - 1.f
+        });
+        window.draw(durTxt);
 
-        // Col 6: Release Date
-        float col6X = startX + 875.f;
+        // Col 6: Release Date (Centered)
+        float col6X = colX[6];
+        float col6W = cols[6].second;
         string relDate = (row.size() > 7) ? row[7] : "";
         Text dateTxt(font, s2ws(relDate), UITheme::TableBodySize);
         dateTxt.setFillColor(Color(30, 41, 59));
         FloatRect dtb = dateTxt.getLocalBounds();
-        dateTxt.setPosition({col6X + 10.f, rY + (rowH - dtb.size.y) / 2.f - dtb.position.y - 1.f});
+        dateTxt.setPosition({
+            col6X + (col6W - dtb.size.x) / 2.f - dtb.position.x,
+            rY + (rowH - dtb.size.y) / 2.f - dtb.position.y - 1.f
+        });
         window.draw(dateTxt);
 
-        // Col 7: Status Pill with standardized UITheme badge
-        float col7X = startX + 990.f;
+        // Col 7: Status Pill (Centered inside column)
+        float col7X = colX[7];
+        float col7W = cols[7].second;
         string st = (row.size() >= 14) ? row[13] : "Đang chiếu";
         if (st.empty()) st = "Đang chiếu";
         bool isPlaying = (st == "Đang chiếu");
-        UITheme::drawBadge(window, {col7X + 8.f, rY + (rowH - 28.f) / 2.f},
-                           isPlaying ? L"Đang chiếu" : L"Sắp chiếu",
+        wstring stText = isPlaying ? L"Đang chiếu" : L"Sắp chiếu";
+        Text stMeasure(boldFont, stText, UITheme::SmallBadgeSize);
+        float badgeW = stMeasure.getLocalBounds().size.x + 20.f + 12.f;
+        UITheme::drawBadge(window, {col7X + (col7W - badgeW) / 2.f, rY + (rowH - 28.f) / 2.f},
+                           stText,
                            isPlaying ? UITheme::BadgeVariant::Success : UITheme::BadgeVariant::Warning,
                            boldFont, true, 28.f);
 
-        // Col 8: Action Icons (Edit & Delete) with standard hover & border
-        float col8X = startX + 1124.f;
+        // Col 8: Action Icons (Edit & Delete, centered)
+        float col8X = colX[8];
         Color editBg = (idx == hoveredEditRow) ? UITheme::WarningLight : UITheme::SurfaceSubtle;
         Color editIcon = (idx == hoveredEditRow) ? UITheme::WarningDark : UITheme::TextSecondary;
         RoundedRectRenderer::draw(window, {col8X + 20.f, rY + (rowH - 34.f) / 2.f}, {34.f, 34.f}, 8.f, editBg, 1.f, UITheme::BorderLight);
@@ -1273,7 +1298,7 @@ void MoviePanel::render(RenderWindow& window) {
         Color delBg = (idx == hoveredDeleteRow) ? UITheme::DangerLight : UITheme::SurfaceSubtle;
         Color delIcon = (idx == hoveredDeleteRow) ? UITheme::DangerDark : UITheme::TextSecondary;
         RoundedRectRenderer::draw(window, {col8X + 64.f, rY + (rowH - 34.f) / 2.f}, {34.f, 34.f}, 8.f, delBg, 1.f, UITheme::BorderLight);
-        drawTrashIcon(window, {col8X + 72.f, rY + (rowH - 34.f) / 2.f + 8.f}, delIcon);
+        drawTrashIcon(window, {col8X + 74.f, rY + (rowH - 34.f) / 2.f + 10.f}, delIcon);
     }
 
     // 8b. THANH PHÂN TRANG (PAGINATION BAR)
@@ -1337,26 +1362,26 @@ void MoviePanel::render(RenderWindow& window) {
     // 9. Dropdown menus (if open)
     if (genreDropdownOpen) {
         vector<string> genres = {"Tất cả thể loại", "Hành động", "Hoạt hình", "Tội phạm", "Viễn tưởng", "Tâm lý", "Hài", "Kinh dị", "Gia đình"};
-        RoundedRectRenderer::draw(window, {startX + 375.f, toolY + 46.f}, {160.f, genres.size() * 36.f}, 8.f, Color::White, 1.2f, Color(203, 213, 225));
+        RoundedRectRenderer::draw(window, {toolRightX, toolY + 46.f}, {160.f, genres.size() * 36.f}, 8.f, Color::White, 1.2f, Color(203, 213, 225));
         for (size_t g = 0; g < genres.size(); ++g) {
             Color itemBg = (static_cast<int>(g) == hoveredGenreIndex) ? Color(241, 245, 249) : Color::White;
-            RoundedRectRenderer::draw(window, {startX + 376.f, toolY + 47.f + g * 36.f}, {158.f, 34.f}, 4.f, itemBg);
+            RoundedRectRenderer::draw(window, {toolRightX + 1.f, toolY + 47.f + g * 36.f}, {158.f, 34.f}, 4.f, itemBg);
             Text it(boldFont, s2ws(genres[g]), 14);
             it.setFillColor(Color(23, 32, 51));
-            it.setPosition({startX + 386.f, toolY + 55.f + g * 36.f});
+            it.setPosition({toolRightX + 11.f, toolY + 55.f + g * 36.f});
             window.draw(it);
         }
     }
 
     if (statusDropdownOpen) {
         vector<string> statuses = {"Trạng thái: Tất cả", "Đang chiếu", "Sắp chiếu"};
-        RoundedRectRenderer::draw(window, {startX + 550.f, toolY + 46.f}, {160.f, statuses.size() * 36.f}, 8.f, Color::White, 1.2f, Color(203, 213, 225));
+        RoundedRectRenderer::draw(window, {toolRightX + 175.f, toolY + 46.f}, {160.f, statuses.size() * 36.f}, 8.f, Color::White, 1.2f, Color(203, 213, 225));
         for (size_t s = 0; s < statuses.size(); ++s) {
             Color itemBg = (static_cast<int>(s) == hoveredStatusIndex) ? Color(241, 245, 249) : Color::White;
-            RoundedRectRenderer::draw(window, {startX + 551.f, toolY + 47.f + s * 36.f}, {158.f, 34.f}, 4.f, itemBg);
+            RoundedRectRenderer::draw(window, {toolRightX + 176.f, toolY + 47.f + s * 36.f}, {158.f, 34.f}, 4.f, itemBg);
             Text it(boldFont, s2ws(statuses[s]), 14);
             it.setFillColor(Color(23, 32, 51));
-            it.setPosition({startX + 561.f, toolY + 55.f + s * 36.f});
+            it.setPosition({toolRightX + 186.f, toolY + 55.f + s * 36.f});
             window.draw(it);
         }
     }
