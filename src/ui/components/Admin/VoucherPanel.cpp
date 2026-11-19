@@ -321,11 +321,11 @@ VoucherLayout computeVoucherLayout(Vector2f pos, float width, float height) {
     L.hdrH = 42.f;
     L.rowH = 68.f;
 
-    float c1 = std::floor(L.leftW * 0.36f);
-    float c2 = std::floor(L.leftW * 0.11f);
-    float c3 = std::floor(L.leftW * 0.14f);
-    float c4 = std::floor(L.leftW * 0.15f);
-    float c5 = std::floor(L.leftW * 0.12f);
+    float c1 = std::floor(L.leftW * 0.34f);
+    float c2 = std::floor(L.leftW * 0.10f);
+    float c3 = std::floor(L.leftW * 0.13f);
+    float c4 = std::floor(L.leftW * 0.14f);
+    float c5 = std::floor(L.leftW * 0.16f);
     L.div1 = L.tableX + c1;
     L.div2 = L.div1 + c2;
     L.div3 = L.div2 + c3;
