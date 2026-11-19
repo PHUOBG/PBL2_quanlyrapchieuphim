@@ -246,7 +246,7 @@ void RoomPanel::loadRoomsFromFile() {
         try {
             int rParsed = stoi(rowsStr);
             int cParsed = stoi(colsStr);
-            if (rParsed >= 2 && rParsed <= 12 && cParsed >= 2 && cParsed <= 14) {
+            if (rParsed >= 1 && rParsed <= 10 && cParsed >= 1 && cParsed <= 10) {
                 rw = rParsed;
                 cl = cParsed;
             }
@@ -557,8 +557,8 @@ void RoomPanel::handleEvent(const Event& event, const RenderWindow& win) {
                     } catch (...) {
                         nr = -1;
                     }
-                    if (nr < 2 || nr > 12 || nc < 2 || nc > 14) {
-                        notificationMessage = "Số hàng (2-12) và số cột (2-14) không hợp lệ!";
+                    if (nr < 1 || nr > 10 || nc < 1 || nc > 10) {
+                        notificationMessage = "Số hàng và số cột ghế chỉ được từ 1 đến 10!";
                         notificationClock.restart();
                         notificationVisible = true;
                         return;
@@ -598,17 +598,17 @@ void RoomPanel::handleEvent(const Event& event, const RenderWindow& win) {
             // 5. Cột phải: Click trực tiếp vào ghế để đổi loại ghế
             if (selectedRoomIndex >= 0 && selectedRoomIndex < (int)rooms.size()) {
                 auto& r = rooms[selectedRoomIndex];
-                float gridStartX = position.x + 440.f + 50.f;
-                float gridStartY = position.y + 320.f;
-                float seatW = 46.f * zoomFactor;
-                float seatH = 46.f * zoomFactor;
-                float gapX = 18.f * zoomFactor;
-                float gapY = 16.f * zoomFactor;
+                float rightX = position.x + 420.f;
+                float rightCardW = width - 450.f;
+                float gridStartY = cardY + 128.f;
+                float seatW = 42.f * zoomFactor;
+                float seatH = 42.f * zoomFactor;
+                float gapX = 16.f * zoomFactor;
+                float gapY = 12.f * zoomFactor;
 
                 // Căn giữa sơ đồ trong khung phải
                 float totalW = r.cols * seatW + (r.cols - 1) * gapX;
-                float rightCardW = width - 470.f;
-                gridStartX = position.x + 440.f + (rightCardW - totalW) / 2.f;
+                float gridStartX = rightX + (rightCardW - totalW) / 2.f;
 
                 for (int row = 0; row < r.rows; ++row) {
                     for (int col = 0; col < r.cols; ++col) {
@@ -656,13 +656,25 @@ void RoomPanel::handleEvent(const Event& event, const RenderWindow& win) {
         if (c < 32 || c == 127) return;
         if (activeInputBox == 0) { // Tên phòng
             if (inputRoomName.size() < 28) inputRoomName.push_back((wchar_t)c);
-        } else if (activeInputBox == 1) { // Hàng ghế (2-10)
+        } else if (activeInputBox == 1) { // Hàng ghế (1-10)
             if (c >= '0' && c <= '9') {
-                if (inputRows.size() < 2) inputRows.push_back((char)c);
+                string next = inputRows + static_cast<char>(c);
+                try {
+                    int val = stoi(next);
+                    if (val >= 1 && val <= 10 && next.size() <= 2 && !(inputRows.empty() && c == '0')) {
+                        inputRows = next;
+                    }
+                } catch (...) {}
             }
-        } else if (activeInputBox == 2) { // Cột ghế (2-12)
+        } else if (activeInputBox == 2) { // Cột ghế (1-10)
             if (c >= '0' && c <= '9') {
-                if (inputCols.size() < 2) inputCols.push_back((char)c);
+                string next = inputCols + static_cast<char>(c);
+                try {
+                    int val = stoi(next);
+                    if (val >= 1 && val <= 10 && next.size() <= 2 && !(inputCols.empty() && c == '0')) {
+                        inputCols = next;
+                    }
+                } catch (...) {}
             }
         }
     }
@@ -674,15 +686,16 @@ void RoomPanel::update(Vector2f mousePos, bool) {
 
     if (selectedRoomIndex >= 0 && selectedRoomIndex < (int)rooms.size()) {
         const auto& r = rooms[selectedRoomIndex];
-        float seatW = 46.f * zoomFactor;
-        float seatH = 46.f * zoomFactor;
-        float gapX = 18.f * zoomFactor;
-        float gapY = 16.f * zoomFactor;
+        float seatW = 42.f * zoomFactor;
+        float seatH = 42.f * zoomFactor;
+        float gapX = 16.f * zoomFactor;
+        float gapY = 12.f * zoomFactor;
 
         float totalW = r.cols * seatW + (r.cols - 1) * gapX;
-        float rightCardW = width - 470.f;
-        float gridStartX = position.x + 440.f + (rightCardW - totalW) / 2.f;
-        float gridStartY = position.y + 320.f;
+        float rightX = position.x + 420.f;
+        float rightCardW = width - 450.f;
+        float gridStartX = rightX + (rightCardW - totalW) / 2.f;
+        float gridStartY = position.y + 164.f + 128.f;
 
         for (int row = 0; row < r.rows; ++row) {
             for (int col = 0; col < r.cols; ++col) {
@@ -1026,10 +1039,10 @@ void RoomPanel::render(RenderWindow& win) {
     // ==========================================
     if (selectedRoomIndex >= 0 && selectedRoomIndex < (int)rooms.size()) {
         const auto& r = rooms[selectedRoomIndex];
-        float seatW = 46.f * zoomFactor;
-        float seatH = 46.f * zoomFactor;
-        float gapX = 18.f * zoomFactor;
-        float gapY = 16.f * zoomFactor;
+        float seatW = 42.f * zoomFactor;
+        float seatH = 42.f * zoomFactor;
+        float gapX = 16.f * zoomFactor;
+        float gapY = 12.f * zoomFactor;
 
         float totalW = r.cols * seatW + (r.cols - 1) * gapX;
         float gridStartX = rightX + (rightW - totalW) / 2.f;
