@@ -198,7 +198,7 @@ int VoucherPanel::getVoucherPageSize() const {
 int VoucherPanel::getRecipientPageSize() const {
     float mainTopY = position.y + 210.f;
     float contentBottomY = position.y + height - 20.f;
-    float rTblY = mainTopY + 156.f;
+    float rTblY = mainTopY + 184.f;
     float rHdrH = 38.f;
     float rRowH = 60.f;
     float rFootY = contentBottomY - 38.f;
@@ -336,14 +336,14 @@ VoucherLayout computeVoucherLayout(Vector2f pos, float width, float height) {
 
     // Right panel
     L.rightCardH = L.contentBottomY - L.mainTopY;
-    L.rActY = L.mainTopY + 68.f;
-    L.rFltY = L.mainTopY + 112.f;
+    L.rActY = L.mainTopY + 84.f;
+    L.rFltY = L.mainTopY + 134.f;
     L.rCountW = 114.f;
     L.rSearchW = max(140.f, L.rightW - 32.f - L.rCountW - 10.f);
 
     L.rTblX = L.rightX + 16.f;
     L.rTblW = L.rightW - 32.f;
-    L.rTblY = L.mainTopY + 156.f;
+    L.rTblY = L.mainTopY + 184.f;
     L.rHdrH = 38.f;
     L.rRowH = 60.f;
     L.rTblRight = L.rTblX + L.rTblW;
@@ -1058,8 +1058,6 @@ void VoucherPanel::render(RenderWindow& win) {
     drawRoundedCard(win, {c1X, statY}, {cardW, cardH}, 10.f, Color::White, 1.f, Color(226, 232, 240));
     Text sc1T(boldFont, L"T\u1ed5ng voucher kh\u1ea3 d\u1ee5ng", 14); sc1T.setFillColor(Color(100, 116, 139)); sc1T.setPosition({c1X + 16.f, statY + 12.f}); win.draw(sc1T);
     Text sc1V(boldFont, to_wstring(allVouchers.size()), 24); sc1V.setFillColor(Color(23, 32, 51)); sc1V.setPosition({c1X + 16.f, std::round(statY + 35.f)}); win.draw(sc1V);
-    FloatRect v1b = sc1V.getGlobalBounds();
-    Text sc1U(font, L"chi\u1ebfn d\u1ecbch", 14); sc1U.setFillColor(Color(100, 116, 139)); sc1U.setPosition({std::round(v1b.position.x + v1b.size.x + 8.f), std::round(statY + 42.f)}); win.draw(sc1U);
 
     // Card 2: Đã quy đổi / Sử dụng
     float c2X = c1X + cardW + 15.f;
@@ -1067,7 +1065,7 @@ void VoucherPanel::render(RenderWindow& win) {
     Text sc2T(boldFont, L"\u0110\u00e3 quy \u0111\u1ed5i / S\u1eed d\u1ee5ng", 14); sc2T.setFillColor(Color(100, 116, 139)); sc2T.setPosition({c2X + 16.f, statY + 12.f}); win.draw(sc2T);
     Text sc2V(boldFont, L"1,420", 24); sc2V.setFillColor(Color(23, 32, 51)); sc2V.setPosition({c2X + 16.f, std::round(statY + 35.f)}); win.draw(sc2V);
     FloatRect v2b = sc2V.getGlobalBounds();
-    Text sc2P(boldFont, L"(68%)", 14); sc2P.setFillColor(Color(21, 128, 61)); sc2P.setPosition({std::round(v2b.position.x + v2b.size.x + 8.f), std::round(statY + 42.f)}); win.draw(sc2P);
+    Text sc2P(boldFont, L"(68%)", 17); sc2P.setFillColor(Color(21, 128, 61)); sc2P.setPosition({std::round(v2b.position.x + v2b.size.x + 10.f), std::round(statY + 40.f)}); win.draw(sc2P);
 
     // Card 3: Tổng ngân sách chiết khấu
     float c3X = c2X + cardW + 15.f;
@@ -1094,9 +1092,9 @@ void VoucherPanel::render(RenderWindow& win) {
     if (currentRecipientPage > totalRecipientPages) currentRecipientPage = totalRecipientPages;
 
     float leftW = L.leftW;
-    Text lHead(boldFont, L"\u2022 Danh s\u00e1ch Voucher", 16);
+    Text lHead(boldFont, L"Danh s\u00e1ch Voucher", 19);
     lHead.setFillColor(Color(23, 32, 51));
-    lHead.setPosition({L.contentX, std::round(L.mainTopY + 2.f)});
+    lHead.setPosition({L.contentX, std::round(L.mainTopY)});
     win.draw(lHead);
 
     // Hàng nút thao tác Cột Trái
@@ -1370,7 +1368,7 @@ void VoucherPanel::render(RenderWindow& win) {
     // Header Cột Phải
     Text rHead(boldFont, L"Chi ti\u1ebft ng\u01b0\u1eddi nh\u1eadn", 18);
     rHead.setFillColor(Color(23, 32, 51));
-    rHead.setPosition({rightX + 16.f, std::round(L.mainTopY + 12.f)});
+    rHead.setPosition({rightX + 16.f, std::round(L.mainTopY + 16.f)});
     win.draw(rHead);
 
     FloatRect rhb = rHead.getGlobalBounds();
@@ -1381,9 +1379,9 @@ void VoucherPanel::render(RenderWindow& win) {
     if (badgeBoxX + badgeBoxW > rightX + rightW - 16.f) {
         badgeBoxW = max(48.f, (rightX + rightW - 16.f) - badgeBoxX);
     }
-    drawRoundedCard(win, {badgeBoxX, L.mainTopY + 11.f}, {badgeBoxW, 26.f}, 6.f, Color(224, 242, 254));
+    drawRoundedCard(win, {badgeBoxX, L.mainTopY + 15.f}, {badgeBoxW, 26.f}, 6.f, Color(224, 242, 254));
     vcBadge.setFillColor(Color(8, 125, 181));
-    vcBadge.setPosition({std::round(badgeBoxX + (badgeBoxW - vcb.size.x) / 2.f - vcb.position.x), std::round(L.mainTopY + 11.f + (26.f - vcb.size.y) / 2.f - vcb.position.y)});
+    vcBadge.setPosition({std::round(badgeBoxX + (badgeBoxW - vcb.size.x) / 2.f - vcb.position.x), std::round(L.mainTopY + 15.f + (26.f - vcb.size.y) / 2.f - vcb.position.y)});
     win.draw(vcBadge);
 
     wstring rSubStr = L"";
@@ -1401,7 +1399,7 @@ void VoucherPanel::render(RenderWindow& win) {
     rSubStr = ellipsizeText(font, rSubStr, 16, rightW - 32.f);
     Text rSub(font, rSubStr, 16);
     rSub.setFillColor(Color(100, 116, 139));
-    rSub.setPosition({rightX + 16.f, std::round(L.mainTopY + 42.f)});
+    rSub.setPosition({rightX + 16.f, std::round(L.mainTopY + 50.f)});
     win.draw(rSub);
 
     // Hàng nút Cột Phải: Quay lại, + Thêm người, Thu hồi
