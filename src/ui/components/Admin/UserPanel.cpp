@@ -463,8 +463,8 @@ void UserPanel::handleEvent(const Event& event, const RenderWindow& window) {
         if (mousePress->button == Mouse::Button::Left) {
             Vector2f mPos = window.mapPixelToCoords(Mouse::getPosition(window));
 
-            // 1. Header Buttons (khớp drawHeader: topY = position.y + 14.f, y = topY + 12.f = position.y + 26.f)
-            FloatRect expRect({position.x + width - 275.f, position.y + 26.f}, {110.f, 36.f});
+            // 1. Header Buttons (khớp drawHeader: cardY = position.y + 14.f, btnY = position.y + 37.f)
+            FloatRect expRect({position.x + width - 308.f, position.y + 37.f}, {105.f, 38.f});
             if (expRect.contains(mPos)) {
                 string outPath = FileUtils::resolveDataPath("data/khach_hang_report.csv");
                 ofstream out(outPath, ios::binary);
@@ -500,7 +500,7 @@ void UserPanel::handleEvent(const Event& event, const RenderWindow& window) {
                 return;
             }
 
-            FloatRect addRect({position.x + width - 155.f, position.y + 26.f}, {150.f, 36.f});
+            FloatRect addRect({position.x + width - 193.f, position.y + 37.f}, {155.f, 38.f});
             if (addRect.contains(mPos)) {
                 activeDialog = DialogType::ADD_NEW;
                 inputName = "";
@@ -510,9 +510,9 @@ void UserPanel::handleEvent(const Event& event, const RenderWindow& window) {
                 return;
             }
 
-            // 2. Toolbar Action Buttons (khớp drawActionToolbar: actY = position.y + 192.f)
+            // 2. Toolbar Action Buttons (khớp drawActionToolbar: actY = position.y + 226.f)
             float actX = position.x + 20.f;
-            float actY = position.y + 192.f;
+            float actY = position.y + 226.f;
 
             // Ô tìm kiếm khách hàng
             FloatRect searchRect({position.x + width - 620.f, actY}, {220.f, 34.f});
@@ -616,7 +616,7 @@ void UserPanel::handleEvent(const Event& event, const RenderWindow& window) {
             }
 
             // 3. Table Rows click & row action icons
-            float tTop = position.y + 242.f + 44.f;
+            float tTop = position.y + 274.f + 44.f;
             int startIdx = page * rowsPerPage;
             int endIdx = min((int)filteredCustomers.size(), startIdx + rowsPerPage);
 
@@ -655,7 +655,7 @@ void UserPanel::handleEvent(const Event& event, const RenderWindow& window) {
 
             // Pagination buttons
             int totalPages = max(1, (static_cast<int>(filteredCustomers.size()) + rowsPerPage - 1) / rowsPerPage);
-            float pageY = position.y + 242.f + 44.f + rowsPerPage * 52.f + 12.f;
+            float pageY = position.y + 274.f + 44.f + rowsPerPage * 52.f + 12.f;
             float tableW = width - 40.f;
             float rightEdge = position.x + 20.f + tableW;
 
@@ -701,7 +701,7 @@ void UserPanel::handleEvent(const Event& event, const RenderWindow& window) {
 void UserPanel::update(const Vector2f& mousePos, bool /*mouseDown*/) {
     // Check row hover
     hoveredRow = -1;
-    float tTop = position.y + 242.f + 44.f;
+    float tTop = position.y + 274.f + 44.f;
     int startIdx = page * rowsPerPage;
     int endIdx = min((int)filteredCustomers.size(), startIdx + rowsPerPage);
 
@@ -755,83 +755,41 @@ void UserPanel::render(RenderTarget& target) const {
 }
 
 void UserPanel::drawHeader(RenderTarget& target) const {
-    float topY = position.y + 14.f;
+    int totalCount = static_cast<int>(allCustomers.size());
 
-    // Title
-    Text title(boldFont);
-    title.setString(L"Quản lý khách hàng");
-    title.setCharacterSize(24);
-    title.setFillColor(Color(23, 32, 51));
-    title.setPosition({position.x + 20.f, topY});
-    target.draw(title);
+    UITheme::drawSectionHeaderCard(target, position.x + 20.f, position.y + 14.f, width - 40.f,
+                                   L"Quản lý khách hàng",
+                                   L"Tổng " + to_wstring(totalCount) + L" hội viên",
+                                   Color(224, 242, 254), Color(8, 125, 181),
+                                   L"Tra cứu, quản lý hồ sơ tài khoản khách hàng, lịch sử vé và cấp bậc thẻ thành viên.",
+                                   boldFont, font, false);
 
-    // Badge 1: Hội viên CineCore Rewards
-    float tW = title.getGlobalBounds().size.x;
-    Vector2f b1Pos(position.x + 20.f + tW + 14.f, topY + 4.f);
-    Text b1Txt(boldFont);
-    b1Txt.setString(L"Hội viên CineCore Rewards");
-    b1Txt.setCharacterSize(14);
-    b1Txt.setFillColor(Color(8, 125, 181));
-    FloatRect b1b = b1Txt.getLocalBounds();
-    float b1W = b1b.size.x + 24.f;
-    float b1H = 24.f;
-    RoundedRectRenderer::draw(target, b1Pos, {b1W, b1H}, b1H / 2.f, Color(224, 242, 254), 1.f, Color(186, 230, 253));
-    b1Txt.setPosition({
-        b1Pos.x + (b1W - b1b.size.x) / 2.f - b1b.position.x,
-        b1Pos.y + (b1H - b1b.size.y) / 2.f - b1b.position.y
-    });
-    target.draw(b1Txt);
-
-    // Badge 2: Tổng 15 hội viên
-    Vector2f b2Pos(b1Pos.x + b1W + 10.f, topY + 4.f);
-    Text b2Txt(font);
-    b2Txt.setString(L"Tổng " + to_wstring(totalCount) + L" hội viên");
-    b2Txt.setCharacterSize(14);
-    b2Txt.setFillColor(Color(100, 116, 139));
-    FloatRect b2b = b2Txt.getLocalBounds();
-    float b2W = b2b.size.x + 24.f;
-    float b2H = 24.f;
-    RoundedRectRenderer::draw(target, b2Pos, {b2W, b2H}, b2H / 2.f, Color(241, 245, 249), 1.f, Color(226, 232, 240));
-    b2Txt.setPosition({
-        b2Pos.x + (b2W - b2b.size.x) / 2.f - b2b.position.x,
-        b2Pos.y + (b2H - b2b.size.y) / 2.f - b2b.position.y
-    });
-    target.draw(b2Txt);
-
-    // Subtitle
-    Text sub(font);
-    sub.setString(L"Tra cứu, quản lý hồ sơ tài khoản khách hàng, lịch sử vé và cấp bậc thẻ thành viên.");
-    sub.setCharacterSize(14);
-    sub.setFillColor(Color(100, 116, 139));
-    sub.setPosition({position.x + 20.f, topY + 30.f});
-    target.draw(sub);
-
-    // Right action buttons:
+    // Right action buttons inside header card:
     // 1. Xuất Excel
-    Vector2f expPos(position.x + width - 275.f, topY + 12.f);
-    RoundedRectRenderer::draw(target, expPos, {110.f, 36.f}, 6.f, Color::White, 1.f, Color(21, 128, 61));
+    Vector2f expPos(position.x + width - 308.f, position.y + 37.f);
+    RoundedRectRenderer::draw(target, expPos, {105.f, 38.f}, 8.f, Color::White, 1.f, Color(203, 213, 225));
     Text expTxt(boldFont);
     expTxt.setString(L"Xuất Excel");
     expTxt.setCharacterSize(14);
-    expTxt.setFillColor(Color(21, 128, 61));
+    expTxt.setFillColor(Color(22, 101, 52));
     FloatRect expB = expTxt.getLocalBounds();
-    expTxt.setPosition({expPos.x + (110.f - expB.size.x) / 2.f - expB.position.x, expPos.y + (36.f - expB.size.y) / 2.f - expB.position.y});
+    expTxt.setPosition({std::round(expPos.x + (105.f - expB.size.x) / 2.f - expB.position.x), std::round(expPos.y + (38.f - expB.size.y) / 2.f - expB.position.y)});
     target.draw(expTxt);
 
     // 2. + Thêm hội viên mới
-    Vector2f addPos(position.x + width - 155.f, topY + 12.f);
-    RoundedRectRenderer::draw(target, addPos, {150.f, 36.f}, 6.f, Color(8, 125, 181));
+    Vector2f addPos(position.x + width - 193.f, position.y + 37.f);
+    RoundedRectRenderer::draw(target, addPos, {155.f, 38.f}, 8.f, Color(8, 125, 181));
     Text addTxt(boldFont);
     addTxt.setString(L"+ Thêm hội viên mới");
     addTxt.setCharacterSize(14);
     addTxt.setFillColor(Color::White);
     FloatRect addB = addTxt.getLocalBounds();
-    addTxt.setPosition({addPos.x + (150.f - addB.size.x) / 2.f - addB.position.x, addPos.y + (36.f - addB.size.y) / 2.f - addB.position.y});
+    addTxt.setPosition({std::round(addPos.x + (155.f - addB.size.x) / 2.f - addB.position.x), std::round(addPos.y + (38.f - addB.size.y) / 2.f - addB.position.y)});
     target.draw(addTxt);
 }
 
 void UserPanel::drawKpiCards(RenderTarget& target) const {
-    const float cardY = position.y + 74.f;
+    const float cardY = position.y + 110.f;
     const float cardH = 104.f;
     const float margin = 20.f;
     const float gap = 12.f;
@@ -1001,7 +959,7 @@ void UserPanel::drawKpiCards(RenderTarget& target) const {
 
 void UserPanel::drawActionToolbar(RenderTarget& target) const {
     float actX = position.x + 20.f;
-    float actY = position.y + 192.f;
+    float actY = position.y + 226.f;
 
     // Action buttons:
     // 1. Xem thông tin (blue)
@@ -1083,7 +1041,7 @@ void UserPanel::drawActionToolbar(RenderTarget& target) const {
 
 void UserPanel::drawCustomerTable(RenderTarget& target) const {
     const float tableX = position.x + 20.f;
-    const float tableY = position.y + 242.f;
+    const float tableY = position.y + 274.f;
     const float tableW = width - 40.f;
     const float headerH = 44.f;
 
