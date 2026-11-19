@@ -832,7 +832,7 @@ void RoomPanel::render(RenderWindow& win) {
     drawRoundedCard(win, {sBadgeX, sBadgeY}, {sBadgeW, sBadgeH}, 11.f, Color(209, 250, 229));
     stBadge.setPosition({
         std::round(sBadgeX + (sBadgeW - sbb.size.x) / 2.f - sbb.position.x),
-        std::round(sBadgeY + (sBadgeH - sbb.size.y) / 2.f - sbb.position.y + 1.f)
+        std::round(sBadgeY + (sBadgeH - sbb.size.y) / 2.f - sbb.position.y - 0.5f)
     });
     win.draw(stBadge);
 
@@ -959,12 +959,12 @@ void RoomPanel::render(RenderWindow& win) {
     head1.setPosition({rightX + 24.f, cardY + 22.f});
     win.draw(head1);
 
-    // Điều khiển Zoom: [ - ] 100% [ + ]
-    drawRoundedCard(win, {rightX + rightW - 135.f, cardY + 18.f}, {115.f, 28.f}, 14.f, Color(241, 245, 249), 1.f, Color(226, 232, 240));
-    Text zMinus(boldFont, L"-", 14); zMinus.setFillColor(Color(71, 85, 105)); zMinus.setPosition({rightX + rightW - 124.f, cardY + 20.f}); win.draw(zMinus);
+    // Điều khiển Zoom: [ - ] 100% [ + ] (nền xanh nhạt)
+    drawRoundedCard(win, {rightX + rightW - 135.f, cardY + 18.f}, {115.f, 28.f}, 14.f, Color(224, 242, 254), 1.f, Color(186, 230, 253));
+    Text zMinus(boldFont, L"-", 14); zMinus.setFillColor(Color(8, 125, 181)); zMinus.setPosition({rightX + rightW - 124.f, cardY + 20.f}); win.draw(zMinus);
     int zoomPercent = (int)(zoomFactor * 100.f + 0.5f);
-    Text zVal(boldFont, to_wstring(zoomPercent) + L"%", 14); zVal.setFillColor(Color(23, 32, 51)); zVal.setPosition({rightX + rightW - 95.f, cardY + 24.f}); win.draw(zVal);
-    Text zPlus(boldFont, L"+", 14); zPlus.setFillColor(Color(71, 85, 105)); zPlus.setPosition({rightX + rightW - 40.f, cardY + 22.f}); win.draw(zPlus);
+    Text zVal(boldFont, to_wstring(zoomPercent) + L"%", 14); zVal.setFillColor(Color(18, 59, 93)); zVal.setPosition({rightX + rightW - 95.f, cardY + 24.f}); win.draw(zVal);
+    Text zPlus(boldFont, L"+", 14); zPlus.setFillColor(Color(8, 125, 181)); zPlus.setPosition({rightX + rightW - 40.f, cardY + 22.f}); win.draw(zPlus);
 
     // Khối MÀN HÌNH CHIẾU DẠNG CONG (Curved Cinema Screen)
     {
