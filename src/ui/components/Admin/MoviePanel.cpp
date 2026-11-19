@@ -878,15 +878,16 @@ void MoviePanel::handleEvent(const Event& event, const RenderWindow& window) {
             int numPageBtns = min(5, totalPages);
             int startP = max(1, min(currentPage - 2, totalPages - numPageBtns + 1));
             int endP = min(totalPages, startP + numPageBtns - 1);
-            float btnPrevW = 72.f;
-            float btnNextW = 68.f;
-            float btnPageW = 36.f;
-            float gap = 6.f;
+            float btnPrevW = 65.f;
+            float btnNextW = 61.f;
+            float btnPageW = 32.f;
+            float btnPagH = 31.f;
+            float gap = 5.f;
             float totalBtnsW = btnPrevW + gap + (endP - startP + 1) * (btnPageW + gap) - gap + gap + btnNextW;
             float curBtnX = rightEdge - totalBtnsW;
 
             // Nút Trước
-            FloatRect btnPrev({curBtnX, pagY}, {btnPrevW, 34.f});
+            FloatRect btnPrev({curBtnX, pagY}, {btnPrevW, btnPagH});
             if (btnPrev.contains(mouse) && currentPage > 1) {
                 currentPage--;
                 selectedRow = -1;
@@ -897,7 +898,7 @@ void MoviePanel::handleEvent(const Event& event, const RenderWindow& window) {
 
             // Các nút số trang 1, 2, 3, ...
             for (int p = startP; p <= endP; ++p) {
-                FloatRect btnP({curBtnX, pagY}, {btnPageW, 34.f});
+                FloatRect btnP({curBtnX, pagY}, {btnPageW, btnPagH});
                 if (btnP.contains(mouse)) {
                     currentPage = p;
                     selectedRow = -1;
@@ -908,7 +909,7 @@ void MoviePanel::handleEvent(const Event& event, const RenderWindow& window) {
             }
 
             // Nút Tiếp
-            FloatRect btnNext({curBtnX, pagY}, {btnNextW, 34.f});
+            FloatRect btnNext({curBtnX, pagY}, {btnNextW, btnPagH});
             if (btnNext.contains(mouse) && currentPage < totalPages) {
                 currentPage++;
                 selectedRow = -1;
@@ -1495,20 +1496,22 @@ void MoviePanel::render(RenderWindow& window) {
     int numPageBtns = min(5, totalPages);
     int startP = max(1, min(currentPage - 2, totalPages - numPageBtns + 1));
     int endP = min(totalPages, startP + numPageBtns - 1);
-    float btnPrevW = 72.f;
-    float btnNextW = 68.f;
-    float btnPageW = 36.f;
-    float gap = 6.f;
+    float btnPrevW = 65.f;
+    float btnNextW = 61.f;
+    float btnPageW = 32.f;
+    float btnPagH = 31.f;
+    float gap = 5.f;
     float totalBtnsW = btnPrevW + gap + (endP - startP + 1) * (btnPageW + gap) - gap + gap + btnNextW;
     float curBtnX = rightEdge - totalBtnsW;
+    const unsigned int pagFontSize = 13;
 
     // Nút Trước
     bool canPrev = (currentPage > 1);
-    RoundedRectRenderer::draw(window, {curBtnX, pagY}, {btnPrevW, 34.f}, 6.f, Color::White, 1.2f, Color(226, 232, 240));
-    Text prTxt(boldFont, L"Trước", UITheme::ButtonTextSize);
+    RoundedRectRenderer::draw(window, {curBtnX, pagY}, {btnPrevW, btnPagH}, 6.f, Color::White, 1.2f, Color(226, 232, 240));
+    Text prTxt(boldFont, L"Trước", pagFontSize);
     prTxt.setFillColor(canPrev ? Color(71, 85, 105) : Color(203, 213, 225));
     FloatRect prb = prTxt.getLocalBounds();
-    prTxt.setPosition({curBtnX + (btnPrevW - prb.size.x) / 2.f - prb.position.x, pagY + (34.f - prb.size.y) / 2.f - prb.position.y});
+    prTxt.setPosition({curBtnX + (btnPrevW - prb.size.x) / 2.f - prb.position.x, pagY + (btnPagH - prb.size.y) / 2.f - prb.position.y});
     window.draw(prTxt);
     curBtnX += btnPrevW + gap;
 
@@ -1519,22 +1522,22 @@ void MoviePanel::render(RenderWindow& window) {
         Color pBorder = isAct ? Color(8, 125, 181) : Color(226, 232, 240);
         Color pFg = isAct ? Color::White : Color(51, 65, 85);
 
-        RoundedRectRenderer::draw(window, {curBtnX, pagY}, {btnPageW, 34.f}, 6.f, pBg, 1.2f, pBorder);
-        Text pTxt(boldFont, to_wstring(p), UITheme::ButtonTextSize);
+        RoundedRectRenderer::draw(window, {curBtnX, pagY}, {btnPageW, btnPagH}, 6.f, pBg, 1.2f, pBorder);
+        Text pTxt(boldFont, to_wstring(p), pagFontSize);
         pTxt.setFillColor(pFg);
         FloatRect pb = pTxt.getLocalBounds();
-        pTxt.setPosition({curBtnX + (btnPageW - pb.size.x) / 2.f - pb.position.x, pagY + (34.f - pb.size.y) / 2.f - pb.position.y});
+        pTxt.setPosition({curBtnX + (btnPageW - pb.size.x) / 2.f - pb.position.x, pagY + (btnPagH - pb.size.y) / 2.f - pb.position.y});
         window.draw(pTxt);
         curBtnX += btnPageW + gap;
     }
 
     // Nút Tiếp
     bool canNext = (currentPage < totalPages);
-    RoundedRectRenderer::draw(window, {curBtnX, pagY}, {btnNextW, 34.f}, 6.f, Color::White, 1.2f, Color(226, 232, 240));
-    Text nxTxt(boldFont, L"Tiếp", UITheme::ButtonTextSize);
+    RoundedRectRenderer::draw(window, {curBtnX, pagY}, {btnNextW, btnPagH}, 6.f, Color::White, 1.2f, Color(226, 232, 240));
+    Text nxTxt(boldFont, L"Tiếp", pagFontSize);
     nxTxt.setFillColor(canNext ? Color(71, 85, 105) : Color(203, 213, 225));
     FloatRect nxb = nxTxt.getLocalBounds();
-    nxTxt.setPosition({curBtnX + (btnNextW - nxb.size.x) / 2.f - nxb.position.x, pagY + (34.f - nxb.size.y) / 2.f - nxb.position.y});
+    nxTxt.setPosition({curBtnX + (btnNextW - nxb.size.x) / 2.f - nxb.position.x, pagY + (btnPagH - nxb.size.y) / 2.f - nxb.position.y});
     window.draw(nxTxt);
 
     // 9. Dropdown menus (if open)

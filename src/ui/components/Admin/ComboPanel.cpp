@@ -1088,7 +1088,7 @@ void ComboPanel::render(RenderWindow& win) {
             }
         }
 
-        // Wrap mô tả tối đa 2 dòng ở cỡ chữ 14 để vừa khít cột
+        // Wrap mô tả tối đa 2 dòng ở cỡ chữ 17 (+20% theo yêu cầu) để vừa khít cột
         wstring wrappedSub;
         {
             wstringstream wss(itm.subtitle);
@@ -1097,19 +1097,19 @@ void ComboPanel::render(RenderWindow& win) {
             while (wss >> word) {
                 if (!onSecond) {
                     wstring cand = line1.empty() ? word : (line1 + L" " + word);
-                    Text probe(font, cand, 14);
+                    Text probe(font, cand, 17);
                     if (probe.getLocalBounds().size.x <= maxTextW) line1 = cand;
                     else { onSecond = true; line2 = word; }
                 } else {
                     wstring cand = line2.empty() ? word : (line2 + L" " + word);
-                    Text probe(font, cand + L"...", 14);
+                    Text probe(font, cand + L"...", 17);
                     if (probe.getLocalBounds().size.x <= maxTextW) line2 = cand;
                     else { line2 += L"..."; break; }
                 }
             }
             wrappedSub = line2.empty() ? line1 : (line1 + L"\n" + line2);
         }
-        Text subTxt(font, wrappedSub, 14);
+        Text subTxt(font, wrappedSub, 17);
         subTxt.setFillColor(Color(100, 116, 139));
         subTxt.setPosition({comboTextX, rY + 35.f});
         win.draw(subTxt);
