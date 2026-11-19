@@ -869,10 +869,10 @@ void ShowtimePanel::render(RenderWindow& win) {
     kpiUnit.setFillColor(Color(224, 242, 254));
     FloatRect ub = kpiUnit.getLocalBounds();
 
-    float totalW1 = nb.size.x + 8.f + ub.size.x;
+    float totalW1 = nb.size.x + 14.f + ub.size.x;
     float startX1 = b1X + (b1W - totalW1) / 2.f;
     kpiNum.setPosition({std::floor(startX1 - nb.position.x), std::floor(b1Y + (b1H - nb.size.y) / 2.f - nb.position.y)});
-    kpiUnit.setPosition({std::floor(startX1 + nb.size.x + 8.f - ub.position.x), std::floor(b1Y + (b1H - ub.size.y) / 2.f - ub.position.y)});
+    kpiUnit.setPosition({std::floor(startX1 + nb.size.x + 14.f - ub.position.x), std::floor(b1Y + (b1H - ub.size.y) / 2.f - ub.position.y)});
     win.draw(kpiNum);
     win.draw(kpiUnit);
 
@@ -885,24 +885,24 @@ void ShowtimePanel::render(RenderWindow& win) {
 
     float textPadX = b2X + 12.f;
 
-    Text kpiDateLbl(font, L"Ng\u00e0y: ", 14);
+    Text kpiDateLbl(font, L"Ng\u00e0y: ", 16);
     kpiDateLbl.setFillColor(Color(100, 116, 139));
-    kpiDateLbl.setPosition({std::floor(textPadX), std::floor(b2Y + 16.f)});
+    kpiDateLbl.setPosition({std::floor(textPadX), std::floor(b2Y + 15.f)});
     win.draw(kpiDateLbl);
 
-    Text kpiDateVal(boldFont, s2ws(selectedDate), 14);
+    Text kpiDateVal(boldFont, s2ws(selectedDate), 16);
     kpiDateVal.setFillColor(Color(23, 32, 51));
-    kpiDateVal.setPosition({std::floor(textPadX + kpiDateLbl.getGlobalBounds().size.x), std::floor(b2Y + 16.f)});
+    kpiDateVal.setPosition({std::floor(textPadX + kpiDateLbl.getGlobalBounds().size.x + 4.f), std::floor(b2Y + 15.f)});
     win.draw(kpiDateVal);
 
-    Text kpiRoomLbl(font, L"Ph\u00f2ng: ", 14);
+    Text kpiRoomLbl(font, L"Ph\u00f2ng: ", 16);
     kpiRoomLbl.setFillColor(Color(100, 116, 139));
-    kpiRoomLbl.setPosition({std::floor(textPadX), std::floor(b2Y + 44.f)});
+    kpiRoomLbl.setPosition({std::floor(textPadX), std::floor(b2Y + 45.f)});
     win.draw(kpiRoomLbl);
 
-    Text kpiRoomVal(boldFont, selectedRoom, 14);
+    Text kpiRoomVal(boldFont, selectedRoom, 16);
     kpiRoomVal.setFillColor(Color(8, 125, 181));
-    kpiRoomVal.setPosition({std::floor(textPadX + kpiRoomLbl.getGlobalBounds().size.x), std::floor(b2Y + 44.f)});
+    kpiRoomVal.setPosition({std::floor(textPadX + kpiRoomLbl.getGlobalBounds().size.x + 4.f), std::floor(b2Y + 45.f)});
     win.draw(kpiRoomVal);
 
     // 4. Nút Làm mới (Dấu xoay vòng reload)
