@@ -840,9 +840,9 @@ void RoomPanel::render(RenderWindow& win) {
     Text lbl1(boldFont, L"Ch\u1ecdn ph\u00f2ng chi\u1ebfu:", 14); lbl1.setFillColor(Color(51, 65, 85)); lbl1.setPosition({position.x + 50.f, cardY + 62.f}); win.draw(lbl1);
     drawRoundedCard(win, {position.x + 50.f, cardY + 86.f}, {leftCardW - 40.f, 38.f}, 8.f, Color(248, 250, 252), 1.f, Color(203, 213, 225));
     wstring currRoomLabel = (selectedRoomIndex >= 0 && selectedRoomIndex < (int)rooms.size())
-        ? toUpperVi(rooms[selectedRoomIndex].name + L" (" + rooms[selectedRoomIndex].roomType + L")")
-        : L"CH\u1eccN PH\u00d2NG...";
-    Text currRoomTxt(font, currRoomLabel, 14); currRoomTxt.setFillColor(Color(23, 32, 51)); currRoomTxt.setPosition({position.x + 62.f, cardY + 95.f}); win.draw(currRoomTxt);
+        ? rooms[selectedRoomIndex].name + L" (" + rooms[selectedRoomIndex].roomType + L")"
+        : L"Ch\u1ecdn ph\u00f2ng...";
+    Text currRoomTxt(boldFont, currRoomLabel, 14); currRoomTxt.setFillColor(Color(23, 32, 51)); currRoomTxt.setPosition({position.x + 62.f, cardY + 95.f}); win.draw(currRoomTxt);
     Text arr1(boldFont, L"\u25bc", 14); arr1.setFillColor(Color(100, 116, 139)); arr1.setPosition({position.x + leftCardW - 15.f, cardY + 97.f}); win.draw(arr1);
 
     // 2. Tên phòng chiếu
@@ -1103,7 +1103,7 @@ void RoomPanel::render(RenderWindow& win) {
             if (i == (size_t)selectedRoomIndex) {
                 RoundedRectRenderer::draw(win, {position.x + 52.f, iY}, {leftCardW - 44.f, 35.f}, 4.f, Color(224, 242, 254));
             }
-            Text rItm(font, toUpperVi(rooms[i].name + L" - " + rooms[i].roomType), 14);
+            Text rItm(font, rooms[i].name + L" - " + rooms[i].roomType, 14);
             rItm.setFillColor((i == (size_t)selectedRoomIndex) ? Color(8, 125, 181) : Color(23, 32, 51));
             rItm.setPosition({position.x + 62.f, iY + 9.f});
             win.draw(rItm);
