@@ -549,7 +549,7 @@ void TicketPanel::render(RenderWindow& win) {
         }
 
         drawCenteredText(boldFont, s2ws(t.ticketId), 16, isSel ? Color(8, 125, 181) : Color(71, 85, 105), tableX, div1, rY, rowH);
-        drawCenteredText(font, s2ws(t.showtimeId), 13, Color(51, 65, 85), div1, div2, rY, rowH);
+        drawCenteredText(font, s2ws(t.showtimeId), 15, Color(51, 65, 85), div1, div2, rY, rowH);
         drawCenteredText(font, s2ws(t.email), 16, Color(51, 65, 85), div2, div3, rY, rowH);
         drawCenteredText(font, s2ws(t.bookedDate.empty() ? t.date : t.bookedDate), 16, Color(51, 65, 85), div3, div4, rY, rowH);
         drawCenteredText(font, s2ws(t.bookedTime.empty() ? t.time : t.bookedTime), 16, Color(51, 65, 85), div4, tableRight, rY, rowH);
@@ -732,17 +732,17 @@ void TicketPanel::render(RenderWindow& win) {
         if (notificationClock.getElapsedTime().asSeconds() > 3.0f) {
             notificationVisible = false;
         } else {
-            float notW = 340.f;
+            Text notText(boldFont, s2ws(notificationMessage), 14);
+            notText.setFillColor(Color::White);
+            FloatRect ntb = notText.getLocalBounds();
+            float notW = max(340.f, ntb.size.x + 48.f);
             float notH = 42.f;
             float notX = position.x + (width - notW) / 2.f;
             float notY = position.y + height - 60.f;
             drawRoundedCard(win, {notX, notY}, {notW, notH}, 8.f, Color(22, 163, 74, 245), 1.5f, Color(21, 128, 61));
-            Text notText(boldFont, s2ws(notificationMessage), 14);
-            notText.setFillColor(Color::White);
-            FloatRect ntb = notText.getLocalBounds();
             notText.setPosition({
-                notX + (notW - ntb.size.x) / 2.f - ntb.position.x,
-                notY + (notH - ntb.size.y) / 2.f - ntb.position.y
+                std::round(notX + (notW - ntb.size.x) / 2.f - ntb.position.x),
+                std::round(notY + (notH - ntb.size.y) / 2.f - ntb.position.y)
             });
             win.draw(notText);
         }
