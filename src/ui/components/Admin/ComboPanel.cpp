@@ -5,10 +5,16 @@
 #include "repositories/admin/AdminTicketRepository.h"
 #include "utils/FileUtils.h"
 #include <algorithm>
+#include <filesystem>
 #include <fstream>
 #include <sstream>
 #include <unordered_map>
 #include <unordered_set>
+
+#ifdef _WIN32
+#include <windows.h>
+#include <shellapi.h>
+#endif
 #include <iomanip>
 
 static wstring s2ws(const string& s) {
@@ -124,7 +130,13 @@ int ComboPanel::computeMaxVisibleRows() const {
 }
 
 bool ComboPanel::exportCombosToCsv() {
-    string outPath = FileUtils::resolveDataPath("data/combos_export.csv");
+    namespace fs = std::filesystem;
+    fs::path comboPath = FileUtils::resolveDataPath("data/combo.txt");
+    fs::path exportPath = comboPath.has_parent_path()
+        ? (comboPath.parent_path() / "combos_export.csv")
+        : fs::path("combos_export.csv");
+    string outPath = exportPath.string();
+
     ofstream out(outPath, ios::binary | ios::trunc);
     if (!out.is_open()) {
         outPath = "combos_export.csv";
@@ -153,7 +165,12 @@ bool ComboPanel::exportCombosToCsv() {
     out.flush();
     bool ok = out.good();
     out.close();
-    return ok;
+    if (!ok) return false;
+
+#ifdef _WIN32
+    ShellExecuteA(NULL, "open", fs::absolute(outPath).string().c_str(), NULL, NULL, SW_SHOWNORMAL);
+#endif
+    return true;
 }
 
 void ComboPanel::initDefaultCombos() {
@@ -855,11 +872,6 @@ void ComboPanel::render(RenderWindow& win) {
     drawRoundedCard(win, {c1X, statY}, {cardW, cardH}, 10.f, Color::White, 1.f, Color(226, 232, 240));
     Text sc1T(boldFont, L"T\u1ed4NG DANH M\u1ee4C", 14); sc1T.setFillColor(Color(100, 116, 139)); sc1T.setPosition({c1X + 16.f, statY + 12.f}); win.draw(sc1T);
     Text sc1V(boldFont, to_wstring(allCombos.size()), 22); sc1V.setFillColor(Color(23, 32, 51)); sc1V.setPosition({c1X + 16.f, statY + 34.f}); win.draw(sc1V);
-    FloatRect v1b = sc1V.getGlobalBounds();
-    Text sc1B(boldFont, L"100% Kh\u1ea3 d\u1ee5ng", 14); sc1B.setFillColor(Color(22, 101, 52));
-    float b1W = sc1B.getLocalBounds().size.x + 18.f;
-    drawRoundedCard(win, {v1b.position.x + v1b.size.x + 10.f, statY + 35.f}, {b1W, 24.f}, 12.f, Color(220, 252, 231));
-    sc1B.setPosition({v1b.position.x + v1b.size.x + 19.f, statY + 38.f}); win.draw(sc1B);
     Text sc1S(font, to_wstring(distinctCats.size()) + L" nh\u00f3m s\u1ea3n ph\u1ea9m F&B", 14); sc1S.setFillColor(Color(100, 116, 139)); sc1S.setPosition({c1X + 16.f, statY + 64.f}); win.draw(sc1S);
 
     // Card 2: Doanh thu F&B
@@ -873,8 +885,8 @@ void ComboPanel::render(RenderWindow& win) {
     float c3X = c2X + cardW + 15.f;
     drawRoundedCard(win, {c3X, statY}, {cardW, cardH}, 10.f, Color::White, 1.f, Color(226, 232, 240));
     Text sc3T(boldFont, L"BEST SELLER", 14); sc3T.setFillColor(Color(100, 116, 139)); sc3T.setPosition({c3X + 16.f, statY + 12.f}); win.draw(sc3T);
-    if (bestLabel.size() > 24) bestLabel = bestLabel.substr(0, 21) + L"...";
-    Text sc3V(boldFont, bestLabel, 15); sc3V.setFillColor(Color(23, 32, 51)); sc3V.setPosition({c3X + 16.f, statY + 37.f}); win.draw(sc3V);
+    if (bestLabel.size() > 16) bestLabel = bestLabel.substr(0, 14) + L"..";
+    Text sc3V(boldFont, bestLabel, 22); sc3V.setFillColor(Color(23, 32, 51)); sc3V.setPosition({c3X + 16.f, statY + 34.f}); win.draw(sc3V);
     Text sc3S(font, to_wstring(bestQty) + L" ph\u1ea7n \u0111\u00e3 b\u00e1n ra", 14); sc3S.setFillColor(Color(100, 116, 139)); sc3S.setPosition({c3X + 16.f, statY + 64.f}); win.draw(sc3S);
 
     // Card 4: Giá trị trung bình F&B
