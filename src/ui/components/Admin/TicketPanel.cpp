@@ -500,11 +500,13 @@ void TicketPanel::render(RenderWindow& win) {
     const float div4 = tableX + tableW * 0.83f;
     const float tableRight = tableX + tableW;
 
-    auto drawCenteredText = [&](const Font& f, const wstring& str, unsigned int size, Color col, float xStart, float xEnd, float y) {
+    auto drawCenteredText = [&](const Font& f, const wstring& str, unsigned int size, Color col, float xStart, float xEnd, float cellY, float cellH) {
         Text txt(f, str, size);
         txt.setFillColor(col);
         FloatRect b = txt.getLocalBounds();
-        txt.setPosition({xStart + (xEnd - xStart - b.size.x) / 2.f - b.position.x, y});
+        float x = std::round(xStart + (xEnd - xStart - b.size.x) / 2.f - b.position.x);
+        float y = std::round(cellY + (cellH - b.size.y) / 2.f - b.position.y);
+        txt.setPosition({x, y});
         win.draw(txt);
     };
 
@@ -518,11 +520,11 @@ void TicketPanel::render(RenderWindow& win) {
         win.draw(hDiv);
     }
 
-    drawCenteredText(boldFont, L"ID v\u00e9", 13, Color::White, tableX, div1, tableY + 14.f);
-    drawCenteredText(boldFont, L"ID su\u1ea5t chi\u1ebfu", 13, Color::White, div1, div2, tableY + 14.f);
-    drawCenteredText(boldFont, L"Email \u0111\u1eb7t v\u00e9", 13, Color::White, div2, div3, tableY + 14.f);
-    drawCenteredText(boldFont, L"Ng\u00e0y \u0111\u1eb7t v\u00e9", 13, Color::White, div3, div4, tableY + 14.f);
-    drawCenteredText(boldFont, L"Gi\u1edd \u0111\u1eb7t v\u00e9", 13, Color::White, div4, tableRight, tableY + 14.f);
+    drawCenteredText(boldFont, L"ID v\u00e9", 16, Color::White, tableX, div1, tableY, 46.f);
+    drawCenteredText(boldFont, L"ID su\u1ea5t chi\u1ebfu", 16, Color::White, div1, div2, tableY, 46.f);
+    drawCenteredText(boldFont, L"Email \u0111\u1eb7t v\u00e9", 16, Color::White, div2, div3, tableY, 46.f);
+    drawCenteredText(boldFont, L"Ng\u00e0y \u0111\u1eb7t v\u00e9", 16, Color::White, div3, div4, tableY, 46.f);
+    drawCenteredText(boldFont, L"Gi\u1edd \u0111\u1eb7t v\u00e9", 16, Color::White, div4, tableRight, tableY, 46.f);
 
     // Các dòng dữ liệu
     int startIdx = (currentPage - 1) * ticketsPerPage;
@@ -546,11 +548,11 @@ void TicketPanel::render(RenderWindow& win) {
             win.draw(rDiv);
         }
 
-        drawCenteredText(boldFont, s2ws(t.ticketId), 13, isSel ? Color(8, 125, 181) : Color(71, 85, 105), tableX, div1, rY + 12.f);
-        drawCenteredText(font, s2ws(t.showtimeId), 13, Color(51, 65, 85), div1, div2, rY + 12.f);
-        drawCenteredText(font, s2ws(t.email), 13, Color(51, 65, 85), div2, div3, rY + 12.f);
-        drawCenteredText(font, s2ws(t.bookedDate.empty() ? t.date : t.bookedDate), 13, Color(51, 65, 85), div3, div4, rY + 12.f);
-        drawCenteredText(font, s2ws(t.bookedTime.empty() ? t.time : t.bookedTime), 13, Color(51, 65, 85), div4, tableRight, rY + 12.f);
+        drawCenteredText(boldFont, s2ws(t.ticketId), 16, isSel ? Color(8, 125, 181) : Color(71, 85, 105), tableX, div1, rY, rowH);
+        drawCenteredText(font, s2ws(t.showtimeId), 13, Color(51, 65, 85), div1, div2, rY, rowH);
+        drawCenteredText(font, s2ws(t.email), 16, Color(51, 65, 85), div2, div3, rY, rowH);
+        drawCenteredText(font, s2ws(t.bookedDate.empty() ? t.date : t.bookedDate), 16, Color(51, 65, 85), div3, div4, rY, rowH);
+        drawCenteredText(font, s2ws(t.bookedTime.empty() ? t.time : t.bookedTime), 16, Color(51, 65, 85), div4, tableRight, rY, rowH);
     }
 
     // ==========================================
