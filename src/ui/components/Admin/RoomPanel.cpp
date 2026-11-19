@@ -817,19 +817,19 @@ void RoomPanel::render(RenderWindow& win) {
     drawRoundedCard(win, {position.x + 30.f, cardY}, {leftCardW, cardH}, 14.f, Color::White, 1.f, Color(226, 232, 240));
 
     // Tiêu đề form & Badge "BÌNH THƯỜNG" (cân đối, sắc nét)
-    Text formTitle(boldFont, L"Th\u00f4ng tin ph\u00f2ng chi\u1ebfu", 14);
+    Text formTitle(boldFont, L"Th\u00f4ng tin ph\u00f2ng chi\u1ebfu", 18);
     formTitle.setFillColor(Color(23, 32, 51));
-    formTitle.setPosition({position.x + 50.f, cardY + 20.f});
+    formTitle.setPosition({position.x + 50.f, cardY + 18.f});
     win.draw(formTitle);
 
-    Text stBadge(boldFont, L"B\u00ccNH TH\u01af\u1edcNG", 14);
+    Text stBadge(boldFont, L"B\u00ccNH TH\u01af\u1edcNG", 11);
     stBadge.setFillColor(Color(4, 120, 87));
     FloatRect sbb = stBadge.getLocalBounds();
-    float sBadgeW = sbb.size.x + 28.f;
-    float sBadgeH = 28.f;
+    float sBadgeW = sbb.size.x + 22.f;
+    float sBadgeH = 22.f;
     float sBadgeX = position.x + 30.f + leftCardW - 20.f - sBadgeW;
-    float sBadgeY = cardY + 17.f;
-    drawRoundedCard(win, {sBadgeX, sBadgeY}, {sBadgeW, sBadgeH}, 14.f, Color(209, 250, 229));
+    float sBadgeY = cardY + 19.f;
+    drawRoundedCard(win, {sBadgeX, sBadgeY}, {sBadgeW, sBadgeH}, 11.f, Color(209, 250, 229));
     stBadge.setPosition({
         std::floor(sBadgeX + (sBadgeW - sbb.size.x) / 2.f - sbb.position.x + 0.5f),
         std::floor(sBadgeY + (sBadgeH - sbb.size.y) / 2.f - sbb.position.y + 0.5f)
