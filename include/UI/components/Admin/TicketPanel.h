@@ -31,7 +31,7 @@ private:
     int selectedRow = -1;
     int hoveredRow = -1;
     int currentPage = 1;
-    const int ticketsPerPage = 14;
+    const int ticketsPerPage = 16;
     int totalPages = 1;
 
     // Buttons hover states

@@ -258,7 +258,7 @@ void TicketPanel::handleEvent(const Event& event, const RenderWindow& win) {
             // Click vào các dòng của bảng
             float tableY = position.y + 168.f;
             float tableW = width - 60.f;
-            float rowH = 42.f;
+            float rowH = 43.f;
             int startIdx = (currentPage - 1) * ticketsPerPage;
             int count = max(0, min((int)filteredTickets.size() - startIdx, ticketsPerPage));
 
@@ -386,7 +386,7 @@ void TicketPanel::update(Vector2f mousePos, bool) {
 
     if (!detailVisible) {
         float tableY = position.y + 168.f;
-        float rowH = 42.f;
+        float rowH = 43.f;
         int startIdx = (currentPage - 1) * ticketsPerPage;
         int count = min((int)filteredTickets.size() - startIdx, ticketsPerPage);
 
@@ -492,7 +492,7 @@ void TicketPanel::render(RenderWindow& win) {
     float tableX = position.x + 30.f;
     float tableY = position.y + 168.f;
     float tableW = width - 60.f;
-    float rowH = 42.f;
+    float rowH = 43.f;
 
     const float div1 = tableX + tableW * 0.12f;
     const float div2 = tableX + tableW * 0.38f;

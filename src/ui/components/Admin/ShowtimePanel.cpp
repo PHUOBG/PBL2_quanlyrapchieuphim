@@ -434,7 +434,7 @@ void ShowtimePanel::handleEvent(const Event& event, const RenderWindow& win) {
                 FloatRect boxTitle({popX + 30.f, popY + 80.f}, {popW - 60.f, 36.f});
                 FloatRect boxTime({popX + 30.f, popY + 145.f}, {180.f, 36.f});
                 FloatRect boxPrice({popX + 230.f, popY + 145.f}, {190.f, 36.f});
-                FloatRect btnRoomCycle({popX + popW - 155.f, popY + 20.f}, {125.f, 28.f});
+                FloatRect btnRoomCycle({popX + popW - 168.f, popY + 20.f}, {138.f, 28.f});
                 FloatRect btnPopSave({popX + 60.f, popY + 230.f}, {150.f, 38.f});
                 FloatRect btnPopCancel({popX + 240.f, popY + 230.f}, {150.f, 38.f});
 
@@ -938,16 +938,20 @@ void ShowtimePanel::render(RenderWindow& win) {
         win.draw(hDiv);
     }
 
-    Text h1(boldFont, L"GI\u1edc CHI\u1ebeU", 14); h1.setFillColor(Color::White); h1.setPosition({tableX + 24.f, tableY + 14.f}); win.draw(h1);
-    Text h2(boldFont, L"PH\u00d2NG", 14); h2.setFillColor(Color::White); h2.setPosition({div1 + 24.f, tableY + 14.f}); win.draw(h2);
+    auto centerColText = [&](Text& txt, float colStart, float colEnd, float y) {
+        FloatRect b = txt.getLocalBounds();
+        txt.setPosition({std::round(colStart + ((colEnd - colStart) - b.size.x) / 2.f - b.position.x), y});
+        win.draw(txt);
+    };
+
+    Text h1(boldFont, L"GI\u1edc CHI\u1ebeU", 14); h1.setFillColor(Color::White); centerColText(h1, tableX, div1, tableY + 14.f);
+    Text h2(boldFont, L"PH\u00d2NG", 14); h2.setFillColor(Color::White); centerColText(h2, div1, div2, tableY + 14.f);
     Text h3(boldFont, L"PHIM", 14); h3.setFillColor(Color::White); h3.setPosition({div2 + 24.f, tableY + 14.f}); win.draw(h3);
-    Text h4(boldFont, L"GI\u00c1 V\u00c9", 14); h4.setFillColor(Color::White); h4.setPosition({div3 + 24.f, tableY + 14.f}); win.draw(h4);
+    Text h4(boldFont, L"GI\u00c1 V\u00c9", 14); h4.setFillColor(Color::White); centerColText(h4, div3, div4, tableY + 14.f);
     Text h5(boldFont, L"T\u1ef6 L\u1ec6 L\u1ea4P \u0110\u1ea6Y", 14); h5.setFillColor(Color::White); h5.setPosition({div4 + 24.f, tableY + 14.f}); win.draw(h5);
 
     Text h6(boldFont, L"THAO T\u00c1C", 14); h6.setFillColor(Color::White);
-    FloatRect h6b = h6.getLocalBounds();
-    h6.setPosition({div5 + ((tableRight - div5) - h6b.size.x) / 2.f - h6b.position.x, tableY + 14.f});
-    win.draw(h6);
+    centerColText(h6, div5, tableRight, tableY + 14.f);
 
     // Các dòng dữ liệu
     int startIdx = (currentPage - 1) * pageSize;
@@ -968,18 +972,25 @@ void ShowtimePanel::render(RenderWindow& win) {
             win.draw(rDiv);
         }
 
-        // 1. Giờ chiếu
-        CircleShape dotBlue(3.5f); dotBlue.setFillColor(Color(8, 125, 181)); dotBlue.setPosition({tableX + 24.f, rY + 20.f}); win.draw(dotBlue);
-        Text timeTxt(boldFont, s2ws(itm.startTime + " \u2013 " + itm.endTime), 14); timeTxt.setFillColor(Color(23, 32, 51)); timeTxt.setPosition({tableX + 38.f, rY + 14.f}); win.draw(timeTxt);
+        // 1. Giờ chiếu (căn giữa trong cột [tableX, div1])
+        Text timeTxt(boldFont, s2ws(itm.startTime + " \u2013 " + itm.endTime), 14);
+        timeTxt.setFillColor(Color(23, 32, 51));
+        FloatRect tb = timeTxt.getLocalBounds();
+        float dotGap = 7.f;
+        float dotDiameter = 7.f;
+        float groupW = dotDiameter + dotGap + tb.size.x;
+        float groupStartX = std::round(tableX + ((div1 - tableX) - groupW) / 2.f);
+        CircleShape dotBlue(3.5f); dotBlue.setFillColor(Color(8, 125, 181)); dotBlue.setPosition({groupStartX, rY + 20.f}); win.draw(dotBlue);
+        timeTxt.setPosition({groupStartX + dotDiameter + dotGap - tb.position.x, rY + 14.f}); win.draw(timeTxt);
 
-        // 2. Phòng
-        Text roomTxt(font, itm.roomName, 14); roomTxt.setFillColor(Color(51, 65, 85)); roomTxt.setPosition({div1 + 24.f, rY + 14.f}); win.draw(roomTxt);
+        // 2. Phòng (căn giữa trong cột [div1, div2])
+        Text roomTxt(font, itm.roomName, 14); roomTxt.setFillColor(Color(51, 65, 85)); centerColText(roomTxt, div1, div2, rY + 14.f);
 
         // 3. Phim
         Text movieTxt(boldFont, itm.movieTitle, 14); movieTxt.setFillColor(Color(23, 32, 51)); movieTxt.setPosition({div2 + 24.f, rY + 14.f}); win.draw(movieTxt);
 
-        // 4. Giá vé
-        Text priceTxt(boldFont, s2ws(formatPriceStr(itm.price)), 14); priceTxt.setFillColor(Color(23, 32, 51)); priceTxt.setPosition({div3 + 24.f, rY + 14.f}); win.draw(priceTxt);
+        // 4. Giá vé (căn giữa trong cột [div3, div4])
+        Text priceTxt(boldFont, s2ws(formatPriceStr(itm.price)), 14); priceTxt.setFillColor(Color(23, 32, 51)); centerColText(priceTxt, div3, div4, rY + 14.f);
 
         // 5. Tỷ lệ lấp đầy
         int pct = (int)((itm.bookedSeats * 100.f) / itm.totalSeats + 0.5f);
@@ -1129,13 +1140,13 @@ void ShowtimePanel::render(RenderWindow& win) {
         win.draw(pTitle);
 
         // Nút chọn nhanh Phòng chiếu ở góc trên phải của Popup
-        drawRoundedCard(win, {popX + popW - 155.f, popY + 20.f}, {125.f, 28.f}, 6.f, Color(224, 242, 254), 1.f, Color(186, 230, 253));
+        drawRoundedCard(win, {popX + popW - 168.f, popY + 20.f}, {138.f, 28.f}, 6.f, Color(224, 242, 254), 1.f, Color(186, 230, 253));
         Text rBadge(boldFont, popupRoomName + L" \u25bc", 14);
         rBadge.setFillColor(Color(8, 125, 181));
         FloatRect rbb = rBadge.getLocalBounds();
         rBadge.setPosition({
-            popX + popW - 155.f + (125.f - rbb.size.x) / 2.f - rbb.position.x,
-            popY + 20.f + (28.f - rbb.size.y) / 2.f - rbb.position.y - 1.f
+            std::round(popX + popW - 168.f + (138.f - rbb.size.x) / 2.f - rbb.position.x),
+            std::round(popY + 20.f + (28.f - rbb.size.y) / 2.f - rbb.position.y - 0.5f)
         });
         win.draw(rBadge);
 
