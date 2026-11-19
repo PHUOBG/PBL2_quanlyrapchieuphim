@@ -54,7 +54,7 @@ private:
     std::string buildExpiryDate(int daysToExpire) const;
     int todayAsNumber() const;
     int dateStringToNumber(const std::string& date) const;
-    void persistWallet(const std::vector<UserVoucher>& wallet) const;
+    bool persistWallet(const std::vector<UserVoucher>& wallet) const;
     std::vector<UserVoucher> loadWallet() const;
     bool isHeaderRow(const std::vector<std::string>& cols, const std::string& expectedFirstCell) const;
 };

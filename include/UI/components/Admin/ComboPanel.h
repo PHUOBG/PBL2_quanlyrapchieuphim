@@ -74,7 +74,7 @@ private:
 
     void initDefaultCombos();
     void loadCombosFromFile();
-    void saveCombosToFile();
+    bool saveCombosToFile();
     void applyFilter();
 
     void drawRoundedCard(RenderWindow& win, Vector2f pos, Vector2f sz, float r, Color fill, float outline = 0.f, Color outCol = Color::Transparent);

@@ -20,15 +20,17 @@ private:
     int size;
     
     int hashFunction(const K& key) const {
+        if (capacity <= 0) return 0;
         if constexpr (is_same<K, string>::value) {
             unsigned long hash = 5381;
-            for (char c : key) {
+            for (unsigned char c : key) {
                 hash = ((hash << 5) + hash) + c;
             }
-            return hash % capacity;
+            return static_cast<int>(hash % static_cast<unsigned long>(capacity));
         }
         else if constexpr (is_same<K, int>::value) {
-            return key % capacity;
+            int mod = key % capacity;
+            return mod < 0 ? (mod + capacity) : mod;
         }
         return 0;
     }
@@ -57,11 +59,60 @@ private:
     }
     
 public:
-    HashTable(int cap = 16) : capacity(cap), size(0) {
+    HashTable(int cap = 16) : capacity(cap > 0 ? cap : 16), size(0) {
         buckets = new Node*[capacity]();
         for (int i = 0; i < capacity; i++) {
             buckets[i] = nullptr;
         }
+    }
+
+    HashTable(const HashTable& other) : capacity(other.capacity > 0 ? other.capacity : 16), size(0) {
+        buckets = new Node*[capacity]();
+        for (int i = 0; i < other.capacity; i++) {
+            Node* cur = other.buckets[i];
+            while (cur) {
+                insert(cur->key, cur->value);
+                cur = cur->next;
+            }
+        }
+    }
+
+    HashTable& operator=(const HashTable& other) {
+        if (this != &other) {
+            clear();
+            delete[] buckets;
+            capacity = other.capacity > 0 ? other.capacity : 16;
+            size = 0;
+            buckets = new Node*[capacity]();
+            for (int i = 0; i < other.capacity; i++) {
+                Node* cur = other.buckets[i];
+                while (cur) {
+                    insert(cur->key, cur->value);
+                    cur = cur->next;
+                }
+            }
+        }
+        return *this;
+    }
+
+    HashTable(HashTable&& other) noexcept : buckets(other.buckets), capacity(other.capacity), size(other.size) {
+        other.buckets = new Node*[16]();
+        other.capacity = 16;
+        other.size = 0;
+    }
+
+    HashTable& operator=(HashTable&& other) noexcept {
+        if (this != &other) {
+            clear();
+            delete[] buckets;
+            buckets = other.buckets;
+            capacity = other.capacity;
+            size = other.size;
+            other.buckets = new Node*[16]();
+            other.capacity = 16;
+            other.size = 0;
+        }
+        return *this;
     }
     
     ~HashTable() {

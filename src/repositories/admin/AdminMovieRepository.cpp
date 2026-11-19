@@ -76,6 +76,7 @@ void AdminMovieRepository::loadFromFile() {
     getline(file, line);
 
     while (getline(file, line)) {
+        if (!line.empty() && line.back() == '\r') line.pop_back();
         if (line.empty()) continue;
 
         if (line.size() >= 3 &&
@@ -114,23 +115,20 @@ void AdminMovieRepository::loadFromFile() {
     file.close();
 }
 
-void AdminMovieRepository::saveToFile() {
-    ofstream file(filePath);
-    if (!file.is_open()) {
-        return;
-    }
-
-    file << "movie_id|title|age_rating|country|language|genres|duration_min|release_date|end_date|director|cast|synopsis|poster_path|status\n";
-
+bool AdminMovieRepository::saveToFile() {
+    string out = "movie_id|title|age_rating|country|language|genres|duration_min|release_date|end_date|director|cast|synopsis|poster_path|status\n";
     for (const auto& row : data) {
         for (size_t i = 0; i < row.size(); i++) {
-            file << row[i];
-            if (i < row.size() - 1) file << "|";
+            string cell = row[i];
+            for (char& ch : cell) {
+                if (ch == '|' || ch == '\n' || ch == '\r') ch = ' ';
+            }
+            out += cell;
+            if (i < row.size() - 1) out += "|";
         }
-        file << "\n";
+        out += "\n";
     }
-
-    file.close();
+    return FileUtils::writeAtomic(filePath, out);
 }
 
 void AdminMovieRepository::addRecord(const vector<string>& record) {
@@ -142,6 +140,14 @@ void AdminMovieRepository::addRecord(const vector<string>& record) {
         fullRecord[0] = generateNewId();
     } else if (!isValidMovieId(fullRecord[0])) {
         fullRecord.insert(fullRecord.begin(), generateNewId());
+    } else {
+        // Ensure uniqueness if caller passed an existing movie ID
+        for (const auto& existing : data) {
+            if (!existing.empty() && existing[0] == fullRecord[0]) {
+                fullRecord[0] = generateNewId();
+                break;
+            }
+        }
     }
 
     while (fullRecord.size() < 14) {

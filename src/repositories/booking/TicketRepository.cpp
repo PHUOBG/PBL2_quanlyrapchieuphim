@@ -147,28 +147,32 @@ Ticket TicketRepository::createTicket(
     const string& email,
     const string& fullName
 ) {
+    auto clean = [](string s) {
+        for (char& ch : s) if (ch == '|' || ch == '\n' || ch == '\r') ch = ' ';
+        return s;
+    };
     Ticket ticket;
     ticket.ticketId = generateTicketId();
     ticket.showtimeId = showtimeId;
-    ticket.title = title;
+    ticket.title = clean(title);
     ticket.date = date;
     ticket.time = time;
-    ticket.roomName = roomName;
-    ticket.booked = booked;
-    ticket.comboName = comboName;
+    ticket.roomName = clean(roomName);
+    ticket.booked = clean(booked);
+    ticket.comboName = clean(comboName);
     ticket.price = price;
-    ticket.email = email;
-    ticket.fullName = fullName;
+    ticket.email = clean(email);
+    ticket.fullName = clean(fullName);
     ticket.bookedDate = getCurrentDate();
     ticket.bookedTime = getCurrentTime();
-    saveTicket(ticket);
+    if (!saveTicket(ticket)) return Ticket{};
     return ticket;
 }
 
-void TicketRepository::saveTicket(const Ticket& ticket) {
+bool TicketRepository::saveTicket(const Ticket& ticket) {
     // Mở file với binary mode để đảm bảo UTF-8 được lưu đúng
     ofstream file(filename, ios::app | ios::binary);
-    if (!file.is_open()) return;
+    if (!file.is_open()) return false;
 
     // Nếu file trống, ghi header với UTF-8 BOM
     file.seekp(0, ios::end);
@@ -192,7 +196,10 @@ void TicketRepository::saveTicket(const Ticket& ticket) {
          << ticket.bookedDate << "|"
          << ticket.bookedTime << "\n";
 
+    file.flush();
+    const bool ok = file.good();
     file.close();
+    return ok;
 }
 
 String TicketRepository::getTitleUtf8(const Ticket& t) { return String::fromUtf8(t.title.begin(), t.title.end()); }

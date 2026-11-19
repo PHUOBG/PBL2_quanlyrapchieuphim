@@ -1,4 +1,5 @@
 #include "repositories/admin/AdminComboRepository.h"
+#include "utils/FileUtils.h"
 
 #include <fstream>
 #include <sstream>
@@ -69,6 +70,7 @@ void AdminComboRepository::loadFromFile() {
     getline(file, line);
 
     while (getline(file, line)) {
+        if (!line.empty() && line.back() == '\r') line.pop_back();
         if (line.empty()) continue;
         if (line.size() >= 3 &&
             static_cast<unsigned char>(line[0]) == 0xEF &&
@@ -86,22 +88,20 @@ void AdminComboRepository::loadFromFile() {
     file.close();
 }
 
-void AdminComboRepository::saveToFile() const {
-    ofstream file(filePath);
-    if (!file.is_open()) {
-        return;
-    }
-
-    file << "combo_id|combo_name|price\n";
+bool AdminComboRepository::saveToFile() const {
+    string out = "combo_id|combo_name|price\n";
     for (const auto& row : data) {
         for (size_t i = 0; i < row.size(); ++i) {
-            file << row[i];
-            if (i < row.size() - 1) file << "|";
+            string cell = row[i];
+            for (char& ch : cell) {
+                if (ch == '|' || ch == '\n' || ch == '\r') ch = ' ';
+            }
+            out += cell;
+            if (i < row.size() - 1) out += "|";
         }
-        file << "\n";
+        out += "\n";
     }
-
-    file.close();
+    return FileUtils::writeAtomic(filePath, out);
 }
 
 void AdminComboRepository::addRecord(const vector<string>& record) {
@@ -113,6 +113,13 @@ void AdminComboRepository::addRecord(const vector<string>& record) {
             newRecord[0] = generateNewId();
         } else {
             newRecord.insert(newRecord.begin(), generateNewId());
+        }
+    } else {
+        for (const auto& existing : data) {
+            if (!existing.empty() && existing[0] == newRecord[0]) {
+                newRecord[0] = generateNewId();
+                break;
+            }
         }
     }
 

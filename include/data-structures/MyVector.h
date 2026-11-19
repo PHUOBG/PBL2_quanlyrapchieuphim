@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <cstddef>
 #include <stdexcept>
 #include <utility>
@@ -176,11 +176,23 @@ public:
         return data[index];
     }
 
-    T& front() { return data[0]; }
-    const T& front() const { return data[0]; }
+    T& front() {
+        if (sz == 0) throw std::out_of_range("MyVector::front on empty vector");
+        return data[0];
+    }
+    const T& front() const {
+        if (sz == 0) throw std::out_of_range("MyVector::front on empty vector");
+        return data[0];
+    }
 
-    T& back() { return data[sz - 1]; }
-    const T& back() const { return data[sz - 1]; }
+    T& back() {
+        if (sz == 0) throw std::out_of_range("MyVector::back on empty vector");
+        return data[sz - 1];
+    }
+    const T& back() const {
+        if (sz == 0) throw std::out_of_range("MyVector::back on empty vector");
+        return data[sz - 1];
+    }
 
     size_t size() const { return sz; }
     size_t capacity() const { return cap; }

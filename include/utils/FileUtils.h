@@ -26,6 +26,22 @@ public:
                 return candidate.string();
             }
         }
+        // Callers sometimes pass "../data/x.txt" (valid only when cwd is build/). Strip leading
+        // "../" / "./" and retry so the same path works from the project root as well.
+        {
+            string stripped = relative;
+            while (stripped.rfind("../", 0) == 0 || stripped.rfind("./", 0) == 0) {
+                stripped.erase(0, stripped[1] == '/' ? 2 : 3);
+            }
+            if (stripped != relative && !stripped.empty()) {
+                for (const auto& prefix : prefixes) {
+                    fs::path candidate = fs::path(prefix) / stripped;
+                    if (fs::exists(candidate)) {
+                        return candidate.string();
+                    }
+                }
+            }
+        }
         // Fallback: if .txt was requested, try .csv (and vice versa)
         fs::path relPath(relative);
         if (relPath.extension() == ".txt" || relPath.extension() == ".csv") {
@@ -96,6 +112,40 @@ public:
         if (!file.is_open()) return false;
         
         file << content;
+        return true;
+    }
+
+    // Crash-safe write: write to "<path>.tmp", flush, then replace the target.
+    // Returns false (and leaves the original file untouched) on any failure.
+    static bool writeAtomic(const string& path, const string& content) {
+        namespace fs = std::filesystem;
+        const string tmp = path + ".tmp";
+        {
+            ofstream out(tmp, ios::binary | ios::trunc);
+            if (!out.is_open()) return false;
+            out.write(content.data(), static_cast<std::streamsize>(content.size()));
+            out.flush();
+            if (!out.good()) {
+                out.close();
+                std::error_code ignore;
+                fs::remove(tmp, ignore);
+                return false;
+            }
+        }
+        std::error_code ec;
+        fs::rename(tmp, path, ec);
+        if (ec) {
+            // Windows: rename over existing may fail -> fall back to remove + rename
+            std::error_code ec2;
+            fs::remove(path, ec2);
+            ec.clear();
+            fs::rename(tmp, path, ec);
+            if (ec) {
+                std::error_code ignore;
+                fs::remove(tmp, ignore);
+                return false;
+            }
+        }
         return true;
     }
 

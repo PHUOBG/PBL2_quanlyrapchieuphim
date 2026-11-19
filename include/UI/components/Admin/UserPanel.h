@@ -44,13 +44,13 @@ private:
     std::vector<CustomerItem*> filteredCustomers;
 
     // KPI Counters
-    int totalCount = 15;
-    int activeCount = 12;
-    int goldCount = 6;
-    int silverCount = 7;
-    int standardCount = 2;
-    long long avgSpending = 789500;
-    float avgTicketsPerUser = 6.4f;
+    int totalCount = 0;
+    int activeCount = 0;
+    int goldCount = 0;
+    int silverCount = 0;
+    int standardCount = 0;
+    long long avgSpending = 0;
+    float avgTicketsPerUser = 0.f;
 
     // Filters and search
     std::string searchText;

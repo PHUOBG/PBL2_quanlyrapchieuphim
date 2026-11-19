@@ -30,6 +30,11 @@ public:
     ShowtimeSeatRepository(const string& path = "../data/RoomStatusAtShowtime.txt");
     void loadFromFile();
     DLL<string> getBookedSeats(const string& showtimeId, const string& roomId);
-    void addBookedSeats(const string& showtimeId, const string& roomId, const DLL<string>& newSeats);
-    void saveToFile();
+    bool hasAnySeatBooked(const string& showtimeId, const string& roomId, const DLL<string>& checkSeats);
+    bool addBookedSeats(const string& showtimeId, const string& roomId, const DLL<string>& newSeats);
+    // Atomic check-and-reserve: reloads from disk, fails if any seat is taken/duplicated or save fails.
+    bool tryReserveSeats(const string& showtimeId, const string& roomId, const DLL<string>& seats);
+    bool removeBookedSeats(const string& showtimeId, const string& roomId, const DLL<string>& seatsToRemove);
+    bool removeBookedSeatsByShowtime(const string& showtimeId, const string& seatsCsv);
+    bool saveToFile();
 };

@@ -3,6 +3,7 @@
 #include <SFML/Graphics.hpp>
 #include <string>
 #include <memory>
+#include <functional>
 #include "services/AuthService.h"
 
 class AdminProfilePanel {
@@ -47,6 +48,7 @@ private:
     float toastTimer = 0.f;
     std::wstring toastMessage;
 
+    std::function<void()> onAccountDeleted;
     void loadUserData();
     void saveUserData();
     void changePassword();
@@ -68,4 +70,5 @@ public:
     void update(const sf::Vector2f& mousePos, bool mouseDown);
     void render(sf::RenderTarget& target) const;
     void reload();
+    void setOnAccountDeleted(std::function<void()> cb) { onAccountDeleted = std::move(cb); }
 };

@@ -1,4 +1,4 @@
-﻿# PBL2 - HỆ THỐNG QUẢN LÝ RẠP CHIẾU PHIM & THỐNG KÊ DOANH THU (ROLE: QUẢN TRỊ VIÊN)
+# PBL2 - HỆ THỐNG QUẢN LÝ RẠP CHIẾU PHIM & THỐNG KÊ DOANH THU (ROLE: QUẢN TRỊ VIÊN)
 
 ## 1. Giới thiệu dự án
 Dự án được xây dựng phục vụ môn học **Đồ án Cơ sở Lập trình / Cấu trúc Dữ liệu & Giải thuật (PBL2)**.
@@ -104,6 +104,6 @@ app.exe
 ```
 
 ### Tài khoản Admin mặc định có sẵn:
-- **Email:** `admin@cinema.com`
+- **Email:** `admin@cinexine.vn` (hoặc `admin@cinema.com`)
 - **Mật khẩu:** `admin123`
 *(Bạn cũng có thể bấm "Chưa có tài khoản? Đăng ký Admin ngay" trên màn hình đăng nhập để tạo tài khoản Admin mới).*

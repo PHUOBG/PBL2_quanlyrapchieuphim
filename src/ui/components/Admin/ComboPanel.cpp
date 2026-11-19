@@ -135,12 +135,17 @@ void ComboPanel::initDefaultCombos() {
 
 void ComboPanel::loadCombosFromFile() {
     string path = FileUtils::resolveDataPath("data/combo.txt");
-    ifstream f(path);
+    ifstream f(path, ios::binary);
     if (!f.is_open()) return;
+
+    // Keep default descriptions/categories by ID for richer display when present
+    vector<ComboItem> defaults = allCombos;
+    vector<ComboItem> loaded;
 
     string line;
     bool isHeader = true;
     while (getline(f, line)) {
+        if (!line.empty() && line.back() == '\r') line.pop_back();
         if (line.empty()) continue;
         if (isHeader) { isHeader = false; continue; }
         stringstream ss(line);
@@ -148,33 +153,40 @@ void ComboPanel::loadCombosFromFile() {
         getline(ss, id, '|');
         getline(ss, name, '|');
         getline(ss, pr, '|');
+        if (id.empty() || name.empty()) continue;
 
-        bool found = false;
-        for (auto& item : allCombos) {
-            if (item.id == id) {
-                item.name = s2ws(name);
-                try { item.price = stoi(pr); } catch (...) {}
-                found = true;
+        int p = 0;
+        try { p = stoi(pr); } catch (...) { p = 0; }
+        if (p < 0) p = 0;
+
+        ComboItem item{id, s2ws(name), L"Sản phẩm bắp nước rạp chiếu", L"Combo Đơn", p, false, true, false};
+        for (const auto& def : defaults) {
+            if (def.id == id) {
+                item.subtitle = def.subtitle;
+                item.category = def.category;
+                item.isHot = def.isHot;
                 break;
             }
         }
-        if (!found && !id.empty() && !name.empty()) {
-            int p = 50000;
-            try { p = stoi(pr); } catch (...) {}
-            allCombos.push_back({id, s2ws(name), L"Sản phẩm bắp nước rạp chiếu", L"Combo Đơn", p, false, true, false});
-        }
+        loaded.push_back(item);
+    }
+
+    if (!loaded.empty()) {
+        allCombos = std::move(loaded);
     }
 }
 
-void ComboPanel::saveCombosToFile() {
+bool ComboPanel::saveCombosToFile() {
     string path = FileUtils::resolveDataPath("data/combo.txt");
-    ofstream f(path);
-    if (!f.is_open()) return;
-
-    f << "combo_id|combo_name|price\n";
+    auto sanitize = [](string s) {
+        for (char& ch : s) if (ch == '|' || ch == '\n' || ch == '\r') ch = ' ';
+        return s;
+    };
+    string out = "combo_id|combo_name|price\n";
     for (const auto& item : allCombos) {
-        f << item.id << "|" << ws2s(item.name) << "|" << item.price << "\n";
+        out += sanitize(item.id) + "|" + sanitize(ws2s(item.name)) + "|" + to_string(item.price) + "\n";
     }
+    return FileUtils::writeAtomic(path, out);
 }
 
 void ComboPanel::applyFilter() {
@@ -219,27 +231,57 @@ void ComboPanel::handleEvent(const Event& event, const RenderWindow& win) {
         float popY = position.y + (height - popH) / 2.f - 20.f;
 
         auto commitSaveCombo = [&]() {
-            if (popupName.empty()) popupName = L"Combo M\u1edbi";
+            if (popupName.empty()) {
+                notificationMessage = "Tên combo không được để trống!";
+                notificationClock.restart();
+                notificationVisible = true;
+                return;
+            }
             if (popupSub.empty()) popupSub = L"1x B\u1eafp + 1x N\u01b0\u1edbc ng\u1ecdt";
-            int parsedPr = 65000;
-            try { if (!popupPrice.empty()) parsedPr = stoi(popupPrice); } catch (...) { parsedPr = 65000; }
+            int parsedPr = 0;
+            try { if (!popupPrice.empty()) parsedPr = stoi(popupPrice); } catch (...) { parsedPr = 0; }
+            if (parsedPr <= 0) {
+                notificationMessage = "Giá combo phải lớn hơn 0!";
+                notificationClock.restart();
+                notificationVisible = true;
+                return;
+            }
 
+            vector<ComboItem> backup = allCombos;
             if (editingIndex >= 0 && editingIndex < (int)allCombos.size()) {
                 allCombos[editingIndex].name = popupName;
                 allCombos[editingIndex].subtitle = popupSub;
                 allCombos[editingIndex].category = popupCat.empty() ? L"Combo \u0110\u01a1n" : popupCat;
                 allCombos[editingIndex].price = parsedPr;
             } else {
+                // Ensure unique CBxx ID
+                int maxNum = 0;
+                for (const auto& c : allCombos) {
+                    if (c.id.size() > 2 && c.id[0] == 'C' && c.id[1] == 'B') {
+                        try { maxNum = max(maxNum, stoi(c.id.substr(2))); } catch (...) {}
+                    }
+                }
+                string genId = (maxNum + 1 < 10 ? "CB0" : "CB") + to_string(maxNum + 1);
+                string candidateId = popupId.empty() ? genId : popupId;
+                for (const auto& c : allCombos) {
+                    if (c.id == candidateId) { candidateId = genId; break; }
+                }
+
                 ComboItem ni;
-                int nextNum = (int)allCombos.size() + 1;
-                ni.id = popupId.empty() ? ((nextNum < 10 ? "CB0" : "CB") + to_string(nextNum)) : popupId;
+                ni.id = candidateId;
                 ni.name = popupName;
                 ni.subtitle = popupSub;
                 ni.category = popupCat.empty() ? L"Combo \u0110\u01a1n" : popupCat;
                 ni.price = parsedPr;
                 allCombos.push_back(ni);
             }
-            saveCombosToFile();
+            if (!saveCombosToFile()) {
+                allCombos = std::move(backup);
+                notificationMessage = "Lỗi: Không thể lưu dữ liệu combo!";
+                notificationClock.restart();
+                notificationVisible = true;
+                return;
+            }
             applyFilter();
             showPopup = false;
             notificationMessage = "Đã lưu thông tin combo thành công!";
@@ -390,15 +432,20 @@ void ComboPanel::handleEvent(const Event& event, const RenderWindow& win) {
             if (btnDel.contains(mousePos)) {
                 if (selectedRow >= 0 && selectedRow < (int)filteredCombos.size()) {
                     string selId = filteredCombos[selectedRow].id;
+                    vector<ComboItem> backup = allCombos;
                     for (auto it = allCombos.begin(); it != allCombos.end(); ++it) {
                         if (it->id == selId) {
                             allCombos.erase(it);
                             break;
                         }
                     }
-                    saveCombosToFile();
-                    applyFilter();
-                    notificationMessage = "Đã xóa combo thành công!";
+                    if (!saveCombosToFile()) {
+                        allCombos = std::move(backup);
+                        notificationMessage = "Lỗi: Không thể xóa combo!";
+                    } else {
+                        applyFilter();
+                        notificationMessage = "Đã xóa combo thành công!";
+                    }
                     notificationClock.restart();
                     notificationVisible = true;
                 } else {
@@ -492,15 +539,20 @@ void ComboPanel::handleEvent(const Event& event, const RenderWindow& win) {
                     FloatRect btnRowDel({actX + 38.f, rY + 22.f}, {34.f, 28.f});
                     if (btnRowDel.contains(mousePos)) {
                         string selId = filteredCombos[selectedRow].id;
+                        vector<ComboItem> backup = allCombos;
                         for (auto it = allCombos.begin(); it != allCombos.end(); ++it) {
                             if (it->id == selId) {
                                 allCombos.erase(it);
                                 break;
                             }
                         }
-                        saveCombosToFile();
-                        applyFilter();
-                        notificationMessage = "Đã xóa combo thành công!";
+                        if (!saveCombosToFile()) {
+                            allCombos = std::move(backup);
+                            notificationMessage = "Lỗi: Không thể xóa combo!";
+                        } else {
+                            applyFilter();
+                            notificationMessage = "Đã xóa combo thành công!";
+                        }
                         notificationClock.restart();
                         notificationVisible = true;
                         return;

@@ -51,6 +51,9 @@ private:
     bool isForgotMode = false;
     wstring forgotEmailInput;
     wstring forgotPassInput;
+    wstring forgotPhoneInput;
+    bool forgotPhoneActive = false;
+    void submitForgot();
     bool forgotEmailActive = false;
     bool forgotPassActive = false;
     wstring forgotMsg;

@@ -8,6 +8,8 @@
 #include <algorithm>
 #include <iomanip>
 #include <cmath>
+#include <ctime>
+#include <unordered_map>
 
 static wstring s2ws(const string& s) {
     if (s.empty()) return L"";
@@ -124,12 +126,111 @@ void RoomPanel::initDefaultRooms() {
 
 void RoomPanel::loadRoomsFromFile() {
     string filePath = FileUtils::resolveDataPath("data/rooms.txt");
-    ifstream file(filePath);
+    ifstream file(filePath, ios::binary);
     if (!file.is_open()) return;
 
+    // Load movie titles & durations for live room status calculation
+    unordered_map<string, string> movieTitleById;
+    unordered_map<string, int> movieDurById;
+    {
+        ifstream mf(FileUtils::resolveDataPath("data/movies.txt"), ios::binary);
+        string mline; bool hdr = true;
+        while (mf.is_open() && getline(mf, mline)) {
+            if (!mline.empty() && mline.back() == '\r') mline.pop_back();
+            if (mline.empty()) continue;
+            if (hdr) { hdr = false; continue; }
+            stringstream mss(mline);
+            string id, title, tmp, durStr;
+            getline(mss, id, '|');
+            getline(mss, title, '|');
+            for (int k = 0; k < 4; ++k) getline(mss, tmp, '|');
+            getline(mss, durStr, '|');
+            if (!id.empty()) {
+                movieTitleById[id] = title;
+                int d = 120;
+                try { d = stoi(durStr); } catch (...) {}
+                movieDurById[id] = d > 0 ? d : 120;
+            }
+        }
+    }
+
+    // Current local date (YYYY-MM-DD) & minutes since midnight
+    time_t now = time(nullptr);
+    tm ltm{};
+#if defined(_WIN32)
+    localtime_s(&ltm, &now);
+#else
+    localtime_r(&now, &ltm);
+#endif
+    char todayBuf[16];
+    strftime(todayBuf, sizeof(todayBuf), "%Y-%m-%d", &ltm);
+    const string todayStr(todayBuf);
+    const int nowMin = ltm.tm_hour * 60 + ltm.tm_min;
+
+    struct RoomScheduleInfo {
+        bool isPlaying = false;
+        string playingTitle;
+        int nextStartMin = 999999;
+        string nextTimeStr;
+        int upcomingCount = 0;
+    };
+    unordered_map<string, RoomScheduleInfo> schedByRoom;
+    {
+        ifstream sf(FileUtils::resolveDataPath("data/showtimes.txt"), ios::binary);
+        string sline; bool hdr = true;
+        while (sf.is_open() && getline(sf, sline)) {
+            if (!sline.empty() && sline.back() == '\r') sline.pop_back();
+            if (sline.empty()) continue;
+            if (hdr) { hdr = false; continue; }
+            stringstream sss(sline);
+            string sid, mid, rid, sdate, stime;
+            getline(sss, sid, '|');
+            getline(sss, mid, '|');
+            getline(sss, rid, '|');
+            getline(sss, sdate, '|');
+            getline(sss, stime, '|');
+            if (rid.empty() || sdate.empty() || stime.size() < 5) continue;
+            if (sdate < todayStr) continue;
+            int sh = 0, sm = 0;
+            try { sh = stoi(stime.substr(0, 2)); sm = stoi(stime.substr(3, 2)); } catch (...) { continue; }
+            int startMin = sh * 60 + sm;
+            int dur = movieDurById.count(mid) ? movieDurById[mid] : 120;
+            auto& info = schedByRoom[rid];
+            if (sdate == todayStr && nowMin >= startMin && nowMin < startMin + dur) {
+                info.isPlaying = true;
+                info.playingTitle = movieTitleById.count(mid) ? movieTitleById[mid] : mid;
+            } else if (sdate > todayStr || (sdate == todayStr && startMin > nowMin)) {
+                info.upcomingCount++;
+                if (sdate == todayStr && startMin < info.nextStartMin) {
+                    info.nextStartMin = startMin;
+                    info.nextTimeStr = stime;
+                }
+            }
+        }
+    }
+
+    auto buildMatrix = [](int rw, int cl) {
+        vector<vector<SeatType>> mat(rw, vector<SeatType>(cl, SeatType::STANDARD));
+        if (rw >= 2 && cl >= 4) {
+            mat[1][1] = SeatType::VIP;
+            mat[1][2] = SeatType::VIP;
+            mat[1][3] = SeatType::VIP;
+            if (cl > 4) mat[1][4] = SeatType::VIP;
+        }
+        if (rw >= 6) {
+            for (int c = 0; c < cl; ++c) {
+                mat[rw - 2][c] = SeatType::SWEETBOX;
+                mat[rw - 1][c] = SeatType::SWEETBOX;
+            }
+        }
+        return mat;
+    };
+
+    vector<RoomData> loaded;
     string line;
     bool isHeader = true;
     while (getline(file, line)) {
+        if (!line.empty() && line.back() == '\r') line.pop_back();
         if (line.empty()) continue;
         if (isHeader) { isHeader = false; continue; }
         stringstream ss(line);
@@ -139,47 +240,62 @@ void RoomPanel::loadRoomsFromFile() {
         getline(ss, rowsStr, '|');
         getline(ss, colsStr, '|');
         getline(ss, totalStr, '|');
+        if (id.empty()) continue;
 
-        // Tìm room đã có để update rows/cols nếu có
-        for (auto& r : rooms) {
-            if (r.id == id) {
-                r.name = s2ws(nameStr);
-                try {
-                    int rw = stoi(rowsStr);
-                    int cl = stoi(colsStr);
-                    if (rw >= 2 && rw <= 12 && cl >= 2 && cl <= 14) {
-                        r.rows = rw;
-                        r.cols = cl;
-                        r.seatMatrix.assign(rw, vector<SeatType>(cl, SeatType::STANDARD));
-                        if (rw >= 2 && cl >= 4) {
-                            r.seatMatrix[1][1] = SeatType::VIP;
-                            r.seatMatrix[1][2] = SeatType::VIP;
-                            r.seatMatrix[1][3] = SeatType::VIP;
-                            if (cl > 4) r.seatMatrix[1][4] = SeatType::VIP;
-                        }
-                        if (rw >= 6) {
-                            for (int c = 0; c < cl; ++c) {
-                                r.seatMatrix[rw - 2][c] = SeatType::SWEETBOX;
-                                r.seatMatrix[rw - 1][c] = SeatType::SWEETBOX;
-                            }
-                        }
-                    }
-                } catch (...) {}
-                break;
+        int rw = 6, cl = 6;
+        try {
+            int rParsed = stoi(rowsStr);
+            int cParsed = stoi(colsStr);
+            if (rParsed >= 2 && rParsed <= 12 && cParsed >= 2 && cParsed <= 14) {
+                rw = rParsed;
+                cl = cParsed;
             }
+        } catch (...) {}
+
+        RoomData r;
+        r.id = id;
+        r.name = s2ws(nameStr.empty() ? id : nameStr);
+        r.rows = rw;
+        r.cols = cl;
+        r.seatMatrix = buildMatrix(rw, cl);
+
+        // Preserve roomType if matching an existing default entry
+        r.roomType = L"Digital 2D Dolby 7.1";
+        for (const auto& existing : rooms) {
+            if (existing.id == id) { r.roomType = existing.roomType; break; }
         }
+
+        // Compute live status from showtimes.txt
+        auto sit = schedByRoom.find(id);
+        if (sit != schedByRoom.end() && sit->second.isPlaying) {
+            r.status = L"\u0110ang chi\u1ebfu: " + s2ws(sit->second.playingTitle);
+        } else if (sit != schedByRoom.end() && !sit->second.nextTimeStr.empty()) {
+            r.status = L"S\u1eafp chi\u1ebfu (" + s2ws(sit->second.nextTimeStr) + L")";
+        } else if (sit != schedByRoom.end() && sit->second.upcomingCount > 0) {
+            r.status = L"B\u00ecnh th\u01b0\u1eddng (" + to_wstring(sit->second.upcomingCount) + L" su\u1ea5t s\u1eafp t\u1edbi)";
+        } else {
+            r.status = L"Tr\u1ed1ng (Ch\u01b0a c\u00f3 su\u1ea5t chi\u1ebfu)";
+        }
+
+        loaded.push_back(std::move(r));
+    }
+
+    if (!loaded.empty()) {
+        rooms = std::move(loaded);
     }
 }
 
-void RoomPanel::saveRoomsToFile() {
+bool RoomPanel::saveRoomsToFile() {
     string filePath = FileUtils::resolveDataPath("data/rooms.txt");
-    ofstream file(filePath);
-    if (!file.is_open()) return;
-
-    file << "room_id|room_name|seat_rows|seat_cols|total_seats\n";
+    auto sanitize = [](string s) {
+        for (char& ch : s) if (ch == '|' || ch == '\n' || ch == '\r') ch = ' ';
+        return s;
+    };
+    string out = "room_id|room_name|seat_rows|seat_cols|total_seats\n";
     for (const auto& r : rooms) {
-        file << r.id << "|" << ws2s(r.name) << "|" << r.rows << "|" << r.cols << "|" << (r.rows * r.cols) << "\n";
+        out += sanitize(r.id) + "|" + sanitize(ws2s(r.name)) + "|" + to_string(r.rows) + "|" + to_string(r.cols) + "|" + to_string(r.rows * r.cols) + "\n";
     }
+    return FileUtils::writeAtomic(filePath, out);
 }
 
 void RoomPanel::updateSeatStatistics(int& standard, int& vip, int& sweetbox, int& maintenance) const {
@@ -427,21 +543,39 @@ void RoomPanel::handleEvent(const Event& event, const RenderWindow& win) {
             if (btnSave.contains(mousePos)) {
                 if (selectedRoomIndex >= 0 && selectedRoomIndex < (int)rooms.size()) {
                     auto& r = rooms[selectedRoomIndex];
-                    if (!inputRoomName.empty()) r.name = inputRoomName;
-                    if (!inputStatus.empty()) r.status = inputStatus;
+                    RoomData backup = r;
+                    if (inputRoomName.empty()) {
+                        notificationMessage = "Tên phòng chiếu không được để trống!";
+                        notificationClock.restart();
+                        notificationVisible = true;
+                        return;
+                    }
+                    int nr = r.rows, nc = r.cols;
                     try {
-                        int nr = stoi(inputRows);
-                        int nc = stoi(inputCols);
-                        if (nr >= 2 && nr <= 10 && nc >= 2 && nc <= 12) {
-                            if (nr != r.rows || nc != r.cols) {
-                                r.rows = nr;
-                                r.cols = nc;
-                                r.seatMatrix.assign(nr, vector<SeatType>(nc, SeatType::STANDARD));
-                            }
-                        }
-                    } catch (...) {}
-                    saveRoomsToFile();
-                    notificationMessage = "Đã lưu cấu hình phòng chiếu thành công!";
+                        nr = stoi(inputRows);
+                        nc = stoi(inputCols);
+                    } catch (...) {
+                        nr = -1;
+                    }
+                    if (nr < 2 || nr > 12 || nc < 2 || nc > 14) {
+                        notificationMessage = "Số hàng (2-12) và số cột (2-14) không hợp lệ!";
+                        notificationClock.restart();
+                        notificationVisible = true;
+                        return;
+                    }
+                    r.name = inputRoomName;
+                    if (!inputStatus.empty()) r.status = inputStatus;
+                    if (nr != r.rows || nc != r.cols) {
+                        r.rows = nr;
+                        r.cols = nc;
+                        r.seatMatrix.assign(nr, vector<SeatType>(nc, SeatType::STANDARD));
+                    }
+                    if (!saveRoomsToFile()) {
+                        r = backup;
+                        notificationMessage = "Lỗi: Không thể lưu cấu hình phòng chiếu!";
+                    } else {
+                        notificationMessage = "Đã lưu cấu hình phòng chiếu thành công!";
+                    }
                     notificationClock.restart();
                     notificationVisible = true;
                 }

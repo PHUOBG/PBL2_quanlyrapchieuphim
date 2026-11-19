@@ -4,6 +4,12 @@
 #include "UI/components/Admin/RoundedRectRenderer.h"
 #include "data-structures/HashTable.h"
 #include "utils/FileUtils.h"
+#include "services/ShowtimeCleanupService.h"
+#include "repositories/admin/AdminTicketRepository.h"
+#include "repositories/booking/ShowtimeSeatRepository.h"
+#include <unordered_map>
+#include <unordered_set>
+#include <ctime>
 #include <algorithm>
 #include <fstream>
 #include <sstream>
@@ -53,6 +59,8 @@ static string formatPriceStr(int price) {
     return res + " đ";
 }
 
+namespace { string todayIso(); }
+
 ShowtimePanel::ShowtimePanel(Font& fontRef, float w, float h)
     : font(fontRef),
       boldFont(FontManager::instance().bold()),
@@ -81,8 +89,8 @@ ShowtimePanel::ShowtimePanel(Font& fontRef, float w, float h)
         hasReloadTex = true;
     }
 
-    initSampleShowtimes();
     loadShowtimesFromFile();
+    selectedDate = todayIso();
     applyFilter();
 }
 
@@ -92,137 +100,177 @@ void ShowtimePanel::setPosition(Vector2f pos) {
 }
 
 void ShowtimePanel::initSampleShowtimes() {
-    allShowtimes = {
-        {"ST_001", "M_001", L"Cu\u1ed9c Chi\u1ebfn B\u1ea5t T\u1eed 2", "PHONG_003", L"Ph\u00f2ng Chi\u1ebfu 3", "2026-10-27", "10:50", "12:06", 65000, 28, 36},
-        {"ST_002", "M_002", L"Ng\u01b0\u1eddi Nh\u1ec7n: Du H\u00e0nh V\u0169 Tr\u1ee5 Nh\u1ec7n", "PHONG_005", L"Ph\u00f2ng Chi\u1ebfu 5", "2026-10-27", "10:50", "13:10", 65000, 36, 36},
-        {"ST_003", "M_003", L"Mai", "PHONG_002", L"Ph\u00f2ng Chi\u1ebfu 2", "2026-10-27", "10:50", "13:01", 65000, 30, 36},
-        {"ST_004", "M_004", L"Kung Fu Panda 4", "PHONG_006", L"Ph\u00f2ng Chi\u1ebfu 6", "2026-10-27", "10:50", "12:24", 65000, 22, 36},
-        {"ST_005", "M_005", L"L\u1eadt M\u1eb7t 6: T\u1ea5m V\u00e9 \u0110\u1ecbnh M\u1ec7nh", "PHONG_001", L"Ph\u00f2ng Chi\u1ebfu 1", "2026-10-27", "10:50", "13:05", 65000, 34, 36},
-        {"ST_006", "M_006", L"V\u00e2y H\u00e3m: Kh\u00f4ng L\u1ed1i Tho\u00e1t", "PHONG_004", L"Ph\u00f2ng Chi\u1ebfu 4", "2026-10-27", "10:50", "12:35", 65000, 19, 36},
-        {"ST_007", "M_007", L"Dune: H\u00e0nh Tinh C\u00e1t - Ph\u1ea7n 2", "PHONG_003", L"Ph\u00f2ng Chi\u1ebfu 3", "2026-10-27", "12:30", "15:16", 70000, 32, 36},
-        {"ST_008", "M_005", L"L\u1eadt M\u1eb7t 6: T\u1ea5m V\u00e9 \u0110\u1ecbnh M\u1ec7nh", "PHONG_006", L"Ph\u00f2ng Chi\u1ebfu 6", "2026-10-27", "12:40", "14:55", 70000, 25, 36},
-        {"ST_009", "M_008", L"Fast and Furious 10 (Fast X)", "PHONG_004", L"Ph\u00f2ng Chi\u1ebfu 4", "2026-10-27", "12:50", "15:10", 70000, 27, 36},
-        {"ST_010", "M_004", L"Kung Fu Panda 4", "PHONG_002", L"Ph\u00f2ng Chi\u1ebfu 2", "2026-10-27", "13:20", "14:54", 70000, 18, 36},
-        // Thêm 20 suất chiếu mẫu khác để đủ 30 suất chiếu như ảnh
-        {"ST_011", "M_001", L"Cu\u1ed9c Chi\u1ebfn B\u1ea5t T\u1eed 2", "PHONG_001", L"Ph\u00f2ng Chi\u1ebfu 1", "2026-10-27", "13:30", "14:46", 70000, 26, 36},
-        {"ST_012", "M_002", L"Ng\u01b0\u1eddi Nh\u1ec7n: Du H\u00e0nh V\u0169 Tr\u1ee5 Nh\u1ec7n", "PHONG_005", L"Ph\u00f2ng Chi\u1ebfu 5", "2026-10-27", "13:40", "16:00", 75000, 35, 36},
-        {"ST_013", "M_007", L"Dune: H\u00e0nh Tinh C\u00e1t - Ph\u1ea7n 2", "PHONG_003", L"Ph\u00f2ng Chi\u1ebfu 3", "2026-10-27", "15:40", "18:26", 80000, 31, 36},
-        {"ST_014", "M_003", L"Mai", "PHONG_002", L"Ph\u00f2ng Chi\u1ebfu 2", "2026-10-27", "15:20", "17:31", 75000, 33, 36},
-        {"ST_015", "M_006", L"V\u00e2y H\u00e3m: Kh\u00f4ng L\u1ed1i Tho\u00e1t", "PHONG_004", L"Ph\u00f2ng Chi\u1ebfu 4", "2026-10-27", "15:30", "17:15", 75000, 24, 36},
-        {"ST_016", "M_005", L"L\u1eadt M\u1eb7t 6: T\u1ea5m V\u00e9 \u0110\u1ecbnh M\u1ec7nh", "PHONG_006", L"Ph\u00f2ng Chi\u1ebfu 6", "2026-10-27", "15:15", "17:30", 75000, 36, 36},
-        {"ST_017", "M_004", L"Kung Fu Panda 4", "PHONG_001", L"Ph\u00f2ng Chi\u1ebfu 1", "2026-10-27", "15:10", "16:44", 75000, 29, 36},
-        {"ST_018", "M_008", L"Fast and Furious 10 (Fast X)", "PHONG_005", L"Ph\u00f2ng Chi\u1ebfu 5", "2026-10-27", "16:20", "18:40", 80000, 30, 36},
-        {"ST_019", "M_007", L"Dune: H\u00e0nh Tinh C\u00e1t - Ph\u1ea7n 2", "PHONG_003", L"Ph\u00f2ng Chi\u1ebfu 3", "2026-10-27", "18:50", "21:36", 85000, 36, 36},
-        {"ST_020", "M_002", L"Ng\u01b0\u1eddi Nh\u1ec7n: Du H\u00e0nh V\u0169 Tr\u1ee5 Nh\u1ec7n", "PHONG_004", L"Ph\u00f2ng Chi\u1ebfu 4", "2026-10-27", "17:40", "20:00", 85000, 34, 36},
-        {"ST_021", "M_003", L"Mai", "PHONG_002", L"Ph\u00f2ng Chi\u1ebfu 2", "2026-10-27", "17:50", "20:01", 85000, 32, 36},
-        {"ST_022", "M_005", L"L\u1eadt M\u1eb7t 6: T\u1ea5m V\u00e9 \u0110\u1ecbnh M\u1ec7nh", "PHONG_001", L"Ph\u00f2ng Chi\u1ebfu 1", "2026-10-27", "17:10", "19:25", 85000, 35, 36},
-        {"ST_023", "M_006", L"V\u00e2y H\u00e3m: Kh\u00f4ng L\u1ed1i Tho\u00e1t", "PHONG_006", L"Ph\u00f2ng Chi\u1ebfu 6", "2026-10-27", "17:50", "19:35", 80000, 21, 36},
-        {"ST_024", "M_008", L"Fast and Furious 10 (Fast X)", "PHONG_005", L"Ph\u00f2ng Chi\u1ebfu 5", "2026-10-27", "19:00", "21:20", 85000, 36, 36},
-        {"ST_025", "M_004", L"Kung Fu Panda 4", "PHONG_001", L"Ph\u00f2ng Chi\u1ebfu 1", "2026-10-27", "19:45", "21:19", 80000, 28, 36},
-        {"ST_026", "M_003", L"Mai", "PHONG_006", L"Ph\u00f2ng Chi\u1ebfu 6", "2026-10-27", "19:55", "22:06", 85000, 33, 36},
-        {"ST_027", "M_001", L"Cu\u1ed9c Chi\u1ebfn B\u1ea5t T\u1eed 2", "PHONG_004", L"Ph\u00f2ng Chi\u1ebfu 4", "2026-10-27", "20:20", "21:36", 80000, 25, 36},
-        {"ST_028", "M_002", L"Ng\u01b0\u1eddi Nh\u1ec7n: Du H\u00e0nh V\u0169 Tr\u1ee5 Nh\u1ec7n", "PHONG_002", L"Ph\u00f2ng Chi\u1ebfu 2", "2026-10-27", "20:25", "22:45", 85000, 31, 36},
-        {"ST_029", "M_005", L"L\u1eadt M\u1eb7t 6: T\u1ea5m V\u00e9 \u0110\u1ecbnh M\u1ec7nh", "PHONG_005", L"Ph\u00f2ng Chi\u1ebfu 5", "2026-10-27", "21:40", "23:55", 80000, 30, 36},
-        {"ST_030", "M_007", L"Dune: H\u00e0nh Tinh C\u00e1t - Ph\u1ea7n 2", "PHONG_003", L"Ph\u00f2ng Chi\u1ebfu 3", "2026-10-27", "21:50", "00:36", 80000, 27, 36}
-    };
+    // No sample/demo data: the list always reflects data/showtimes.txt.
+    allShowtimes.clear();
 }
 
+namespace {
+// Lookup caches rebuilt on every (re)load so the panel always reflects the data files.
+struct ShowtimeLookups {
+    unordered_map<string, int> movieDuration;      // movie_id -> minutes
+    unordered_map<string, string> movieIdByTitle;  // normalized title -> movie_id
+    unordered_map<string, wstring> movieTitleById;
+    unordered_map<string, string> movieStart;      // movie_id -> dd/mm/yyyy
+    unordered_map<string, string> movieEnd;        // movie_id -> dd/mm/yyyy
+    unordered_map<string, wstring> roomNameById;
+    unordered_map<string, int> roomSeats;
+    unordered_set<string> ticketedShowtimes;       // showtimes that already have tickets
+};
+ShowtimeLookups g_lookups;
+
+string normTitle(const wstring& w) {
+    string s = ws2s(w);
+    string out;
+    for (unsigned char ch : s) if (ch != ' ') out += (char)tolower(ch);
+    return out;
+}
+
+string stripBom(string s) {
+    if (s.size() >= 3 && (unsigned char)s[0] == 0xEF && (unsigned char)s[1] == 0xBB && (unsigned char)s[2] == 0xBF) s.erase(0, 3);
+    if (!s.empty() && s.back() == '\r') s.pop_back();
+    return s;
+}
+
+int timeToMin(const string& t) {
+    if (t.size() != 5 || t[2] != ':') return -1;
+    if (!isdigit((unsigned char)t[0]) || !isdigit((unsigned char)t[1]) || !isdigit((unsigned char)t[3]) || !isdigit((unsigned char)t[4])) return -1;
+    int h = stoi(t.substr(0, 2)), m = stoi(t.substr(3, 2));
+    if (h > 23 || m > 59) return -1;
+    return h * 60 + m;
+}
+
+string todayIso() {
+    time_t now = time(nullptr);
+    tm ltm{};
+#if defined(_WIN32)
+    localtime_s(&ltm, &now);
+#else
+    localtime_r(&now, &ltm);
+#endif
+    char buf[16];
+    strftime(buf, sizeof(buf), "%Y-%m-%d", &ltm);
+    return buf;
+}
+
+string nowHm() {
+    time_t now = time(nullptr);
+    tm ltm{};
+#if defined(_WIN32)
+    localtime_s(&ltm, &now);
+#else
+    localtime_r(&now, &ltm);
+#endif
+    char buf[8];
+    strftime(buf, sizeof(buf), "%H:%M", &ltm);
+    return buf;
+}
+
+// dd/mm/yyyy -> yyyy-mm-dd (empty on bad input)
+string ddmmyyyyToIso(const string& d) {
+    if (d.size() != 10 || d[2] != '/' || d[5] != '/') return "";
+    return d.substr(6, 4) + "-" + d.substr(3, 2) + "-" + d.substr(0, 2);
+}
+} // namespace
+
 void ShowtimePanel::loadShowtimesFromFile() {
-    // Xây dựng bảng băm (HashTable O(1)) ánh xạ movie_id -> (Tên phim, Thời lượng)
-    HashTable<string, wstring> movieTitleMap(64);
-    HashTable<string, int> movieDurMap(64);
+    g_lookups = ShowtimeLookups();
 
-    movieTitleMap.insert("M_001", L"Cu\u1ed9c Chi\u1ebfn B\u1ea5t T\u1eed 2"); movieDurMap.insert("M_001", 76);
-    movieTitleMap.insert("M_002", L"Ng\u01b0\u1eddi Nh\u1ec7n: Du H\u00e0nh V\u0169 Tr\u1ee5 Nh\u1ec7n"); movieDurMap.insert("M_002", 140);
-    movieTitleMap.insert("M_003", L"Mai"); movieDurMap.insert("M_003", 131);
-    movieTitleMap.insert("M_004", L"Kung Fu Panda 4"); movieDurMap.insert("M_004", 94);
-    movieTitleMap.insert("M_005", L"L\u1eadt M\u1eb7t 6: T\u1ea5m V\u00e9 \u0110\u1ecbnh M\u1ec7nh"); movieDurMap.insert("M_005", 135);
-    movieTitleMap.insert("M_006", L"V\u00e2y H\u00e3m: Kh\u00f4ng L\u1ed1i Tho\u00e1t"); movieDurMap.insert("M_006", 105);
-    movieTitleMap.insert("M_007", L"Dune: H\u00e0nh Tinh C\u00e1t - Ph\u1ea7n 2"); movieDurMap.insert("M_007", 166);
-    movieTitleMap.insert("M_008", L"Fast and Furious 10 (Fast X)"); movieDurMap.insert("M_008", 140);
-
-    string mPath = FileUtils::resolveDataPath("data/movies.txt");
-    ifstream mf(mPath);
-    if (mf.is_open()) {
+    // movies.txt: id|title|age|country|lang|genres|duration|release|end|...
+    {
+        ifstream mf(FileUtils::resolveDataPath("data/movies.txt"), ios::binary);
         string mline;
-        bool mHeader = true;
-        while (getline(mf, mline)) {
+        bool header = true;
+        while (mf.is_open() && getline(mf, mline)) {
+            mline = stripBom(mline);
             if (mline.empty()) continue;
-            if (mHeader) { mHeader = false; continue; }
-            stringstream mss(mline);
-            string mid, mtitle, mdur;
-            getline(mss, mid, '|');
-            getline(mss, mtitle, '|');
-            getline(mss, mdur, '|');
-            if (!mid.empty() && !mtitle.empty()) {
-                movieTitleMap.insert(mid, s2ws(mtitle));
-                int d = 120;
-                try { d = stoi(mdur); } catch (...) {}
-                movieDurMap.insert(mid, d);
-            }
+            if (header) { header = false; continue; }
+            vector<string> col;
+            { stringstream mss(mline); string tok; while (getline(mss, tok, '|')) col.push_back(tok); }
+            if (col.size() < 9 || col[0].empty()) continue;
+            int d = 120;
+            try { d = stoi(col[6]); } catch (...) {}
+            if (d <= 0) d = 120;
+            g_lookups.movieDuration[col[0]] = d;
+            g_lookups.movieIdByTitle[normTitle(s2ws(col[1]))] = col[0];
+            g_lookups.movieTitleById[col[0]] = s2ws(col[1]);
+            g_lookups.movieStart[col[0]] = col[7];
+            g_lookups.movieEnd[col[0]] = col[8];
         }
     }
 
-    string path = FileUtils::resolveDataPath("data/showtimes.txt");
-    ifstream f(path);
-    if (!f.is_open()) return;
+    // rooms.txt: id|name|rows|cols|total
+    {
+        ifstream rf(FileUtils::resolveDataPath("data/rooms.txt"), ios::binary);
+        string rline;
+        bool header = true;
+        while (rf.is_open() && getline(rf, rline)) {
+            rline = stripBom(rline);
+            if (rline.empty()) continue;
+            if (header) { header = false; continue; }
+            vector<string> col;
+            { stringstream rss(rline); string tok; while (getline(rss, tok, '|')) col.push_back(tok); }
+            if (col.size() < 5 || col[0].empty()) continue;
+            g_lookups.roomNameById[col[0]] = s2ws(col[1]);
+            int seats = 0;
+            try { seats = stoi(col[4]); } catch (...) {}
+            g_lookups.roomSeats[col[0]] = seats;
+        }
+    }
 
+    // Tickets that reference a showtime
+    {
+        AdminTicketRepository ticketRepo(FileUtils::resolveDataPath("data/tickets.txt"));
+        DLL<Ticket> tickets = ticketRepo.loadAll();
+        for (int i = 0; i < tickets.getSize(); ++i) g_lookups.ticketedShowtimes.insert(tickets[i].showtimeId);
+    }
+
+    // Real booked-seat counts
+    ShowtimeSeatRepository seatRepo(FileUtils::resolveDataPath("data/RoomStatusAtShowtime.txt"));
+
+    vector<ShowtimeItem> loaded;
+    ifstream f(FileUtils::resolveDataPath("data/showtimes.txt"), ios::binary);
     string line;
     bool isHeader = true;
-    vector<ShowtimeItem> loaded;
-    int idxCounter = 0;
-    while (getline(f, line)) {
+    while (f.is_open() && getline(f, line)) {
+        line = stripBom(line);
         if (line.empty()) continue;
         if (isHeader) { isHeader = false; continue; }
-        stringstream ss(line);
-        string id, mId, rId, dt, tm, pr;
-        getline(ss, id, '|');
-        getline(ss, mId, '|');
-        getline(ss, rId, '|');
-        getline(ss, dt, '|');
-        getline(ss, tm, '|');
-        getline(ss, pr, '|');
+        vector<string> col;
+        { stringstream ss(line); string tok; while (getline(ss, tok, '|')) col.push_back(tok); }
+        if (col.size() < 6 || col[0].empty()) continue;   // malformed record
 
         ShowtimeItem item;
-        item.id = id;
-        item.movieId = mId;
-        item.roomId = rId;
-        item.date = dt;
-        item.startTime = tm;
-        try { item.price = stoi(pr); } catch (...) { item.price = 65000; }
-        item.totalSeats = 36;
-        item.bookedSeats = 18 + ((idxCounter * 7 + 5) % 19);
-        idxCounter++;
+        item.id = col[0];
+        item.movieId = col[1];
+        item.roomId = col[2];
+        item.date = col[3];
+        item.startTime = col[4];
+        try { item.price = stoi(col[5]); } catch (...) { continue; }
 
-        if (rId == "PHONG_001") item.roomName = L"Ph\u00f2ng Chi\u1ebfu 1";
-        else if (rId == "PHONG_002") item.roomName = L"Ph\u00f2ng Chi\u1ebfu 2";
-        else if (rId == "PHONG_003") item.roomName = L"Ph\u00f2ng Chi\u1ebfu 3";
-        else if (rId == "PHONG_004") item.roomName = L"Ph\u00f2ng Chi\u1ebfu 4";
-        else if (rId == "PHONG_005") item.roomName = L"Ph\u00f2ng Chi\u1ebfu 5";
-        else item.roomName = L"Ph\u00f2ng Chi\u1ebfu 6";
+        auto rn = g_lookups.roomNameById.find(item.roomId);
+        item.roomName = rn != g_lookups.roomNameById.end() ? rn->second : s2ws(item.roomId);
+        auto rs = g_lookups.roomSeats.find(item.roomId);
+        item.totalSeats = rs != g_lookups.roomSeats.end() && rs->second > 0 ? rs->second : 81;
+        item.bookedSeats = seatRepo.getBookedSeats(item.id, item.roomId).getSize();
 
-        wstring* foundTitle = movieTitleMap.find(mId);
-        int* foundDur = movieDurMap.find(mId);
-        item.movieTitle = foundTitle ? *foundTitle : s2ws(mId);
-        item.endTime = calcEndTimeStr(tm, foundDur ? *foundDur : 120);
+        {
+            auto tt = g_lookups.movieTitleById.find(item.movieId);
+            item.movieTitle = tt != g_lookups.movieTitleById.end() ? tt->second : s2ws(item.movieId);
+        }
+        auto md = g_lookups.movieDuration.find(item.movieId);
+        item.endTime = calcEndTimeStr(item.startTime, md != g_lookups.movieDuration.end() ? md->second : 120);
         loaded.push_back(item);
     }
-    if (loaded.size() >= 15) {
-        allShowtimes = loaded;
-    }
+    allShowtimes = loaded;   // exactly what is on disk (no sample fallback)
 }
 
-void ShowtimePanel::saveShowtimesToFile() {
-    string path = FileUtils::resolveDataPath("data/showtimes.txt");
-    ofstream f(path);
-    if (!f.is_open()) return;
-
-    f << "showtime_id|movie_id|room_id|show_date|start_time|ticket_price\n";
+bool ShowtimePanel::saveShowtimesToFile() {
+    string out = "showtime_id|movie_id|room_id|date|time|price\n";
     for (const auto& item : allShowtimes) {
-        f << item.id << "|" << item.movieId << "|" << item.roomId << "|" << item.date << "|" << item.startTime << "|" << item.price << "\n";
+        out += item.id + "|" + item.movieId + "|" + item.roomId + "|" + item.date + "|" + item.startTime + "|" + to_string(item.price) + "\n";
     }
+    return FileUtils::writeAtomic(FileUtils::resolveDataPath("data/showtimes.txt"), out);
 }
-
 void ShowtimePanel::applyFilter() {
     filteredShowtimes.clear();
     for (const auto& itm : allShowtimes) {
@@ -237,7 +285,7 @@ void ShowtimePanel::applyFilter() {
         if (selectedStatus == L"\u0110ang m\u1edf b\u00e1n" && itm.bookedSeats >= itm.totalSeats) {
             continue;
         }
-        if (selectedStatus == L"S\u1eafp chi\u1ebfu" && itm.startTime < "17:00") {
+        if (selectedStatus == L"S\u1eafp chi\u1ebfu" && !(itm.date > todayIso() || (itm.date == todayIso() && itm.startTime > nowHm()))) {
             continue;
         }
         // Tìm kiếm theo từ khóa (Tên phim, Phòng, Giờ chiếu, Mã suất) hỗ trợ tiếng Việt không dấu
@@ -257,19 +305,18 @@ void ShowtimePanel::applyFilter() {
 }
 
 void ShowtimePanel::autoScheduleShowtimes() {
-    initSampleShowtimes();
-    // Sắp xếp nhanh (std::sort / IntroSort O(N log N)) theo giờ bắt đầu tăng dần
-    std::sort(allShowtimes.begin(), allShowtimes.end(), [](const ShowtimeItem& a, const ShowtimeItem& b) {
-        if (a.startTime != b.startTime) return a.startTime < b.startTime;
-        return a.roomId < b.roomId;
-    });
-    saveShowtimesToFile();
+    // Delegates to the real scheduler: removes expired showtimes (keeping those that have tickets),
+    // then generates new non-overlapping ones (movie duration + 15 min cleaning gap) inside each
+    // movie's screening period. Existing bookings are never touched.
+    const string path = FileUtils::resolveDataPath("data/showtimes.txt");
+    ShowtimeCleanupService::maintainShowtimes(path, 6);
+    loadShowtimesFromFile();
+    currentPage = 1;
     applyFilter();
-    notificationMessage = "Đã xếp lịch tự động giãn cách 15-20 phút thành công!";
+    notificationMessage = "Đã xếp lịch tự động (giữ nguyên các suất đã có vé)!";
     notificationClock.restart();
     notificationVisible = true;
 }
-
 void ShowtimePanel::drawRoundedCard(RenderWindow& win, Vector2f pos, Vector2f sz, float r, Color fill, float outline, Color outCol) {
     RoundedRectRenderer::draw(win, pos, sz, r, fill, outline, outCol);
 }
@@ -283,55 +330,103 @@ void ShowtimePanel::handleEvent(const Event& event, const RenderWindow& win) {
         float popY = position.y + (height - popH) / 2.f - 30.f;
 
         auto commitSavePopup = [&]() {
-            if (popupMovieTitle.empty()) popupMovieTitle = L"Phim Chi\u1ebfu M\u1edbi";
-            if (popupStartTime.empty()) popupStartTime = "14:00";
-            int parsedPrice = 70000;
-            try { if (!popupPrice.empty()) parsedPrice = stoi(popupPrice); } catch (...) { parsedPrice = 70000; }
+            auto fail = [&](const string& msg) {
+                notificationMessage = msg;
+                notificationClock.restart();
+                notificationVisible = true;
+            };
 
-            string rId = "PHONG_001";
-            if (popupRoomName == L"Ph\u00f2ng Chi\u1ebfu 2") rId = "PHONG_002";
-            else if (popupRoomName == L"Ph\u00f2ng Chi\u1ebfu 3") rId = "PHONG_003";
-            else if (popupRoomName == L"Ph\u00f2ng Chi\u1ebfu 4") rId = "PHONG_004";
-            else if (popupRoomName == L"Ph\u00f2ng Chi\u1ebfu 5") rId = "PHONG_005";
-            else if (popupRoomName == L"Ph\u00f2ng Chi\u1ebfu 6") rId = "PHONG_006";
+            // 1. Validate inputs
+            auto mit = g_lookups.movieIdByTitle.find(normTitle(popupMovieTitle));
+            if (mit == g_lookups.movieIdByTitle.end()) { fail("Không tìm thấy phim này trong danh sách phim!"); return; }
+            const string movieId = mit->second;
+            const int dur = g_lookups.movieDuration.count(movieId) ? g_lookups.movieDuration[movieId] : 120;
 
-            if (editingIndex >= 0 && editingIndex < (int)filteredShowtimes.size()) {
-                string targetId = filteredShowtimes[editingIndex].id;
+            const int startMin = timeToMin(popupStartTime);
+            if (startMin < 0) { fail("Giờ chiếu không hợp lệ (HH:MM)!"); return; }
+
+            int parsedPrice = 0;
+            try { parsedPrice = popupPrice.empty() ? 0 : stoi(popupPrice); } catch (...) { parsedPrice = 0; }
+            if (parsedPrice <= 0) { fail("Giá vé phải lớn hơn 0!"); return; }
+
+            string rId;
+            for (const auto& kv : g_lookups.roomNameById) if (kv.second == popupRoomName) { rId = kv.first; break; }
+            if (rId.empty()) { fail("Phòng chiếu không hợp lệ!"); return; }
+
+            const bool isEdit = editingIndex >= 0 && editingIndex < (int)filteredShowtimes.size();
+            const string targetId = isEdit ? filteredShowtimes[editingIndex].id : "";
+            const string showDate = isEdit ? filteredShowtimes[editingIndex].date : selectedDate;
+
+            if (isEdit && (g_lookups.ticketedShowtimes.count(targetId) || filteredShowtimes[editingIndex].bookedSeats > 0)) {
+                fail("Suất chiếu đã có vé, không thể sửa!"); return;
+            }
+
+            // 2. Must be inside the movie's screening period
+            string from = ddmmyyyyToIso(g_lookups.movieStart[movieId]);
+            string to = ddmmyyyyToIso(g_lookups.movieEnd[movieId]);
+            if ((!from.empty() && showDate < from) || (!to.empty() && showDate > to)) {
+                fail("Ngày chiếu nằm ngoài thời gian công chiếu của phim!"); return;
+            }
+
+            // 3. Room must not host overlapping screenings (duration + 15 min cleaning gap)
+            const int kGap = 15;
+            const int newEnd = startMin + dur + kGap;
+            for (const auto& other : allShowtimes) {
+                if (other.id == targetId || other.roomId != rId || other.date != showDate) continue;
+                int oStart = timeToMin(other.startTime);
+                if (oStart < 0) continue;
+                int oDur = g_lookups.movieDuration.count(other.movieId) ? g_lookups.movieDuration[other.movieId] : 120;
+                int oEnd = oStart + oDur + kGap;
+                if (startMin < oEnd && oStart < newEnd) {
+                    fail("Trùng lịch với suất " + other.id + " trong cùng phòng!"); return;
+                }
+            }
+
+            // 4. Apply
+            if (isEdit) {
                 for (auto& st : allShowtimes) {
                     if (st.id == targetId) {
-                        st.movieTitle = popupMovieTitle;
-                        st.roomName = popupRoomName;
+                        st.movieId = movieId;
                         st.roomId = rId;
                         st.startTime = popupStartTime;
-                        st.endTime = calcEndTimeStr(popupStartTime, 125);
                         st.price = parsedPrice;
                         break;
                     }
                 }
             } else {
+                // Unique ID: SUATCHIEU_YYYYMMDD_NNNN (next free counter)
+                string ymd;
+                for (char ch : showDate) if (ch != '-') ymd += ch;
+                int maxN = 0;
+                const string prefix = "SUATCHIEU_" + ymd + "_";
+                for (const auto& s : allShowtimes) {
+                    if (s.id.rfind(prefix, 0) == 0) { try { maxN = max(maxN, stoi(s.id.substr(prefix.size()))); } catch (...) {} }
+                }
+                char idbuf[64];
+                snprintf(idbuf, sizeof(idbuf), "%s%04d", prefix.c_str(), maxN + 1);
                 ShowtimeItem ni;
-                ni.id = "ST_" + to_string(allShowtimes.size() + 101);
-                ni.movieId = "M_001";
-                ni.movieTitle = popupMovieTitle;
+                ni.id = idbuf;
+                ni.movieId = movieId;
                 ni.roomId = rId;
-                ni.roomName = popupRoomName;
-                ni.date = selectedDate;
+                ni.date = showDate;
                 ni.startTime = popupStartTime;
-                ni.endTime = calcEndTimeStr(popupStartTime, 125);
                 ni.price = parsedPrice;
-                ni.bookedSeats = 0;
-                ni.totalSeats = 36;
                 allShowtimes.insert(allShowtimes.begin(), ni);
-                currentPage = 1;
             }
-            saveShowtimesToFile();
+            if (!saveShowtimesToFile()) {
+                fail("Không thể lưu suất chiếu (lỗi ghi file)!");
+                loadShowtimesFromFile();
+                applyFilter();
+                return;
+            }
+            loadShowtimesFromFile();   // refresh derived fields (title, end time, seat counts)
+            currentPage = 1;
             applyFilter();
             showAddPopup = false;
-            notificationMessage = (editingIndex >= 0) ? "Đã cập nhật suất chiếu thành công!" : "Đã thêm suất chiếu mới thành công!";
+            notificationMessage = isEdit ? "Đã cập nhật suất chiếu thành công!" : "Đã thêm suất chiếu mới thành công!";
             notificationClock.restart();
             notificationVisible = true;
         };
-
         if (const auto* mouseBtn = event.getIf<Event::MouseButtonPressed>()) {
             if (mouseBtn->button == Mouse::Button::Left) {
                 Vector2f mousePos = win.mapPixelToCoords(Mouse::getPosition(win));
@@ -600,12 +695,25 @@ void ShowtimePanel::handleEvent(const Event& event, const RenderWindow& win) {
                 if (btnDel.contains(mousePos)) {
                     int realIdx = startIdx + r;
                     string delId = filteredShowtimes[realIdx].id;
+                    if (g_lookups.ticketedShowtimes.count(delId) || filteredShowtimes[realIdx].bookedSeats > 0) {
+                        notificationMessage = "Suất chiếu đã có vé, không thể xóa!";
+                        notificationClock.restart();
+                        notificationVisible = true;
+                        return;
+                    }
                     allShowtimes.erase(
                         remove_if(allShowtimes.begin(), allShowtimes.end(),
                                   [&](const ShowtimeItem& s) { return s.id == delId; }),
                         allShowtimes.end()
                     );
-                    saveShowtimesToFile();
+                    if (!saveShowtimesToFile()) {
+                        loadShowtimesFromFile();
+                        applyFilter();
+                        notificationMessage = "Không thể lưu thay đổi (lỗi ghi file)!";
+                        notificationClock.restart();
+                        notificationVisible = true;
+                        return;
+                    }
                     applyFilter();
                     notificationMessage = "Đã xóa suất chiếu thành công!";
                     notificationClock.restart();

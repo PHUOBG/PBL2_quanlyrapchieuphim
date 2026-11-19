@@ -17,7 +17,7 @@ public:
     explicit AdminComboRepository(const string& path);
 
     void loadFromFile();
-    void saveToFile() const;
+    bool saveToFile() const;
 
     void addRecord(const vector<string>& record);
     void updateRecord(int index, const vector<string>& record);

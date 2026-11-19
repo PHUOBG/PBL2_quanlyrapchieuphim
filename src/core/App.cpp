@@ -1,5 +1,6 @@
 #include "core/App.h"
 #include "UI/components/Admin/FontManager.h"
+#include "utils/FileUtils.h"
 #include <SFML/Graphics.hpp>
 
 using namespace sf;
@@ -39,7 +40,7 @@ App::App()
         window.setIcon(appIcon.getSize(), appIcon.getPixelsPtr());
     }
 
-    ShowtimeCleanupService::maintainShowtimes("../data/showtimes.txt", 6);
+    ShowtimeCleanupService::maintainShowtimes(FileUtils::resolveDataPath("data/showtimes.txt"), 6);
 
     authService = make_unique<AuthService>("../data/users.txt");
 

@@ -1,4 +1,5 @@
-#include "repositories/booking/ShowtimeSeatRepository.h"
+﻿#include "repositories/booking/ShowtimeSeatRepository.h"
+#include "utils/FileUtils.h"
 
 #include <algorithm>
 #include <fstream>
@@ -10,7 +11,7 @@ ShowtimeSeatStatus::ShowtimeSeatStatus(const string& rId, const string& stId)
     : room_id(rId), showtime_id(stId) {}
 
 ShowtimeSeatRepository::ShowtimeSeatRepository(const string& path)
-    : filePath(path) {
+    : filePath(FileUtils::resolveDataPath(path)) {
     loadFromFile();
 }
 
@@ -82,7 +83,8 @@ void ShowtimeSeatRepository::loadFromFile() {
 
 DLL<string> ShowtimeSeatRepository::getBookedSeats(const string& showtimeId, const string& roomId) {
     for (int i = 0; i < statusList.getSize(); ++i) {
-        if (statusList[i].showtime_id == showtimeId && statusList[i].room_id == roomId) {
+        if (statusList[i].showtime_id == showtimeId &&
+            (roomId.empty() || statusList[i].room_id == roomId)) {
             return statusList[i].bookedSeats;
         }
     }
@@ -90,49 +92,102 @@ DLL<string> ShowtimeSeatRepository::getBookedSeats(const string& showtimeId, con
     return DLL<string>();
 }
 
-void ShowtimeSeatRepository::addBookedSeats(const string& showtimeId, const string& roomId, const DLL<string>& newSeats) {
-    if (newSeats.getSize() == 0) return;
-
-    bool found = false;
+bool ShowtimeSeatRepository::hasAnySeatBooked(const string& showtimeId, const string& roomId, const DLL<string>& checkSeats) {
+    if (checkSeats.getSize() == 0) return false;
     for (int i = 0; i < statusList.getSize(); ++i) {
-        if (statusList[i].showtime_id == showtimeId && statusList[i].room_id == roomId) {
-            for (int j = 0; j < newSeats.getSize(); ++j) {
-                bool isDuplicate = false;
+        if (statusList[i].showtime_id == showtimeId &&
+            (roomId.empty() || statusList[i].room_id == roomId)) {
+            for (int j = 0; j < checkSeats.getSize(); ++j) {
                 for (int k = 0; k < statusList[i].bookedSeats.getSize(); ++k) {
-                    if (statusList[i].bookedSeats[k] == newSeats[j]) {
-                        isDuplicate = true;
-                        break;
+                    if (statusList[i].bookedSeats[k] == checkSeats[j]) {
+                        return true;
                     }
                 }
-                if (!isDuplicate) {
-                    statusList[i].bookedSeats.push_back(newSeats[j]);
-                }
             }
+        }
+    }
+    return false;
+}
 
-            found = true;
+bool ShowtimeSeatRepository::addBookedSeats(const string& showtimeId, const string& roomId, const DLL<string>& newSeats) {
+    if (newSeats.getSize() == 0) return true;
+    if (showtimeId.empty()) return false;
+
+    // Work on a snapshot so a failed save leaves memory == disk.
+    DLL<ShowtimeSeatStatus> backup = statusList;
+
+    int target = -1;
+    for (int i = 0; i < statusList.getSize(); ++i) {
+        if (statusList[i].showtime_id == showtimeId && statusList[i].room_id == roomId) {
+            target = i;
             break;
         }
     }
-
-    if (!found) {
-        ShowtimeSeatStatus newStatus(roomId, showtimeId);
-        newStatus.bookedSeats = newSeats;
-        statusList.push_back(newStatus);
+    if (target < 0) {
+        statusList.push_back(ShowtimeSeatStatus(roomId, showtimeId));
+        target = statusList.getSize() - 1;
+    }
+    for (int j = 0; j < newSeats.getSize(); ++j) {
+        bool dup = false;
+        for (int k = 0; k < statusList[target].bookedSeats.getSize(); ++k) {
+            if (statusList[target].bookedSeats[k] == newSeats[j]) { dup = true; break; }
+        }
+        if (!dup) statusList[target].bookedSeats.push_back(newSeats[j]);
     }
 
-    saveToFile();
+    if (!saveToFile()) {
+        statusList = backup;
+        return false;
+    }
+    return true;
 }
 
-void ShowtimeSeatRepository::saveToFile() {
-    ofstream file(filePath);
-    if (!file.is_open()) return;
+bool ShowtimeSeatRepository::tryReserveSeats(const string& showtimeId, const string& roomId, const DLL<string>& seats) {
+    if (showtimeId.empty() || seats.getSize() == 0) return false;
+    // Reject duplicates inside one request
+    for (int a = 0; a < seats.getSize(); ++a)
+        for (int b = a + 1; b < seats.getSize(); ++b)
+            if (seats[a] == seats[b]) return false;
+    // Re-read the persisted state so we never decide on stale data
+    loadFromFile();
+    if (hasAnySeatBooked(showtimeId, roomId, seats)) return false;
+    return addBookedSeats(showtimeId, roomId, seats);
+}
+bool ShowtimeSeatRepository::removeBookedSeats(const string& showtimeId, const string& roomId, const DLL<string>& seatsToRemove) {
+    if (seatsToRemove.getSize() == 0) return false;
+    bool changed = false;
+    for (int i = 0; i < statusList.getSize(); ++i) {
+        if (statusList[i].showtime_id == showtimeId &&
+            (roomId.empty() || statusList[i].room_id == roomId)) {
+            for (int r = 0; r < seatsToRemove.getSize(); ++r) {
+                for (int k = 0; k < statusList[i].bookedSeats.getSize(); ) {
+                    if (statusList[i].bookedSeats[k] == seatsToRemove[r]) {
+                        statusList[i].bookedSeats.removeAt(k);
+                        changed = true;
+                    } else {
+                        ++k;
+                    }
+                }
+            }
+        }
+    }
+    if (changed && !saveToFile()) {
+        loadFromFile();
+        return false;
+    }
+    return changed;
+}
 
-    file << "room_id|showtime_id|booked\n";
+bool ShowtimeSeatRepository::removeBookedSeatsByShowtime(const string& showtimeId, const string& seatsCsv) {
+    DLL<string> parsed = parseBookedSeats(seatsCsv);
+    return removeBookedSeats(showtimeId, "", parsed);
+}
 
+bool ShowtimeSeatRepository::saveToFile() {
+    string out = "room_id|showtime_id|booked\n";
     for (int i = 0; i < statusList.getSize(); ++i) {
         const ShowtimeSeatStatus& status = statusList[i];
-        file << status.room_id << "|" << status.showtime_id << "|" << formatBookedSeats(status.bookedSeats) << "\n";
+        out += status.room_id + "|" + status.showtime_id + "|" + formatBookedSeats(status.bookedSeats) + "\n";
     }
-
-    file.close();
+    return FileUtils::writeAtomic(filePath, out);
 }

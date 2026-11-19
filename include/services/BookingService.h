@@ -62,7 +62,7 @@ public:
                         int subtotal, bool commit = false);
     vector<VoucherDisplay> getUserVouchers(const string& email);
     Ticket createTicket(const BookingInfo& info);
-    void saveBookedSeats(const string& showtimeId, const string& roomId,
+    bool saveBookedSeats(const string& showtimeId, const string& roomId,
                          const vector<string>& seats);
     DLL<string> getBookedSeats(const string& showtimeId, const string& roomId);
     int calculateTotal(int subtotal, int voucherDiscount);

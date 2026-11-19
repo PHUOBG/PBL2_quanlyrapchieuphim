@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <string>
 #include <SFML/System/String.hpp>
@@ -14,7 +14,7 @@ struct Ticket {
     string roomName;
     string booked;
     string comboName;
-    int price;
+    int price = 0;
     string email;
     string fullName;
     string bookedDate;
@@ -45,7 +45,7 @@ public:
         const string& fullName
     );
 
-    void saveTicket(const Ticket& ticket);
+    bool saveTicket(const Ticket& ticket);
 
     static String getTitleUtf8(const Ticket& t);
     static String getRoomUtf8(const Ticket& t);

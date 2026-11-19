@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <ctime>
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
@@ -120,45 +121,37 @@ String MovieRevenuePanel::toSfString(const string& text) const {
 }
 
 void MovieRevenuePanel::initDefaultStats() {
-    // 8 Movies
-    moviesList = {
-        {"M01", L"Tử Chiến Trên Không", L"Tử Chiến", L"Hành động, Giật gân", 24, 31, 3890000, 32.8f, true},
-        {"M02", L"Dune: Part Two", L"Dune 2", L"Khoa học viễn tưởng", 16, 15, 1995000, 16.8f, false},
-        {"M03", L"Godzilla x Kong: The New Empire", L"Godzilla", L"Hành động, Quái thú", 14, 13, 1565000, 13.2f, false},
-        {"M04", L"Inside Out 2", L"Inside 2", L"Hoạt hình, Gia đình", 12, 11, 1287500, 10.9f, false},
-        {"M05", L"Đào, Phở và Piano", L"Đào, Phở", L"Chiến tranh, Lịch sử", 10, 11, 1060000, 9.0f, false},
-        {"M06", L"Bố Già (Remastered)", L"Bố Già", L"Tâm lý, Tình cảm", 8, 9, 860000, 7.3f, false},
-        {"M07", L"Lật Mặt: 48H", L"Lật Mặt", L"Hành động, Hài", 7, 8, 775000, 6.5f, false},
-        {"M08", L"Mai", L"Mai", L"Tâm lý, Tình cảm", 5, 4, 410000, 3.5f, false}
-    };
-
-    // 4 Months
-    monthsList = {
-        {"09/2025", L"Tháng 09/2025", 1050000, 625000, 1675000, L"---", 37.3f, false},
-        {"10/2025", L"Tháng 10/2025", 1800000, 1115000, 2915000, L"+74.0%", 38.2f, false},
-        {"11/2025", L"Tháng 11/2025", 2450000, 1855000, 4305000, L"+47.7%", 43.1f, true},
-        {"12/2025", L"Tháng 12/2025", 1700000, 1247500, 2947500, L"-31.5%", 42.3f, false}
-    };
-
-    // 10 Combos
-    combosList = {
-        {"CB05", L"1 CocaCola + 1 Bắp Phô Mai", 100000, 6, 600000, 12.39f, true},
-        {"CB04", L"1 Pepsi + 1 Bắp Ngọt", 95000, 6, 570000, 11.77f, false},
-        {"CB09", L"2 CocaCola + 1 Bắp Phô Mai Cỡ Lớn", 190000, 3, 570000, 11.77f, false},
-        {"CB03", L"1 Sprite + 1 Bắp Rang Bơ", 105000, 5, 525000, 10.84f, false},
-        {"CB07", L"1 Fanta + 1 Bắp Phô Mai", 100000, 5, 500000, 10.33f, false},
-        {"CB10", L"Combo Gia Đình 4 Nước + 2 Bắp", 240000, 2, 480000, 9.91f, false},
-        {"CB01", L"1 CocaCola + 1 Bắp Rang Bơ", 90000, 5, 450000, 9.29f, false},
-        {"CB02", L"1 Pepsi + 1 Bắp Caramel", 105000, 4, 420000, 8.67f, false},
-        {"CB08", L"1 Nước Suối + 1 Bắp Ngọt", 74000, 5, 370000, 7.64f, false},
-        {"CB06", L"1 Trà Đào + 1 Bắp Caramel", 120000, 3, 360000, 7.43f, false}
-    };
+    dateFilterOptions.clear();
+    dateFilterOptions.push_back({L"Tất cả thời gian", ""});
+    time_t now = time(nullptr);
+    tm ltm{};
+#if defined(_WIN32)
+    localtime_s(&ltm, &now);
+#else
+    localtime_r(&now, &ltm);
+#endif
+    int curM = ltm.tm_mon + 1;
+    int curY = ltm.tm_year + 1900;
+    for (int i = 0; i < 4; ++i) {
+        int m = curM - i;
+        int y = curY;
+        while (m < 1) { m += 12; --y; }
+        wchar_t labelBuf[64];
+        swprintf(labelBuf, 64, L"Kỳ: Tháng %02d/%04d", m, y);
+        char keyBuf[16];
+        snprintf(keyBuf, sizeof(keyBuf), "%04d-%02d", y, m);
+        dateFilterOptions.push_back({labelBuf, keyBuf});
+    }
+    moviesList.clear();
+    monthsList.clear();
+    combosList.clear();
 }
 
 void MovieRevenuePanel::loadData() {
     loadShowtimePrices();
     loadComboPrices();
     loadTickets();
+    calculateStats();
 }
 
 void MovieRevenuePanel::loadShowtimePrices() {
@@ -194,7 +187,7 @@ void MovieRevenuePanel::loadComboPrices() {
 
 void MovieRevenuePanel::loadTickets() {
     ticketsCache.clear();
-    ifstream f(ticketsFilePath);
+    ifstream f(ticketsFilePath, ios::binary);
     if (!f.is_open()) return;
 
     string line;
@@ -203,7 +196,12 @@ void MovieRevenuePanel::loadTickets() {
     }
 
     while (getline(f, line)) {
+        if (!line.empty() && line.back() == '\r') line.pop_back();
         if (line.empty()) continue;
+        if (line.size() >= 3 && (unsigned char)line[0] == 0xEF &&
+            (unsigned char)line[1] == 0xBB && (unsigned char)line[2] == 0xBF) {
+            line.erase(0, 3);
+        }
         stringstream ss(line);
         string token;
         vector<string> parts;
@@ -234,6 +232,224 @@ void MovieRevenuePanel::loadTickets() {
     }
 }
 
+void MovieRevenuePanel::calculateStats() {
+    unordered_map<string, string> movieIdByTitle;
+    unordered_map<string, string> movieGenreByTitle;
+    {
+        ifstream mf(FileUtils::resolveDataPath("data/movies.txt"), ios::binary);
+        string mline; bool hdr = true;
+        while (mf.is_open() && getline(mf, mline)) {
+            if (!mline.empty() && mline.back() == '\r') mline.pop_back();
+            if (mline.empty()) continue;
+            if (hdr) { hdr = false; continue; }
+            vector<string> cols;
+            stringstream mss(mline); string tok;
+            while (getline(mss, tok, '|')) cols.push_back(tok);
+            if (cols.size() >= 6 && !cols[1].empty()) {
+                movieIdByTitle[cols[1]] = cols[0];
+                movieGenreByTitle[cols[1]] = cols[5];
+            }
+        }
+    }
+
+    unordered_map<string, int> showtimesPerMovieId;
+    {
+        auto countShowtimes = [&](const string& spath) {
+            ifstream sf(spath, ios::binary);
+            string sline; bool hdr = true;
+            while (sf.is_open() && getline(sf, sline)) {
+                if (!sline.empty() && sline.back() == '\r') sline.pop_back();
+                if (sline.empty()) continue;
+                if (hdr) { hdr = false; continue; }
+                stringstream sss(sline);
+                string sid, mid;
+                getline(sss, sid, '|');
+                getline(sss, mid, '|');
+                if (!mid.empty()) showtimesPerMovieId[mid]++;
+            }
+        };
+        countShowtimes(showtimesFilePath);
+        countShowtimes(FileUtils::resolveDataPath("data/showtimes_history.txt"));
+    }
+
+    unordered_map<string, string> comboNameById;
+    unordered_map<string, string> comboIdByName;
+    {
+        ComboRepository cRepo;
+        DLL<Combo> combos = cRepo.loadFromFile(toSfString(combosFilePath));
+        for (Node<Combo>* n = combos.getHead(); n; n = n->next) {
+            auto u8n = n->data.name.toUtf8();
+            auto u8i = n->data.id.toUtf8();
+            string nameStr(u8n.begin(), u8n.end());
+            string idStr(u8i.begin(), u8i.end());
+            comboNameById[idStr] = nameStr;
+            comboIdByName[nameStr] = idStr;
+        }
+    }
+
+    string activeYm = (selectedDateFilter >= 0 && selectedDateFilter < (int)dateFilterOptions.size())
+                      ? dateFilterOptions[selectedDateFilter].second : "";
+
+    auto extractYm = [](const string& d) -> string {
+        if (d.size() >= 7 && d[4] == '-') return d.substr(0, 7);
+        if (d.size() >= 10 && d[2] == '/' && d[5] == '/') return d.substr(6, 4) + "-" + d.substr(3, 2);
+        return "";
+    };
+
+    totalRevenue = 0;
+    movieRevenue = 0;
+    comboRevenue = 0;
+    totalTickets = 0;
+    totalCombos = 0;
+
+    struct MovieAgg { int tickets = 0; long long revenue = 0; };
+    struct MonthAgg { long long ticketRev = 0; long long comboRev = 0; long long totalRev = 0; };
+    struct ComboAgg { string name; int unitPrice = 0; int qty = 0; long long rev = 0; };
+
+    unordered_map<string, MovieAgg> movieAgg;
+    unordered_map<string, MonthAgg> monthAgg;
+    unordered_map<string, ComboAgg> comboAgg;
+
+    for (Node<Ticket>* node = ticketsCache.getHead(); node; node = node->next) {
+        const Ticket& t = node->data;
+        string ym = extractYm(t.bookedDate);
+        if (ym.empty()) ym = extractYm(t.date);
+
+        long long ticketTotal = static_cast<long long>(t.price);
+        long long cPart = computeComboRevenue(t.comboName);
+        if (cPart > ticketTotal) cPart = ticketTotal;
+        long long mPart = ticketTotal - cPart;
+
+        if (!ym.empty()) {
+            auto& ma = monthAgg[ym];
+            ma.ticketRev += mPart;
+            ma.comboRev += cPart;
+            ma.totalRev += ticketTotal;
+        }
+
+        if (!activeYm.empty() && ym != activeYm) {
+            continue;
+        }
+
+        int seats = max(1, countSeats(t.booked));
+        totalRevenue += ticketTotal;
+        movieRevenue += mPart;
+        comboRevenue += cPart;
+        totalTickets += seats;
+
+        auto& mv = movieAgg[t.title];
+        mv.tickets += seats;
+        mv.revenue += ticketTotal;
+
+        if (!t.comboName.empty() && t.comboName != "Không có" && t.comboName != "None") {
+            stringstream css(t.comboName);
+            string item;
+            while (getline(css, item, ',')) {
+                item = trim(item);
+                if (item.empty()) continue;
+                string code = item, name = item;
+                int qty = 1;
+                size_t col = item.find(":x");
+                if (col != string::npos) {
+                    code = item.substr(0, col);
+                    try { qty = max(1, stoi(item.substr(col + 2))); } catch (...) { qty = 1; }
+                    name = comboNameById.count(code) ? comboNameById[code] : code;
+                } else {
+                    size_t xpos = item.rfind(" x");
+                    if (xpos != string::npos) {
+                        name = item.substr(0, xpos);
+                        try { qty = max(1, stoi(item.substr(xpos + 2))); } catch (...) { qty = 1; }
+                    }
+                    code = comboIdByName.count(name) ? comboIdByName[name] : name;
+                }
+                int unitPr = comboPrices.count(code) ? comboPrices[code] : (comboPrices.count(name) ? comboPrices[name] : 0);
+                auto& ca = comboAgg[code];
+                ca.name = name;
+                ca.unitPrice = unitPr;
+                ca.qty += qty;
+                ca.rev += static_cast<long long>(unitPr) * qty;
+                totalCombos += qty;
+            }
+        }
+    }
+
+    moviesList.clear();
+    int fallbackIdx = 1;
+    for (const auto& kv : movieAgg) {
+        MovieRevItem item;
+        item.id = movieIdByTitle.count(kv.first) ? movieIdByTitle[kv.first] : ("M" + to_string(fallbackIdx++));
+        item.title = s2ws(kv.first);
+        item.shortTitle = item.title.size() > 10 ? (item.title.substr(0, 9) + L"..") : item.title;
+        item.genre = movieGenreByTitle.count(kv.first) ? s2ws(movieGenreByTitle[kv.first]) : L"Phim chiếu rạp";
+        item.showtimes = showtimesPerMovieId.count(item.id) ? showtimesPerMovieId[item.id] : 0;
+        item.tickets = kv.second.tickets;
+        item.revenue = kv.second.revenue;
+        item.share = totalRevenue > 0 ? static_cast<float>(kv.second.revenue) * 100.f / static_cast<float>(totalRevenue) : 0.f;
+        moviesList.push_back(item);
+    }
+    sort(moviesList.begin(), moviesList.end(), [](const MovieRevItem& a, const MovieRevItem& b) {
+        if (a.revenue != b.revenue) return a.revenue > b.revenue;
+        return a.tickets > b.tickets;
+    });
+    if (!moviesList.empty()) moviesList[0].isHot = true;
+
+    monthsList.clear();
+    vector<string> sortedYms;
+    for (const auto& kv : monthAgg) sortedYms.push_back(kv.first);
+    sort(sortedYms.begin(), sortedYms.end());
+    long long maxMonthRev = 0;
+    int maxMonthIdx = -1;
+    for (size_t i = 0; i < sortedYms.size(); ++i) {
+        const string& ym = sortedYms[i];
+        const auto& ma = monthAgg[ym];
+        MonthRevItem mi;
+        mi.month = (ym.size() == 7) ? (ym.substr(5, 2) + "/" + ym.substr(0, 4)) : ym;
+        mi.displayMonth = L"Tháng " + s2ws(mi.month);
+        mi.ticketRev = ma.ticketRev;
+        mi.comboRev = ma.comboRev;
+        mi.totalRev = ma.totalRev;
+        mi.comboShare = ma.totalRev > 0 ? static_cast<float>(ma.comboRev) * 100.f / static_cast<float>(ma.totalRev) : 0.f;
+        if (i == 0) {
+            mi.growth = L"---";
+        } else {
+            long long prev = monthAgg[sortedYms[i - 1]].totalRev;
+            if (prev > 0) {
+                double pct = (static_cast<double>(ma.totalRev - prev) * 100.0) / static_cast<double>(prev);
+                wstringstream wss;
+                wss << fixed << setprecision(1) << (pct >= 0 ? L"+" : L"") << pct << L"%";
+                mi.growth = wss.str();
+            } else {
+                mi.growth = ma.totalRev > 0 ? L"+100.0%" : L"0.0%";
+            }
+        }
+        if (ma.totalRev > maxMonthRev) {
+            maxMonthRev = ma.totalRev;
+            maxMonthIdx = static_cast<int>(i);
+        }
+        monthsList.push_back(mi);
+    }
+    if (maxMonthIdx >= 0 && maxMonthRev > 0) monthsList[maxMonthIdx].isRecord = true;
+
+    combosList.clear();
+    long long totalComboAggRev = 0;
+    for (const auto& kv : comboAgg) totalComboAggRev += kv.second.rev;
+    for (const auto& kv : comboAgg) {
+        ComboRevItem ci;
+        ci.code = kv.first;
+        ci.name = s2ws(kv.second.name);
+        ci.unitPrice = kv.second.unitPrice;
+        ci.quantity = kv.second.qty;
+        ci.revenue = kv.second.rev;
+        ci.share = totalComboAggRev > 0 ? static_cast<float>(kv.second.rev) * 100.f / static_cast<float>(totalComboAggRev) : 0.f;
+        combosList.push_back(ci);
+    }
+    sort(combosList.begin(), combosList.end(), [](const ComboRevItem& a, const ComboRevItem& b) {
+        if (a.revenue != b.revenue) return a.revenue > b.revenue;
+        return a.quantity > b.quantity;
+    });
+    if (!combosList.empty()) combosList[0].isTop1 = true;
+}
+
 void MovieRevenuePanel::openExportedFile(const string& path) const {
 #ifdef _WIN32
     ShellExecuteA(NULL, "open", path.c_str(), NULL, NULL, SW_SHOWNORMAL);
@@ -255,13 +471,26 @@ bool MovieRevenuePanel::exportRevenueReportToCsv() {
     const unsigned char bom[] = {0xEF, 0xBB, 0xBF};
     out.write(reinterpret_cast<const char*>(bom), sizeof(bom));
 
+    time_t now = time(nullptr);
+    tm ltm{};
+#if defined(_WIN32)
+    localtime_s(&ltm, &now);
+#else
+    localtime_r(&now, &ltm);
+#endif
+    char dateBuf[32];
+    strftime(dateBuf, sizeof(dateBuf), "%d/%m/%Y %H:%M", &ltm);
+    double moviePct = totalRevenue > 0 ? (static_cast<double>(movieRevenue) * 100.0 / static_cast<double>(totalRevenue)) : 0.0;
+    double comboPct = totalRevenue > 0 ? (static_cast<double>(comboRevenue) * 100.0 / static_cast<double>(totalRevenue)) : 0.0;
+
     out << "BÁO CÁO DOANH THU & QUYẾT TOÁN TÀI CHÍNH RẠP CINECORE\n";
-    out << "Thời gian kết xuất,24/12/2025\n\n";
+    out << "Thời gian kết xuất," << dateBuf << "\n\n";
 
     out << "CHỈ SỐ TỔNG QUAN,GIÁ TRỊ\n";
     out << "Tổng doanh thu toàn rạp," << totalRevenue << " VNĐ\n";
-    out << "Doanh thu vé phim," << movieRevenue << " VNĐ (Chiếm 59.1%)\n";
-    out << "Doanh thu combo F&B," << comboRevenue << " VNĐ (Chiếm 40.9%)\n";
+    out << fixed << setprecision(1);
+    out << "Doanh thu vé phim," << movieRevenue << " VNĐ (Chiếm " << moviePct << "%)\n";
+    out << "Doanh thu combo F&B," << comboRevenue << " VNĐ (Chiếm " << comboPct << "%)\n";
     out << "Tổng số vé đã xuất," << totalTickets << " vé\n";
     out << "Tổng sản phẩm combo," << totalCombos << " combo\n\n";
 
@@ -286,7 +515,10 @@ bool MovieRevenuePanel::exportRevenueReportToCsv() {
         out << c.code << ",\"" << UITheme::wstrToUtf8(c.name) << "\"," << c.unitPrice << ","
             << c.quantity << "," << c.revenue << "," << c.share << "%\n";
     }
+    out.flush();
+    const bool writeOk = out.good();
     out.close();
+    if (!writeOk) return false;
 
     openExportedFile(outPath);
     reportModalOpen = true;
@@ -327,20 +559,23 @@ void MovieRevenuePanel::handleEvent(const Event& event, const RenderWindow& /*wi
                 // Nút "Lọc theo tháng này"
                 FloatRect btnFilter({mx + mw - 305.f, my + mh - 52.f}, {180.f, 36.f});
                 if (btnFilter.contains(mPos)) {
-                    int filterIdx = 4 - detailMonthIndex; // 0->4(T09), 1->3(T10), 2->2(T11), 3->1(T12)
-                    selectedDateFilter = filterIdx;
-                    if (filterIdx == 1) {
-                        totalRevenue = 2947500; movieRevenue = 1700000; comboRevenue = 1247500; totalTickets = 25; totalCombos = 22;
-                    } else if (filterIdx == 2) {
-                        totalRevenue = 4305000; movieRevenue = 2450000; comboRevenue = 1855000; totalTickets = 37; totalCombos = 33;
-                    } else if (filterIdx == 3) {
-                        totalRevenue = 2915000; movieRevenue = 1800000; comboRevenue = 1115000; totalTickets = 25; totalCombos = 21;
-                    } else if (filterIdx == 4) {
-                        totalRevenue = 1675000; movieRevenue = 1050000; comboRevenue = 625000; totalTickets = 14; totalCombos = 13;
+                    if (detailMonthIndex >= 0 && detailMonthIndex < (int)monthsList.size()) {
+                        const string& mStr = monthsList[detailMonthIndex].month; // "MM/YYYY"
+                        string targetYm = (mStr.size() == 7 && mStr[2] == '/') ? (mStr.substr(3, 4) + "-" + mStr.substr(0, 2)) : "";
+                        int matchedIdx = 0;
+                        for (size_t k = 0; k < dateFilterOptions.size(); ++k) {
+                            if (dateFilterOptions[k].second == targetYm) { matchedIdx = (int)k; break; }
+                        }
+                        if (matchedIdx == 0 && !targetYm.empty()) {
+                            dateFilterOptions.push_back({L"Kỳ: " + monthsList[detailMonthIndex].displayMonth, targetYm});
+                            matchedIdx = (int)dateFilterOptions.size() - 1;
+                        }
+                        selectedDateFilter = matchedIdx;
+                        calculateStats();
+                        toastMessage = L"Đã lọc số liệu tổng quan theo: " + monthsList[detailMonthIndex].displayMonth;
+                        toastTimer = 2.5f;
+                        toastActive = true;
                     }
-                    toastMessage = L"Đã lọc số liệu tổng quan theo: " + monthsList[detailMonthIndex].displayMonth;
-                    toastTimer = 2.5f;
-                    toastActive = true;
                     detailMonthIndex = -1;
                     return;
                 }
@@ -417,20 +652,23 @@ void MovieRevenuePanel::handleEvent(const Event& event, const RenderWindow& /*wi
                 // Nút "Lọc theo tháng này"
                 FloatRect btnFilter({mx + mw - 305.f, my + mh - 52.f}, {180.f, 36.f});
                 if (btnFilter.contains(mPos)) {
-                    int filterIdx = 4 - detailMonthIndex; // 0->4(T09), 1->3(T10), 2->2(T11), 3->1(T12)
-                    selectedDateFilter = filterIdx;
-                    if (filterIdx == 1) {
-                        totalRevenue = 2947500; movieRevenue = 1700000; comboRevenue = 1247500; totalTickets = 25; totalCombos = 22;
-                    } else if (filterIdx == 2) {
-                        totalRevenue = 4305000; movieRevenue = 2450000; comboRevenue = 1855000; totalTickets = 37; totalCombos = 33;
-                    } else if (filterIdx == 3) {
-                        totalRevenue = 2915000; movieRevenue = 1800000; comboRevenue = 1115000; totalTickets = 25; totalCombos = 21;
-                    } else if (filterIdx == 4) {
-                        totalRevenue = 1675000; movieRevenue = 1050000; comboRevenue = 625000; totalTickets = 14; totalCombos = 13;
+                    if (detailMonthIndex >= 0 && detailMonthIndex < (int)monthsList.size()) {
+                        const string& mStr = monthsList[detailMonthIndex].month; // "MM/YYYY"
+                        string targetYm = (mStr.size() == 7 && mStr[2] == '/') ? (mStr.substr(3, 4) + "-" + mStr.substr(0, 2)) : "";
+                        int matchedIdx = 0;
+                        for (size_t k = 0; k < dateFilterOptions.size(); ++k) {
+                            if (dateFilterOptions[k].second == targetYm) { matchedIdx = (int)k; break; }
+                        }
+                        if (matchedIdx == 0 && !targetYm.empty()) {
+                            dateFilterOptions.push_back({L"Kỳ: " + monthsList[detailMonthIndex].displayMonth, targetYm});
+                            matchedIdx = (int)dateFilterOptions.size() - 1;
+                        }
+                        selectedDateFilter = matchedIdx;
+                        calculateStats();
+                        toastMessage = L"Đã lọc số liệu tổng quan theo: " + monthsList[detailMonthIndex].displayMonth;
+                        toastTimer = 2.5f;
+                        toastActive = true;
                     }
-                    toastMessage = L"Đã lọc số liệu tổng quan theo: " + monthsList[detailMonthIndex].displayMonth;
-                    toastTimer = 2.5f;
-                    toastActive = true;
                     detailMonthIndex = -1;
                     return;
                 }
@@ -503,7 +741,7 @@ void MovieRevenuePanel::handleEvent(const Event& event, const RenderWindow& /*wi
                 toastActive = true;
                 toastTimer = 3.f;
                 toastMessage = ok ? L"Đã xuất báo cáo và mở trong Excel / CSV thành công!"
-                                  : L"Đã xuất báo cáo doanh thu Excel thành công!";
+                                  : L"Lỗi: Không thể tạo file báo cáo CSV!";
                 return;
             }
 
@@ -524,32 +762,13 @@ void MovieRevenuePanel::handleEvent(const Event& event, const RenderWindow& /*wi
                 float ddX = position.x + width - 520.f;
                 float ddY = position.y + 14.f + 40.f;
                 float itemH = 36.f;
-                for (int i = 0; i < 5; ++i) {
+                for (int i = 0; i < (int)dateFilterOptions.size(); ++i) {
                     FloatRect itemRect({ddX, ddY + i * itemH}, {280.f, itemH});
                     if (itemRect.contains(mPos)) {
                         selectedDateFilter = i;
                         dateDropdownOpen = false;
-
-                        // Cập nhật số liệu theo kỳ chọn
-                        if (i == 0) {
-                            totalRevenue = 11842500; movieRevenue = 7000000; comboRevenue = 4842500; totalTickets = 101; totalCombos = 89;
-                        } else if (i == 1) { // T12
-                            totalRevenue = 2947500; movieRevenue = 1700000; comboRevenue = 1247500; totalTickets = 25; totalCombos = 22;
-                        } else if (i == 2) { // T11
-                            totalRevenue = 4305000; movieRevenue = 2450000; comboRevenue = 1855000; totalTickets = 37; totalCombos = 33;
-                        } else if (i == 3) { // T10
-                            totalRevenue = 2915000; movieRevenue = 1800000; comboRevenue = 1115000; totalTickets = 25; totalCombos = 21;
-                        } else if (i == 4) { // T09
-                            totalRevenue = 1675000; movieRevenue = 1050000; comboRevenue = 625000; totalTickets = 14; totalCombos = 13;
-                        }
-                        const array<wstring, 5> dateLabels = {
-                            L"Toàn thời gian (01/09/2025 – 24/12/2025)",
-                            L"Kỳ: Tháng 12/2025",
-                            L"Kỳ: Tháng 11/2025",
-                            L"Kỳ: Tháng 10/2025",
-                            L"Kỳ: Tháng 09/2025"
-                        };
-                        toastMessage = L"Đã lọc thống kê theo: " + dateLabels[i];
+                        calculateStats();
+                        toastMessage = L"Đã lọc thống kê theo: " + dateFilterOptions[i].first;
                         toastTimer = 2.5f;
                         toastActive = true;
                         return;
@@ -696,19 +915,13 @@ void MovieRevenuePanel::render(RenderTarget& target) const {
         float ddY = topY + 40.f;
         float ddW = 280.f;
         float itemH = 36.f;
-        const array<wstring, 5> dateLabels = {
-            L"Toàn thời gian (01/09 – 24/12/2025)",
-            L"Kỳ: Tháng 12/2025",
-            L"Kỳ: Tháng 11/2025",
-            L"Kỳ: Tháng 10/2025",
-            L"Kỳ: Tháng 09/2025"
-        };
-        RoundedRectRenderer::draw(target, {ddX, ddY}, {ddW, 5 * itemH}, 8.f, Color::White, 1.2f, Color(203, 213, 225));
-        for (int i = 0; i < 5; ++i) {
+        const int optCount = static_cast<int>(dateFilterOptions.size());
+        RoundedRectRenderer::draw(target, {ddX, ddY}, {ddW, optCount * itemH}, 8.f, Color::White, 1.2f, Color(203, 213, 225));
+        for (int i = 0; i < optCount; ++i) {
             Color itemBg = (i == hoveredDateItem) ? Color(241, 245, 249) : (i == selectedDateFilter ? Color(224, 242, 254) : Color::White);
             Color itemFg = (i == selectedDateFilter) ? Color(8, 125, 181) : Color(51, 65, 85);
             RoundedRectRenderer::draw(target, {ddX + 2.f, ddY + i * itemH + 2.f}, {ddW - 4.f, itemH - 4.f}, 4.f, itemBg);
-            Text itTxt(i == selectedDateFilter ? boldFont : font, dateLabels[i], 12.f);
+            Text itTxt(i == selectedDateFilter ? boldFont : font, dateFilterOptions[i].first, 12.f);
             itTxt.setFillColor(itemFg);
             itTxt.setPosition({ddX + 16.f, ddY + i * itemH + 9.f});
             target.draw(itTxt);
@@ -795,14 +1008,9 @@ void MovieRevenuePanel::drawHeader(RenderTarget& target) const {
     Vector2f dateRangePos(position.x + width - 520.f, topY);
     RoundedRectRenderer::draw(target, dateRangePos, {280.f, 36.f}, 6.f, Color::White, dateDropdownOpen ? 1.6f : 1.f, dateDropdownOpen ? Color(8, 125, 181) : Color(203, 213, 225));
     
-    const array<wstring, 5> dateLabels = {
-        L"Từ:  01/09/2025   →   Đến:  24/12/2025",
-        L"Kỳ: Tháng 12/2025 (01/12 – 24/12)",
-        L"Kỳ: Tháng 11/2025 (01/11 – 30/11)",
-        L"Kỳ: Tháng 10/2025 (01/10 – 31/10)",
-        L"Kỳ: Tháng 09/2025 (01/09 – 30/09)"
-    };
-    wstring curDateStr = dateLabels[selectedDateFilter % 5];
+    wstring curDateStr = (!dateFilterOptions.empty() && selectedDateFilter >= 0 && selectedDateFilter < (int)dateFilterOptions.size())
+                         ? dateFilterOptions[selectedDateFilter].first
+                         : L"Tất cả thời gian";
     Text dateRangeTxt(font, curDateStr, 14);
     dateRangeTxt.setFillColor(Color(30, 41, 59));
     dateRangeTxt.setPosition({dateRangePos.x + 12.f, dateRangePos.y + 9.f});

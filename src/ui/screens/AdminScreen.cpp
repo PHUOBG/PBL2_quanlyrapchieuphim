@@ -110,6 +110,7 @@ void AdminScreen::switchPanel(AppState newState) {
         case AppState::ADMIN_CHANGE_PASSWORD:
             profilePanel = make_unique<AdminProfilePanel>(font, panelWidth, panelHeight, authService);
             profilePanel->setPosition(Vector2f(offsetX, 0.f));
+        profilePanel->setOnAccountDeleted([this]() { handleAdminLogout(); });
             break;
         case AppState::ADMIN_VOUCHERS:
             voucherPanel = make_unique<VoucherPanel>(font, panelWidth, panelHeight);

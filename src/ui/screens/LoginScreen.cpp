@@ -1,4 +1,4 @@
-#include "UI/screens/LoginScreen.h"
+﻿#include "UI/screens/LoginScreen.h"
 #include "UI/components/Admin/RoundedRectRenderer.h"
 #include "UI/components/Admin/FontManager.h"
 #include "core/AppState.h"
@@ -345,37 +345,21 @@ void LoginScreen::handleEvent(const Event& event, AppState& state, string& user,
         } else {
             // Forgot password modal
             if (code == Keyboard::Key::Tab) {
-                bool e = forgotEmailActive, p = forgotPassActive;
-                forgotEmailActive = !e && !p ? true : !e;
-                forgotPassActive  = !forgotEmailActive;
+                if (forgotEmailActive) { forgotEmailActive = false; forgotPhoneActive = true; }
+                else if (forgotPhoneActive) { forgotPhoneActive = false; forgotPassActive = true; }
+                else { forgotPassActive = false; forgotEmailActive = true; }
             }
             else if (code == Keyboard::Key::Backspace) {
                 if (forgotEmailActive && !forgotEmailInput.empty()) forgotEmailInput.pop_back();
+                else if (forgotPhoneActive && !forgotPhoneInput.empty()) forgotPhoneInput.pop_back();
                 else if (forgotPassActive && !forgotPassInput.empty()) forgotPassInput.pop_back();
             }
             else if (code == Keyboard::Key::Enter) {
-                string fEmail(forgotEmailInput.begin(), forgotEmailInput.end());
-                string fPass(forgotPassInput.begin(), forgotPassInput.end());
-                if (fEmail.empty() || fPass.empty()) {
-                    forgotMsgColor = Color(220, 38, 38);
-                    forgotMsg = L"Vui lòng nhập đầy đủ thông tin.";
-                } else {
-                    User* userObj = auth.getUser(fEmail);
-                    if (userObj) {
-                        userObj->setPasswordHash(PasswordHasher::hashPassword(fPass));
-                        if (auth.getRepository()) auth.getRepository()->saveToFile();
-                        forgotMsgColor = Color(21, 128, 61);
-                        forgotMsg = L"Đặt lại mật khẩu thành công! Vui lòng đăng nhập.";
-                    } else {
-                        forgotMsgColor = Color(220, 38, 38);
-                        forgotMsg = L"Email không tồn tại trong hệ thống.";
-                    }
-                }
+                submitForgot();
             }
         }
     }
-    
-    if (const auto* textEvent = event.getIf<Event::TextEntered>()) {
+        if (const auto* textEvent = event.getIf<Event::TextEntered>()) {
         char32_t unicode = textEvent->unicode;
         if (unicode >= 32 && unicode != 127) {
             if (!isForgotMode) {
@@ -391,6 +375,7 @@ void LoginScreen::handleEvent(const Event& event, AppState& state, string& user,
                 }
             } else {
                 if (forgotEmailActive && forgotEmailInput.size() < 48) forgotEmailInput.push_back((wchar_t)unicode);
+                else if (forgotPhoneActive && forgotPhoneInput.size() < 12) forgotPhoneInput.push_back((wchar_t)unicode);
                 else if (forgotPassActive && forgotPassInput.size() < 48) forgotPassInput.push_back((wchar_t)unicode);
             }
         }
@@ -427,46 +412,34 @@ bool LoginScreen::update(Vector2f mouse, bool mousePressed, string& currentUser,
     linkCreateHovered = linkRegBounds.contains(mouse);
 
     if (isForgotMode) {
-        FloatRect forgotCardBounds({(1728.f - 580.f) / 2.f, (972.f - 420.f) / 2.f}, {580.f, 420.f});
-        FloatRect fEmailBox({forgotCardBounds.position.x + 40.f, forgotCardBounds.position.y + 118.f}, {500.f, 48.f});
-        FloatRect fPassBox({forgotCardBounds.position.x + 40.f, forgotCardBounds.position.y + 196.f}, {500.f, 48.f});
-        FloatRect fCloseBtn({forgotCardBounds.position.x + 40.f, forgotCardBounds.position.y + 304.f}, {240.f, 48.f});
-        FloatRect fSubmitBtn({forgotCardBounds.position.x + 300.f, forgotCardBounds.position.y + 304.f}, {240.f, 48.f});
+        const float fCardX = (1728.f - 560.f) / 2.f;   // identical geometry to draw()
+        const float fCardY = (972.f - 400.f) / 2.f;
+        FloatRect fEmailBox({fCardX + 40.f, fCardY + 100.f}, {480.f, 44.f});
+        FloatRect fPhoneBox({fCardX + 40.f, fCardY + 156.f}, {480.f, 44.f});
+        FloatRect fPassBox({fCardX + 40.f, fCardY + 212.f}, {480.f, 44.f});
+        FloatRect fCloseBtn({fCardX + 40.f, fCardY + 306.f}, {230.f, 46.f});
+        FloatRect fSubmitBtn({fCardX + 290.f, fCardY + 306.f}, {230.f, 46.f});
 
         forgotCloseHovered = fCloseBtn.contains(mouse);
         forgotBtnHovered = fSubmitBtn.contains(mouse);
 
         if (mousePressed) {
             forgotEmailActive = fEmailBox.contains(mouse);
+            forgotPhoneActive = fPhoneBox.contains(mouse);
             forgotPassActive  = fPassBox.contains(mouse);
 
             if (forgotCloseHovered) {
                 isForgotMode = false;
                 forgotMsg = L"";
+                forgotPhoneInput.clear();
+                forgotPassInput.clear();
             }
             else if (forgotBtnHovered) {
-                string fEmail(forgotEmailInput.begin(), forgotEmailInput.end());
-                string fPass(forgotPassInput.begin(), forgotPassInput.end());
-                if (fEmail.empty() || fPass.empty()) {
-                    forgotMsgColor = Color(220, 38, 38);
-                    forgotMsg = L"Vui lòng nhập đầy đủ thông tin.";
-                } else {
-                    User* userObj = auth.getUser(fEmail);
-                    if (userObj) {
-                        userObj->setPasswordHash(PasswordHasher::hashPassword(fPass));
-                        if (auth.getRepository()) auth.getRepository()->saveToFile();
-                        forgotMsgColor = Color(21, 128, 61);
-                        forgotMsg = L"Đặt lại mật khẩu thành công! Vui lòng đăng nhập.";
-                    } else {
-                        forgotMsgColor = Color(220, 38, 38);
-                        forgotMsg = L"Email không tồn tại trong hệ thống.";
-                    }
-                }
+                submitForgot();
             }
         }
         return false;
     }
-
     if (mousePressed) {
         if (eyeHovered) {
             showPassword = !showPassword;
@@ -518,6 +491,7 @@ bool LoginScreen::update(Vector2f mouse, bool mousePressed, string& currentUser,
             isForgotMode = true;
             forgotEmailInput = emailInput;
             forgotPassInput = L"";
+            forgotPhoneInput = L"";
             forgotMsg = L"";
         }
 
@@ -1019,50 +993,72 @@ void LoginScreen::draw(RenderWindow& window) {
         fTitle.setPosition({fCardX + 40.f, fCardY + 32.f});
         window.draw(fTitle);
 
-        Text fSub(font, L"Nh\u1eadp email qu\u1ea3n tr\u1ecb v\u00e0 m\u1eadt kh\u1ea9u m\u1edbi \u0111\u1ec3 \u0111\u1eb7t l\u1ea1i m\u1eadt kh\u1ea9u.", 16);
+        Text fSub(font, L"Nhập email, SĐT đã đăng ký của tài khoản và mật khẩu mới.", 16);
         fSub.setFillColor(Color(100, 116, 139));
         fSub.setPosition({fCardX + 40.f, fCardY + 66.f});
         window.draw(fSub);
 
-        // Email input
-        Color fEBorder = forgotEmailActive ? Color(8, 125, 181) : Color(203, 213, 225);
-        RoundedRectRenderer::draw(window, {fCardX + 40.f, fCardY + 112.f}, {480.f, 48.f}, 8.f, Color(248, 250, 252), 1.2f, fEBorder);
-        Text fEmailText(font, forgotEmailInput.empty() ? L"Nh\u1eadp email qu\u1ea3n tr\u1ecb vi\u00ean" : forgotEmailInput, 16);
-        fEmailText.setFillColor(forgotEmailInput.empty() ? Color(148, 163, 184) : Color(23, 32, 51));
-        fEmailText.setPosition({fCardX + 54.f, fCardY + 122.f});
-        window.draw(fEmailText);
-
-        // New password input
-        Color fPBorder = forgotPassActive ? Color(8, 125, 181) : Color(203, 213, 225);
-        RoundedRectRenderer::draw(window, {fCardX + 40.f, fCardY + 180.f}, {480.f, 48.f}, 8.f, Color(248, 250, 252), 1.2f, fPBorder);
-        Text fPassText(font, forgotPassInput.empty() ? L"Nh\u1eadp m\u1eadt kh\u1ea9u m\u1edbi" : bullets(forgotPassInput.size()), 16);
-        fPassText.setFillColor(forgotPassInput.empty() ? Color(148, 163, 184) : Color(23, 32, 51));
-        fPassText.setPosition({fCardX + 54.f, fCardY + 190.f});
-        window.draw(fPassText);
-
+        auto drawField = [&](float yOff, bool active, const wstring& value, const wstring& placeholder, bool secret) {
+            Color border = active ? Color(8, 125, 181) : Color(203, 213, 225);
+            RoundedRectRenderer::draw(window, {fCardX + 40.f, fCardY + yOff}, {480.f, 44.f}, 8.f, Color(248, 250, 252), 1.2f, border);
+            Text t(font, value.empty() ? placeholder : (secret ? bullets(value.size()) : value), 16);
+            t.setFillColor(value.empty() ? Color(148, 163, 184) : Color(23, 32, 51));
+            t.setPosition({fCardX + 54.f, fCardY + yOff + 10.f});
+            window.draw(t);
+        };
+        drawField(100.f, forgotEmailActive, forgotEmailInput, L"Email quản trị viên", false);
+        drawField(156.f, forgotPhoneActive, forgotPhoneInput, L"Số điện thoại đã đăng ký", false);
+        drawField(212.f, forgotPassActive, forgotPassInput, L"Mật khẩu mới (tối thiểu 8 ký tự)", true);
         // Status message
         if (!forgotMsg.empty()) {
             Text fMsgDisplay(boldFont, forgotMsg, 14);
             fMsgDisplay.setFillColor(forgotMsgColor);
-            fMsgDisplay.setPosition({fCardX + 40.f, fCardY + 246.f});
+            fMsgDisplay.setPosition({fCardX + 40.f, fCardY + 268.f});
             window.draw(fMsgDisplay);
         }
 
         // Buttons
         Color fCloseBg = forgotCloseHovered ? Color(203, 213, 225) : Color(226, 232, 240);
-        RoundedRectRenderer::draw(window, {fCardX + 40.f, fCardY + 290.f}, {230.f, 46.f}, 8.f, fCloseBg);
+        RoundedRectRenderer::draw(window, {fCardX + 40.f, fCardY + 306.f}, {230.f, 46.f}, 8.f, fCloseBg);
         Text fCloseText(boldFont, L"\u0110\u00f3ng", 14);
         fCloseText.setFillColor(Color(51, 65, 85));
         FloatRect ctb = fCloseText.getLocalBounds();
-        fCloseText.setPosition({fCardX + 40.f + (230.f - ctb.size.x) / 2.f, fCardY + 303.f});
+        fCloseText.setPosition({fCardX + 40.f + (230.f - ctb.size.x) / 2.f, fCardY + 319.f});
         window.draw(fCloseText);
 
         Color fSubBg = forgotBtnHovered ? Color(18, 59, 93) : Color(8, 125, 181);
-        RoundedRectRenderer::draw(window, {fCardX + 290.f, fCardY + 290.f}, {230.f, 46.f}, 8.f, fSubBg);
+        RoundedRectRenderer::draw(window, {fCardX + 290.f, fCardY + 306.f}, {230.f, 46.f}, 8.f, fSubBg);
         Text fSubText(boldFont, L"\u0110\u1eb7t l\u1ea1i MK", 14);
         fSubText.setFillColor(Color::White);
         FloatRect stb2 = fSubText.getLocalBounds();
-        fSubText.setPosition({fCardX + 290.f + (230.f - stb2.size.x) / 2.f, fCardY + 303.f});
+        fSubText.setPosition({fCardX + 290.f + (230.f - stb2.size.x) / 2.f, fCardY + 319.f});
         window.draw(fSubText);
+    }
+}
+
+void LoginScreen::submitForgot() {
+    string fEmail(forgotEmailInput.begin(), forgotEmailInput.end());
+    string fPhone(forgotPhoneInput.begin(), forgotPhoneInput.end());
+    string fPass(forgotPassInput.begin(), forgotPassInput.end());
+    forgotMsgColor = Color(220, 38, 38);
+    switch (auth.resetPassword(fEmail, fPhone, fPass)) {
+        case AuthService::ResetResult::Ok:
+            forgotMsgColor = Color(21, 128, 61);
+            forgotMsg = L"Đặt lại mật khẩu thành công! Vui lòng đăng nhập.";
+            forgotPhoneInput.clear();
+            forgotPassInput.clear();
+            break;
+        case AuthService::ResetResult::MissingInput:
+            forgotMsg = L"Vui lòng nhập đầy đủ thông tin.";
+            break;
+        case AuthService::ResetResult::WeakPassword:
+            forgotMsg = L"Mật khẩu mới cần tối thiểu 8 ký tự gồm chữ hoa, chữ thường, số.";
+            break;
+        case AuthService::ResetResult::VerificationFailed:
+            forgotMsg = L"Email hoặc số điện thoại xác minh không đúng.";
+            break;
+        case AuthService::ResetResult::SaveFailed:
+            forgotMsg = L"Không thể lưu mật khẩu mới (lỗi ghi dữ liệu).";
+            break;
     }
 }

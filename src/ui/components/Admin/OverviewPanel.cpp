@@ -46,39 +46,60 @@ OverviewPanel::OverviewPanel(Font& fontRef, float w, float h)
 }
 
 void OverviewPanel::initFilterOptions() {
-    dateOptions = {
-        L"Toàn kỳ (09/2025 - 12/2025)",
-        L"Tháng 12/2025 (01/12 - 31/12)",
-        L"Tháng 11/2025 (01/11 - 30/11)",
-        L"Tháng 10/2025 (01/10 - 31/10)",
-        L"Tháng 09/2025 (01/09 - 30/09)"
-    };
-    dateFilterKeys = {
-        "",
-        "2025-12",
-        "2025-11",
-        "2025-10",
-        "2025-09"
-    };
+    // Build dynamic period options: all-time + last 4 months from today (or latest ticket month)
+    dateOptions.clear();
+    dateFilterKeys.clear();
+    dateOptions.push_back(L"Tất cả thời gian");
+    dateFilterKeys.push_back("");
 
-    roomOptions = {
-        L"Tất cả phòng chiếu (Hall 01-06)",
-        L"Phòng Chiếu 1 (Hall 01)",
-        L"Phòng Chiếu 2 (Hall 02)",
-        L"Phòng Chiếu 3 (Hall 03)",
-        L"Phòng Chiếu 4 (Hall 04)",
-        L"Phòng Chiếu 5 (Hall 05)",
-        L"Phòng Chiếu 6 (Hall 06)"
-    };
-    roomFilterKeys = {
-        "",
-        "Phòng Chiếu 1",
-        "Phòng Chiếu 2",
-        "Phòng Chiếu 3",
-        "Phòng Chiếu 4",
-        "Phòng Chiếu 5",
-        "Phòng Chiếu 6"
-    };
+    time_t now = time(nullptr);
+    tm ltm{};
+#if defined(_WIN32)
+    localtime_s(&ltm, &now);
+#else
+    localtime_r(&now, &ltm);
+#endif
+    int curM = ltm.tm_mon + 1;
+    int curY = ltm.tm_year + 1900;
+
+    for (int i = 0; i < 4; ++i) {
+        int m = curM - i;
+        int y = curY;
+        while (m < 1) { m += 12; --y; }
+        wchar_t labelBuf[64];
+        swprintf(labelBuf, 64, L"Tháng %02d/%04d", m, y);
+        char keyBuf[16];
+        snprintf(keyBuf, sizeof(keyBuf), "%04d-%02d", y, m);
+        dateOptions.push_back(labelBuf);
+        dateFilterKeys.push_back(keyBuf);
+    }
+
+    roomOptions = { L"Tất cả phòng chiếu" };
+    roomFilterKeys = { "" };
+    ifstream rf(FileUtils::resolveDataPath("data/rooms.txt"), ios::binary);
+    if (rf.is_open()) {
+        string line;
+        bool hdr = true;
+        while (getline(rf, line)) {
+            if (!line.empty() && line.back() == '\r') line.pop_back();
+            if (line.empty()) continue;
+            if (hdr) { hdr = false; continue; }
+            stringstream ss(line);
+            string rid, rname;
+            getline(ss, rid, '|');
+            getline(ss, rname, '|');
+            if (!rname.empty()) {
+                roomOptions.push_back(s2ws(rname));
+                roomFilterKeys.push_back(rname);
+            }
+        }
+    }
+    if (roomOptions.size() == 1) {
+        for (int i = 1; i <= 6; ++i) {
+            roomOptions.push_back(L"Phòng Chiếu " + to_wstring(i));
+            roomFilterKeys.push_back("Phòng Chiếu " + to_string(i));
+        }
+    }
 }
 
 void OverviewPanel::setPosition(const Vector2f& pos) {
@@ -220,7 +241,7 @@ void OverviewPanel::loadComboPrices() {
 
 void OverviewPanel::loadTickets() {
     ticketsCache.clear();
-    ifstream f(ticketsFilePath);
+    ifstream f(ticketsFilePath, ios::binary);
     if (!f.is_open()) return;
 
     string line;
@@ -229,7 +250,12 @@ void OverviewPanel::loadTickets() {
     }
 
     while (getline(f, line)) {
+        if (!line.empty() && line.back() == '\r') line.pop_back();
         if (line.empty()) continue;
+        if (line.size() >= 3 && (unsigned char)line[0] == 0xEF &&
+            (unsigned char)line[1] == 0xBB && (unsigned char)line[2] == 0xBF) {
+            line.erase(0, 3);
+        }
         stringstream ss(line);
         string token;
         vector<string> parts;
@@ -261,46 +287,42 @@ void OverviewPanel::loadTickets() {
 }
 
 void OverviewPanel::calculateStats() {
-    // Danh mục phim gốc để tra cứu tên rút gọn hiển thị trên biểu đồ cột
-    struct BaselineMovie {
-        string title;
-        wstring displayTitle;
-        wstring shortTitle;
-        int baseTickets;
-        long long baseRevenue;
-    };
-    const vector<BaselineMovie> baselineMovies = {
-        {"TỬ CHIẾN TRÊN KHÔNG", L"TỬ CHIẾN TRÊN KHÔNG", L"TỬ CHIẾN..", 31, 3890000},
-        {"DUNE: PART TWO", L"DUNE: PART TWO", L"DUNE 2", 15, 1995000},
-        {"INSIDE OUT 2", L"INSIDE OUT 2", L"INSIDE OUT", 12, 1287500},
-        {"GODZILLA X KONG: THE NEW EMPIRE", L"GODZILLA X KONG: THE NEW EMPIRE", L"GODZILLA..", 11, 1565000},
-        {"ĐÀO, PHỞ VÀ PIANO", L"ĐÀO, PHỞ VÀ PIANO", L"ĐÀO, PHỞ..", 11, 1060000},
-        {"BỐ GIÀ (REMASTERED)", L"BỐ GIÀ (REMASTERED)", L"BỐ GIÀ", 9, 860000},
-        {"LẬT MẶT: 48H", L"LẬT MẶT: 48H", L"LẬT MẶT", 8, 775000},
-        {"MAI", L"MAI", L"MAI", 4, 410000}
-    };
-
-    unordered_map<string, wstring> shortTitleMap;
-    for (const auto& bm : baselineMovies) {
-        shortTitleMap[bm.title] = bm.shortTitle;
-    }
-    shortTitleMap["GODZILLA X KONG: NEW EMPIRE"] = L"GODZILLA..";
-
     string activeDateKey = (selectedDateIndex >= 0 && selectedDateIndex < (int)dateFilterKeys.size())
                            ? dateFilterKeys[selectedDateIndex] : "";
     string activeRoomKey = (selectedRoomIndex >= 0 && selectedRoomIndex < (int)roomFilterKeys.size())
                            ? roomFilterKeys[selectedRoomIndex] : "";
-    bool hasFilter = !searchQuery.empty() || !activeDateKey.empty() || !activeRoomKey.empty();
+
+    // Build chronological 4-month list from dateFilterKeys[4..1]
+    array<string, 4> mOrder;
+    array<string, 4> mIsoKeys;
+    for (int i = 0; i < 4; ++i) {
+        string k = (4 - i < (int)dateFilterKeys.size()) ? dateFilterKeys[4 - i] : "";
+        mIsoKeys[i] = k;
+        mOrder[i] = (k.size() == 7) ? (k.substr(5, 2) + "/" + k.substr(0, 4)) : "";
+    }
 
     unordered_map<string, int> movieTickets;
     unordered_map<string, long long> movieRevenue;
-    unordered_map<string, long long> monthRevMap = {
-        {"09/2025", 0}, {"10/2025", 0}, {"11/2025", 0}, {"12/2025", 0}
-    };
+    unordered_map<string, long long> monthRevMap;
+    unordered_map<string, long long> revByDay;
+
+    time_t now = time(nullptr);
+    tm ltm{};
+#if defined(_WIN32)
+    localtime_s(&ltm, &now);
+#else
+    localtime_r(&now, &ltm);
+#endif
+    char todayIsoBuf[16], todaySlashBuf[16];
+    strftime(todayIsoBuf, sizeof(todayIsoBuf), "%Y-%m-%d", &ltm);
+    strftime(todaySlashBuf, sizeof(todaySlashBuf), "%d/%m/%Y", &ltm);
+    const string todayIso(todayIsoBuf);
+    const string todaySlash(todaySlashBuf);
 
     long long totalRev = 0;
     long long movieRev = 0;
     long long comboRev = 0;
+    long long todayRev = 0;
     int ticketsCount = 0;
     int stdSeats = 0;
     int vipSeats = 0;
@@ -328,21 +350,23 @@ void OverviewPanel::calculateStats() {
             }
         }
 
-        // Cộng dồn dữ liệu theo tháng (phục vụ biểu đồ xu hướng 4 tháng)
-        string mKey = "";
-        if (t.date.rfind("2025-09", 0) == 0 || t.bookedDate.find("/09/2025") != string::npos) mKey = "09/2025";
-        else if (t.date.rfind("2025-10", 0) == 0 || t.bookedDate.find("/10/2025") != string::npos) mKey = "10/2025";
-        else if (t.date.rfind("2025-11", 0) == 0 || t.bookedDate.find("/11/2025") != string::npos) mKey = "11/2025";
-        else if (t.date.rfind("2025-12", 0) == 0 || t.bookedDate.find("/12/2025") != string::npos) mKey = "12/2025";
+        // Extract YYYY-MM from t.date (YYYY-MM-DD or DD/MM/YYYY) or t.bookedDate (DD/MM/YYYY)
+        auto extractYm = [](const string& d) -> string {
+            if (d.size() >= 7 && d[4] == '-') return d.substr(0, 7);
+            if (d.size() >= 10 && d[2] == '/' && d[5] == '/') return d.substr(6, 4) + "-" + d.substr(3, 2);
+            return "";
+        };
+        string ym = extractYm(t.bookedDate);
+        if (ym.empty()) ym = extractYm(t.date);
 
         long long ticketTotal = static_cast<long long>(t.price);
-        if (!mKey.empty()) {
-            monthRevMap[mKey] += ticketTotal;
+        if (!ym.empty()) {
+            string mmYyyy = ym.substr(5, 2) + "/" + ym.substr(0, 4);
+            monthRevMap[mmYyyy] += ticketTotal;
         }
 
         // 3. Lọc theo kỳ thời gian (tháng)
         if (!activeDateKey.empty()) {
-            // activeDateKey dạng "2025-12" -> kiểm tra t.date hoặc t.bookedDate
             string slashMonth = "/" + activeDateKey.substr(5, 2) + "/" + activeDateKey.substr(0, 4);
             bool dateMatch = (t.date.rfind(activeDateKey, 0) == 0) ||
                              (t.bookedDate.find(slashMonth) != string::npos);
@@ -371,52 +395,52 @@ void OverviewPanel::calculateStats() {
         movieRev += mPart;
         comboRev += cPart;
         ticketsCount += seats;
+
+        string dayKey = !t.bookedDate.empty() ? t.bookedDate : t.date;
+        if (!dayKey.empty()) revByDay[dayKey] += ticketTotal;
+        if (t.bookedDate == todaySlash || t.date == todayIso) {
+            todayRev += ticketTotal;
+        }
+
         node = node->next;
     }
 
-    // Xây dựng danh sách Top Movies
+    // Xây dựng danh sách Top Movies (100% từ dữ liệu vé thực tế, không fallback giả lập)
     topMoviesList.clear();
-    if (!hasFilter && movieTickets.empty()) {
-        for (const auto& bm : baselineMovies) {
-            topMoviesList.push_back({bm.title, bm.displayTitle, bm.shortTitle, bm.baseTickets, bm.baseRevenue});
+    for (const auto& kv : movieTickets) {
+        const string& title = kv.first;
+        int tks = kv.second;
+        long long rev = movieRevenue[title];
+        wstring wTitle = s2ws(title);
+        wstring wShort = wTitle;
+        if (wShort.size() > 10) {
+            wShort = wShort.substr(0, 9) + L"..";
         }
-    } else {
-        for (const auto& kv : movieTickets) {
-            const string& title = kv.first;
-            int tks = kv.second;
-            long long rev = movieRevenue[title];
-            wstring wTitle = s2ws(title);
-            wstring wShort = wTitle;
-            auto it = shortTitleMap.find(title);
-            if (it != shortTitleMap.end()) {
-                wShort = it->second;
-            } else if (wShort.size() > 10) {
-                wShort = wShort.substr(0, 9) + L"..";
-            }
-            topMoviesList.push_back({title, wTitle, wShort, tks, rev});
-        }
-        // Sắp xếp giảm dần theo số vé, nếu bằng nhau thì theo doanh thu
-        sort(topMoviesList.begin(), topMoviesList.end(), [](const MovieStatItem& a, const MovieStatItem& b) {
-            if (a.tickets != b.tickets) return a.tickets > b.tickets;
-            return a.revenue > b.revenue;
-        });
+        topMoviesList.push_back({title, wTitle, wShort, tks, rev});
     }
+    sort(topMoviesList.begin(), topMoviesList.end(), [](const MovieStatItem& a, const MovieStatItem& b) {
+        if (a.tickets != b.tickets) return a.tickets > b.tickets;
+        return a.revenue > b.revenue;
+    });
 
-    // Cập nhật chỉ số KPI
+    // Cập nhật chỉ số KPI thực tế
     totalTicketsThisMonth = ticketsCount;
     standardTicketsCount = stdSeats;
     vipTicketsCount = vipSeats;
     totalRevenueThisMonth = totalRev;
     movieRevenueThisMonth = movieRev;
     comboRevenueThisMonth = comboRev;
-    dailyRevenue = (totalRev > 0) ? max(140000LL, totalRev / 7) : 0;
-
-    if (!registrationTimes.empty()) {
-        newCustomersThisMonth = (int)registrationTimes.size();
+    if (todayRev > 0) {
+        dailyRevenue = todayRev;
+    } else if (!revByDay.empty()) {
+        dailyRevenue = totalRev / static_cast<long long>(revByDay.size());
+    } else {
+        dailyRevenue = 0;
     }
 
+    newCustomersThisMonth = static_cast<int>(registrationTimes.size());
+
     // Cập nhật thống kê 4 tháng động
-    const array<string, 4> mOrder = {"09/2025", "10/2025", "11/2025", "12/2025"};
     monthlyStatsList.clear();
     long long accRev = 0;
     long long maxMonthRev = 0;
@@ -522,7 +546,10 @@ bool OverviewPanel::exportReportToCsv() {
     for (const auto& m : monthlyStatsList) {
         out << m.month << ",\"" << UITheme::wstrToUtf8(m.changeBadge) << "\"," << m.revenue << "\n";
     }
+    out.flush();
+    const bool writeOk = out.good();
     out.close();
+    if (!writeOk) return false;
 
     // Tự động mở file trực tiếp bằng ứng dụng mặc định của hệ điều hành (Excel/WPS/Notepad)
     openExportedFile(outPath);
@@ -681,7 +708,7 @@ void OverviewPanel::handleEvent(const Event& event, const RenderWindow& /*window
                 toastActive = true;
                 toastTimer = 3.f;
                 toastMessage = ok ? L"Đã xuất báo cáo và mở trong Excel / CSV thành công!"
-                                  : L"Đã xuất báo cáo tổng quan thành công (Excel / CSV)!";
+                                  : L"Lỗi: Không thể tạo file báo cáo CSV!";
                 return;
             }
 

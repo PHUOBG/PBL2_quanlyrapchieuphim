@@ -1,8 +1,12 @@
 #include "repositories/admin/AdminTicketRepository.h"
+#include "repositories/booking/ShowtimeSeatRepository.h"
+#include "utils/FileUtils.h"
 
 #include <fstream>
 #include <sstream>
 #include <cctype>
+#include <vector>
+#include <utility>
 
 using std::ifstream;
 using std::ofstream;
@@ -108,25 +112,26 @@ DLL<Ticket> AdminTicketRepository::loadAll() const {
 }
 
 bool AdminTicketRepository::writeTickets(const DLL<Ticket>& tickets) const {
-    ofstream file(filePath, std::ios::trunc);
-    if (!file.is_open()) {
-        return false;
-    }
-    file << TICKET_HEADER << '\n';
+    string out;
+    out += "\xEF\xBB\xBF";
+    out += TICKET_HEADER;
+    out += '\n';
     for (int i = 0; i < tickets.getSize(); ++i) {
         const Ticket& t = tickets[i];
-        file << t.ticketId << '|' << t.showtimeId << '|' << t.title << '|' << t.date << '|' << t.time
-             << '|' << t.roomName << '|' << t.booked << '|' << t.comboName << '|' << t.price << '|' << t.email
-             << '|' << t.fullName << '|' << t.bookedDate << '|' << t.bookedTime << '\n';
+        out += t.ticketId + '|' + t.showtimeId + '|' + t.title + '|' + t.date + '|' + t.time + '|' + t.roomName + '|' +
+               t.booked + '|' + t.comboName + '|' + std::to_string(t.price) + '|' + t.email + '|' + t.fullName + '|' +
+               t.bookedDate + '|' + t.bookedTime + '\n';
     }
-    return true;
+    return FileUtils::writeAtomic(filePath, out);
 }
 
 bool AdminTicketRepository::deleteTicket(const string& ticketId) {
     DLL<Ticket> tickets = loadAll();
     bool removed = false;
+    std::vector<std::pair<string, string>> releasedSeats;
     for (int i = 0; i < tickets.getSize(); ) {
         if (tickets[i].ticketId == ticketId) {
+            releasedSeats.push_back({tickets[i].showtimeId, tickets[i].booked});
             tickets.removeAt(i);
             removed = true;
         } else {
@@ -136,5 +141,31 @@ bool AdminTicketRepository::deleteTicket(const string& ticketId) {
     if (!removed) {
         return false;
     }
-    return writeTickets(tickets);
+    if (!writeTickets(tickets)) {
+        return false;
+    }
+    // Release seats; ticket is already gone so an orphan reservation would be a bug -> report failure.
+    ShowtimeSeatRepository seatRepo(FileUtils::resolveDataPath("data/RoomStatusAtShowtime.txt"));
+    bool ok = true;
+    for (const auto& item : releasedSeats) {
+        DLL<string> probe;
+        // removeBookedSeatsByShowtime returns false when nothing to remove (already free) - that's fine,
+        // but a save failure must not be hidden: re-check state afterwards.
+        seatRepo.removeBookedSeatsByShowtime(item.first, item.second);
+    }
+    seatRepo.loadFromFile();
+    for (const auto& item : releasedSeats) {
+        DLL<string> seats = seatRepo.getBookedSeats(item.first, "");
+        for (int s = 0; s < seats.getSize(); ++s) {
+            if (item.second.find(seats[s]) != string::npos) {
+                // check exact token match
+                std::stringstream ss(item.second); string tok;
+                while (std::getline(ss, tok, ',')) {
+                    size_t a = tok.find_first_not_of(" \t"), b = tok.find_last_not_of(" \t");
+                    if (a != string::npos && tok.substr(a, b - a + 1) == seats[s]) ok = false;
+                }
+            }
+        }
+    }
+    return ok;
 }

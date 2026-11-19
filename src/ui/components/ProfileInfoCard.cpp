@@ -321,23 +321,26 @@ void ProfileInfoCard::saveInfoChange() {
         return;
     }
     
-    // Save
+    // Save (roll back the in-memory edit if persistence fails)
+    const string prevName = currentUser_->getFullName();
+    const string prevBirth = currentUser_->getBirthDate();
+    const string prevPhone = currentUser_->getPhone();
     currentUser_->setFullName(newFullName);
     currentUser_->setBirthDate(newBirthDate);
     currentUser_->setPhone(newPhone);
 
-    // Persist immediately to users.txt
-    if (authService_ && authService_->getRepository()) {
-        authService_->getRepository()->saveToFile();
+    if (!authService_ || !authService_->getRepository() || !authService_->getRepository()->saveToFile()) {
+        currentUser_->setFullName(prevName);
+        currentUser_->setBirthDate(prevBirth);
+        currentUser_->setPhone(prevPhone);
+        showInfoMessage(L"Không thể lưu thông tin (lỗi ghi dữ liệu)!", true);
+        return;
     }
 
     // If this is the logged-in user, update the greeting immediately
     if (newFullName != oldFullName && BaseScreen::getLoggedInUserEmail() == currentEmail_) {
         BaseScreen::setLoggedInUser(newFullName, currentEmail_);
     }
-    
-    // Persist changes to file
-    authService_->getRepository()->saveToFile();
     
     userDataLoaded_ = false;
     setUser(currentEmail_);
@@ -372,15 +375,13 @@ void ProfileInfoCard::savePasswordChange() {
         return;
     }
     
+    const string prevHash = currentUser_->getPasswordHash();
     currentUser_->setPasswordHash(PasswordHasher::hashPassword(newPwd));
-
-    // Persist immediately to users.txt
-    if (authService_ && authService_->getRepository()) {
-        authService_->getRepository()->saveToFile();
+    if (!authService_ || !authService_->getRepository() || !authService_->getRepository()->saveToFile()) {
+        currentUser_->setPasswordHash(prevHash);
+        showPwdMessage(L"Không thể lưu mật khẩu mới (lỗi ghi dữ liệu)!", true);
+        return;
     }
-    
-    // Persist changes to file
-    authService_->getRepository()->saveToFile();
     
     showPwdMessage(L"Đổi mật khẩu thành công!", false);
     

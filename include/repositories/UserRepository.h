@@ -21,7 +21,7 @@ public:
     ~UserRepository();
 
     void loadFromFile();
-    void saveToFile();
+    bool saveToFile();
 
     bool exists(const string& email) const;
     User* findByEmail(const string& email);

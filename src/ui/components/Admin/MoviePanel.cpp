@@ -2,15 +2,14 @@
 #include "UI/components/Admin/FontManager.h"
 #include "UI/components/Admin/UITheme.h"
 #include "utils/FileUtils.h"
+#include "repositories/admin/AdminTicketRepository.h"
+#include "repositories/booking/ShowtimeSeatRepository.h"
 #include <algorithm>
 #include <cwctype>
+#include <fstream>
+#include <sstream>
+#include <unordered_set>
 #include <iostream>
-
-static wstring toLowerW(const wstring& s) {
-    wstring r = s;
-    for (auto& c : r) c = (wchar_t)towlower(c);
-    return r;
-}
 
 static wstring s2ws(const string& s) {
     if (s.empty()) return L"";
@@ -272,6 +271,57 @@ void MoviePanel::saveMovie() {
         return;
     }
 
+    // Validate positive duration
+    string durStr = ws2s(inputDuration);
+    int durVal = 0;
+    try { durVal = stoi(durStr); } catch (...) { durVal = 0; }
+    if (durVal <= 0 || durVal > 600) {
+        showToast(L"Thời lượng phim phải là số nguyên dương (1 - 600 phút)!", Color(220, 38, 38));
+        return;
+    }
+
+    // Validate DD/MM/YYYY release date (calendar-valid, and <= end_date)
+    auto parseDdMmYyyy = [](const string& d, int& yyyymmdd) -> bool {
+        if (d.size() != 10 || d[2] != '/' || d[5] != '/') return false;
+        for (int i = 0; i < 10; ++i) {
+            if (i == 2 || i == 5) continue;
+            if (!isdigit(static_cast<unsigned char>(d[i]))) return false;
+        }
+        int day = stoi(d.substr(0, 2));
+        int mon = stoi(d.substr(3, 2));
+        int yr  = stoi(d.substr(6, 4));
+        if (mon < 1 || mon > 12 || yr < 1900 || yr > 2100) return false;
+        int dim[] = {31,28,31,30,31,30,31,31,30,31,30,31};
+        if ((yr % 4 == 0 && yr % 100 != 0) || (yr % 400 == 0)) dim[1] = 29;
+        if (day < 1 || day > dim[mon - 1]) return false;
+        yyyymmdd = yr * 10000 + mon * 100 + day;
+        return true;
+    };
+
+    string relStr = ws2s(inputReleaseDate);
+    int relNum = 0;
+    if (!parseDdMmYyyy(relStr, relNum)) {
+        showToast(L"Ngày phát hành không hợp lệ (DD/MM/YYYY)!", Color(220, 38, 38));
+        return;
+    }
+
+    string endStr = "30/12/2030";
+    if (currentPopup == EDIT && editingRecordIndex >= 0 && editingRecordIndex < static_cast<int>(allMovies.size())) {
+        if (allMovies[editingRecordIndex].size() > 8 && !allMovies[editingRecordIndex][8].empty()) {
+            endStr = allMovies[editingRecordIndex][8];
+        }
+    }
+    int endNum = 0;
+    if (parseDdMmYyyy(endStr, endNum) && relNum > endNum) {
+        showToast(L"Ngày phát hành không được lớn hơn ngày kết thúc chiếu!", Color(220, 38, 38));
+        return;
+    }
+
+    auto sanitize = [](string s) {
+        for (char& ch : s) if (ch == '|' || ch == '\n' || ch == '\r') ch = ' ';
+        return s;
+    };
+
     if (currentPopup == ADD) {
         int maxNum = static_cast<int>(allMovies.size());
         for (const auto& r : allMovies) {
@@ -285,29 +335,33 @@ void MoviePanel::saveMovie() {
         string newId = "#PBL-" + to_string(maxNum + 1);
         if (newId.size() < 8) newId.insert(5, string(8 - newId.size(), '0'));
 
-        string posterStr = ws2s(inputPosterPath);
+        string posterStr = sanitize(ws2s(inputPosterPath));
         if (posterStr.empty()) posterStr = "../assets/posters/godzilla-x-kong.png";
-        string fmtStr = ws2s(inputFormat);
+        string fmtStr = sanitize(ws2s(inputFormat));
         if (fmtStr.empty()) fmtStr = "2D / Atmos";
 
         vector<string> newRow = {
             newId,
-            ws2s(inputTitle),
+            sanitize(ws2s(inputTitle)),
             "T16",
-            ws2s(inputCountry),
+            sanitize(ws2s(inputCountry)),
             fmtStr,
-            ws2s(inputGenres),
-            ws2s(inputDuration),
-            ws2s(inputReleaseDate),
-            "30/12/2030",
-            ws2s(inputDirector),
+            sanitize(ws2s(inputGenres)),
+            to_string(durVal),
+            relStr,
+            endStr,
+            sanitize(ws2s(inputDirector)),
             "Diễn viên chính",
             "Mô tả phim...",
             posterStr,
-            ws2s(inputStatus)
+            sanitize(ws2s(inputStatus))
         };
         repository->addRecord(newRow);
-        repository->saveToFile();
+        if (!repository->saveToFile()) {
+            repository->loadFromFile();
+            showToast(L"Lỗi: Không thể lưu dữ liệu phim!", Color(220, 38, 38));
+            return;
+        }
         selectedGenre = "all";
         selectedStatus = "all";
         searchQuery.clear();
@@ -321,18 +375,22 @@ void MoviePanel::saveMovie() {
         if (editingRecordIndex >= 0 && editingRecordIndex < static_cast<int>(allMovies.size())) {
             auto row = allMovies[editingRecordIndex];
             while (row.size() < 14) row.push_back("");
-            row[1] = ws2s(inputTitle);
-            row[3] = ws2s(inputCountry);
-            if (!inputFormat.empty()) row[4] = ws2s(inputFormat);
-            row[5] = ws2s(inputGenres);
-            row[6] = ws2s(inputDuration);
-            row[7] = ws2s(inputReleaseDate);
-            row[9] = ws2s(inputDirector);
-            if (!inputPosterPath.empty()) row[12] = ws2s(inputPosterPath);
-            row[13] = ws2s(inputStatus);
+            row[1] = sanitize(ws2s(inputTitle));
+            row[3] = sanitize(ws2s(inputCountry));
+            if (!inputFormat.empty()) row[4] = sanitize(ws2s(inputFormat));
+            row[5] = sanitize(ws2s(inputGenres));
+            row[6] = to_string(durVal);
+            row[7] = relStr;
+            row[9] = sanitize(ws2s(inputDirector));
+            if (!inputPosterPath.empty()) row[12] = sanitize(ws2s(inputPosterPath));
+            row[13] = sanitize(ws2s(inputStatus));
 
             repository->updateRecord(editingRecordIndex, row);
-            repository->saveToFile();
+            if (!repository->saveToFile()) {
+                repository->loadFromFile();
+                showToast(L"Lỗi: Không thể lưu thay đổi phim!", Color(220, 38, 38));
+                return;
+            }
             refreshData();
             closePopupModal();
             showToast(L"Cập nhật thông tin phim thành công!");
@@ -342,13 +400,71 @@ void MoviePanel::saveMovie() {
 
 void MoviePanel::confirmDelete() {
     if (editingRecordIndex >= 0 && editingRecordIndex < static_cast<int>(allMovies.size())) {
+        const string movieId = allMovies[editingRecordIndex].empty() ? "" : allMovies[editingRecordIndex][0];
+
+        // Check if any showtime for this movie already has tickets or booked seats
+        unordered_set<string> ticketedShowtimes;
+        {
+            AdminTicketRepository ticketRepo(FileUtils::resolveDataPath("data/tickets.txt"));
+            DLL<Ticket> tickets = ticketRepo.loadAll();
+            for (int i = 0; i < tickets.getSize(); ++i) {
+                ticketedShowtimes.insert(tickets[i].showtimeId);
+            }
+        }
+        ShowtimeSeatRepository seatRepo(FileUtils::resolveDataPath("data/RoomStatusAtShowtime.txt"));
+
+        string stPath = FileUtils::resolveDataPath("data/showtimes.txt");
+        vector<string> keptShowtimeLines;
+        string stHeader = "showtime_id|movie_id|room_id|date|time|price";
+        bool hasShowtimeFile = false;
+        {
+            ifstream sf(stPath, ios::binary);
+            if (sf.is_open()) {
+                hasShowtimeFile = true;
+                string line;
+                if (getline(sf, line)) {
+                    if (!line.empty() && line.back() == '\r') line.pop_back();
+                    if (!line.empty()) stHeader = line;
+                }
+                while (getline(sf, line)) {
+                    if (!line.empty() && line.back() == '\r') line.pop_back();
+                    if (line.empty()) continue;
+                    stringstream ss(line);
+                    string sid, mid, rid;
+                    getline(ss, sid, '|');
+                    getline(ss, mid, '|');
+                    getline(ss, rid, '|');
+                    if (mid == movieId) {
+                        if (ticketedShowtimes.count(sid) || seatRepo.getBookedSeats(sid, rid).getSize() > 0) {
+                            closePopupModal();
+                            showToast(L"Không thể xóa phim vì đã có vé đặt cho suất chiếu của phim này!", Color(220, 38, 38));
+                            return;
+                        }
+                        // Unbooked showtime for deleted movie -> prune so showtimes stay consistent
+                        continue;
+                    }
+                    keptShowtimeLines.push_back(line);
+                }
+            }
+        }
+
         repository->deleteRecord(editingRecordIndex);
-        repository->saveToFile();
+        if (!repository->saveToFile()) {
+            repository->loadFromFile();
+            showToast(L"Lỗi: Không thể xóa phim (lỗi ghi file)!", Color(220, 38, 38));
+            return;
+        }
+        if (hasShowtimeFile) {
+            string out = stHeader + "\n";
+            for (const auto& l : keptShowtimeLines) out += l + "\n";
+            FileUtils::writeAtomic(stPath, out);
+        }
+
         selectedRow = -1;
         refreshData();
         closePopupModal();
         selectedRow = -1;
-        showToast(L"Đã xóa phim thành công!");
+        showToast(L"Đã xóa phim và các suất chiếu chưa có vé!");
     }
 }
 

@@ -3,6 +3,7 @@
 #include "UI/components/Admin/RoundedRectRenderer.h"
 #include "UI/components/Admin/UITheme.h"
 #include "utils/PasswordHasher.h"
+#include "utils/Validator.h"
 #include "utils/FileUtils.h"
 
 #include <algorithm>
@@ -45,21 +46,42 @@ void AdminProfilePanel::loadUserData() {
         currentUser = authService->getCurrentUser();
         if (currentUser) {
             fullName = currentUser->getFullName().empty() ? "ADMIN" : currentUser->getFullName();
-            birthDate = currentUser->getBirthDate().empty() ? "12/02/2006" : currentUser->getBirthDate();
-            phone = currentUser->getPhone().empty() ? "0898234406" : currentUser->getPhone();
-            email = currentUser->getEmail().empty() ? "admin@cinexine.vn" : currentUser->getEmail();
+            birthDate = currentUser->getBirthDate();
+            phone = currentUser->getPhone();
+            email = currentUser->getEmail();
         }
     }
 }
 
 void AdminProfilePanel::saveUserData() {
+    if (!Validator::isValidFullName(fullName)) {
+        toastActive = true;
+        toastTimer = 2.5f;
+        toastMessage = L"Họ và tên không hợp lệ (không để trống hoặc chứa chữ số)!";
+        return;
+    }
+    if (!Validator::isValidDate(birthDate)) {
+        toastActive = true;
+        toastTimer = 2.5f;
+        toastMessage = L"Ngày sinh không hợp lệ (định dạng DD/MM/YYYY)!";
+        return;
+    }
+    if (!Validator::isValidPhone(phone)) {
+        toastActive = true;
+        toastTimer = 2.5f;
+        toastMessage = L"Số điện thoại không hợp lệ (10 chữ số nhà mạng VN)!";
+        return;
+    }
     if (authService && currentUser) {
         currentUser->setFullName(fullName);
         currentUser->setBirthDate(birthDate);
         currentUser->setPhone(phone);
         auto* repo = authService->getRepository();
-        if (repo) {
-            repo->updateUser(*currentUser);
+        if (!repo || !repo->updateUser(*currentUser)) {
+            toastActive = true;
+            toastTimer = 3.f;
+            toastMessage = L"Không thể lưu thông tin (lỗi ghi dữ liệu)!";
+            return;
         }
     }
     toastActive = true;
@@ -74,10 +96,10 @@ void AdminProfilePanel::changePassword() {
         toastMessage = L"Vui lòng nhập mật khẩu hiện tại!";
         return;
     }
-    if (newPass.empty() || newPass.size() < 6) {
+    if (!Validator::isStrongPassword(newPass)) {
         toastActive = true;
         toastTimer = 2.5f;
-        toastMessage = L"Mật khẩu mới phải có ít nhất 6 ký tự!";
+        toastMessage = L"Mật khẩu mới cần tối thiểu 8 ký tự gồm chữ hoa, chữ thường và số!";
         return;
     }
     if (newPass != confirmPass) {
@@ -94,11 +116,15 @@ void AdminProfilePanel::changePassword() {
             toastMessage = L"Mật khẩu cũ không chính xác!";
             return;
         }
-        string newHash = PasswordHasher::hashPassword(newPass);
-        currentUser->setPasswordHash(newHash);
+        string oldHash = currentUser->getPasswordHash();
+        currentUser->setPasswordHash(PasswordHasher::hashPassword(newPass));
         auto* repo = authService->getRepository();
-        if (repo) {
-            repo->updateUser(*currentUser);
+        if (!repo || !repo->updateUser(*currentUser)) {
+            currentUser->setPasswordHash(oldHash);
+            toastActive = true;
+            toastTimer = 3.f;
+            toastMessage = L"Không thể lưu mật khẩu mới (lỗi ghi dữ liệu)!";
+            return;
         }
     }
 
@@ -132,7 +158,12 @@ void AdminProfilePanel::handleEvent(const Event& event, const RenderWindow& wind
                     showDeleteConfirm = false;
                     toastActive = true;
                     toastTimer = 3.f;
-                    toastMessage = L"Tài khoản quản trị viên tối cao được bảo vệ!";
+                    if (authService && currentUser && authService->deleteAccount(currentUser->getEmail())) {
+                        currentUser = nullptr;  // pointer was invalidated by the delete
+                        if (onAccountDeleted) onAccountDeleted();  // returns to login screen (session cleared)
+                    } else {
+                        toastMessage = L"Không thể xóa tài khoản (lỗi ghi dữ liệu)!";
+                    }
                     return;
                 }
             }

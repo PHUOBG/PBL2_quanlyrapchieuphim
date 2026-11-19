@@ -214,6 +214,42 @@ TrieNode* TrieNode::addChild(unsigned char key) {
 // ===== Cai dat StringArray =====
 StringArray::StringArray() : data(nullptr), size(0), capacity(0) {}
 
+StringArray::StringArray(const StringArray& other) : data(nullptr), size(0), capacity(0) {
+    for (int i = 0; i < other.size; ++i) {
+        add(other.data[i]);
+    }
+}
+
+StringArray& StringArray::operator=(const StringArray& other) {
+    if (this != &other) {
+        clear();
+        for (int i = 0; i < other.size; ++i) {
+            add(other.data[i]);
+        }
+    }
+    return *this;
+}
+
+StringArray::StringArray(StringArray&& other) noexcept
+    : data(other.data), size(other.size), capacity(other.capacity) {
+    other.data = nullptr;
+    other.size = 0;
+    other.capacity = 0;
+}
+
+StringArray& StringArray::operator=(StringArray&& other) noexcept {
+    if (this != &other) {
+        clear();
+        data = other.data;
+        size = other.size;
+        capacity = other.capacity;
+        other.data = nullptr;
+        other.size = 0;
+        other.capacity = 0;
+    }
+    return *this;
+}
+
 StringArray::~StringArray() {
     clear();
 }
@@ -317,7 +353,7 @@ bool Trie::startsWith(const string& prefix) {
 }
 
 void Trie::dfs(TrieNode* node, char* current, int currentLen, StringArray& results, int limit) {
-    if (results.size >= limit) return;
+    if (results.size >= limit || currentLen >= 254) return;
     
     if (node->isEnd) {
         current[currentLen] = '\0';  // Ket thuc chuoi
@@ -336,9 +372,10 @@ void Trie::dfs(TrieNode* node, char* current, int currentLen, StringArray& resul
 StringArray Trie::getSuggestions(const string& prefix, int limit) {
     StringArray results;
     
-    if (prefix.empty()) return results;
+    if (prefix.empty() || limit <= 0) return results;
     
     string normalized = normalizeString(prefix);
+    if (normalized.length() >= 254) return results;
     TrieNode* current = root;
     
     // Duyet den node ung voi tien to

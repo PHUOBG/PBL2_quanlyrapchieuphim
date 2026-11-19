@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <cstddef>
 #include <stdexcept>
 
@@ -19,6 +19,52 @@ private:
 
 public:
     MyStack() : topNode(nullptr), count(0) {}
+
+    MyStack(const MyStack& other) : topNode(nullptr), count(0) {
+        if (other.topNode) {
+            Node* newTop = new Node(other.topNode->data);
+            Node* tail = newTop;
+            for (Node* cur = other.topNode->next; cur; cur = cur->next) {
+                tail->next = new Node(cur->data);
+                tail = tail->next;
+            }
+            topNode = newTop;
+            count = other.count;
+        }
+    }
+
+    MyStack& operator=(const MyStack& other) {
+        if (this != &other) {
+            clear();
+            if (other.topNode) {
+                Node* newTop = new Node(other.topNode->data);
+                Node* tail = newTop;
+                for (Node* cur = other.topNode->next; cur; cur = cur->next) {
+                    tail->next = new Node(cur->data);
+                    tail = tail->next;
+                }
+                topNode = newTop;
+                count = other.count;
+            }
+        }
+        return *this;
+    }
+
+    MyStack(MyStack&& other) noexcept : topNode(other.topNode), count(other.count) {
+        other.topNode = nullptr;
+        other.count = 0;
+    }
+
+    MyStack& operator=(MyStack&& other) noexcept {
+        if (this != &other) {
+            clear();
+            topNode = other.topNode;
+            count = other.count;
+            other.topNode = nullptr;
+            other.count = 0;
+        }
+        return *this;
+    }
 
     ~MyStack() {
         clear();

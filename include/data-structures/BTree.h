@@ -198,6 +198,10 @@ public:
     bool empty() const { return root == nullptr; }
 
     void insert(const Key& key, const Value& value) {
+        if (Value* existing = search(key)) {
+            *existing = value;
+            return;
+        }
         if (!root) {
             root = new Node(true);
             root->keys[0] = key;

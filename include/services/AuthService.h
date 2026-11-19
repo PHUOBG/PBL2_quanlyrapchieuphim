@@ -37,6 +37,12 @@ public:
     UserRepository* getRepository();
     void ensureDefaultAdmin();
 
+    enum class ResetResult { Ok, MissingInput, WeakPassword, VerificationFailed, SaveFailed };
+    // Password reset requires proof of identity: the phone number registered on the account.
+    ResetResult resetPassword(const string& email, const string& phone, const string& newPassword);
+    bool changePassword(const string& email, const string& oldPassword, const string& newPassword);
+    bool deleteAccount(const string& email);
+
 private:
     unique_ptr<UserRepository> repository;
     unique_ptr<VoucherManager> voucherManager;

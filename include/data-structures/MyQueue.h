@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <cstddef>
 #include <stdexcept>
 
@@ -20,6 +20,39 @@ private:
 
 public:
     MyQueue() : head(nullptr), tail(nullptr), count(0) {}
+
+    MyQueue(const MyQueue& other) : head(nullptr), tail(nullptr), count(0) {
+        for (Node* cur = other.head; cur; cur = cur->next) {
+            push(cur->data);
+        }
+    }
+
+    MyQueue& operator=(const MyQueue& other) {
+        if (this != &other) {
+            clear();
+            for (Node* cur = other.head; cur; cur = cur->next) {
+                push(cur->data);
+            }
+        }
+        return *this;
+    }
+
+    MyQueue(MyQueue&& other) noexcept : head(other.head), tail(other.tail), count(other.count) {
+        other.head = other.tail = nullptr;
+        other.count = 0;
+    }
+
+    MyQueue& operator=(MyQueue&& other) noexcept {
+        if (this != &other) {
+            clear();
+            head = other.head;
+            tail = other.tail;
+            count = other.count;
+            other.head = other.tail = nullptr;
+            other.count = 0;
+        }
+        return *this;
+    }
 
     ~MyQueue() {
         clear();

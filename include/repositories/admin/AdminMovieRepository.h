@@ -19,7 +19,7 @@ public:
     AdminMovieRepository(const string& path);
 
     void loadFromFile();
-    void saveToFile();
+    bool saveToFile();
 
     void addRecord(const vector<string>& record);
     void updateRecord(int index, const vector<string>& record);

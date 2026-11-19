@@ -19,8 +19,8 @@ struct ShowtimeItem {
     string startTime;   // hh:mm
     string endTime;     // hh:mm
     int price = 65000;
-    int bookedSeats = 28;
-    int totalSeats = 36;
+    int bookedSeats = 0;
+    int totalSeats = 81;
 };
 
 class ShowtimePanel {
@@ -36,7 +36,7 @@ private:
     vector<ShowtimeItem> filteredShowtimes;
 
     // Filters
-    string selectedDate = "2026-10-27";
+    string selectedDate;  // set to today in the constructor
     wstring selectedRoom = L"T\u1ea5t c\u1ea3 ph\u00f2ng";
     wstring selectedStatus = L"T\u1ea5t c\u1ea3 tr\u1ea1ng th\u00e1i";
     wstring searchQuery = L"";
@@ -77,7 +77,7 @@ private:
 
     void initSampleShowtimes();
     void loadShowtimesFromFile();
-    void saveShowtimesToFile();
+    bool saveShowtimesToFile();
     void applyFilter();
     void autoScheduleShowtimes();
 

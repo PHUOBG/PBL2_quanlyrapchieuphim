@@ -1,4 +1,5 @@
 #include "services/VoucherManager.h"
+#include "utils/FileUtils.h"
 
 #include <algorithm>
 #include <chrono>
@@ -11,7 +12,8 @@
 using namespace std;
 
 VoucherManager::VoucherManager(const string& defPath, const string& walletPathValue)
-    : definitionPath(defPath), walletPath(walletPathValue) {
+    : definitionPath(FileUtils::resolveDataPath(defPath)),
+      walletPath(FileUtils::resolveDataPath(walletPathValue)) {
     loadData();
 }
 
@@ -29,15 +31,19 @@ void VoucherManager::loadData() {
         if (cols.size() < 5) continue;
         if (isHeaderRow(cols, "code")) continue;
 
-        VoucherDef def;
-        def.code = trim(cols[0]);
-        def.type = stoi(cols[1]);
-        def.value = stod(cols[2]);
-        def.minBill = stod(cols[3]);
-        def.description = trim(cols[4]);
+        try {
+            VoucherDef def;
+            def.code = trim(cols[0]);
+            def.type = stoi(cols[1]);
+            def.value = stod(cols[2]);
+            def.minBill = stod(cols[3]);
+            def.description = trim(cols[4]);
 
-        voucherDefs.push_back(def);
-        voucherLookup[def.code] = def;
+            voucherDefs.push_back(def);
+            voucherLookup[def.code] = def;
+        } catch (...) {
+            continue;
+        }
     }
 }
 
@@ -89,6 +95,7 @@ vector<VoucherDisplay> VoucherManager::getVouchersByUser(const string& email) {
 }
 
 double VoucherManager::applyVoucher(const string& email, const string& code, double totalBill, bool consume) {
+    if (totalBill <= 0.0) return 0.0;
     vector<UserVoucher> wallet = loadWallet();
     bool updated = false;
     double discount = 0.0;
@@ -96,9 +103,9 @@ double VoucherManager::applyVoucher(const string& email, const string& code, dou
 
     for (auto& voucher : wallet) {
         if (voucher.email != email || voucher.code != code) continue;
-        if (voucher.status != 1) break;
-        if (dateStringToNumber(voucher.expiry) < today) break;
-        if (voucher.quantity <= 0) break;
+        if (voucher.status != 1) continue;
+        if (dateStringToNumber(voucher.expiry) < today) continue;
+        if (voucher.quantity <= 0) continue;
 
         auto defIt = voucherLookup.find(code);
         if (defIt == voucherLookup.end()) break;
@@ -118,8 +125,9 @@ double VoucherManager::applyVoucher(const string& email, const string& code, dou
         break;
     }
 
-    if (updated) {
-        persistWallet(wallet);
+    // A voucher must never be reported as applied if its consumption could not be saved.
+    if (updated && !persistWallet(wallet)) {
+        return 0.0;
     }
 
     return discount;
@@ -173,17 +181,27 @@ int VoucherManager::todayAsNumber() const {
 }
 
 int VoucherManager::dateStringToNumber(const string& date) const {
-    if (date.length() != 8) return 0;
-    return stoi(date);
+    string s = trim(date);
+    try {
+        if (s.length() == 8 && all_of(s.begin(), s.end(), [](unsigned char c){ return isdigit(c); })) {
+            return stoi(s);
+        }
+        if (s.length() == 10 && s[2] == '/' && s[5] == '/') {
+            return stoi(s.substr(6, 4)) * 10000 + stoi(s.substr(3, 2)) * 100 + stoi(s.substr(0, 2));
+        }
+        if (s.length() == 10 && s[4] == '-' && s[7] == '-') {
+            return stoi(s.substr(0, 4)) * 10000 + stoi(s.substr(5, 2)) * 100 + stoi(s.substr(8, 2));
+        }
+    } catch (...) {}
+    return 0;
 }
 
-void VoucherManager::persistWallet(const vector<UserVoucher>& wallet) const {
-    ofstream file(walletPath, ios::trunc);
-    if (!file.is_open()) return;
-    file << "email|code|status|expiry_date|quantity\n";
+bool VoucherManager::persistWallet(const vector<UserVoucher>& wallet) const {
+    string out = "email|code|status|expiry_date|quantity\n";
     for (const auto& voucher : wallet) {
-        file << voucher.email << '|' << voucher.code << '|' << voucher.status << '|' << voucher.expiry << '|' << voucher.quantity << '\n';
+        out += voucher.email + '|' + voucher.code + '|' + to_string(voucher.status) + '|' + voucher.expiry + '|' + to_string(voucher.quantity) + '\n';
     }
+    return FileUtils::writeAtomic(walletPath, out);
 }
 
 vector<UserVoucher> VoucherManager::loadWallet() const {
@@ -199,13 +217,17 @@ vector<UserVoucher> VoucherManager::loadWallet() const {
 
         if (isHeaderRow(cols, "email")) continue;
 
-        UserVoucher voucher;
-        voucher.email = trim(cols[0]);
-        voucher.code = trim(cols[1]);
-        voucher.status = stoi(cols[2]);
-        voucher.expiry = trim(cols[3]);
-        voucher.quantity = (cols.size() >= 5) ? stoi(cols[4]) : 1;
-        wallet.push_back(voucher);
+        try {
+            UserVoucher voucher;
+            voucher.email = trim(cols[0]);
+            voucher.code = trim(cols[1]);
+            voucher.status = stoi(cols[2]);
+            voucher.expiry = trim(cols[3]);
+            voucher.quantity = (cols.size() >= 5) ? stoi(cols[4]) : 1;
+            wallet.push_back(voucher);
+        } catch (...) {
+            continue;
+        }
     }
 
     return wallet;

@@ -31,6 +31,10 @@ public:
     int capacity;     // Dung lượng
     
     StringArray();
+    StringArray(const StringArray& other);
+    StringArray& operator=(const StringArray& other);
+    StringArray(StringArray&& other) noexcept;
+    StringArray& operator=(StringArray&& other) noexcept;
     ~StringArray();
     
     void add(const string& str);

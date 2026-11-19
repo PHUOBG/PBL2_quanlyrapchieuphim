@@ -1,4 +1,5 @@
 #include "repositories/UserRepository.h"
+#include "utils/FileUtils.h"
 #include <fstream>
 #include <sstream>
 #include <algorithm>
@@ -67,7 +68,8 @@ UserRepository::UserRepository(const string& filepath)
 }
 
 UserRepository::~UserRepository() {
-    saveToFile();
+    // Intentionally does NOT save: every mutation persists immediately. Saving a stale in-memory
+    // snapshot here used to overwrite changes made through other UserRepository instances.
 }
 
 string UserRepository::normalizeEmail(const string& email) const {
@@ -103,12 +105,16 @@ User UserRepository::parseLine(const string& line) const {
 }
 
 string UserRepository::serializeLine(const User& user) const {
+    auto clean = [](string s) {
+        for (char& ch : s) if (ch == '|' || ch == '\n' || ch == '\r') ch = ' ';
+        return s;
+    };
     stringstream ss;
     ss << user.getEmail() << "|"
        << user.getPasswordHash() << "|"
-       << user.getFullName() << "|"
+       << clean(user.getFullName()) << "|"
        << user.getBirthDate() << "|"
-       << user.getPhone() << "|"
+       << clean(user.getPhone()) << "|"
        << user.getRegisteredAt() << "|"
        << user.getRoleString();
     return ss.str();
@@ -117,14 +123,16 @@ string UserRepository::serializeLine(const User& user) const {
 void UserRepository::loadFromFile() {
     users.clear();
 
-    ifstream file(filePath);
+    ifstream file(filePath, ios::binary);
     if (!file.is_open()) return;
     
     string line;
-    getline(file, line); // Skip header
+    getline(file, line); // Skip header (may carry a UTF-8 BOM)
     
     while (getline(file, line)) {
+        if (!line.empty() && line.back() == '\r') line.pop_back();
         if (line.empty()) continue;
+        if (count(line.begin(), line.end(), '|') < 6) continue; // malformed record
         
         try {
             User user = parseLine(line);
@@ -139,22 +147,14 @@ void UserRepository::loadFromFile() {
     file.close();
 }
 
-void UserRepository::saveToFile() {
-    ofstream file(filePath);
-    if (!file.is_open()) return;
-    
-    // Write header
-    file << "email|passwordHash|fullName|birthDate|phone|registeredAt|role\n";
-    
-    // Write all users
+bool UserRepository::saveToFile() {
+    string out = "email|passwordHash|fullName|birthDate|phone|registeredAt|role\n";
     vector<User> allUsers = getAllUsers();
     for (const auto& user : allUsers) {
-        file << serializeLine(user) << "\n";
+        out += serializeLine(user) + "\n";
     }
-    
-    file.close();
+    return FileUtils::writeAtomic(filePath, out);
 }
-
 bool UserRepository::exists(const string& email) const {
     string key = normalizeEmail(email);
     return users.contains(key);

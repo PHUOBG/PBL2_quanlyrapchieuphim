@@ -68,7 +68,7 @@ private:
 
     void initDefaultRooms();
     void loadRoomsFromFile();
-    void saveRoomsToFile();
+    bool saveRoomsToFile();
     void updateSeatStatistics(int& standard, int& vip, int& sweetbox, int& maintenance) const;
 
     // Drawing helpers

@@ -69,16 +69,17 @@ private:
     DLL<Ticket> ticketsCache;
 
     // Tong quan KPI
-    long long totalRevenue = 11842500;
-    long long movieRevenue = 7000000;
-    long long comboRevenue = 4842500;
-    int totalTickets = 101;
-    int totalCombos = 89;
+    long long totalRevenue = 0;
+    long long movieRevenue = 0;
+    long long comboRevenue = 0;
+    int totalTickets = 0;
+    int totalCombos = 0;
 
     // Danh sach du lieu
     std::vector<MovieRevItem> moviesList;
     std::vector<MonthRevItem> monthsList;
     std::vector<ComboRevItem> combosList;
+    std::vector<std::pair<std::wstring, std::string>> dateFilterOptions;
 
     // UI state
     int hoveredTab = -1;
@@ -108,6 +109,7 @@ private:
     void loadTickets();
     void loadShowtimePrices();
     void loadComboPrices();
+    void calculateStats();
     void initDefaultStats();
     bool exportRevenueReportToCsv();
     void openExportedFile(const std::string& path) const;

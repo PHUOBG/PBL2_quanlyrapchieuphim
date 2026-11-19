@@ -3,6 +3,9 @@
 #include "UI/components/Admin/RoundedRectRenderer.h"
 #include "UI/components/Admin/UITheme.h"
 #include "utils/FileUtils.h"
+#include "utils/Validator.h"
+#include "repositories/admin/AdminTicketRepository.h"
+#include <unordered_map>
 
 #include <algorithm>
 #include <array>
@@ -26,6 +29,46 @@ static wstring s2ws(const string& s) {
     return sfStr.toWideString();
 }
 
+
+// Period filter: whole current year + current month and the 3 previous months (derived from today's date).
+static void periodMonth(int back, int& month, int& year) {
+    time_t now = time(nullptr);
+    tm ltm{};
+#if defined(_WIN32)
+    localtime_s(&ltm, &now);
+#else
+    localtime_r(&now, &ltm);
+#endif
+    month = ltm.tm_mon + 1 - back;
+    year = ltm.tm_year + 1900;
+    while (month < 1) { month += 12; --year; }
+}
+
+static array<string, 5> dynamicTimePatterns() {
+    array<string, 5> out;
+    out[0] = "";
+    for (int i = 0; i < 4; ++i) {
+        int m, y;
+        periodMonth(i, m, y);
+        char buf[16];
+        snprintf(buf, sizeof(buf), "/%02d/%04d", m, y);
+        out[i + 1] = buf;
+    }
+    return out;
+}
+
+static array<wstring, 5> dynamicTimeLabels() {
+    array<wstring, 5> out;
+    out[0] = L"Thời gian: Tất cả";
+    for (int i = 0; i < 4; ++i) {
+        int m, y;
+        periodMonth(i, m, y);
+        wchar_t buf[48];
+        swprintf(buf, 48, L"Kỳ: Tháng %02d/%04d", m, y);
+        out[i + 1] = buf;
+    }
+    return out;
+}
 static string formatCurrency(long long amount) {
     string s = to_string(amount);
     string res = "";
@@ -72,6 +115,20 @@ void UserPanel::loadData() {
         Color(207, 250, 254)  // cyan
     };
 
+    // Aggregate real ticket data per customer email (number of bookings, total paid)
+    unordered_map<string, pair<int, long long>> stats;
+    {
+        AdminTicketRepository ticketRepo(FileUtils::resolveDataPath("data/tickets.txt"));
+        DLL<Ticket> tickets = ticketRepo.loadAll();
+        for (int i = 0; i < tickets.getSize(); ++i) {
+            string key = tickets[i].email;
+            transform(key.begin(), key.end(), key.begin(), ::tolower);
+            auto& s = stats[key];
+            s.first += 1;
+            s.second += tickets[i].price;
+        }
+    }
+
     int colorIdx = 0;
     for (const auto& u : users) {
         if (u.getRole() != AppRole::Customer) continue;
@@ -97,22 +154,27 @@ void UserPanel::loadData() {
             strftime(buf, sizeof(buf), "%d/%m/%Y", &ltm);
             item.registeredDate = buf;
         } else {
-            item.registeredDate = "15/10/2025";
+            item.registeredDate = "";
         }
 
         // Generate clean UID
         char uidBuf[32];
-        snprintf(uidBuf, sizeof(uidBuf), "CXN-25%04d", 1000 + colorIdx + 1);
+        unsigned long uh = 5381; for (unsigned char ch : u.getEmail()) uh = uh * 33 + ch;
+        snprintf(uidBuf, sizeof(uidBuf), "CXN-%06lu", uh % 1000000UL);
         item.uid = uidBuf;
 
-        // Tickets & Tiers
-        int tk = ((colorIdx * 7 + 3) % 10) + 1;
-        item.ticketsBought = tk;
-        item.totalSpent = static_cast<long long>(tk) * 123000LL;
-        if (tk >= 7) item.tier = CustomerTier::GOLD;
-        else if (tk >= 4) item.tier = CustomerTier::SILVER;
-        else item.tier = CustomerTier::STANDARD;
-
+        // Tickets & tiers: derived from real ticket records (tickets.txt)
+        {
+            string key = u.getEmail();
+            transform(key.begin(), key.end(), key.begin(), ::tolower);
+            auto it = stats.find(key);
+            int tk = it != stats.end() ? it->second.first : 0;
+            item.ticketsBought = tk;
+            item.totalSpent = it != stats.end() ? it->second.second : 0;
+            if (tk >= 7) item.tier = CustomerTier::GOLD;
+            else if (tk >= 4) item.tier = CustomerTier::SILVER;
+            else item.tier = CustomerTier::STANDARD;
+        }
         item.avatarBg = avatarColors[colorIdx % avatarColors.size()];
         colorIdx++;
 
@@ -155,17 +217,15 @@ void UserPanel::calculateCustomerStats() {
         totalTk += c.ticketsBought;
     }
 
-    if (totalCount > 0) {
-        avgSpending = totalSp / totalCount;
-        avgTicketsPerUser = (float)totalTk / (float)totalCount;
-    }
+    avgSpending = totalCount > 0 ? totalSp / totalCount : 0;
+    avgTicketsPerUser = totalCount > 0 ? (float)totalTk / (float)totalCount : 0.f;
 }
 
 void UserPanel::applyFilter() {
     filteredCustomers.clear();
     wstring wSearch = s2ws(searchText);
 
-    const array<string, 5> timePatterns = {"", "/12/2025", "/11/2025", "/10/2025", "/09/2025"};
+    const array<string, 5> timePatterns = dynamicTimePatterns();
     string activeTimePattern = timePatterns[timeFilterIndex % 5];
 
     for (auto& c : allCustomers) {
@@ -224,47 +284,60 @@ void UserPanel::handleEvent(const Event& event, const RenderWindow& window) {
             }
             if (activeDialog == DialogType::DELETE_CONFIRM && dialogUserIndex >= 0 && dialogUserIndex < (int)filteredCustomers.size()) {
                 string delEmail = filteredCustomers[dialogUserIndex]->email;
-                allCustomers.erase(remove_if(allCustomers.begin(), allCustomers.end(),
-                    [&](const CustomerItem& it) { return it.email == delEmail; }), allCustomers.end());
-                repository->deleteUser(delEmail);
-                applyFilter();
-                calculateCustomerStats();
                 toastActive = true;
                 toastTimer = 3.f;
-                toastMessage = L"Đã xóa tài khoản hội viên thành công!";
+                // Tickets keep their own copy of customer name/email, so revenue history is unaffected.
+                if (repository->deleteUser(delEmail)) {
+                    allCustomers.erase(remove_if(allCustomers.begin(), allCustomers.end(),
+                        [&](const CustomerItem& it) { return it.email == delEmail; }), allCustomers.end());
+                    applyFilter();
+                    calculateCustomerStats();
+                    toastMessage = L"Đã xóa tài khoản hội viên (lịch sử vé được giữ nguyên)!";
+                } else {
+                    toastMessage = L"Không thể xóa tài khoản (lỗi ghi dữ liệu)!";
+                }
             } else if (activeDialog == DialogType::ADD_NEW) {
-                string finalName = inputName.empty() ? "Khách Hàng Mới" : inputName;
-                string finalEmail = inputEmail.empty() ? ("khachhang" + to_string(allCustomers.size() + 1) + "@gmail.com") : inputEmail;
-                CustomerItem newItem;
-                newItem.email = finalEmail;
-                newItem.fullName = finalName;
-                newItem.displayFullName = s2ws(finalName);
-                newItem.phone = inputPhone.empty() ? "0912345699" : inputPhone;
-                newItem.registeredDate = "27/10/2026";
-                newItem.uid = "CXN-2610" + to_string(allCustomers.size() + 10);
-                newItem.tier = CustomerTier::STANDARD;
-                newItem.ticketsBought = 0;
-                newItem.totalSpent = 0;
-                newItem.avatarBg = Color(207, 250, 254);
-                newItem.initials = L"HV";
-                allCustomers.insert(allCustomers.begin(), newItem);
+                // Validate and PERSIST a real customer account (no placeholder data).
+                auto fail = [&](const wchar_t* msg) {
+                    toastActive = true; toastTimer = 3.f; toastMessage = msg;
+                };
+                if (inputName.empty() || !Validator::isValidFullName(inputName)) { fail(L"Họ tên không hợp lệ (không để trống, không chứa số)!"); return; }
+                if (!Validator::isValidEmail(inputEmail)) { fail(L"Email không hợp lệ!"); return; }
+                if (repository->exists(inputEmail)) { fail(L"Email đã tồn tại!"); return; }
+                if (!inputPhone.empty() && !Validator::isValidPhone(inputPhone)) { fail(L"Số điện thoại không hợp lệ (10 số nhà mạng VN)!"); return; }
+                // Hash that can never match any password: the customer sets one via password reset.
+                User created(inputEmail, "!unset", inputName, "", inputPhone, time(nullptr), AppRole::Customer);
+                if (!repository->addUser(created)) { fail(L"Không thể lưu hội viên (lỗi ghi dữ liệu)!"); return; }
+                loadData();
                 applyFilter();
-                calculateCustomerStats();
                 toastActive = true;
                 toastTimer = 3.f;
-                toastMessage = L"Đã thêm hội viên CineCore Rewards mới thành công!";
+                toastMessage = L"Đã thêm hội viên mới thành công!";
             } else if (activeDialog == DialogType::EDIT && dialogUserIndex >= 0 && dialogUserIndex < (int)filteredCustomers.size()) {
                 CustomerItem* target = filteredCustomers[dialogUserIndex];
-                if (!inputName.empty()) {
-                    target->fullName = inputName;
-                    target->displayFullName = s2ws(inputName);
-                }
-                if (!inputEmail.empty()) target->email = inputEmail;
-                if (!inputPhone.empty()) target->phone = inputPhone;
-                applyFilter();
                 toastActive = true;
                 toastTimer = 3.f;
-                toastMessage = L"Đã cập nhật hồ sơ khách hàng thành công!";
+                User* stored = repository->findByEmail(target->email);
+                if (!stored) {
+                    toastMessage = L"Không tìm thấy tài khoản!";
+                } else if (!inputName.empty() && !Validator::isValidFullName(inputName)) {
+                    toastMessage = L"Họ tên không hợp lệ (không chứa số)!";
+                } else if (!inputPhone.empty() && !Validator::isValidPhone(inputPhone)) {
+                    toastMessage = L"Số điện thoại không hợp lệ (10 số nhà mạng VN)!";
+                } else if (!inputEmail.empty() && inputEmail != target->email) {
+                    toastMessage = L"Email là khóa tài khoản, không thể thay đổi!";
+                } else {
+                    User updated = *stored;
+                    if (!inputName.empty()) updated.setFullName(inputName);
+                    updated.setPhone(inputPhone);
+                    if (repository->updateUser(updated)) {
+                        loadData();
+                        applyFilter();
+                        toastMessage = L"Đã cập nhật hồ sơ khách hàng thành công!";
+                    } else {
+                        toastMessage = L"Không thể lưu thay đổi (lỗi ghi dữ liệu)!";
+                    }
+                }
             }
             activeDialog = DialogType::NONE;
         };
@@ -528,13 +601,7 @@ void UserPanel::handleEvent(const Event& event, const RenderWindow& window) {
             if (timeRect.contains(mPos)) {
                 timeFilterIndex = (timeFilterIndex + 1) % 5;
                 applyFilter();
-                const array<wstring, 5> timeLabels = {
-                    L"Thời gian: Cả năm 2025",
-                    L"Kỳ: Tháng 12/2025",
-                    L"Kỳ: Tháng 11/2025",
-                    L"Kỳ: Tháng 10/2025",
-                    L"Kỳ: Tháng 09/2025"
-                };
+                const array<wstring, 5> timeLabels = dynamicTimeLabels();
                 toastActive = true;
                 toastTimer = 2.f;
                 toastMessage = L"Đã lọc: " + timeLabels[timeFilterIndex % 5];
@@ -999,13 +1066,7 @@ void UserPanel::drawActionToolbar(RenderTarget& target) const {
     // 3. Time Filter Dropdown
     Vector2f timePos(position.x + width - 245.f, actY);
     RoundedRectRenderer::draw(target, timePos, {180.f, 34.f}, 6.f, Color::White, 1.f, Color(203, 213, 225));
-    const array<wstring, 5> timeLabels = {
-        L"Thời gian: Cả năm 2025",
-        L"Kỳ: Tháng 12/2025",
-        L"Kỳ: Tháng 11/2025",
-        L"Kỳ: Tháng 10/2025",
-        L"Kỳ: Tháng 09/2025"
-    };
+    const array<wstring, 5> timeLabels = dynamicTimeLabels();
     Text tmTxt(font);
     tmTxt.setString(timeLabels[timeFilterIndex % 5]);
     tmTxt.setCharacterSize(12.f);

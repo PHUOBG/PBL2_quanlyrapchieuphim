@@ -133,7 +133,14 @@ bool AdminVoucherRepository::deleteDefinition(const string& code) {
         definitions.end()
     );
 
+    userVouchers.erase(
+        remove_if(userVouchers.begin(), userVouchers.end(),
+            [&upperCode](const UserVoucherEntry& e) { return e.code == upperCode; }),
+        userVouchers.end()
+    );
+
     saveDefinitions();
+    saveUserVouchers();
     return true;
 }
 
@@ -299,14 +306,15 @@ vector<pair<string, string>> AdminVoucherRepository::getActiveUsers() const {
         if (line.empty()) continue;
 
         vector<string> cols = splitString(line, '|');
-        if (cols.size() < 8) continue;
+        if (cols.size() < 7) continue;
         if (isHeaderRow(cols, "email")) continue;
 
         string email = trim(cols[0]);
         string fullName = trim(cols[2]);
-        string status = trim(cols[7]);
+        string role = toUpperCase(trim(cols[6]));
+        string status = (cols.size() >= 8) ? toUpperCase(trim(cols[7])) : "ACTIVE";
 
-        if (status == "active") {
+        if (role != "ADMIN" && (status.empty() || status == "ACTIVE")) {
             result.push_back({email, fullName});
         }
     }

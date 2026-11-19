@@ -9,9 +9,13 @@
 
 using namespace std;
 
+#include "utils/FileUtils.h"
+
 VoucherService::VoucherService(const string& defPath, const string& walletPath, const string& usersPath)
-    : definitionPath(defPath), walletPath(walletPath), usersPath(usersPath),
-      voucherManager(defPath, walletPath) {
+    : definitionPath(FileUtils::resolveDataPath(defPath)),
+      walletPath(FileUtils::resolveDataPath(walletPath)),
+      usersPath(FileUtils::resolveDataPath(usersPath)),
+      voucherManager(FileUtils::resolveDataPath(defPath), FileUtils::resolveDataPath(walletPath)) {
     loadDefinitions();
     loadAutoProvisionConfigs();
 }
