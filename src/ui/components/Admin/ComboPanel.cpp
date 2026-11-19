@@ -579,17 +579,6 @@ void ComboPanel::handleEvent(const Event& event, const RenderWindow& win) {
             float tableY = position.y + (wrapped ? 360.f : 318.f);
             float rowH = 76.f;
 
-            // Header Select-All checkbox
-            FloatRect hdrCbRect({position.x + 42.f, tableY + 12.f}, {20.f, 20.f});
-            if (hdrCbRect.contains(mousePos)) {
-                bool anyUnchecked = false;
-                for (const auto& c : filteredCombos) {
-                    if (!c.isChecked) { anyUnchecked = true; break; }
-                }
-                for (auto& c : filteredCombos) c.isChecked = anyUnchecked;
-                return;
-            }
-
             int count = max(0, min((int)filteredCombos.size() - scrollOffset, maxVisibleRows));
 
             for (int r = 0; r < count; ++r) {
@@ -1007,11 +996,7 @@ void ComboPanel::render(RenderWindow& win) {
         win.draw(hDiv);
     }
 
-    bool allChecked = !filteredCombos.empty();
-    for (const auto& c : filteredCombos) { if (!c.isChecked) { allChecked = false; break; } }
-    drawRoundedCard(win, {tableX + 14.f, tableY + 14.f}, {16.f, 16.f}, 3.f, allChecked ? Color(255, 255, 255, 220) : Color(255, 255, 255, 60));
-    if (allChecked) UITheme::drawCheckmark(win, {tableX + 22.f, tableY + 22.f}, 0.72f, Color(8, 125, 181), 2.f);
-    Text h1(boldFont, L"M\u00c3 COMBO", 14); h1.setFillColor(Color::White); h1.setPosition({tableX + 42.f, tableY + 13.f}); win.draw(h1);
+    drawCenteredHdr(L"M\u00c3 COMBO", tableX, div1);
     Text h2(boldFont, L"T\u00caN COMBO & QUY CHU\u1ea8N CHI TI\u1ebeT", 14); h2.setFillColor(Color::White); h2.setPosition({div1 + 18.f, tableY + 13.f}); win.draw(h2);
     drawCenteredHdr(L"PH\u00c2N LO\u1ea0I", div2, div3);
     drawCenteredHdr(L"GI\u00c1 B\u00c1N NI\u00caM Y\u1ebeT", div3, div4);
@@ -1074,9 +1059,9 @@ void ComboPanel::render(RenderWindow& win) {
 
         const float comboTextX = thumbX + 64.f;
         const float maxTextW = max(120.f, div2 - comboTextX - 16.f);
-        Text nameTxt(boldFont, itm.name, 15);
+        Text nameTxt(boldFont, itm.name, 17);
         nameTxt.setFillColor(Color(23, 32, 51));
-        nameTxt.setPosition({comboTextX, rY + 12.f});
+        nameTxt.setPosition({comboTextX, std::round(rY + 11.f)});
         win.draw(nameTxt);
 
         // Badge HOT nếu có
