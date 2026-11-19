@@ -43,8 +43,10 @@ private:
     int hoveredRow = -1;
     int scrollOffset = 0;
     int currentPage = 1;
-    const int maxVisibleRows = 6; // Chiều cao mỗi dòng 72px
+    int maxVisibleRows = 7; // Dynamically adjusted to viewport height
     int totalPages = 1;
+    int computeMaxVisibleRows() const;
+    bool exportCombosToCsv();
 
     // Buttons hover states
     bool btnAddHover = false;

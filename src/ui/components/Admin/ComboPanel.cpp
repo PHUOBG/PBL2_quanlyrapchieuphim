@@ -2,10 +2,13 @@
 #include "UI/components/Admin/FontManager.h"
 #include "UI/components/Admin/UITheme.h"
 #include "UI/components/Admin/RoundedRectRenderer.h"
+#include "repositories/admin/AdminTicketRepository.h"
 #include "utils/FileUtils.h"
 #include <algorithm>
 #include <fstream>
 #include <sstream>
+#include <unordered_map>
+#include <unordered_set>
 #include <iomanip>
 
 static wstring s2ws(const string& s) {
@@ -106,6 +109,51 @@ const Texture* ComboPanel::getComboTexture(const string& id, const wstring& name
 void ComboPanel::setPosition(Vector2f pos) {
     position = pos;
     width = 1728.f - pos.x;
+    maxVisibleRows = computeMaxVisibleRows();
+    applyFilter();
+}
+
+int ComboPanel::computeMaxVisibleRows() const {
+    const float tableOffset = 318.f;
+    const float headerH = 44.f;
+    const float footerH = 60.f;
+    const float rowH = 76.f;
+    float avail = max(rowH * 4.f, height - tableOffset - headerH - footerH);
+    int rows = static_cast<int>(avail / rowH);
+    return max(4, min(10, rows));
+}
+
+bool ComboPanel::exportCombosToCsv() {
+    string outPath = FileUtils::resolveDataPath("data/combos_export.csv");
+    ofstream out(outPath, ios::binary | ios::trunc);
+    if (!out.is_open()) {
+        outPath = "combos_export.csv";
+        out.open(outPath, ios::binary | ios::trunc);
+        if (!out.is_open()) return false;
+    }
+    const unsigned char bom[] = {0xEF, 0xBB, 0xBF};
+    out.write(reinterpret_cast<const char*>(bom), sizeof(bom));
+    out << "Mã Combo,Tên Combo,Phân Loại,Mô Tả,Giá Bán (VNĐ),Trạng Thái\n";
+    for (const auto& c : filteredCombos) {
+        auto csvEsc = [](string s) {
+            string r = "\"";
+            for (char ch : s) {
+                if (ch == '"') r += "\"\"";
+                else if (ch != '\r' && ch != '\n') r += ch;
+            }
+            return r + "\"";
+        };
+        out << csvEsc(c.id) << ","
+            << csvEsc(ws2s(c.name)) << ","
+            << csvEsc(ws2s(c.category)) << ","
+            << csvEsc(ws2s(c.subtitle)) << ","
+            << c.price << ","
+            << (c.isAvailable ? "Đang bán" : "Ngừng bán") << "\n";
+    }
+    out.flush();
+    bool ok = out.good();
+    out.close();
+    return ok;
 }
 
 void ComboPanel::initDefaultCombos() {
@@ -211,6 +259,7 @@ void ComboPanel::applyFilter() {
         filteredCombos.push_back(itm);
     }
 
+    maxVisibleRows = computeMaxVisibleRows();
     totalPages = max(1, (static_cast<int>(filteredCombos.size()) + maxVisibleRows - 1) / maxVisibleRows);
     if (currentPage > totalPages) currentPage = totalPages;
     if (currentPage < 1) currentPage = 1;
@@ -379,7 +428,9 @@ void ComboPanel::handleEvent(const Event& event, const RenderWindow& win) {
             }
 
             if (btnExp.contains(mousePos)) {
-                notificationMessage = "Đã xuất bảng giá F&B ra file Excel thành công!";
+                bool ok = exportCombosToCsv();
+                notificationMessage = ok ? "Đã xuất bảng giá F&B ra file CSV thành công!"
+                                         : "Lỗi: Không thể xuất file CSV!";
                 notificationClock.restart();
                 notificationVisible = true;
                 return;
@@ -387,10 +438,10 @@ void ComboPanel::handleEvent(const Event& event, const RenderWindow& win) {
 
             // Toolbar buttons: Thêm combo, Sửa combo, Xóa combo, Đồng bộ POS
             float tbY = position.y + 216.f;
-            FloatRect btnAdd({position.x + 30.f, tbY}, {130.f, 38.f});
-            FloatRect btnEdit({position.x + 170.f, tbY}, {120.f, 38.f});
-            FloatRect btnDel({position.x + 300.f, tbY}, {120.f, 38.f});
-            FloatRect btnSync({position.x + width - 170.f, tbY}, {140.f, 38.f});
+            FloatRect btnAdd({position.x + 30.f, tbY}, {134.f, 38.f});
+            FloatRect btnEdit({position.x + 174.f, tbY}, {122.f, 38.f});
+            FloatRect btnDel({position.x + 306.f, tbY}, {122.f, 38.f});
+            FloatRect btnSync({position.x + width - 180.f, tbY}, {150.f, 38.f});
 
             if (btnAdd.contains(mousePos)) {
                 showPopup = true;
@@ -465,9 +516,10 @@ void ComboPanel::handleEvent(const Event& event, const RenderWindow& win) {
 
             // Search box click
             float fltY = position.y + 266.f;
-            FloatRect searchBox({position.x + 30.f, fltY}, {300.f, 36.f});
+            float searchW = min(320.f, max(220.f, width * 0.24f));
+            FloatRect searchBox({position.x + 30.f, fltY}, {searchW, 38.f});
             if (searchBox.contains(mousePos)) {
-                if (!searchQuery.empty() && mousePos.x >= position.x + 305.f) {
+                if (!searchQuery.empty() && mousePos.x >= position.x + 30.f + searchW - 28.f) {
                     searchQuery.clear();
                     applyFilter();
                 }
@@ -477,27 +529,50 @@ void ComboPanel::handleEvent(const Event& event, const RenderWindow& win) {
                 searchActive = false;
             }
 
-            // Filter pills (khớp chính xác pX = position.x + 390.f trong render)
-            vector<pair<float, float>> pillRects = {
-                {390.f, 80.f},   // Tất cả
-                {480.f, 75.f},   // Nước lẻ
-                {565.f, 75.f},   // Bắp đơn
-                {650.f, 110.f},  // Combo 1 Người
-                {770.f, 150.f}   // Combo Nhóm / Cặp đôi
+            // Filter pills (dynamic width & wrap-safe)
+            vector<wstring> pillLabels = {
+                L"T\u1ea5t c\u1ea3 (" + to_wstring(allCombos.size()) + L")",
+                L"\u0110\u1ed3 u\u1ed1ng",
+                L"B\u1eafp \u0111\u01a1n",
+                L"Combo 1 Ng\u01b0\u1eddi",
+                L"Combo Nh\u00f3m / C\u1eb7p \u0111\u00f4i"
             };
-
-            for (size_t i = 0; i < pillRects.size(); ++i) {
-                FloatRect pB({position.x + pillRects[i].first, fltY}, {pillRects[i].second, 36.f});
+            float pX = position.x + 30.f + searchW + 58.f;
+            float pY = fltY + 1.f;
+            float maxRight = position.x + width - 30.f;
+            bool wrapped = false;
+            for (size_t i = 0; i < pillLabels.size(); ++i) {
+                Text mTxt(boldFont, pillLabels[i], 14);
+                float pw = std::round(mTxt.getLocalBounds().size.x + 28.f);
+                if (pX + pw > maxRight && i > 0) {
+                    pX = position.x + 30.f;
+                    pY = fltY + 44.f;
+                    wrapped = true;
+                }
+                FloatRect pB({pX, pY}, {pw, 36.f});
                 if (pB.contains(mousePos)) {
                     activeFilterIndex = (int)i;
                     applyFilter();
                     return;
                 }
+                pX += pw + 10.f;
             }
 
-            // Table Row Click & Actions (khớp tableY = position.y + 316.f trong render)
-            float tableY = position.y + 316.f;
-            float rowH = 72.f;
+            // Table Row Click & Actions
+            float tableY = position.y + (wrapped ? 360.f : 318.f);
+            float rowH = 76.f;
+
+            // Header Select-All checkbox
+            FloatRect hdrCbRect({position.x + 42.f, tableY + 12.f}, {20.f, 20.f});
+            if (hdrCbRect.contains(mousePos)) {
+                bool anyUnchecked = false;
+                for (const auto& c : filteredCombos) {
+                    if (!c.isChecked) { anyUnchecked = true; break; }
+                }
+                for (auto& c : filteredCombos) c.isChecked = anyUnchecked;
+                return;
+            }
+
             int count = max(0, min((int)filteredCombos.size() - scrollOffset, maxVisibleRows));
 
             for (int r = 0; r < count; ++r) {
@@ -508,15 +583,15 @@ void ComboPanel::handleEvent(const Event& event, const RenderWindow& win) {
                     selectedRow = scrollOffset + r;
 
                     // Click checkbox
-                    FloatRect cbRect({position.x + 40.f, rY + 26.f}, {20.f, 20.f});
+                    FloatRect cbRect({position.x + 42.f, rY + 28.f}, {20.f, 20.f});
                     if (cbRect.contains(mousePos)) {
                         filteredCombos[selectedRow].isChecked = !filteredCombos[selectedRow].isChecked;
                         return;
                     }
 
                     // Click action edit
-                    float actX = position.x + width - 30.f - 120.f + (120.f - 70.f) / 2.f;
-                    FloatRect btnRowEdit({actX, rY + 22.f}, {34.f, 28.f});
+                    float actX = position.x + width - 30.f - 124.f + (124.f - 76.f) / 2.f;
+                    FloatRect btnRowEdit({actX, rY + 24.f}, {36.f, 28.f});
                     if (btnRowEdit.contains(mousePos)) {
                         string selId = filteredCombos[selectedRow].id;
                         for (size_t i = 0; i < allCombos.size(); ++i) {
@@ -536,7 +611,7 @@ void ComboPanel::handleEvent(const Event& event, const RenderWindow& win) {
                     }
 
                     // Click action delete
-                    FloatRect btnRowDel({actX + 38.f, rY + 22.f}, {34.f, 28.f});
+                    FloatRect btnRowDel({actX + 40.f, rY + 24.f}, {36.f, 28.f});
                     if (btnRowDel.contains(mousePos)) {
                         string selId = filteredCombos[selectedRow].id;
                         vector<ComboItem> backup = allCombos;
@@ -562,7 +637,7 @@ void ComboPanel::handleEvent(const Event& event, const RenderWindow& win) {
             }
 
             // Pagination buttons
-            float pageY = tableY + 44.f + maxVisibleRows * rowH + 12.f;
+            float pageY = tableY + 44.f + maxVisibleRows * rowH + 14.f;
             float tableW = width - 60.f;
             float rightEdge = position.x + 30.f + tableW;
 
@@ -658,8 +733,8 @@ void ComboPanel::handleEvent(const Event& event, const RenderWindow& win) {
 void ComboPanel::update(Vector2f mousePos, bool) {
     hoveredRow = -1;
     if (!showPopup) {
-        float tableY = position.y + 320.f;
-        float rowH = 72.f;
+        float tableY = position.y + 318.f;
+        float rowH = 76.f;
         int count = min((int)filteredCombos.size() - scrollOffset, maxVisibleRows);
 
         for (int r = 0; r < count; ++r) {
@@ -708,139 +783,197 @@ void ComboPanel::render(RenderWindow& win) {
     // ==========================================
     float statY = position.y + 114.f;
     float cardW = (width - 60.f - 45.f) / 4.f;
-    float cardH = 88.f;
+    float cardH = 90.f;
+
+    // Compute real summary metrics from allCombos & tickets.txt
+    long long sumComboPrices = 0;
+    unordered_set<wstring> distinctCats;
+    for (const auto& c : allCombos) {
+        sumComboPrices += c.price;
+        distinctCats.insert(c.category);
+    }
+    long long avgMenuPrice = allCombos.empty() ? 0 : (sumComboPrices / static_cast<long long>(allCombos.size()));
+
+    long long totalFbRev = 0;
+    unordered_map<string, int> soldQtyByCode;
+    {
+        unordered_map<string, int> priceByKey;
+        for (const auto& c : allCombos) {
+            priceByKey[c.id] = c.price;
+            priceByKey[ws2s(c.name)] = c.price;
+        }
+        AdminTicketRepository tRepo(FileUtils::resolveDataPath("data/tickets.txt"));
+        DLL<Ticket> tickets = tRepo.loadAll();
+        for (int i = 0; i < tickets.getSize(); ++i) {
+            const string& cs = tickets[i].comboName;
+            if (cs.empty() || cs == "Không có" || cs == "None") continue;
+            stringstream css(cs);
+            string tok;
+            while (getline(css, tok, ',')) {
+                size_t a = tok.find_first_not_of(" \t\r\n");
+                size_t b = tok.find_last_not_of(" \t\r\n");
+                if (a == string::npos) continue;
+                string item = tok.substr(a, b - a + 1);
+                string code = item;
+                int qty = 1;
+                size_t col = item.find(":x");
+                if (col != string::npos) {
+                    code = item.substr(0, col);
+                    try { qty = max(1, stoi(item.substr(col + 2))); } catch (...) { qty = 1; }
+                } else {
+                    size_t xpos = item.rfind(" x");
+                    if (xpos != string::npos) {
+                        code = item.substr(0, xpos);
+                        try { qty = max(1, stoi(item.substr(xpos + 2))); } catch (...) { qty = 1; }
+                    }
+                }
+                soldQtyByCode[code] += qty;
+                if (priceByKey.count(code)) {
+                    totalFbRev += static_cast<long long>(priceByKey[code]) * qty;
+                }
+            }
+        }
+    }
+    string bestCode;
+    int bestQty = 0;
+    for (const auto& kv : soldQtyByCode) {
+        if (kv.second > bestQty) { bestQty = kv.second; bestCode = kv.first; }
+    }
+    wstring bestLabel = L"Ch\u01b0a c\u00f3 d\u1eef li\u1ec7u";
+    if (!bestCode.empty()) {
+        bestLabel = s2ws(bestCode);
+        for (const auto& c : allCombos) {
+            if (c.id == bestCode || ws2s(c.name) == bestCode) {
+                bestLabel = s2ws(c.id) + L": " + c.name;
+                break;
+            }
+        }
+    }
 
     // Card 1: Tổng danh mục
     float c1X = position.x + 30.f;
     drawRoundedCard(win, {c1X, statY}, {cardW, cardH}, 10.f, Color::White, 1.f, Color(226, 232, 240));
     Text sc1T(boldFont, L"T\u1ed4NG DANH M\u1ee4C", 14); sc1T.setFillColor(Color(100, 116, 139)); sc1T.setPosition({c1X + 16.f, statY + 12.f}); win.draw(sc1T);
-    Text sc1V(boldFont, to_wstring(allCombos.size()), 24); sc1V.setFillColor(Color(23, 32, 51)); sc1V.setPosition({c1X + 16.f, statY + 30.f}); win.draw(sc1V);
+    Text sc1V(boldFont, to_wstring(allCombos.size()), 22); sc1V.setFillColor(Color(23, 32, 51)); sc1V.setPosition({c1X + 16.f, statY + 34.f}); win.draw(sc1V);
     FloatRect v1b = sc1V.getGlobalBounds();
-    drawRoundedCard(win, {v1b.position.x + v1b.size.x + 10.f, statY + 34.f}, {92.f, 22.f}, 11.f, Color(220, 252, 231));
-    Text sc1B(boldFont, L"100% Kh\u1ea3 d\u1ee5ng", 14); sc1B.setFillColor(Color(22, 101, 52)); sc1B.setPosition({v1b.position.x + v1b.size.x + 16.f, statY + 37.f}); win.draw(sc1B);
-    Text sc1S(font, L"G\u1ed3m n\u01b0\u1edbc ng\u1ecdt, b\u1eafp v\u1ecb, combo \u0111\u00f4i", 14); sc1S.setFillColor(Color(148, 163, 184)); sc1S.setPosition({c1X + 16.f, statY + 62.f}); win.draw(sc1S);
+    Text sc1B(boldFont, L"100% Kh\u1ea3 d\u1ee5ng", 14); sc1B.setFillColor(Color(22, 101, 52));
+    float b1W = sc1B.getLocalBounds().size.x + 18.f;
+    drawRoundedCard(win, {v1b.position.x + v1b.size.x + 10.f, statY + 35.f}, {b1W, 24.f}, 12.f, Color(220, 252, 231));
+    sc1B.setPosition({v1b.position.x + v1b.size.x + 19.f, statY + 38.f}); win.draw(sc1B);
+    Text sc1S(font, to_wstring(distinctCats.size()) + L" nh\u00f3m s\u1ea3n ph\u1ea9m F&B", 14); sc1S.setFillColor(Color(100, 116, 139)); sc1S.setPosition({c1X + 16.f, statY + 64.f}); win.draw(sc1S);
 
-    // Card 2: Doanh thu F&B hôm nay
+    // Card 2: Doanh thu F&B
     float c2X = c1X + cardW + 15.f;
     drawRoundedCard(win, {c2X, statY}, {cardW, cardH}, 10.f, Color::White, 1.f, Color(226, 232, 240));
-    Text sc2T(boldFont, L"DOANH THU F&B H\u00d4M NAY", 14); sc2T.setFillColor(Color(100, 116, 139)); sc2T.setPosition({c2X + 16.f, statY + 12.f}); win.draw(sc2T);
-    Text sc2V(boldFont, L"14.850.000 \u0111", 24); sc2V.setFillColor(Color(23, 32, 51)); sc2V.setPosition({c2X + 16.f, statY + 30.f}); win.draw(sc2V);
-    FloatRect v2b = sc2V.getGlobalBounds();
-    Text sc2Inc(boldFont, L"+18.4%", 14); sc2Inc.setFillColor(Color(21, 128, 61)); sc2Inc.setPosition({v2b.position.x + v2b.size.x + 8.f, statY + 34.f}); win.draw(sc2Inc);
-    Text sc2S(font, L"Chi\u1ebfm 36% t\u1ed5ng doanh thu v\u00e9", 14); sc2S.setFillColor(Color(148, 163, 184)); sc2S.setPosition({c2X + 16.f, statY + 62.f}); win.draw(sc2S);
+    Text sc2T(boldFont, L"DOANH THU F&B", 14); sc2T.setFillColor(Color(100, 116, 139)); sc2T.setPosition({c2X + 16.f, statY + 12.f}); win.draw(sc2T);
+    Text sc2V(boldFont, s2ws(formatPrice((int)min(totalFbRev, 2000000000LL))), 22); sc2V.setFillColor(Color(23, 32, 51)); sc2V.setPosition({c2X + 16.f, statY + 34.f}); win.draw(sc2V);
+    Text sc2S(font, L"T\u1ed5ng doanh thu combo \u0111\u00e3 b\u00e1n", 14); sc2S.setFillColor(Color(100, 116, 139)); sc2S.setPosition({c2X + 16.f, statY + 64.f}); win.draw(sc2S);
 
-    // Card 3: Best Seller hôm nay
+    // Card 3: Best Seller
     float c3X = c2X + cardW + 15.f;
     drawRoundedCard(win, {c3X, statY}, {cardW, cardH}, 10.f, Color::White, 1.f, Color(226, 232, 240));
-    Text sc3T(boldFont, L"BEST SELLER H\u00d4M NAY", 14); sc3T.setFillColor(Color(100, 116, 139)); sc3T.setPosition({c3X + 16.f, statY + 12.f}); win.draw(sc3T);
-    Text sc3V(boldFont, L"CB02: B\u1eafp Caramel", 14); sc3V.setFillColor(Color(23, 32, 51)); sc3V.setPosition({c3X + 16.f, statY + 34.f}); win.draw(sc3V);
-    Text sc3S(font, L"184 ph\u1ea7n \u0111\u00e3 b\u00e1n ra", 14); sc3S.setFillColor(Color(148, 163, 184)); sc3S.setPosition({c3X + 16.f, statY + 62.f}); win.draw(sc3S);
+    Text sc3T(boldFont, L"BEST SELLER", 14); sc3T.setFillColor(Color(100, 116, 139)); sc3T.setPosition({c3X + 16.f, statY + 12.f}); win.draw(sc3T);
+    if (bestLabel.size() > 24) bestLabel = bestLabel.substr(0, 21) + L"...";
+    Text sc3V(boldFont, bestLabel, 15); sc3V.setFillColor(Color(23, 32, 51)); sc3V.setPosition({c3X + 16.f, statY + 37.f}); win.draw(sc3V);
+    Text sc3S(font, to_wstring(bestQty) + L" ph\u1ea7n \u0111\u00e3 b\u00e1n ra", 14); sc3S.setFillColor(Color(100, 116, 139)); sc3S.setPosition({c3X + 16.f, statY + 64.f}); win.draw(sc3S);
 
     // Card 4: Giá trị trung bình F&B
     float c4X = c3X + cardW + 15.f;
     drawRoundedCard(win, {c4X, statY}, {cardW, cardH}, 10.f, Color::White, 1.f, Color(226, 232, 240));
-    Text sc4T(boldFont, L"GI\u00c1 TR\u1eca TRUNG B\u00ccNH F&B", 14); sc4T.setFillColor(Color(100, 116, 139)); sc4T.setPosition({c4X + 16.f, statY + 12.f}); win.draw(sc4T);
-    Text sc4V(boldFont, L"115.000 \u0111", 24); sc4V.setFillColor(Color(23, 32, 51)); sc4V.setPosition({c4X + 16.f, statY + 30.f}); win.draw(sc4V);
-    FloatRect v4b = sc4V.getGlobalBounds();
-    Text sc4Tx(font, L"/ giao d\u1ecbch", 14); sc4Tx.setFillColor(Color(100, 116, 139)); sc4Tx.setPosition({v4b.position.x + v4b.size.x + 4.f, statY + 34.f}); win.draw(sc4Tx);
-    Text sc4S(font, L"Th\u01b0\u1eddng mua k\u00e8m v\u00e9 \u0111\u00f4i", 14); sc4S.setFillColor(Color(148, 163, 184)); sc4S.setPosition({c4X + 16.f, statY + 62.f}); win.draw(sc4S);
+    Text sc4T(boldFont, L"GI\u00c1 TR\u1eca TRUNG B\u00ccNH", 14); sc4T.setFillColor(Color(100, 116, 139)); sc4T.setPosition({c4X + 16.f, statY + 12.f}); win.draw(sc4T);
+    Text sc4V(boldFont, s2ws(formatPrice((int)avgMenuPrice)), 22); sc4V.setFillColor(Color(23, 32, 51)); sc4V.setPosition({c4X + 16.f, statY + 34.f}); win.draw(sc4V);
+    Text sc4S(font, L"\u0110\u01a1n gi\u00e1 trung b\u00ecnh th\u1ef1c \u0111\u01a1n", 14); sc4S.setFillColor(Color(100, 116, 139)); sc4S.setPosition({c4X + 16.f, statY + 64.f}); win.draw(sc4S);
 
     // ==========================================
     // 5. TOOLBAR & FILTER PILLS
     // ==========================================
     float tbY = position.y + 216.f;
 
-    // Nút 1: + Thêm combo
-    drawRoundedCard(win, {position.x + 30.f, tbY}, {130.f, 38.f}, 6.f, Color(21, 128, 61));
-    Text addTxt(boldFont, L"+ Th\u00eam combo", 14); addTxt.setFillColor(Color::White); addTxt.setPosition({position.x + 42.f, tbY + 9.f}); win.draw(addTxt);
+    auto drawToolbarBtn = [&](float bx, float bw, Color bg, Color fg, const wstring& label, Color border = Color::Transparent) {
+        drawRoundedCard(win, {bx, tbY}, {bw, 38.f}, 6.f, bg, border == Color::Transparent ? 0.f : 1.f, border);
+        Text txt(boldFont, label, 14);
+        txt.setFillColor(fg);
+        FloatRect b = txt.getLocalBounds();
+        txt.setPosition({std::round(bx + (bw - b.size.x) / 2.f - b.position.x), std::round(tbY + (38.f - b.size.y) / 2.f - b.position.y)});
+        win.draw(txt);
+    };
+    drawToolbarBtn(position.x + 30.f, 134.f, Color(21, 128, 61), Color::White, L"+ Th\u00eam combo");
+    drawToolbarBtn(position.x + 174.f, 122.f, Color(217, 119, 6), Color::White, L"S\u1eeda combo");
+    drawToolbarBtn(position.x + 306.f, 122.f, Color(220, 38, 38), Color::White, L"X\u00f3a combo");
+    drawToolbarBtn(position.x + width - 180.f, 150.f, Color(238, 242, 255), Color(67, 56, 202), L"\u0110\u1ed3ng b\u1ed9 m\u00e1y POS", Color(199, 210, 254));
 
-    // Nút 2: Sửa combo
-    drawRoundedCard(win, {position.x + 170.f, tbY}, {120.f, 38.f}, 6.f, Color(217, 119, 6));
-    Text editTxt(boldFont, L"S\u1eeda combo", 14);
-    editTxt.setFillColor(Color::White);
-    FloatRect edb = editTxt.getLocalBounds();
-    editTxt.setPosition({position.x + 170.f + (120.f - edb.size.x) / 2.f - edb.position.x, tbY + (38.f - edb.size.y) / 2.f - edb.position.y});
-    win.draw(editTxt);
-
-    // Nút 3: Xóa combo
-    drawRoundedCard(win, {position.x + 300.f, tbY}, {120.f, 38.f}, 6.f, Color(220, 38, 38));
-    Text delTxt(boldFont, L"X\u00f3a combo", 14);
-    delTxt.setFillColor(Color::White);
-    FloatRect dlb = delTxt.getLocalBounds();
-    delTxt.setPosition({position.x + 300.f + (120.f - dlb.size.x) / 2.f - dlb.position.x, tbY + (38.f - dlb.size.y) / 2.f - dlb.position.y});
-    win.draw(delTxt);
-
-    // Nút 4: Đồng bộ máy POS
-    drawRoundedCard(win, {position.x + width - 170.f, tbY}, {140.f, 38.f}, 6.f, Color(238, 242, 255), 1.f, Color(199, 210, 254));
-    Text syncTxt(boldFont, L"\u0110\u1ed3ng b\u1ed9 m\u00e1y POS", 14);
-    syncTxt.setFillColor(Color(67, 56, 202));
-    FloatRect syb = syncTxt.getLocalBounds();
-    syncTxt.setPosition({position.x + width - 170.f + (140.f - syb.size.x) / 2.f - syb.position.x, tbY + (38.f - syb.size.y) / 2.f - syb.position.y});
-    win.draw(syncTxt);
-
-    // Dòng 2: Ô tìm kiếm & Bộ lọc
+    // Dòng 2: Ô tìm kiếm & Bộ lọc (căn giữa dọc, tự động xuống dòng nếu hẹp)
     float fltY = position.y + 266.f;
-    drawRoundedCard(win, {position.x + 30.f, fltY}, {300.f, 36.f}, 6.f, Color::White, searchActive ? 1.5f : 1.f, searchActive ? Color(8, 125, 181) : Color(203, 213, 225));
+    float searchW = min(320.f, max(220.f, width * 0.24f));
+    drawRoundedCard(win, {position.x + 30.f, fltY}, {searchW, 38.f}, 6.f, Color::White, searchActive ? 1.5f : 1.f, searchActive ? Color(8, 125, 181) : Color(203, 213, 225));
 
-    // Kính lúp vector SFML
     CircleShape sGlass(5.5f);
     sGlass.setFillColor(Color::Transparent);
     sGlass.setOutlineThickness(1.8f);
     sGlass.setOutlineColor(Color(148, 163, 184));
-    sGlass.setPosition({position.x + 42.f, fltY + 11.f});
+    sGlass.setPosition({position.x + 42.f, fltY + 12.f});
     win.draw(sGlass);
 
     RectangleShape sHandle({6.f, 2.f});
     sHandle.setFillColor(Color(148, 163, 184));
-    sHandle.setPosition({position.x + 51.5f, fltY + 20.5f});
+    sHandle.setPosition({position.x + 51.5f, fltY + 21.5f});
     sHandle.setRotation(degrees(45.f));
     win.draw(sHandle);
 
     wstring sPrompt = searchQuery.empty()
-        ? (searchActive ? L"|" : L"T\u00ecm theo m\u00e3 combo (CB01...) ho\u1eb7c t\u00ean s\u1ea3n ph\u1ea9m...")
+        ? (searchActive ? L"|" : L"T\u00ecm m\u00e3 (CB01...) ho\u1eb7c t\u00ean...")
         : (searchQuery + (searchActive ? L"|" : L""));
     Text sTxt(font, sPrompt, 14);
     sTxt.setFillColor(searchQuery.empty() && !searchActive ? Color(148, 163, 184) : Color(23, 32, 51));
-    sTxt.setPosition({position.x + 62.f, fltY + 9.f});
+    sTxt.setPosition({position.x + 62.f, fltY + 10.f});
     win.draw(sTxt);
     if (!searchQuery.empty()) {
-        UITheme::drawCloseIcon(win, {position.x + 316.f, fltY + 17.f}, 10.f, Color(148, 163, 184), 1.8f);
+        UITheme::drawCloseIcon(win, {position.x + 30.f + searchW - 14.f, fltY + 19.f}, 10.f, Color(148, 163, 184), 1.8f);
     }
 
-    Text locLbl(boldFont, L"L\u1eccC:", 14); locLbl.setFillColor(Color(100, 116, 139)); locLbl.setPosition({position.x + 350.f, fltY + 9.f}); win.draw(locLbl);
+    Text locLbl(boldFont, L"L\u1eccC:", 14); locLbl.setFillColor(Color(100, 116, 139)); locLbl.setPosition({position.x + 30.f + searchW + 14.f, fltY + 10.f}); win.draw(locLbl);
 
-    // Các Pill filter
-    vector<pair<wstring, float>> pills = {
-        {L"T\u1ea5t c\u1ea3 (10)", 80.f},
-        {L"N\u01b0\u1edbc l\u1ebb", 75.f},
-        {L"B\u1eafp \u0111\u01a1n", 75.f},
-        {L"Combo 1 Ng\u01b0\u1eddi", 110.f},
-        {L"Combo Nh\u00f3m / C\u1eb7p \u0111\u00f4i", 150.f}
+    // Các Pill filter (chiều rộng động, không chồng chéo)
+    vector<wstring> pillLabels = {
+        L"T\u1ea5t c\u1ea3 (" + to_wstring(allCombos.size()) + L")",
+        L"\u0110\u1ed3 u\u1ed1ng",
+        L"B\u1eafp \u0111\u01a1n",
+        L"Combo 1 Ng\u01b0\u1eddi",
+        L"Combo Nh\u00f3m / C\u1eb7p \u0111\u00f4i"
     };
-    float pX = position.x + 390.f;
-    for (size_t i = 0; i < pills.size(); ++i) {
+    float pX = position.x + 30.f + searchW + 58.f;
+    float pY = fltY + 1.f;
+    float maxRight = position.x + width - 30.f;
+    bool wrapped = false;
+    for (size_t i = 0; i < pillLabels.size(); ++i) {
+        Text pTxt(boldFont, pillLabels[i], 14);
+        float pw = std::round(pTxt.getLocalBounds().size.x + 28.f);
+        if (pX + pw > maxRight && i > 0) {
+            pX = position.x + 30.f;
+            pY = fltY + 44.f;
+            wrapped = true;
+        }
         bool isAct = ((int)i == activeFilterIndex);
-        drawRoundedCard(win, {pX, fltY}, {pills[i].second, 34.f}, 17.f, isAct ? Color(8, 125, 181) : Color::White, isAct ? 0.f : 1.f, Color(226, 232, 240));
-        Text pTxt(boldFont, pills[i].first, 14);
+        drawRoundedCard(win, {pX, pY}, {pw, 36.f}, 18.f, isAct ? Color(8, 125, 181) : Color::White, isAct ? 0.f : 1.f, Color(226, 232, 240));
         pTxt.setFillColor(isAct ? Color::White : Color(71, 85, 105));
         FloatRect ptb = pTxt.getLocalBounds();
-        pTxt.setPosition({pX + (pills[i].second - ptb.size.x) / 2.f - ptb.position.x, fltY + (34.f - ptb.size.y) / 2.f - ptb.position.y});
+        pTxt.setPosition({std::round(pX + (pw - ptb.size.x) / 2.f - ptb.position.x), std::round(pY + (36.f - ptb.size.y) / 2.f - ptb.position.y)});
         win.draw(pTxt);
-        pX += pills[i].second + 10.f;
+        pX += pw + 10.f;
     }
 
     // ==========================================
     // 6. BẢNG DỮ LIỆU COMBO (DATA TABLE)
     // ==========================================
     float tableX = position.x + 30.f;
-    float tableY = position.y + 316.f;
+    float tableY = position.y + (wrapped ? 360.f : 318.f);
     float tableW = width - 60.f;
     float tableRight = tableX + tableW;
-    float rowH = 72.f;
+    float rowH = 76.f;
 
-    const float div1 = tableX + 128.f;
-    const float div5 = tableRight - 120.f;
-    const float div4 = div5 - 150.f;
+    const float div1 = tableX + 132.f;
+    const float div5 = tableRight - 124.f;
+    const float div4 = div5 - 146.f;
     const float div3 = div4 - 165.f;
     const float div2 = div3 - 145.f;
 
@@ -848,7 +981,7 @@ void ComboPanel::render(RenderWindow& win) {
         Text h(boldFont, str, 14);
         h.setFillColor(Color::White);
         FloatRect hb = h.getLocalBounds();
-        h.setPosition({xStart + (xEnd - xStart - hb.size.x) / 2.f - hb.position.x, tableY + 13.f});
+        h.setPosition({std::round(xStart + (xEnd - xStart - hb.size.x) / 2.f - hb.position.x), tableY + 13.f});
         win.draw(h);
     };
 
@@ -862,8 +995,11 @@ void ComboPanel::render(RenderWindow& win) {
         win.draw(hDiv);
     }
 
-    drawRoundedCard(win, {tableX + 14.f, tableY + 14.f}, {16.f, 16.f}, 3.f, Color(255, 255, 255, 60));
-    Text h1(boldFont, L"M\u00c3 COMBO", 14); h1.setFillColor(Color::White); h1.setPosition({tableX + 44.f, tableY + 13.f}); win.draw(h1);
+    bool allChecked = !filteredCombos.empty();
+    for (const auto& c : filteredCombos) { if (!c.isChecked) { allChecked = false; break; } }
+    drawRoundedCard(win, {tableX + 14.f, tableY + 14.f}, {16.f, 16.f}, 3.f, allChecked ? Color(255, 255, 255, 220) : Color(255, 255, 255, 60));
+    if (allChecked) UITheme::drawCheckmark(win, {tableX + 22.f, tableY + 22.f}, 0.72f, Color(8, 125, 181), 2.f);
+    Text h1(boldFont, L"M\u00c3 COMBO", 14); h1.setFillColor(Color::White); h1.setPosition({tableX + 42.f, tableY + 13.f}); win.draw(h1);
     Text h2(boldFont, L"T\u00caN COMBO & QUY CHU\u1ea8N CHI TI\u1ebeT", 14); h2.setFillColor(Color::White); h2.setPosition({div1 + 18.f, tableY + 13.f}); win.draw(h2);
     drawCenteredHdr(L"PH\u00c2N LO\u1ea0I", div2, div3);
     drawCenteredHdr(L"GI\u00c1 B\u00c1N NI\u00caM Y\u1ebeT", div3, div4);
@@ -892,58 +1028,78 @@ void ComboPanel::render(RenderWindow& win) {
         }
 
         // 1. Checkbox
-        drawRoundedCard(win, {tableX + 14.f, rY + 28.f}, {16.f, 16.f}, 3.f, itm.isChecked ? Color(8, 125, 181) : Color::White, 1.f, Color(203, 213, 225));
+        drawRoundedCard(win, {tableX + 14.f, rY + 30.f}, {16.f, 16.f}, 3.f, itm.isChecked ? Color(8, 125, 181) : Color::White, 1.f, Color(203, 213, 225));
         if (itm.isChecked) {
-            UITheme::drawCheckmark(win, {tableX + 22.f, rY + 36.f}, 0.72f, Color::White, 2.f);
+            UITheme::drawCheckmark(win, {tableX + 22.f, rY + 38.f}, 0.72f, Color::White, 2.f);
         }
 
         // 2. Mã combo (Badge viền mỏng)
-        drawRoundedCard(win, {tableX + 44.f, rY + 24.f}, {55.f, 24.f}, 4.f, Color(248, 250, 252), 1.f, Color(226, 232, 240));
+        drawRoundedCard(win, {tableX + 44.f, rY + 25.f}, {58.f, 26.f}, 4.f, Color(248, 250, 252), 1.f, Color(226, 232, 240));
         Text idTxt(boldFont, s2ws(itm.id), 14); idTxt.setFillColor(Color(51, 65, 85));
         FloatRect idb = idTxt.getLocalBounds();
-        idTxt.setPosition({tableX + 44.f + (55.f - idb.size.x) / 2.f - idb.position.x, rY + 27.f});
+        idTxt.setPosition({std::round(tableX + 44.f + (58.f - idb.size.x) / 2.f - idb.position.x), std::round(rY + 25.f + (26.f - idb.size.y) / 2.f - idb.position.y)});
         win.draw(idTxt);
 
-        // 3. Tên combo & Quy chuẩn chi tiết (giữ nguyên ảnh minh họa combo)
+        // 3. Tên combo & Quy chuẩn chi tiết (thumbnail 52x52)
         const float thumbX = div1 + 18.f;
         const Texture* cTex = getComboTexture(itm.id, itm.name);
         if (cTex) {
-            drawRoundedCard(win, {thumbX, rY + 14.f}, {44.f, 44.f}, 8.f, Color::White, 1.2f, Color(226, 232, 240));
+            drawRoundedCard(win, {thumbX, rY + 12.f}, {52.f, 52.f}, 8.f, Color::White, 1.2f, Color(226, 232, 240));
             Sprite spr(*cTex);
             Vector2u sz = cTex->getSize();
-            spr.setScale({42.f / (float)sz.x, 42.f / (float)sz.y});
-            spr.setPosition({thumbX + 1.f, rY + 15.f});
+            spr.setScale({50.f / (float)sz.x, 50.f / (float)sz.y});
+            spr.setPosition({thumbX + 1.f, rY + 13.f});
             win.draw(spr);
-            drawRoundedCard(win, {thumbX + 1.f, rY + 15.f}, {42.f, 42.f}, 6.f, Color::Transparent, 1.f, Color(203, 213, 225));
+            drawRoundedCard(win, {thumbX + 1.f, rY + 13.f}, {50.f, 50.f}, 6.f, Color::Transparent, 1.f, Color(203, 213, 225));
         } else {
-            drawRoundedCard(win, {thumbX + 1.f, rY + 15.f}, {42.f, 42.f}, 8.f, itm.category == L"Đồ uống" ? Color(254, 226, 226) : Color(254, 243, 199));
+            drawRoundedCard(win, {thumbX + 1.f, rY + 13.f}, {50.f, 50.f}, 8.f, itm.category == L"Đồ uống" ? Color(254, 226, 226) : Color(254, 243, 199));
             Text icDish(boldFont, itm.category == L"Đồ uống" ? L"DRINK" : L"SNACK", 14);
             icDish.setFillColor(Color(180, 83, 9));
-            icDish.setPosition({thumbX + 5.f, rY + 28.f});
+            FloatRect icb = icDish.getLocalBounds();
+            icDish.setPosition({std::round(thumbX + 1.f + (50.f - icb.size.x) / 2.f - icb.position.x), std::round(rY + 13.f + (50.f - icb.size.y) / 2.f - icb.position.y)});
             win.draw(icDish);
         }
 
-        const float comboTextX = thumbX + 56.f;
-        Text nameTxt(boldFont, itm.name, 14.f);
+        const float comboTextX = thumbX + 64.f;
+        const float maxTextW = max(120.f, div2 - comboTextX - 16.f);
+        Text nameTxt(boldFont, itm.name, 15);
         nameTxt.setFillColor(Color(23, 32, 51));
-        nameTxt.setPosition({comboTextX, rY + 14.f});
+        nameTxt.setPosition({comboTextX, rY + 12.f});
         win.draw(nameTxt);
 
         // Badge HOT nếu có
         if (itm.isHot) {
             FloatRect nb = nameTxt.getGlobalBounds();
-            drawRoundedCard(win, {nb.position.x + nb.size.x + 8.f, rY + 14.f}, {38.f, 20.f}, 4.f, Color(245, 158, 11));
-            Text hotTxt(boldFont, L"HOT", 14); hotTxt.setFillColor(Color::White); hotTxt.setPosition({nb.position.x + nb.size.x + 12.f, rY + 15.f}); win.draw(hotTxt);
+            if (nb.position.x + nb.size.x + 50.f < div2) {
+                drawRoundedCard(win, {nb.position.x + nb.size.x + 8.f, rY + 12.f}, {40.f, 20.f}, 4.f, Color(245, 158, 11));
+                Text hotTxt(boldFont, L"HOT", 14); hotTxt.setFillColor(Color::White); hotTxt.setPosition({nb.position.x + nb.size.x + 12.f, rY + 13.f}); win.draw(hotTxt);
+            }
         }
 
-        // Cắt bớt nếu mô tả quá dài để không bị tràn chữ
-        wstring dispSub = itm.subtitle;
-        if (dispSub.size() > 85) {
-            dispSub = dispSub.substr(0, 82) + L"...";
+        // Wrap mô tả tối đa 2 dòng ở cỡ chữ 14 để vừa khít cột
+        wstring wrappedSub;
+        {
+            wstringstream wss(itm.subtitle);
+            wstring word, line1, line2;
+            bool onSecond = false;
+            while (wss >> word) {
+                if (!onSecond) {
+                    wstring cand = line1.empty() ? word : (line1 + L" " + word);
+                    Text probe(font, cand, 14);
+                    if (probe.getLocalBounds().size.x <= maxTextW) line1 = cand;
+                    else { onSecond = true; line2 = word; }
+                } else {
+                    wstring cand = line2.empty() ? word : (line2 + L" " + word);
+                    Text probe(font, cand + L"...", 14);
+                    if (probe.getLocalBounds().size.x <= maxTextW) line2 = cand;
+                    else { line2 += L"..."; break; }
+                }
+            }
+            wrappedSub = line2.empty() ? line1 : (line1 + L"\n" + line2);
         }
-        Text subTxt(font, dispSub, 13.f);
+        Text subTxt(font, wrappedSub, 14);
         subTxt.setFillColor(Color(100, 116, 139));
-        subTxt.setPosition({comboTextX, rY + 38.f});
+        subTxt.setPosition({comboTextX, rY + 35.f});
         win.draw(subTxt);
 
         // 4. Phân loại (Badge pill căn giữa trong [div2, div3])
@@ -954,45 +1110,45 @@ void ComboPanel::render(RenderWindow& win) {
         else if (itm.category == L"Combo \u0110\u01a1n") { catBg = Color(224, 242, 254); catFg = Color(8, 125, 181); }
         else if (itm.category == L"Combo Nh\u00f3m") { catBg = Color(243, 232, 255); catFg = Color(126, 34, 206); }
 
-        float catPillX = div2 + ((div3 - div2) - 92.f) / 2.f;
-        drawRoundedCard(win, {catPillX, rY + 23.f}, {92.f, 26.f}, 13.f, catBg);
+        float catPillX = div2 + ((div3 - div2) - 102.f) / 2.f;
+        drawRoundedCard(win, {catPillX, rY + 24.f}, {102.f, 28.f}, 14.f, catBg);
         Text catTxt(boldFont, itm.category, 14); catTxt.setFillColor(catFg);
         FloatRect ctb = catTxt.getLocalBounds();
-        catTxt.setPosition({catPillX + (92.f - ctb.size.x) / 2.f - ctb.position.x, rY + 23.f + (26.f - ctb.size.y) / 2.f - ctb.position.y});
+        catTxt.setPosition({std::round(catPillX + (102.f - ctb.size.x) / 2.f - ctb.position.x), std::round(rY + 24.f + (28.f - ctb.size.y) / 2.f - ctb.position.y)});
         win.draw(catTxt);
 
         // 5. Giá bán niêm yết (căn giữa trong [div3, div4])
         Text prTxt(boldFont, s2ws(formatPrice(itm.price)), 14);
         prTxt.setFillColor(Color(23, 32, 51));
         FloatRect prb = prTxt.getLocalBounds();
-        prTxt.setPosition({div3 + ((div4 - div3) - prb.size.x) / 2.f - prb.position.x, rY + 26.f});
+        prTxt.setPosition({std::round(div3 + ((div4 - div3) - prb.size.x) / 2.f - prb.position.x), std::round(rY + (rowH - prb.size.y) / 2.f - prb.position.y)});
         win.draw(prTxt);
 
         // 6. Trạng thái: ● Đang bán (căn giữa trong [div4, div5])
-        float stPillX = div4 + ((div5 - div4) - 92.f) / 2.f;
-        drawRoundedCard(win, {stPillX, rY + 23.f}, {92.f, 26.f}, 13.f, Color(220, 252, 231));
-        CircleShape dotG(3.f); dotG.setFillColor(Color(22, 101, 52)); dotG.setPosition({stPillX + 8.f, rY + 33.f}); win.draw(dotG);
-        Text stTxt(boldFont, L"\u0110ang b\u00e1n", 14); stTxt.setFillColor(Color(22, 101, 52)); stTxt.setPosition({stPillX + 18.f, rY + 27.f}); win.draw(stTxt);
+        float stPillX = div4 + ((div5 - div4) - 100.f) / 2.f;
+        drawRoundedCard(win, {stPillX, rY + 24.f}, {100.f, 28.f}, 14.f, Color(220, 252, 231));
+        CircleShape dotG(3.f); dotG.setFillColor(Color(22, 101, 52)); dotG.setPosition({stPillX + 10.f, rY + 35.f}); win.draw(dotG);
+        Text stTxt(boldFont, L"\u0110ang b\u00e1n", 14); stTxt.setFillColor(Color(22, 101, 52)); stTxt.setPosition({stPillX + 20.f, rY + 29.f}); win.draw(stTxt);
 
         // 7. Thao tác: Nút Sửa & Xóa (căn giữa trong [div5, tableRight])
-        float actX = div5 + ((tableRight - div5) - 70.f) / 2.f;
-        drawRoundedCard(win, {actX, rY + 24.f}, {32.f, 24.f}, 4.f, Color(254, 243, 199));
+        float actX = div5 + ((tableRight - div5) - 76.f) / 2.f;
+        drawRoundedCard(win, {actX, rY + 24.f}, {36.f, 28.f}, 4.f, Color(254, 243, 199));
         Text btnEd(boldFont, L"S\u1eeda", 14);
         btnEd.setFillColor(Color(180, 83, 9));
         FloatRect edb = btnEd.getLocalBounds();
-        btnEd.setPosition({actX + (32.f - edb.size.x) / 2.f - edb.position.x, rY + 24.f + (24.f - edb.size.y) / 2.f - edb.position.y});
+        btnEd.setPosition({std::round(actX + (36.f - edb.size.x) / 2.f - edb.position.x), std::round(rY + 24.f + (28.f - edb.size.y) / 2.f - edb.position.y)});
         win.draw(btnEd);
 
-        drawRoundedCard(win, {actX + 38.f, rY + 24.f}, {32.f, 24.f}, 4.f, Color(254, 226, 226));
+        drawRoundedCard(win, {actX + 40.f, rY + 24.f}, {36.f, 28.f}, 4.f, Color(254, 226, 226));
         Text btnDl(boldFont, L"X\u00f3a", 14);
         btnDl.setFillColor(Color(220, 38, 38));
         FloatRect dlb = btnDl.getLocalBounds();
-        btnDl.setPosition({actX + 38.f + (32.f - dlb.size.x) / 2.f - dlb.position.x, rY + 24.f + (24.f - dlb.size.y) / 2.f - dlb.position.y});
+        btnDl.setPosition({std::round(actX + 40.f + (36.f - dlb.size.x) / 2.f - dlb.position.x), std::round(rY + 24.f + (28.f - dlb.size.y) / 2.f - dlb.position.y)});
         win.draw(btnDl);
     }
 
     // 6b. THANH PHÂN TRANG (PAGINATION BAR)
-    float pagY = tableY + 44.f + maxVisibleRows * rowH + 12.f;
+    float pagY = tableY + 44.f + maxVisibleRows * rowH + 14.f;
     int fromIdx = filteredCombos.empty() ? 0 : (scrollOffset + 1);
     int toIdx = min((int)filteredCombos.size(), scrollOffset + maxVisibleRows);
     wstring pageInfoStr = filteredCombos.empty()
@@ -1000,7 +1156,7 @@ void ComboPanel::render(RenderWindow& win) {
         : (L"Hiển thị " + to_wstring(fromIdx) + L" – " + to_wstring(toIdx) + L" trên tổng số " + to_wstring(filteredCombos.size()) + L" sản phẩm combo");
     Text pageInfo(font, pageInfoStr, 14);
     pageInfo.setFillColor(Color(100, 116, 139));
-    pageInfo.setPosition({position.x + 30.f, pagY + 6.f});
+    pageInfo.setPosition({position.x + 30.f, pagY + 7.f});
     win.draw(pageInfo);
 
     float rightEdge = position.x + 30.f + tableW;
@@ -1016,12 +1172,11 @@ void ComboPanel::render(RenderWindow& win) {
     float curBtnX = rightEdge - totalBtnsW;
 
     // Nút Trước
-    bool canPrev = (currentPage > 1);
-    drawRoundedCard(win, {curBtnX, pagY}, {btnPrevW, 30.f}, 4.f, Color::White, 1.f, Color(226, 232, 240));
-    Text prTxt(boldFont, L"Trước", 12.f);
-    prTxt.setFillColor(canPrev ? Color(71, 85, 105) : Color(203, 213, 225));
+    drawRoundedCard(win, {curBtnX, pagY}, {btnPrevW, 32.f}, 6.f, Color::White, 1.f, Color(226, 232, 240));
+    Text prTxt(font, L"Trước", 14);
+    prTxt.setFillColor(Color(100, 116, 139));
     FloatRect prb = prTxt.getLocalBounds();
-    prTxt.setPosition({curBtnX + (btnPrevW - prb.size.x) / 2.f - prb.position.x, pagY + (30.f - prb.size.y) / 2.f - prb.position.y});
+    prTxt.setPosition({std::round(curBtnX + (btnPrevW - prb.size.x) / 2.f - prb.position.x), std::round(pagY + (32.f - prb.size.y) / 2.f - prb.position.y)});
     win.draw(prTxt);
     curBtnX += btnPrevW + gap;
 
@@ -1032,22 +1187,21 @@ void ComboPanel::render(RenderWindow& win) {
         Color pBorder = isAct ? Color(8, 125, 181) : Color(226, 232, 240);
         Color pFg = isAct ? Color::White : Color(71, 85, 105);
 
-        drawRoundedCard(win, {curBtnX, pagY}, {btnPageW, 30.f}, 4.f, pBg, 1.f, pBorder);
-        Text pTxt(boldFont, to_wstring(p), 12.f);
+        drawRoundedCard(win, {curBtnX, pagY}, {btnPageW, 32.f}, 6.f, pBg, 1.f, pBorder);
+        Text pTxt(boldFont, to_wstring(p), 14);
         pTxt.setFillColor(pFg);
         FloatRect pb = pTxt.getLocalBounds();
-        pTxt.setPosition({curBtnX + (btnPageW - pb.size.x) / 2.f - pb.position.x, pagY + (30.f - pb.size.y) / 2.f - pb.position.y});
+        pTxt.setPosition({std::round(curBtnX + (btnPageW - pb.size.x) / 2.f - pb.position.x), std::round(pagY + (32.f - pb.size.y) / 2.f - pb.position.y)});
         win.draw(pTxt);
         curBtnX += btnPageW + gap;
     }
 
     // Nút Tiếp
-    bool canNext = (currentPage < totalPages);
-    drawRoundedCard(win, {curBtnX, pagY}, {btnNextW, 30.f}, 4.f, Color::White, 1.f, Color(226, 232, 240));
-    Text nxTxt(boldFont, L"Tiếp", 12.f);
-    nxTxt.setFillColor(canNext ? Color(71, 85, 105) : Color(203, 213, 225));
+    drawRoundedCard(win, {curBtnX, pagY}, {btnNextW, 32.f}, 6.f, Color::White, 1.f, Color(226, 232, 240));
+    Text nxTxt(font, L"Tiếp", 14);
+    nxTxt.setFillColor(Color(100, 116, 139));
     FloatRect nxb = nxTxt.getLocalBounds();
-    nxTxt.setPosition({curBtnX + (btnNextW - nxb.size.x) / 2.f - nxb.position.x, pagY + (30.f - nxb.size.y) / 2.f - nxb.position.y});
+    nxTxt.setPosition({std::round(curBtnX + (btnNextW - nxb.size.x) / 2.f - nxb.position.x), std::round(pagY + (32.f - nxb.size.y) / 2.f - nxb.position.y)});
     win.draw(nxTxt);
 
     // ==========================================
