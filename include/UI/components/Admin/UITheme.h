@@ -274,7 +274,7 @@ namespace UITheme {
             float badgeW = std::round(padH * 2.f + innerW);
             float badgeH = 24.f;
             float badgeX = std::round(tb.position.x + tb.size.x + 14.f);
-            float badgeY = std::round(titleY + 3.f);
+            float badgeY = std::round(tb.position.y + (tb.size.y - badgeH) / 2.f);
             RoundedRectRenderer::draw(target, {badgeX, badgeY}, {badgeW, badgeH}, 12.f, badgeBg);
 
             float cStartX = badgeX + (badgeW - innerW) / 2.f;

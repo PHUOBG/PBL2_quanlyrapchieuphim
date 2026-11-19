@@ -524,11 +524,13 @@ void RoomPanel::handleEvent(const Event& event, const RenderWindow& win) {
                     r.seatMatrix = std::move(nextMat);
                 }
             };
-            float stepperW = leftCardW - 40.f;
-            FloatRect btnRowMinus({position.x + 56.f, cardY + 233.f}, {38.f, 38.f});
-            FloatRect btnRowPlus({position.x + 50.f + stepperW - 44.f, cardY + 233.f}, {38.f, 38.f});
-            FloatRect btnColMinus({position.x + 56.f, cardY + 315.f}, {38.f, 38.f});
-            FloatRect btnColPlus({position.x + 50.f + stepperW - 44.f, cardY + 315.f}, {38.f, 38.f});
+            float fullColW = leftCardW - 40.f;
+            float stepperW = std::round(fullColW * 0.70f);
+            float stepperX = position.x + 50.f + (fullColW - stepperW) / 2.f;
+            FloatRect btnRowMinus({stepperX + 5.f, cardY + 233.f}, {32.f, 32.f});
+            FloatRect btnRowPlus({stepperX + stepperW - 37.f, cardY + 233.f}, {32.f, 32.f});
+            FloatRect btnColMinus({stepperX + 5.f, cardY + 315.f}, {32.f, 32.f});
+            FloatRect btnColPlus({stepperX + stepperW - 37.f, cardY + 315.f}, {32.f, 32.f});
             int curR = 6, curC = 6;
             try { curR = stoi(inputRows); } catch (...) {}
             try { curC = stoi(inputCols); } catch (...) {}
@@ -890,54 +892,56 @@ void RoomPanel::render(RenderWindow& win) {
     drawRoundedCard(win, {position.x + 50.f, cardY + 154.f}, {leftCardW - 40.f, 38.f}, 8.f, Color(248, 250, 252), (activeInputBox == 0) ? 1.5f : 1.f, (activeInputBox == 0) ? Color(8, 125, 181) : Color(203, 213, 225));
     Text nameInputTxt(boldFont, inputRoomName + ((activeInputBox == 0) ? L"|" : L""), 14); nameInputTxt.setFillColor(Color(23, 32, 51)); nameInputTxt.setPosition({position.x + 62.f, cardY + 163.f}); win.draw(nameInputTxt);
 
-    // Helper vẽ Stepper [ - |  N  | + ]
+    // Helper vẽ Stepper [ - |  N  | + ] (rộng 70% cột, căn giữa)
     auto drawStepper = [&](float topY, Color dotColor, const wstring& title, const wstring& rangeHint,
                            const string& valStr) {
-        float boxW = leftCardW - 40.f;
-        float boxX = position.x + 50.f;
+        float fullColW = leftCardW - 40.f;
+        float fullColX = position.x + 50.f;
         CircleShape dot(4.f);
         dot.setFillColor(dotColor);
-        dot.setPosition({boxX, topY + 5.f});
+        dot.setPosition({fullColX, topY + 5.f});
         win.draw(dot);
 
         Text sLbl(boldFont, title, 14);
         sLbl.setFillColor(Color(23, 32, 51));
-        sLbl.setPosition({boxX + 14.f, topY});
+        sLbl.setPosition({fullColX + 14.f, topY});
         win.draw(sLbl);
 
         Text sHint(font, rangeHint, 12);
         sHint.setFillColor(Color(100, 116, 139));
         FloatRect hb = sHint.getLocalBounds();
-        sHint.setPosition({boxX + boxW - hb.size.x - hb.position.x, topY + 2.f});
+        sHint.setPosition({fullColX + fullColW - hb.size.x - hb.position.x, topY + 2.f});
         win.draw(sHint);
 
+        float boxW = std::round(fullColW * 0.70f);
+        float boxX = fullColX + (fullColW - boxW) / 2.f;
         float ctrlY = topY + 22.f;
-        drawRoundedCard(win, {boxX, ctrlY}, {boxW, 48.f}, 12.f, Color(248, 250, 252), 1.f, Color(226, 232, 240));
+        drawRoundedCard(win, {boxX, ctrlY}, {boxW, 42.f}, 10.f, Color(248, 250, 252), 1.f, Color(226, 232, 240));
 
         // Nút -
-        drawRoundedCard(win, {boxX + 6.f, ctrlY + 5.f}, {38.f, 38.f}, 8.f, Color::White, 1.f, Color(226, 232, 240));
-        Text mTxt(boldFont, L"-", 18);
+        drawRoundedCard(win, {boxX + 5.f, ctrlY + 5.f}, {32.f, 32.f}, 7.f, Color::White, 1.f, Color(226, 232, 240));
+        Text mTxt(boldFont, L"-", 16);
         mTxt.setFillColor(Color(51, 65, 85));
         FloatRect mb = mTxt.getLocalBounds();
-        mTxt.setPosition({boxX + 6.f + (38.f - mb.size.x) / 2.f - mb.position.x, ctrlY + 5.f + (38.f - mb.size.y) / 2.f - mb.position.y - 1.f});
+        mTxt.setPosition({boxX + 5.f + (32.f - mb.size.x) / 2.f - mb.position.x, ctrlY + 5.f + (32.f - mb.size.y) / 2.f - mb.position.y - 1.f});
         win.draw(mTxt);
 
         // Nút +
-        float plusX = boxX + boxW - 44.f;
-        drawRoundedCard(win, {plusX, ctrlY + 5.f}, {38.f, 38.f}, 8.f, Color::White, 1.f, Color(226, 232, 240));
-        Text pTxt(boldFont, L"+", 18);
+        float plusX = boxX + boxW - 37.f;
+        drawRoundedCard(win, {plusX, ctrlY + 5.f}, {32.f, 32.f}, 7.f, Color::White, 1.f, Color(226, 232, 240));
+        Text pTxt(boldFont, L"+", 16);
         pTxt.setFillColor(Color(51, 65, 85));
         FloatRect pb = pTxt.getLocalBounds();
-        pTxt.setPosition({plusX + (38.f - pb.size.x) / 2.f - pb.position.x, ctrlY + 5.f + (38.f - pb.size.y) / 2.f - pb.position.y - 1.f});
+        pTxt.setPosition({plusX + (32.f - pb.size.x) / 2.f - pb.position.x, ctrlY + 5.f + (32.f - pb.size.y) / 2.f - pb.position.y - 1.f});
         win.draw(pTxt);
 
-        // Số ở giữa (căn giữa ngang & dọc trong ô 48px)
-        Text vTxt(boldFont, s2ws(valStr), 18);
+        // Số ở giữa (căn giữa ngang & dọc trong ô 42px)
+        Text vTxt(boldFont, s2ws(valStr), 16);
         vTxt.setFillColor(Color(23, 32, 51));
         FloatRect vb = vTxt.getLocalBounds();
         vTxt.setPosition({
             std::round(boxX + (boxW - vb.size.x) / 2.f - vb.position.x),
-            std::round(ctrlY + (48.f - vb.size.y) / 2.f - vb.position.y - 0.5f)
+            std::round(ctrlY + (42.f - vb.size.y) / 2.f - vb.position.y - 0.5f)
         });
         win.draw(vTxt);
     };
