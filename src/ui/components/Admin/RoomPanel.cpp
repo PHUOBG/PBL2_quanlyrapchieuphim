@@ -890,9 +890,9 @@ void RoomPanel::render(RenderWindow& win) {
     drawRoundedCard(win, {position.x + 50.f, cardY + 154.f}, {leftCardW - 40.f, 38.f}, 8.f, Color(248, 250, 252), (activeInputBox == 0) ? 1.5f : 1.f, (activeInputBox == 0) ? Color(8, 125, 181) : Color(203, 213, 225));
     Text nameInputTxt(boldFont, inputRoomName + ((activeInputBox == 0) ? L"|" : L""), 14); nameInputTxt.setFillColor(Color(23, 32, 51)); nameInputTxt.setPosition({position.x + 62.f, cardY + 163.f}); win.draw(nameInputTxt);
 
-    // Helper vẽ Stepper [ - |  N  HÀNG/CỘT GHẾ  | + ]
+    // Helper vẽ Stepper [ - |  N  | + ]
     auto drawStepper = [&](float topY, Color dotColor, const wstring& title, const wstring& rangeHint,
-                           const string& valStr, const wstring& unitLabel) {
+                           const string& valStr) {
         float boxW = leftCardW - 40.f;
         float boxX = position.x + 50.f;
         CircleShape dot(4.f);
@@ -931,23 +931,20 @@ void RoomPanel::render(RenderWindow& win) {
         pTxt.setPosition({plusX + (38.f - pb.size.x) / 2.f - pb.position.x, ctrlY + 5.f + (38.f - pb.size.y) / 2.f - pb.position.y - 1.f});
         win.draw(pTxt);
 
-        // Số ở giữa & nhãn nhỏ
+        // Số ở giữa (căn giữa ngang & dọc trong ô 48px)
         Text vTxt(boldFont, s2ws(valStr), 18);
         vTxt.setFillColor(Color(23, 32, 51));
         FloatRect vb = vTxt.getLocalBounds();
-        vTxt.setPosition({boxX + (boxW - vb.size.x) / 2.f - vb.position.x, ctrlY + 6.f});
+        vTxt.setPosition({
+            std::round(boxX + (boxW - vb.size.x) / 2.f - vb.position.x),
+            std::round(ctrlY + (48.f - vb.size.y) / 2.f - vb.position.y - 0.5f)
+        });
         win.draw(vTxt);
-
-        Text uTxt(font, unitLabel, 10);
-        uTxt.setFillColor(Color(100, 116, 139));
-        FloatRect ub = uTxt.getLocalBounds();
-        uTxt.setPosition({boxX + (boxW - ub.size.x) / 2.f - ub.position.x, ctrlY + 30.f});
-        win.draw(uTxt);
     };
 
     // 3. Số lượng hàng ghế (A - J) & Số lượng cột ghế (1 - 10)
-    drawStepper(cardY + 206.f, Color(8, 125, 181), L"S\u1ed1 l\u01b0\u1ee3ng h\u00e0ng gh\u1ebf", L"H\u00e0ng (A - J)", inputRows, L"H\u00c0NG GH\u1ebe");
-    drawStepper(cardY + 288.f, Color(99, 102, 241), L"S\u1ed1 l\u01b0\u1ee3ng c\u1ed9t gh\u1ebf", L"C\u1ed9t (1 - 10)", inputCols, L"C\u1ed8T GH\u1ebe");
+    drawStepper(cardY + 206.f, Color(8, 125, 181), L"S\u1ed1 l\u01b0\u1ee3ng h\u00e0ng gh\u1ebf", L"H\u00e0ng (A - J)", inputRows);
+    drawStepper(cardY + 288.f, Color(99, 102, 241), L"S\u1ed1 l\u01b0\u1ee3ng c\u1ed9t gh\u1ebf", L"C\u1ed9t (1 - 10)", inputCols);
 
     // 4. Trạng thái phòng chiếu
     Text lbl5(boldFont, L"Tr\u1ea1ng th\u00e1i ph\u00f2ng chi\u1ebfu:", 14); lbl5.setFillColor(Color(51, 65, 85)); lbl5.setPosition({position.x + 50.f, cardY + 372.f}); win.draw(lbl5);

@@ -1028,7 +1028,12 @@ void ShowtimePanel::render(RenderWindow& win) {
 
     // Nút Trước
     drawRoundedCard(win, {position.x + width - 260.f, pagY}, {55.f, 32.f}, 6.f, Color::White, 1.f, Color(226, 232, 240));
-    Text prTxt(font, L"Tr\u01b0\u1edbc", 14); prTxt.setFillColor(Color(100, 116, 139)); prTxt.setPosition({position.x + width - 250.f, pagY + 6.f}); win.draw(prTxt);
+    Text prTxt(font, L"Tr\u01b0\u1edbc", 14); prTxt.setFillColor(Color(100, 116, 139));
+    {
+        FloatRect b = prTxt.getLocalBounds();
+        prTxt.setPosition({position.x + width - 260.f + (55.f - b.size.x) / 2.f - b.position.x, pagY + (32.f - b.size.y) / 2.f - b.position.y});
+    }
+    win.draw(prTxt);
 
     // Nút 1
     bool p1Active = (currentPage == 1);
@@ -1047,7 +1052,12 @@ void ShowtimePanel::render(RenderWindow& win) {
 
     // Nút Tiếp
     drawRoundedCard(win, {position.x + width - 75.f, pagY}, {55.f, 32.f}, 6.f, Color::White, 1.f, Color(226, 232, 240));
-    Text nxTxt(font, L"Ti\u1ebfp", 14); nxTxt.setFillColor(Color(100, 116, 139)); nxTxt.setPosition({position.x + width - 63.f, pagY + 6.f}); win.draw(nxTxt);
+    Text nxTxt(font, L"Ti\u1ebfp", 14); nxTxt.setFillColor(Color(100, 116, 139));
+    {
+        FloatRect b = nxTxt.getLocalBounds();
+        nxTxt.setPosition({position.x + width - 75.f + (55.f - b.size.x) / 2.f - b.position.x, pagY + (32.f - b.size.y) / 2.f - b.position.y});
+    }
+    win.draw(nxTxt);
 
     // ==========================================
     // 7. KHỐI CHÍNH SÁCH RẠP (POLICY NOTE BOX)

@@ -578,11 +578,10 @@ void TicketPanel::render(RenderWindow& win) {
     float totalBtnsW = btnPrevW + gap + (endP - startP + 1) * (btnPageW + gap) - gap + gap + btnNextW;
     float curBtnX = rightEdge - totalBtnsW;
 
-    // Nút Trước
-    bool canPrev = (currentPage > 1);
-    drawRoundedCard(win, {curBtnX, pagY}, {btnPrevW, 34.f}, 6.f, Color::White, 1.2f, Color(226, 232, 240));
-    Text prTxt(boldFont, L"Trước", 14);
-    prTxt.setFillColor(canPrev ? Color(71, 85, 105) : Color(203, 213, 225));
+    // Nút Trước (đồng bộ phong cách Quản lý suất chiếu)
+    drawRoundedCard(win, {curBtnX, pagY}, {btnPrevW, 34.f}, 6.f, Color::White, 1.f, Color(226, 232, 240));
+    Text prTxt(font, L"Trước", 14);
+    prTxt.setFillColor(Color(100, 116, 139));
     FloatRect prb = prTxt.getLocalBounds();
     prTxt.setPosition({curBtnX + (btnPrevW - prb.size.x) / 2.f - prb.position.x, pagY + (34.f - prb.size.y) / 2.f - prb.position.y});
     win.draw(prTxt);
@@ -604,11 +603,10 @@ void TicketPanel::render(RenderWindow& win) {
         curBtnX += btnPageW + gap;
     }
 
-    // Nút Tiếp
-    bool canNext = (currentPage < totalPages);
-    drawRoundedCard(win, {curBtnX, pagY}, {btnNextW, 34.f}, 6.f, Color::White, 1.2f, Color(226, 232, 240));
-    Text nxTxt(boldFont, L"Tiếp", 14);
-    nxTxt.setFillColor(canNext ? Color(71, 85, 105) : Color(203, 213, 225));
+    // Nút Tiếp (đồng bộ phong cách Quản lý suất chiếu)
+    drawRoundedCard(win, {curBtnX, pagY}, {btnNextW, 34.f}, 6.f, Color::White, 1.f, Color(226, 232, 240));
+    Text nxTxt(font, L"Tiếp", 14);
+    nxTxt.setFillColor(Color(100, 116, 139));
     FloatRect nxb = nxTxt.getLocalBounds();
     nxTxt.setPosition({curBtnX + (btnNextW - nxb.size.x) / 2.f - nxb.position.x, pagY + (34.f - nxb.size.y) / 2.f - nxb.position.y});
     win.draw(nxTxt);
