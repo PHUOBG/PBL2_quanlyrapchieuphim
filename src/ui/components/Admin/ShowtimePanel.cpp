@@ -844,15 +844,11 @@ void ShowtimePanel::render(RenderWindow& win) {
     if (!searchQuery.empty()) {
         UITheme::drawCloseIcon(win, {position.x + 522.f, fCardY + 126.f}, 10.f, Color(148, 163, 184), 1.8f);
     }
-    Text noteSearch(font, L"* Tìm theo tên phim, tên phòng chiếu hoặc giờ chiếu (VD: 15:20)", 10.5f);
-    noteSearch.setFillColor(Color(100, 116, 139));
-    noteSearch.setPosition({position.x + 310.f, fCardY + 147.f});
-    win.draw(noteSearch);
 
     // Thẻ KPI Summary: Tách làm 2 ô màu khác nhau bên trong 1 ô card bao ngoài
-    float kpiOuterW = 285.f;
+    float kpiOuterW = 365.f;
     float kpiOuterH = 94.f;
-    float kpiOuterX = position.x + width - 390.f;
+    float kpiOuterX = position.x + width - 470.f;
     float kpiOuterY = fCardY + 28.f;
 
     // 1. Ô bao ngoài (Khung card chính)
@@ -861,7 +857,7 @@ void ShowtimePanel::render(RenderWindow& win) {
     // 2. Ô trái (Màu 1 - Xanh dương đại dương #0284C7): Thống kê số lượng suất chiếu
     float b1X = kpiOuterX + 7.f;
     float b1Y = kpiOuterY + 7.f;
-    float b1W = 126.f;
+    float b1W = 136.f;
     float b1H = 80.f;
     drawRoundedCard(win, {b1X, b1Y}, {b1W, b1H}, 8.f, Color(8, 125, 181));
 
@@ -883,7 +879,7 @@ void ShowtimePanel::render(RenderWindow& win) {
     // 3. Ô phải (Màu 2 - Xám nhạt thanh lịch #E8EEF5): Thông tin ngày & phòng chiếu
     float b2X = b1X + b1W + 6.f;
     float b2Y = kpiOuterY + 7.f;
-    float b2W = 140.f;
+    float b2W = kpiOuterW - 14.f - b1W - 6.f;
     float b2H = 80.f;
     drawRoundedCard(win, {b2X, b2Y}, {b2W, b2H}, 8.f, Color(232, 238, 245), 1.f, Color(203, 213, 225));
 
@@ -894,7 +890,7 @@ void ShowtimePanel::render(RenderWindow& win) {
     kpiDateLbl.setPosition({std::floor(textPadX), std::floor(b2Y + 16.f)});
     win.draw(kpiDateLbl);
 
-    Text kpiDateVal(boldFont, L"2026-10-27", 14);
+    Text kpiDateVal(boldFont, s2ws(selectedDate), 14);
     kpiDateVal.setFillColor(Color(23, 32, 51));
     kpiDateVal.setPosition({std::floor(textPadX + kpiDateLbl.getGlobalBounds().size.x), std::floor(b2Y + 16.f)});
     win.draw(kpiDateVal);
