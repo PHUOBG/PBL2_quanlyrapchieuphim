@@ -39,7 +39,7 @@ static string formatPrice(int price) {
         }
     }
     reverse(res.begin(), res.end());
-    return res + " đ";
+    return res + " Đ";
 }
 
 VoucherPanel::VoucherPanel(Font& fontRef, float w, float h)
@@ -1073,7 +1073,7 @@ void VoucherPanel::render(RenderWindow& win) {
     float c3X = c2X + cardW + 15.f;
     drawRoundedCard(win, {c3X, statY}, {cardW, cardH}, 10.f, Color::White, 1.f, Color(226, 232, 240));
     Text sc3T(boldFont, L"T\u1ed5ng ng\u00e2n s\u00e1ch chi\u1ebft kh\u1ea5u", 14); sc3T.setFillColor(Color(100, 116, 139)); sc3T.setPosition({c3X + 16.f, statY + 12.f}); win.draw(sc3T);
-    Text sc3V(boldFont, L"42.500.000 \u0111", 24); sc3V.setFillColor(Color(23, 32, 51)); sc3V.setPosition({c3X + 16.f, statY + 36.f}); win.draw(sc3V);
+    Text sc3V(boldFont, L"42.500.000 \u0110", 24); sc3V.setFillColor(Color(23, 32, 51)); sc3V.setPosition({c3X + 16.f, statY + 36.f}); win.draw(sc3V);
 
     // Card 4: Đang chọn khảo sát
     float c4X = c3X + cardW + 15.f;
@@ -1818,7 +1818,7 @@ void VoucherPanel::render(RenderWindow& win) {
             float notH = 42.f;
             float notX = position.x + (width - notW) / 2.f;
             float notY = position.y + height - 60.f;
-            drawRoundedCard(win, {notX, notY}, {notW, notH}, 8.f, Color(15, 23, 42, 240), 1.f, Color(8, 125, 181));
+            drawRoundedCard(win, {notX, notY}, {notW, notH}, 8.f, Color(22, 163, 74, 245), 1.5f, Color(21, 128, 61));
             Text notText(boldFont, s2ws(notificationMessage), 14);
             notText.setFillColor(Color::White);
             FloatRect ntb = notText.getLocalBounds();

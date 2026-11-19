@@ -183,7 +183,7 @@ string OverviewPanel::toCurrency(long long amount) const {
         }
     }
     reverse(res.begin(), res.end());
-    return res + " đ";
+    return res + " Đ";
 }
 
 String OverviewPanel::toSfString(const string& text) const {

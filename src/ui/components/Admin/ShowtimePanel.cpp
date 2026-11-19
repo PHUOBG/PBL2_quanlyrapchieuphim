@@ -56,7 +56,7 @@ static string formatPriceStr(int price) {
         }
     }
     reverse(res.begin(), res.end());
-    return res + " đ";
+    return res + " Đ";
 }
 
 namespace { string todayIso(); }
@@ -1214,7 +1214,7 @@ void ShowtimePanel::render(RenderWindow& win) {
             float notH = 44.f;
             float notX = position.x + (width - notW) / 2.f;
             float notY = position.y + height - 70.f;
-            drawRoundedCard(win, {notX, notY}, {notW, notH}, 8.f, Color(15, 23, 42, 240), 1.f, Color(8, 125, 181));
+            drawRoundedCard(win, {notX, notY}, {notW, notH}, 8.f, Color(22, 163, 74, 245), 1.5f, Color(21, 128, 61));
             Text notText(boldFont, s2ws(notificationMessage), 14);
             notText.setFillColor(Color::White);
             FloatRect ntb = notText.getLocalBounds();

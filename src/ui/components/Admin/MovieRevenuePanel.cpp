@@ -113,7 +113,7 @@ string MovieRevenuePanel::toCurrency(long long amount) const {
         }
     }
     reverse(res.begin(), res.end());
-    return res + " đ";
+    return res + " Đ";
 }
 
 String MovieRevenuePanel::toSfString(const string& text) const {
@@ -1674,7 +1674,7 @@ void MovieRevenuePanel::drawTab2TotalRevenue(RenderTarget& target) const {
 
         // Nhãn nổi "Đỉnh T11: 4.305.000 đ" phía trên điểm Tháng 11
         if (tPts.size() > 2) {
-            Text peakTxt(boldFont, L"Đỉnh T11: 4.305.000 đ", 14);
+            Text peakTxt(boldFont, L"Đỉnh T11: 4.305.000 Đ", 14);
             peakTxt.setFillColor(Color::White);
             FloatRect ptb = peakTxt.getLocalBounds();
             Vector2f peakSize(ptb.size.x + 24.f, 28.f);
@@ -2166,7 +2166,7 @@ void MovieRevenuePanel::drawTab3RevenueByMovie(RenderTarget& target) const {
         title.setPosition({cPos.x + 24.f, cPos.y + 16.f});
         target.draw(title);
 
-        Text sub(font, L"Thang đo định mức tối đa: 4.000.000 đ", 14);
+        Text sub(font, L"Thang đo định mức tối đa: 4.000.000 Đ", 14);
         sub.setFillColor(Color(148, 163, 184));
         sub.setPosition({cPos.x + 24.f, cPos.y + 40.f});
         target.draw(sub);

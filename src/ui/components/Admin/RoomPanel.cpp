@@ -1163,19 +1163,19 @@ void RoomPanel::render(RenderWindow& win) {
     drawRoundedCard(win, {rightX + 24.f, legY}, {legW - 10.f, 44.f}, 8.f, Color(241, 245, 249), 1.f, Color(226, 232, 240));
     drawSeat(win, rightX + 34.f, legY + 8.f, 22.f, 24.f, SeatType::STANDARD, "", false);
     Text lg1T(boldFont, L"Gh\u1ebf Th\u01b0\u1eddng", 14); lg1T.setFillColor(Color(23, 32, 51)); lg1T.setPosition({rightX + 64.f, legY + 6.f}); win.draw(lg1T);
-    Text lg1P(font, L"100.000\u0111", 14); lg1P.setFillColor(Color(100, 116, 139)); lg1P.setPosition({rightX + 64.f, legY + 22.f}); win.draw(lg1P);
+    Text lg1P(font, L"100.000\u0110", 14); lg1P.setFillColor(Color(100, 116, 139)); lg1P.setPosition({rightX + 64.f, legY + 22.f}); win.draw(lg1P);
 
-    // 2. Ghế VIP Gold (140.000đ)
+    // 2. Ghế VIP Gold (140.000Đ)
     drawRoundedCard(win, {rightX + 24.f + legW, legY}, {legW - 10.f, 44.f}, 8.f, Color(254, 243, 199), 1.f, Color(253, 230, 138));
     drawSeat(win, rightX + 34.f + legW, legY + 8.f, 22.f, 24.f, SeatType::VIP, "", false);
     Text lg2T(boldFont, L"Gh\u1ebf VIP (Gold)", 14); lg2T.setFillColor(Color(180, 83, 9)); lg2T.setPosition({rightX + 64.f + legW, legY + 6.f}); win.draw(lg2T);
-    Text lg2P(font, L"140.000\u0111", 14); lg2P.setFillColor(Color(217, 119, 6)); lg2P.setPosition({rightX + 64.f + legW, legY + 22.f}); win.draw(lg2P);
+    Text lg2P(font, L"140.000\u0110", 14); lg2P.setFillColor(Color(217, 119, 6)); lg2P.setPosition({rightX + 64.f + legW, legY + 22.f}); win.draw(lg2P);
 
-    // 3. Ghế Đôi Sweetbox (220.000đ/cặp)
+    // 3. Ghế Đôi Sweetbox (220.000Đ/cặp)
     drawRoundedCard(win, {rightX + 24.f + legW * 2.f, legY}, {legW - 10.f, 44.f}, 8.f, Color(238, 242, 255), 1.f, Color(199, 210, 254));
     drawSeat(win, rightX + 34.f + legW * 2.f, legY + 8.f, 22.f, 24.f, SeatType::SWEETBOX, "", false);
     Text lg3T(boldFont, L"Gh\u1ebf \u0110\u00f4i Sweetbox", 14); lg3T.setFillColor(Color(30, 58, 95)); lg3T.setPosition({rightX + 64.f + legW * 2.f, legY + 6.f}); win.draw(lg3T);
-    Text lg3P(font, L"220.000\u0111 / c\u1eb7p", 14); lg3P.setFillColor(Color(79, 70, 229)); lg3P.setPosition({rightX + 64.f + legW * 2.f, legY + 22.f}); win.draw(lg3P);
+    Text lg3P(font, L"220.000\u0110 / c\u1eb7p", 14); lg3P.setFillColor(Color(79, 70, 229)); lg3P.setPosition({rightX + 64.f + legW * 2.f, legY + 22.f}); win.draw(lg3P);
 
     // 4. Ghế bảo trì (Tạm ngừng bán)
     drawRoundedCard(win, {rightX + 24.f + legW * 3.f, legY}, {legW - 10.f, 44.f}, 8.f, Color(254, 242, 242), 1.f, Color(254, 202, 202));
