@@ -281,7 +281,7 @@ struct VoucherLayout {
     float searchVW;
     float pillX, pillW[3];
     float tableX, tableY, tblRight, hdrH, rowH;
-    float div1, div2, div3, div4, div5;
+    float div1, div2, div3, div4;
     float pagY;
 
     // Right panel
@@ -321,16 +321,14 @@ VoucherLayout computeVoucherLayout(Vector2f pos, float width, float height) {
     L.hdrH = 42.f;
     L.rowH = 68.f;
 
-    float c1 = std::floor(L.leftW * 0.34f);
-    float c2 = std::floor(L.leftW * 0.10f);
-    float c3 = std::floor(L.leftW * 0.13f);
-    float c4 = std::floor(L.leftW * 0.14f);
-    float c5 = std::floor(L.leftW * 0.16f);
+    float c1 = std::floor(L.leftW * 0.38f);
+    float c2 = std::floor(L.leftW * 0.12f);
+    float c3 = std::floor(L.leftW * 0.16f);
+    float c4 = std::floor(L.leftW * 0.17f);
     L.div1 = L.tableX + c1;
     L.div2 = L.div1 + c2;
     L.div3 = L.div2 + c3;
     L.div4 = L.div3 + c4;
-    L.div5 = L.div4 + c5;
 
     L.pagY = L.contentBottomY - 32.f;
 
@@ -777,38 +775,13 @@ void VoucherPanel::handleEvent(const Event& event, const RenderWindow& win) {
             if (pPct.contains(mousePos)) { voucherFilterType = 1; currentVoucherPage = 1; applyVoucherFilter(); return; }
             if (pVal.contains(mousePos)) { voucherFilterType = 2; currentVoucherPage = 1; applyVoucherFilter(); return; }
 
-            // Cột Trái - Click chọn dòng hoặc nút Sửa trong bảng Voucher
+            // Cột Trái - Click chọn dòng trong bảng Voucher
             int startIdx = (currentVoucherPage - 1) * pageSize;
             int count = max(0, min((int)filteredVouchers.size() - startIdx, pageSize));
-            float editBtnW = min(56.f, (L.tblRight - L.div5) - 10.f);
-            float editBtnX = L.div5 + ((L.tblRight - L.div5) - editBtnW) / 2.f;
 
             for (int r = 0; r < count; ++r) {
                 float rY = L.tableY + L.hdrH + r * L.rowH;
                 FloatRect rowRect({L.tableX, rY}, {L.leftW, L.rowH});
-                FloatRect rowEditBtn({editBtnX, rY + (L.rowH - 28.f) / 2.f}, {editBtnW, 28.f});
-
-                if (rowEditBtn.contains(mousePos)) {
-                    selectedVoucherIndex = startIdx + r;
-                    for (size_t i = 0; i < filteredVouchers.size(); ++i) {
-                        filteredVouchers[i].isChecked = ((int)i == selectedVoucherIndex);
-                    }
-                    string selCode = filteredVouchers[selectedVoucherIndex].code;
-                    for (size_t i = 0; i < allVouchers.size(); ++i) {
-                        if (allVouchers[i].code == selCode) {
-                            editingIndex = (int)i;
-                            popupActiveField = 0;
-                            popupCode = allVouchers[i].code;
-                            popupSub = allVouchers[i].subtitle;
-                            popupType = allVouchers[i].type;
-                            popupValue = to_string(allVouchers[i].value);
-                            popupMinBill = to_string(allVouchers[i].minBill);
-                            showAddPopup = true;
-                            return;
-                        }
-                    }
-                    return;
-                }
 
                 if (rowRect.contains(mousePos)) {
                     selectedVoucherIndex = startIdx + r;
@@ -979,15 +952,9 @@ void VoucherPanel::update(Vector2f mousePos, bool) {
 
         int startIdx = (currentVoucherPage - 1) * pageSize;
         int count = min((int)filteredVouchers.size() - startIdx, pageSize);
-        float editBtnW = min(56.f, (L.tblRight - L.div5) - 10.f);
-        float editBtnX = L.div5 + ((L.tblRight - L.div5) - editBtnW) / 2.f;
 
         for (int r = 0; r < count; ++r) {
             float rY = L.tableY + L.hdrH + r * L.rowH;
-            FloatRect rowEditBtn({editBtnX, rY + (L.rowH - 28.f) / 2.f}, {editBtnW, 28.f});
-            if (rowEditBtn.contains(mousePos)) {
-                hoveredEditBtnRow = r;
-            }
             if (FloatRect({L.tableX, rY}, {L.leftW, L.rowH}).contains(mousePos)) {
                 hoveredVoucherRow = r;
             }
@@ -1150,7 +1117,6 @@ void VoucherPanel::render(RenderWindow& win) {
     const float div2 = L.div2;
     const float div3 = L.div3;
     const float div4 = L.div4;
-    const float div5 = L.div5;
 
     auto drawCenteredHdr = [&](const wstring& str, float xStart, float xEnd) {
         Text h(boldFont, str, 14);
@@ -1162,7 +1128,7 @@ void VoucherPanel::render(RenderWindow& win) {
 
     drawRoundedCard(win, {tableX, tableY}, {leftW, L.hdrH}, 6.f, Color(8, 125, 181));
 
-    for (float dx : {div1, div2, div3, div4, div5}) {
+    for (float dx : {div1, div2, div3, div4}) {
         RectangleShape hDiv(Vector2f(1.f, L.hdrH));
         hDiv.setPosition({dx, tableY});
         hDiv.setFillColor(Color(255, 255, 255, 45));
@@ -1173,8 +1139,7 @@ void VoucherPanel::render(RenderWindow& win) {
     drawCenteredHdr(L"LO\u1ea0I", div1, div2);
     drawCenteredHdr(L"GI\u00c1 TR\u1eca", div2, div3);
     drawCenteredHdr(L"T\u1ed0I THI\u1ec2U", div3, div4);
-    drawCenteredHdr(L"NG\u01af\u1edcI NH\u1eacN", div4, div5);
-    drawCenteredHdr(L"THAO T\u00c1C", div5, tblRight);
+    drawCenteredHdr(L"NG\u01af\u1edcI NH\u1eacN", div4, tblRight);
 
     int startIdx = (currentVoucherPage - 1) * pageSize;
     int count = min((int)filteredVouchers.size() - startIdx, pageSize);
@@ -1190,7 +1155,7 @@ void VoucherPanel::render(RenderWindow& win) {
         Color rowBg = isSel ? Color(224, 242, 254) : (isHov ? Color(248, 250, 252) : Color::White);
         drawRoundedCard(win, {tableX, rY}, {leftW, rowH}, 0.f, rowBg, 0.5f, Color(226, 232, 240));
 
-        for (float dx : {div1, div2, div3, div4, div5}) {
+        for (float dx : {div1, div2, div3, div4}) {
             RectangleShape rDiv(Vector2f(1.f, rowH));
             rDiv.setPosition({dx, rY});
             rDiv.setFillColor(Color(241, 245, 249));
@@ -1289,10 +1254,10 @@ void VoucherPanel::render(RenderWindow& win) {
         minTxt.setPosition({std::round(div3 + ((div4 - div3) - mtb.size.x) / 2.f - mtb.position.x), std::round(rY + (rowH - mtb.size.y) / 2.f - mtb.position.y)});
         win.draw(minTxt);
 
-        // Người nhận (Badge số lượng căn giữa)
-        float rcPillW = min(44.f, (div5 - div4) - 10.f);
+        // Người nhận (Badge số lượng căn giữa trong [div4, tblRight])
+        float rcPillW = min(44.f, (tblRight - div4) - 10.f);
         float rcPillH = 24.f;
-        float rcPillX = div4 + ((div5 - div4) - rcPillW) / 2.f;
+        float rcPillX = div4 + ((tblRight - div4) - rcPillW) / 2.f;
         float rcPillY = rY + (rowH - rcPillH) / 2.f;
         Color rcBg = (v.recipientCount > 0) ? Color(224, 242, 254) : Color(241, 245, 249);
         Color rcFg = (v.recipientCount > 0) ? Color(8, 125, 181) : Color(148, 163, 184);
@@ -1301,19 +1266,6 @@ void VoucherPanel::render(RenderWindow& win) {
         FloatRect rcb = rcTxt.getLocalBounds();
         rcTxt.setPosition({std::round(rcPillX + (rcPillW - rcb.size.x) / 2.f - rcb.position.x), std::round(rcPillY + (rcPillH - rcb.size.y) / 2.f - rcb.position.y)});
         win.draw(rcTxt);
-
-        // Thao tác - Nút Sửa căn giữa trong [div5, tblRight]
-        float editBtnW = min(56.f, (tblRight - div5) - 10.f);
-        float editBtnH = 28.f;
-        float editBtnX = div5 + ((tblRight - div5) - editBtnW) / 2.f;
-        float editBtnY = rY + (rowH - editBtnH) / 2.f;
-        bool isEditHov = (hoveredEditBtnRow == r);
-        drawRoundedCard(win, {editBtnX, editBtnY}, {editBtnW, editBtnH}, 5.f, isEditHov ? Color(185, 28, 28) : Color(220, 38, 38));
-        Text icEd(boldFont, L"S\u1eeda", 13);
-        icEd.setFillColor(Color::White);
-        FloatRect edb = icEd.getLocalBounds();
-        icEd.setPosition({std::round(editBtnX + (editBtnW - edb.size.x) / 2.f - edb.position.x), std::round(editBtnY + (editBtnH - edb.size.y) / 2.f - edb.position.y)});
-        win.draw(icEd);
     }
 
     // Phân trang Cột Trái
