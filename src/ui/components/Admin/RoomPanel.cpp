@@ -831,8 +831,8 @@ void RoomPanel::render(RenderWindow& win) {
     float sBadgeY = cardY + 19.f;
     drawRoundedCard(win, {sBadgeX, sBadgeY}, {sBadgeW, sBadgeH}, 11.f, Color(209, 250, 229));
     stBadge.setPosition({
-        std::floor(sBadgeX + (sBadgeW - sbb.size.x) / 2.f - sbb.position.x + 0.5f),
-        std::floor(sBadgeY + (sBadgeH - sbb.size.y) / 2.f - sbb.position.y + 0.5f)
+        std::round(sBadgeX + (sBadgeW - sbb.size.x) / 2.f - sbb.position.x),
+        std::round(sBadgeY + (sBadgeH - sbb.size.y) / 2.f - sbb.position.y + 1.f)
     });
     win.draw(stBadge);
 
@@ -840,8 +840,8 @@ void RoomPanel::render(RenderWindow& win) {
     Text lbl1(boldFont, L"Ch\u1ecdn ph\u00f2ng chi\u1ebfu:", 14); lbl1.setFillColor(Color(51, 65, 85)); lbl1.setPosition({position.x + 50.f, cardY + 62.f}); win.draw(lbl1);
     drawRoundedCard(win, {position.x + 50.f, cardY + 86.f}, {leftCardW - 40.f, 38.f}, 8.f, Color(248, 250, 252), 1.f, Color(203, 213, 225));
     wstring currRoomLabel = (selectedRoomIndex >= 0 && selectedRoomIndex < (int)rooms.size())
-        ? toUpperVi(rooms[selectedRoomIndex].name) + L" (" + rooms[selectedRoomIndex].roomType + L")"
-        : L"Ch\u1ecdn ph\u00f2ng...";
+        ? toUpperVi(rooms[selectedRoomIndex].name + L" (" + rooms[selectedRoomIndex].roomType + L")")
+        : L"CH\u1eccN PH\u00d2NG...";
     Text currRoomTxt(font, currRoomLabel, 14); currRoomTxt.setFillColor(Color(23, 32, 51)); currRoomTxt.setPosition({position.x + 62.f, cardY + 95.f}); win.draw(currRoomTxt);
     Text arr1(boldFont, L"\u25bc", 14); arr1.setFillColor(Color(100, 116, 139)); arr1.setPosition({position.x + leftCardW - 15.f, cardY + 97.f}); win.draw(arr1);
 
@@ -894,7 +894,7 @@ void RoomPanel::render(RenderWindow& win) {
     drawRoundedCard(win, {position.x + 50.f, statCardY}, {statCardW, 122.f}, 10.f, Color(241, 245, 249));
 
     Text stHead(boldFont, L"Th\u1ed1ng k\u00ea lo\u1ea1i gh\u1ebf", 14); stHead.setFillColor(Color(23, 32, 51)); stHead.setPosition({position.x + 64.f, statCardY + 14.f}); win.draw(stHead);
-    Text stTotal(boldFont, to_wstring(totalSeats) + L" gh\u1ebf", 14); stTotal.setFillColor(Color(8, 125, 181));
+    Text stTotal(font, to_wstring(totalSeats) + L" gh\u1ebf", 14); stTotal.setFillColor(Color(8, 125, 181));
     stTotal.setPosition({statRightX - stTotal.getLocalBounds().size.x, statCardY + 14.f}); win.draw(stTotal);
 
     // Ghế Thường
@@ -1103,7 +1103,7 @@ void RoomPanel::render(RenderWindow& win) {
             if (i == (size_t)selectedRoomIndex) {
                 RoundedRectRenderer::draw(win, {position.x + 52.f, iY}, {leftCardW - 44.f, 35.f}, 4.f, Color(224, 242, 254));
             }
-            Text rItm(font, toUpperVi(rooms[i].name) + L" - " + rooms[i].roomType, 14);
+            Text rItm(font, toUpperVi(rooms[i].name + L" - " + rooms[i].roomType), 14);
             rItm.setFillColor((i == (size_t)selectedRoomIndex) ? Color(8, 125, 181) : Color(23, 32, 51));
             rItm.setPosition({position.x + 62.f, iY + 9.f});
             win.draw(rItm);
