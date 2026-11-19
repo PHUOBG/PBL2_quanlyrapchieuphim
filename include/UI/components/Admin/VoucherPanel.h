@@ -52,12 +52,15 @@ private:
 
     // Pagination
     int currentVoucherPage = 1;
-    const int pageSize = 6;
+    int pageSize = 6;
     int totalVoucherPages = 2;
 
     int currentRecipientPage = 1;
-    const int recipientPageSize = 6;
+    int recipientPageSize = 6;
     int totalRecipientPages = 1;
+
+    int getVoucherPageSize() const;
+    int getRecipientPageSize() const;
 
     // Hover states
     int hoveredVoucherRow = -1;
