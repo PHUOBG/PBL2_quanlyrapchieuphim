@@ -863,9 +863,9 @@ void OverviewPanel::drawKpiCards(RenderTarget& target) const {
         target.draw(val);
 
         if (!unitStr.empty()) {
-            Text unit(font, unitStr, 15);
-            unit.setFillColor(Color(100, 116, 139));
-            unit.setPosition({std::round(val.getPosition().x + val.getGlobalBounds().size.x + 6.f), std::round(cardPos.y + 44.f)});
+            Text unit(boldFont, unitStr, 22);
+            unit.setFillColor(Color(23, 32, 51));
+            unit.setPosition({std::round(val.getPosition().x + val.getGlobalBounds().size.x + 6.f), std::round(cardPos.y + 39.f)});
             target.draw(unit);
         }
 
@@ -908,9 +908,9 @@ void OverviewPanel::drawKpiCards(RenderTarget& target) const {
         val.setPosition({cardPos.x + 14.f, std::round(cardPos.y + 39.f)});
         target.draw(val);
 
-        Text unit(font, L"thành viên", 15);
-        unit.setFillColor(Color(100, 116, 139));
-        unit.setPosition({std::round(val.getPosition().x + val.getGlobalBounds().size.x + 6.f), std::round(cardPos.y + 44.f)});
+        Text unit(boldFont, L"thành viên", 22);
+        unit.setFillColor(Color(23, 32, 51));
+        unit.setPosition({std::round(val.getPosition().x + val.getGlobalBounds().size.x + 6.f), std::round(cardPos.y + 39.f)});
         target.draw(unit);
 
         Text sub(font, L"Tháng 10/2026", 13);
@@ -947,9 +947,9 @@ void OverviewPanel::drawKpiCards(RenderTarget& target) const {
         val.setPosition({cardPos.x + 14.f, std::round(cardPos.y + 39.f)});
         target.draw(val);
 
-        Text unit(font, L"vé", 15);
-        unit.setFillColor(Color(100, 116, 139));
-        unit.setPosition({std::round(val.getPosition().x + val.getGlobalBounds().size.x + 6.f), std::round(cardPos.y + 44.f)});
+        Text unit(boldFont, L"vé", 22);
+        unit.setFillColor(Color(23, 32, 51));
+        unit.setPosition({std::round(val.getPosition().x + val.getGlobalBounds().size.x + 6.f), std::round(cardPos.y + 39.f)});
         target.draw(unit);
 
         Text sub(font, L"Tháng 10/2026", 13);
