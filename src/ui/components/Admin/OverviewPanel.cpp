@@ -1009,14 +1009,15 @@ void OverviewPanel::drawTopLeftChart(RenderTarget& target) const {
     target.draw(title);
 
     // Right tag: "Top 8 thịnh hành"
-    Vector2f badgePos(cardX + cardW - 122.f, cardY + 11.f);
-    RoundedRectRenderer::draw(target, badgePos, {108.f, 24.f}, 12.f, Color(224, 242, 254));
     Text badgeTxt(boldFont);
     badgeTxt.setString(L"Top 8 thịnh hành");
-    badgeTxt.setCharacterSize(12);
+    badgeTxt.setCharacterSize(14);
     badgeTxt.setFillColor(Color(8, 125, 181));
     FloatRect bb = badgeTxt.getLocalBounds();
-    badgeTxt.setPosition({std::round(badgePos.x + (108.f - bb.size.x) / 2.f - bb.position.x), std::round(badgePos.y + (24.f - bb.size.y) / 2.f - bb.position.y)});
+    float badgeW = bb.size.x + 22.f;
+    Vector2f badgePos(cardX + cardW - badgeW - 14.f, cardY + 10.f);
+    RoundedRectRenderer::draw(target, badgePos, {badgeW, 26.f}, 13.f, Color(224, 242, 254));
+    badgeTxt.setPosition({std::round(badgePos.x + (badgeW - bb.size.x) / 2.f - bb.position.x), std::round(badgePos.y + (26.f - bb.size.y) / 2.f - bb.position.y)});
     target.draw(badgeTxt);
 
     // Chart Area
@@ -1244,13 +1245,13 @@ void OverviewPanel::drawBottomLeftChart(RenderTarget& target) const {
             peakLabel = L"● Đạt đỉnh: " + m.displayMonth + L" (" + s2ws(toCurrency(m.revenue)) + L")";
         }
     }
-    Text badgeTxt(boldFont, peakLabel, 12);
+    Text badgeTxt(boldFont, peakLabel, 14);
     badgeTxt.setFillColor(Color(219, 39, 119));
     FloatRect bb = badgeTxt.getLocalBounds();
-    float badgeW = bb.size.x + 20.f;
-    Vector2f badgePos(cardX + cardW - badgeW - 14.f, cardY + 11.f);
-    RoundedRectRenderer::draw(target, badgePos, {badgeW, 24.f}, 12.f, Color(253, 242, 248), 1.f, Color(251, 207, 232));
-    badgeTxt.setPosition({std::round(badgePos.x + (badgeW - bb.size.x) / 2.f - bb.position.x), std::round(badgePos.y + (24.f - bb.size.y) / 2.f - bb.position.y)});
+    float badgeW = bb.size.x + 22.f;
+    Vector2f badgePos(cardX + cardW - badgeW - 14.f, cardY + 10.f);
+    RoundedRectRenderer::draw(target, badgePos, {badgeW, 26.f}, 13.f, Color(253, 242, 248), 1.f, Color(251, 207, 232));
+    badgeTxt.setPosition({std::round(badgePos.x + (badgeW - bb.size.x) / 2.f - bb.position.x), std::round(badgePos.y + (26.f - bb.size.y) / 2.f - bb.position.y)});
     target.draw(badgeTxt);
 
     // Area & Line Chart
@@ -1444,32 +1445,35 @@ void OverviewPanel::drawBottomRightTable(RenderTarget& target) const {
             RoundedRectRenderer::draw(target, {cardX + 16.f, ry - 4.f}, {cardW - 32.f, rowH - 4.f}, 4.f, Color(248, 250, 252));
         }
 
-        // Month text + Colored Bullet Dot centered in [monthColLeft, monthColRight]
+        // Month text + Colored Bullet Dot aligned uniformly in [monthColLeft, monthColRight]
         Text mTxt(boldFont);
         mTxt.setString(monthlyStatsList[i].displayMonth);
         mTxt.setCharacterSize(14);
         mTxt.setFillColor(Color(23, 32, 51));
         FloatRect mb = mTxt.getLocalBounds();
-        float itemW = 7.f + 9.f + mb.size.x + (monthlyStatsList[i].isRecord ? 60.f : 0.f);
+        float itemW = 7.f + 9.f + mb.size.x;
         float startMX = monthColLeft + ((monthColRight - monthColLeft) - itemW) / 2.f;
+        float textY = monthlyStatsList[i].isRecord ? (ry - 2.f) : (ry + 2.f);
 
         CircleShape rDot(3.5f);
-        rDot.setPosition({std::round(startMX), std::round(ry + 8.f)});
+        rDot.setPosition({std::round(startMX), std::round(textY + 6.f)});
         rDot.setFillColor(dotColors[i % 4]);
         target.draw(rDot);
 
-        mTxt.setPosition({std::round(startMX + 16.f - mb.position.x), std::round(ry + 2.f)});
+        mTxt.setPosition({std::round(startMX + 16.f - mb.position.x), std::round(textY)});
         target.draw(mTxt);
 
         if (monthlyStatsList[i].isRecord) {
-            Vector2f recPos(std::round(startMX + 16.f + mb.size.x + 8.f), std::round(ry + 2.f));
-            RoundedRectRenderer::draw(target, recPos, {52.f, 20.f}, 4.f, Color(255, 228, 230));
+            float recW = 54.f;
+            float recX = monthColLeft + ((monthColRight - monthColLeft) - recW) / 2.f;
+            Vector2f recPos(std::round(recX), std::round(ry + 18.f));
+            RoundedRectRenderer::draw(target, recPos, {recW, 18.f}, 4.f, Color(255, 228, 230));
             Text recTxt(boldFont);
             recTxt.setString(L"Kỷ lục");
             recTxt.setCharacterSize(12);
             recTxt.setFillColor(Color(225, 29, 72));
             FloatRect rcb = recTxt.getLocalBounds();
-            recTxt.setPosition({std::round(recPos.x + (52.f - rcb.size.x) / 2.f - rcb.position.x), std::round(recPos.y + (20.f - rcb.size.y) / 2.f - rcb.position.y)});
+            recTxt.setPosition({std::round(recPos.x + (recW - rcb.size.x) / 2.f - rcb.position.x), std::round(recPos.y + (18.f - rcb.size.y) / 2.f - rcb.position.y)});
             target.draw(recTxt);
         }
 
