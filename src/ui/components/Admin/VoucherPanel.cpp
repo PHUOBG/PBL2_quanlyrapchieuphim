@@ -1020,32 +1020,46 @@ void VoucherPanel::render(RenderWindow& win) {
     float cardW = (width - 60.f - 45.f) / 4.f;
     float cardH = 82.f;
 
-    // Card 1: Tổng voucher khả dụng
+    auto drawCenteredKpi = [&](float cX, const wstring& titleStr, const wstring& valStr, Color valCol, const wstring& extraStr = L"", Color extraCol = Color::Transparent) {
+        drawRoundedCard(win, {cX, statY}, {cardW, cardH}, 10.f, Color::White, 1.f, Color(226, 232, 240));
+
+        Text tLbl(boldFont, titleStr, 14);
+        tLbl.setFillColor(Color(100, 116, 139));
+        FloatRect tb = tLbl.getLocalBounds();
+        tLbl.setPosition({std::round(cX + (cardW - tb.size.x) / 2.f - tb.position.x), std::round(statY + 14.f - tb.position.y)});
+        win.draw(tLbl);
+
+        Text tVal(boldFont, valStr, 24);
+        tVal.setFillColor(valCol);
+        FloatRect vb = tVal.getLocalBounds();
+
+        if (extraStr.empty()) {
+            tVal.setPosition({std::round(cX + (cardW - vb.size.x) / 2.f - vb.position.x), std::round(statY + 42.f - vb.position.y)});
+            win.draw(tVal);
+        } else {
+            Text tExt(boldFont, extraStr, 17);
+            tExt.setFillColor(extraCol);
+            FloatRect eb = tExt.getLocalBounds();
+            float gapX = 10.f;
+            float totalW = vb.size.x + gapX + eb.size.x;
+            float startX = cX + (cardW - totalW) / 2.f;
+            tVal.setPosition({std::round(startX - vb.position.x), std::round(statY + 42.f - vb.position.y)});
+            tExt.setPosition({std::round(startX + vb.size.x + gapX - eb.position.x), std::round(statY + 42.f + (vb.size.y - eb.size.y) / 2.f - eb.position.y)});
+            win.draw(tVal);
+            win.draw(tExt);
+        }
+    };
+
     float c1X = position.x + 30.f;
-    drawRoundedCard(win, {c1X, statY}, {cardW, cardH}, 10.f, Color::White, 1.f, Color(226, 232, 240));
-    Text sc1T(boldFont, L"T\u1ed5ng voucher kh\u1ea3 d\u1ee5ng", 14); sc1T.setFillColor(Color(100, 116, 139)); sc1T.setPosition({c1X + 16.f, statY + 12.f}); win.draw(sc1T);
-    Text sc1V(boldFont, to_wstring(allVouchers.size()), 24); sc1V.setFillColor(Color(23, 32, 51)); sc1V.setPosition({c1X + 16.f, std::round(statY + 35.f)}); win.draw(sc1V);
-
-    // Card 2: Đã quy đổi / Sử dụng
     float c2X = c1X + cardW + 15.f;
-    drawRoundedCard(win, {c2X, statY}, {cardW, cardH}, 10.f, Color::White, 1.f, Color(226, 232, 240));
-    Text sc2T(boldFont, L"\u0110\u00e3 quy \u0111\u1ed5i / S\u1eed d\u1ee5ng", 14); sc2T.setFillColor(Color(100, 116, 139)); sc2T.setPosition({c2X + 16.f, statY + 12.f}); win.draw(sc2T);
-    Text sc2V(boldFont, L"1,420", 24); sc2V.setFillColor(Color(23, 32, 51)); sc2V.setPosition({c2X + 16.f, std::round(statY + 35.f)}); win.draw(sc2V);
-    FloatRect v2b = sc2V.getGlobalBounds();
-    Text sc2P(boldFont, L"(68%)", 17); sc2P.setFillColor(Color(21, 128, 61)); sc2P.setPosition({std::round(v2b.position.x + v2b.size.x + 10.f), std::round(statY + 40.f)}); win.draw(sc2P);
-
-    // Card 3: Tổng ngân sách chiết khấu
     float c3X = c2X + cardW + 15.f;
-    drawRoundedCard(win, {c3X, statY}, {cardW, cardH}, 10.f, Color::White, 1.f, Color(226, 232, 240));
-    Text sc3T(boldFont, L"T\u1ed5ng ng\u00e2n s\u00e1ch chi\u1ebft kh\u1ea5u", 14); sc3T.setFillColor(Color(100, 116, 139)); sc3T.setPosition({c3X + 16.f, statY + 12.f}); win.draw(sc3T);
-    Text sc3V(boldFont, L"42.500.000 \u0110", 24); sc3V.setFillColor(Color(23, 32, 51)); sc3V.setPosition({c3X + 16.f, std::round(statY + 35.f)}); win.draw(sc3V);
-
-    // Card 4: Đang chọn khảo sát
     float c4X = c3X + cardW + 15.f;
-    drawRoundedCard(win, {c4X, statY}, {cardW, cardH}, 10.f, Color::White, 1.f, Color(226, 232, 240));
-    Text sc4T(boldFont, L"\u0110ang ch\u1ecdn kh\u1ea3o s\u00e1t", 14); sc4T.setFillColor(Color(100, 116, 139)); sc4T.setPosition({c4X + 16.f, statY + 12.f}); win.draw(sc4T);
     string selCode = (selectedVoucherIndex >= 0 && selectedVoucherIndex < (int)filteredVouchers.size()) ? filteredVouchers[selectedVoucherIndex].code : "WELCOME";
-    Text sc4V(boldFont, s2ws(selCode), 24); sc4V.setFillColor(Color(8, 125, 181)); sc4V.setPosition({c4X + 16.f, std::round(statY + 35.f)}); win.draw(sc4V);
+
+    drawCenteredKpi(c1X, L"T\u1ed5ng voucher kh\u1ea3 d\u1ee5ng", to_wstring(allVouchers.size()), Color(23, 32, 51));
+    drawCenteredKpi(c2X, L"\u0110\u00e3 quy \u0111\u1ed5i / S\u1eed d\u1ee5ng", L"1,420", Color(23, 32, 51), L"(68%)", Color(21, 128, 61));
+    drawCenteredKpi(c3X, L"T\u1ed5ng ng\u00e2n s\u00e1ch chi\u1ebft kh\u1ea5u", L"42.500.000 \u0110", Color(23, 32, 51));
+    drawCenteredKpi(c4X, L"\u0110ang ch\u1ecdn kh\u1ea3o s\u00e1t", s2ws(selCode), Color(8, 125, 181));
 
     // ==========================================
     // 5. CỘT TRÁI: DANH SÁCH VOUCHER (MASTER VIEW)
