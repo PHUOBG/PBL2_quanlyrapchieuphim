@@ -856,34 +856,38 @@ void ComboPanel::render(RenderWindow& win) {
         }
     }
 
-    // Card 1: Tổng danh mục
+    auto drawCenteredComboKpi = [&](float cX, const wstring& titleStr, const wstring& valStr, const wstring& subStr) {
+        drawRoundedCard(win, {cX, statY}, {cardW, cardH}, 10.f, Color::White, 1.f, Color(226, 232, 240));
+
+        Text tLbl(boldFont, titleStr, 14);
+        tLbl.setFillColor(Color(100, 116, 139));
+        FloatRect tb = tLbl.getLocalBounds();
+        tLbl.setPosition({std::round(cX + (cardW - tb.size.x) / 2.f - tb.position.x), std::round(statY + 12.f)});
+        win.draw(tLbl);
+
+        Text tVal(boldFont, valStr, 22);
+        tVal.setFillColor(Color(23, 32, 51));
+        FloatRect vb = tVal.getLocalBounds();
+        tVal.setPosition({std::round(cX + (cardW - vb.size.x) / 2.f - vb.position.x), std::round(statY + 34.f)});
+        win.draw(tVal);
+
+        Text tSub(font, subStr, 14);
+        tSub.setFillColor(Color(100, 116, 139));
+        FloatRect sb = tSub.getLocalBounds();
+        tSub.setPosition({std::round(cX + (cardW - sb.size.x) / 2.f - sb.position.x), std::round(statY + 64.f)});
+        win.draw(tSub);
+    };
+
     float c1X = position.x + 30.f;
-    drawRoundedCard(win, {c1X, statY}, {cardW, cardH}, 10.f, Color::White, 1.f, Color(226, 232, 240));
-    Text sc1T(boldFont, L"T\u1ed4NG DANH M\u1ee4C", 14); sc1T.setFillColor(Color(100, 116, 139)); sc1T.setPosition({c1X + 16.f, statY + 12.f}); win.draw(sc1T);
-    Text sc1V(boldFont, to_wstring(allCombos.size()), 22); sc1V.setFillColor(Color(23, 32, 51)); sc1V.setPosition({c1X + 16.f, statY + 34.f}); win.draw(sc1V);
-    Text sc1S(font, to_wstring(distinctCats.size()) + L" nh\u00f3m s\u1ea3n ph\u1ea9m F&B", 14); sc1S.setFillColor(Color(100, 116, 139)); sc1S.setPosition({c1X + 16.f, statY + 64.f}); win.draw(sc1S);
-
-    // Card 2: Doanh thu F&B
     float c2X = c1X + cardW + 15.f;
-    drawRoundedCard(win, {c2X, statY}, {cardW, cardH}, 10.f, Color::White, 1.f, Color(226, 232, 240));
-    Text sc2T(boldFont, L"DOANH THU F&B", 14); sc2T.setFillColor(Color(100, 116, 139)); sc2T.setPosition({c2X + 16.f, statY + 12.f}); win.draw(sc2T);
-    Text sc2V(boldFont, s2ws(formatPrice((int)min(totalFbRev, 2000000000LL))), 22); sc2V.setFillColor(Color(23, 32, 51)); sc2V.setPosition({c2X + 16.f, statY + 34.f}); win.draw(sc2V);
-    Text sc2S(font, L"T\u1ed5ng doanh thu combo \u0111\u00e3 b\u00e1n", 14); sc2S.setFillColor(Color(100, 116, 139)); sc2S.setPosition({c2X + 16.f, statY + 64.f}); win.draw(sc2S);
-
-    // Card 3: Best Seller
     float c3X = c2X + cardW + 15.f;
-    drawRoundedCard(win, {c3X, statY}, {cardW, cardH}, 10.f, Color::White, 1.f, Color(226, 232, 240));
-    Text sc3T(boldFont, L"BEST SELLER", 14); sc3T.setFillColor(Color(100, 116, 139)); sc3T.setPosition({c3X + 16.f, statY + 12.f}); win.draw(sc3T);
-    if (bestLabel.size() > 16) bestLabel = bestLabel.substr(0, 14) + L"..";
-    Text sc3V(boldFont, bestLabel, 22); sc3V.setFillColor(Color(23, 32, 51)); sc3V.setPosition({c3X + 16.f, statY + 34.f}); win.draw(sc3V);
-    Text sc3S(font, to_wstring(bestQty) + L" ph\u1ea7n \u0111\u00e3 b\u00e1n ra", 14); sc3S.setFillColor(Color(100, 116, 139)); sc3S.setPosition({c3X + 16.f, statY + 64.f}); win.draw(sc3S);
-
-    // Card 4: Giá trị trung bình F&B
     float c4X = c3X + cardW + 15.f;
-    drawRoundedCard(win, {c4X, statY}, {cardW, cardH}, 10.f, Color::White, 1.f, Color(226, 232, 240));
-    Text sc4T(boldFont, L"GI\u00c1 TR\u1eca TRUNG B\u00ccNH", 14); sc4T.setFillColor(Color(100, 116, 139)); sc4T.setPosition({c4X + 16.f, statY + 12.f}); win.draw(sc4T);
-    Text sc4V(boldFont, s2ws(formatPrice((int)avgMenuPrice)), 22); sc4V.setFillColor(Color(23, 32, 51)); sc4V.setPosition({c4X + 16.f, statY + 34.f}); win.draw(sc4V);
-    Text sc4S(font, L"\u0110\u01a1n gi\u00e1 trung b\u00ecnh th\u1ef1c \u0111\u01a1n", 14); sc4S.setFillColor(Color(100, 116, 139)); sc4S.setPosition({c4X + 16.f, statY + 64.f}); win.draw(sc4S);
+    if (bestLabel.size() > 16) bestLabel = bestLabel.substr(0, 14) + L"..";
+
+    drawCenteredComboKpi(c1X, L"T\u1ed4NG DANH M\u1ee4C", to_wstring(allCombos.size()), to_wstring(distinctCats.size()) + L" nh\u00f3m s\u1ea3n ph\u1ea9m F&B");
+    drawCenteredComboKpi(c2X, L"DOANH THU F&B", s2ws(formatPrice((int)min(totalFbRev, 2000000000LL))), L"T\u1ed5ng doanh thu combo \u0111\u00e3 b\u00e1n");
+    drawCenteredComboKpi(c3X, L"BEST SELLER", bestLabel, to_wstring(bestQty) + L" ph\u1ea7n \u0111\u00e3 b\u00e1n ra");
+    drawCenteredComboKpi(c4X, L"GI\u00c1 TR\u1eca TRUNG B\u00ccNH", s2ws(formatPrice((int)avgMenuPrice)), L"\u0110\u01a1n gi\u00e1 trung b\u00ecnh th\u1ef1c \u0111\u01a1n");
 
     // ==========================================
     // 5. TOOLBAR & FILTER PILLS
