@@ -1024,9 +1024,9 @@ void MovieRevenuePanel::drawKpiCards(RenderTarget& target) const {
 
         Text lbl(font);
         lbl.setString(L"Tổng doanh thu toàn rạp (01/09/2025 - 24/12/2025)");
-        lbl.setCharacterSize(14);
+        lbl.setCharacterSize(16);
         lbl.setFillColor(Color(100, 116, 139));
-        lbl.setPosition({cPos.x + 16.f, cPos.y + 12.f});
+        lbl.setPosition({cPos.x + 16.f, std::round(cPos.y + 10.f)});
         target.draw(lbl);
 
         // Big value
@@ -1034,22 +1034,22 @@ void MovieRevenuePanel::drawKpiCards(RenderTarget& target) const {
         val.setString(s2ws(toCurrency(totalRevenue)));
         val.setCharacterSize(24);
         val.setFillColor(Color(23, 32, 51));
-        val.setPosition({cPos.x + 16.f, cPos.y + 36.f});
+        val.setPosition({cPos.x + 16.f, std::round(cPos.y + 34.f)});
         target.draw(val);
 
         // Footer
         Text fLeft(boldFont);
         fLeft.setString(L"+18.4% so với quý trước");
-        fLeft.setCharacterSize(13);
+        fLeft.setCharacterSize(15);
         fLeft.setFillColor(Color(21, 128, 61));
-        fLeft.setPosition({cPos.x + 16.f, std::round(cPos.y + 68.f)});
+        fLeft.setPosition({cPos.x + 16.f, std::round(cPos.y + 63.f)});
         target.draw(fLeft);
 
         Text fRight(font);
         fRight.setString(L"Đã quyết toán VAT");
-        fRight.setCharacterSize(13);
+        fRight.setCharacterSize(15);
         fRight.setFillColor(Color(148, 163, 184));
-        fRight.setPosition({std::round(cPos.x + cardW - 16.f - fRight.getGlobalBounds().size.x), std::round(cPos.y + 68.f)});
+        fRight.setPosition({std::round(cPos.x + cardW - 16.f - fRight.getGlobalBounds().size.x), std::round(cPos.y + 63.f)});
         target.draw(fRight);
     }
 
@@ -1063,30 +1063,30 @@ void MovieRevenuePanel::drawKpiCards(RenderTarget& target) const {
 
         Text lbl(font);
         lbl.setString(L"Doanh thu phim (01/09/2025 - 24/12/2025)");
-        lbl.setCharacterSize(14);
+        lbl.setCharacterSize(16);
         lbl.setFillColor(Color(100, 116, 139));
-        lbl.setPosition({cPos.x + 16.f, cPos.y + 12.f});
+        lbl.setPosition({cPos.x + 16.f, std::round(cPos.y + 10.f)});
         target.draw(lbl);
 
         Text val(boldFont);
         val.setString(s2ws(toCurrency(movieRevenue)));
         val.setCharacterSize(24);
         val.setFillColor(Color(23, 32, 51));
-        val.setPosition({cPos.x + 16.f, cPos.y + 36.f});
+        val.setPosition({cPos.x + 16.f, std::round(cPos.y + 34.f)});
         target.draw(val);
 
         Text fLeft(boldFont);
         fLeft.setString(L"Chiếm 59.1% tổng nguồn thu");
-        fLeft.setCharacterSize(13);
+        fLeft.setCharacterSize(15);
         fLeft.setFillColor(Color(8, 125, 181));
-        fLeft.setPosition({cPos.x + 16.f, std::round(cPos.y + 68.f)});
+        fLeft.setPosition({cPos.x + 16.f, std::round(cPos.y + 63.f)});
         target.draw(fLeft);
 
         Text fRight(font);
         fRight.setString(to_wstring(totalTickets) + L" vé đã xuất");
-        fRight.setCharacterSize(13);
+        fRight.setCharacterSize(15);
         fRight.setFillColor(Color(148, 163, 184));
-        fRight.setPosition({std::round(cPos.x + cardW - 16.f - fRight.getGlobalBounds().size.x), std::round(cPos.y + 68.f)});
+        fRight.setPosition({std::round(cPos.x + cardW - 16.f - fRight.getGlobalBounds().size.x), std::round(cPos.y + 63.f)});
         target.draw(fRight);
     }
 
@@ -1101,30 +1101,30 @@ void MovieRevenuePanel::drawKpiCards(RenderTarget& target) const {
 
         Text lbl(font);
         lbl.setString(L"Doanh thu combo F&B (01/09/2025 - 24/12/2025)");
-        lbl.setCharacterSize(14);
+        lbl.setCharacterSize(16);
         lbl.setFillColor(Color(100, 116, 139));
-        lbl.setPosition({cPos.x + 16.f, cPos.y + 12.f});
+        lbl.setPosition({cPos.x + 16.f, std::round(cPos.y + 10.f)});
         target.draw(lbl);
 
         Text val(boldFont);
         val.setString(s2ws(toCurrency(comboRevenue)));
         val.setCharacterSize(24);
         val.setFillColor(isComboTab ? Color(180, 83, 9) : Color(23, 32, 51));
-        val.setPosition({cPos.x + 16.f, cPos.y + 36.f});
+        val.setPosition({cPos.x + 16.f, std::round(cPos.y + 34.f)});
         target.draw(val);
 
         Text fLeft(boldFont);
         fLeft.setString(L"Chiếm 40.9% tổng nguồn thu");
-        fLeft.setCharacterSize(13);
+        fLeft.setCharacterSize(15);
         fLeft.setFillColor(Color(217, 119, 6));
-        fLeft.setPosition({cPos.x + 16.f, std::round(cPos.y + 68.f)});
+        fLeft.setPosition({cPos.x + 16.f, std::round(cPos.y + 63.f)});
         target.draw(fLeft);
 
         Text fRight(font);
         fRight.setString(to_wstring(totalCombos) + L" Combo & Nước");
-        fRight.setCharacterSize(13);
+        fRight.setCharacterSize(15);
         fRight.setFillColor(Color(148, 163, 184));
-        fRight.setPosition({std::round(cPos.x + cardW - 16.f - fRight.getGlobalBounds().size.x), std::round(cPos.y + 68.f)});
+        fRight.setPosition({std::round(cPos.x + cardW - 16.f - fRight.getGlobalBounds().size.x), std::round(cPos.y + 63.f)});
         target.draw(fRight);
     }
 }
