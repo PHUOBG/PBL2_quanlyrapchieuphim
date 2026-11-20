@@ -920,9 +920,10 @@ void MovieRevenuePanel::render(RenderTarget& target) const {
             Color itemBg = (i == hoveredDateItem) ? Color(241, 245, 249) : (i == selectedDateFilter ? Color(224, 242, 254) : Color::White);
             Color itemFg = (i == selectedDateFilter) ? Color(8, 125, 181) : Color(51, 65, 85);
             RoundedRectRenderer::draw(target, {ddX + 2.f, ddY + i * itemH + 2.f}, {ddW - 4.f, itemH - 4.f}, 4.f, itemBg);
-            Text itTxt(i == selectedDateFilter ? boldFont : font, dateFilterOptions[i].first, 12.f);
+            Text itTxt(i == selectedDateFilter ? boldFont : font, dateFilterOptions[i].first, 16);
             itTxt.setFillColor(itemFg);
-            itTxt.setPosition({ddX + 16.f, ddY + i * itemH + 9.f});
+            FloatRect itb = itTxt.getLocalBounds();
+            itTxt.setPosition({ddX + 16.f, std::round(ddY + i * itemH + (itemH - itb.size.y) / 2.f - itb.position.y)});
             target.draw(itTxt);
             if (i == selectedDateFilter) {
                 UITheme::drawCheckmark(target, {ddX + ddW - 20.f, ddY + i * itemH + 18.f}, 0.7f, Color(8, 125, 181), 1.8f);
@@ -979,7 +980,7 @@ void MovieRevenuePanel::drawHeader(RenderTarget& target) const {
     wstring curDateStr = (!dateFilterOptions.empty() && selectedDateFilter >= 0 && selectedDateFilter < (int)dateFilterOptions.size())
                          ? dateFilterOptions[selectedDateFilter].first
                          : L"Tất cả thời gian";
-    Text dateRangeTxt(font, curDateStr, 14);
+    Text dateRangeTxt(font, curDateStr, 16);
     dateRangeTxt.setFillColor(Color(30, 41, 59));
     FloatRect drb = dateRangeTxt.getLocalBounds();
     dateRangeTxt.setPosition({std::round(dateRangePos.x + 14.f), std::round(dateRangePos.y + (38.f - drb.size.y) / 2.f - drb.position.y)});
@@ -1188,13 +1189,8 @@ void MovieRevenuePanel::drawTab1TicketsByMovie(RenderTarget& target) const {
 
         Text title(boldFont, L"BIỂU ĐỒ ĐỐI CHIẾU SỐ LƯỢNG VÉ", 14);
         title.setFillColor(Color(23, 32, 51));
-        title.setPosition({cPos.x + 24.f, cPos.y + 12.f});
+        title.setPosition({cPos.x + 24.f, cPos.y + 18.f});
         target.draw(title);
-
-        Text sub(font, L"Phân bổ tỷ trọng số lượng vé đã xuất cho từng tác phẩm", 14);
-        sub.setFillColor(Color(100, 116, 139));
-        sub.setPosition({cPos.x + 24.f, cPos.y + 34.f});
-        target.draw(sub);
 
         // Badge "Đơn vị: Vé" ở góc phải trên
         Vector2f unitBoxSize(92.f, 28.f);
@@ -1309,16 +1305,16 @@ void MovieRevenuePanel::drawTab1TicketsByMovie(RenderTarget& target) const {
         Vector2f cPos(position.x + 20.f, botCardY);
         RoundedRectRenderer::draw(target, cPos, {fullW, botCardH}, 10.f, Color::White, 1.f, Color(226, 232, 240));
 
-        // Tiêu đề & phụ đề bảng
-        Text sTitle(boldFont, L"Số vé bán ra theo phim (01/09/2025 – 24/12/2025)", 14);
-        sTitle.setFillColor(Color(23, 32, 51));
-        sTitle.setPosition({cPos.x + 24.f, cPos.y + 10.f});
-        target.draw(sTitle);
+        // Tiêu đề bảng theo phong cách Tổng quan (chấm xanh + tiêu đề đậm)
+        CircleShape sDot(4.f);
+        sDot.setPosition({cPos.x + 20.f, cPos.y + 21.f});
+        sDot.setFillColor(Color(21, 128, 61));
+        target.draw(sDot);
 
-        Text sSub(font, L"Danh sách xếp hạng hiệu quả thương mại của từng suất chiếu", 14);
-        sSub.setFillColor(Color(100, 116, 139));
-        sSub.setPosition({cPos.x + 24.f, cPos.y + 32.f});
-        target.draw(sSub);
+        Text sTitle(boldFont, L"Số vé bán ra theo phim (01/09/2025 – 24/12/2025)", 17);
+        sTitle.setFillColor(Color(23, 32, 51));
+        sTitle.setPosition({cPos.x + 34.f, std::round(cPos.y + 13.f)});
+        target.draw(sTitle);
 
         // Badge tổng hợp góc phải trên của bảng
         wstring legStr = L"● Số vé bán ra (Vé)   |   Tổng cộng: " + to_wstring(totalTickets) + L" vé";
@@ -1326,7 +1322,7 @@ void MovieRevenuePanel::drawTab1TicketsByMovie(RenderTarget& target) const {
         sLegend.setFillColor(Color(8, 125, 181));
         FloatRect slb = sLegend.getLocalBounds();
         Vector2f legBoxSize(slb.size.x + 28.f, 30.f);
-        Vector2f legBoxPos(cPos.x + fullW - 24.f - legBoxSize.x, cPos.y + 14.f);
+        Vector2f legBoxPos(cPos.x + fullW - 20.f - legBoxSize.x, cPos.y + 10.f);
         RoundedRectRenderer::draw(target, legBoxPos, legBoxSize, 8.f, Color(240, 249, 255), 1.f, Color(186, 230, 253));
         sLegend.setPosition({
             legBoxPos.x + (legBoxSize.x - slb.size.x) / 2.f - slb.position.x,
@@ -1334,42 +1330,52 @@ void MovieRevenuePanel::drawTab1TicketsByMovie(RenderTarget& target) const {
         });
         target.draw(sLegend);
 
-        // Tọa độ các cột theo tỷ lệ phần trăm chiều ngang để tự động giãn đẹp khi ẩn/hiện sidebar
-        float colX_id        = cPos.x + 28.f;
-        float colX_title     = cPos.x + 82.f;
-        float colX_genre     = cPos.x + fullW * 0.34f;
-        float colX_showtimes = cPos.x + fullW * 0.51f;
-        float colX_tickets   = cPos.x + fullW * 0.62f;
-        float colX_revenue   = cPos.x + fullW * 0.74f;
-        float colX_share     = cPos.x + fullW * 0.87f;
+        // Khung bảng & các cột có đường ngăn cách giống bảng Tổng quan
+        float tblX = cPos.x + 20.f;
+        float tblW = fullW - 40.f;
+        float tblRight = tblX + tblW;
+        float thBoxY = cPos.y + 48.f;
+        float thBoxH = 34.f;
 
-        // Nền thanh tiêu đề cột
-        float thBoxY = cPos.y + 52.f;
-        float thBoxH = 30.f;
-        RectangleShape thBg(Vector2f(fullW - 2.f, thBoxH));
-        thBg.setPosition({cPos.x + 1.f, thBoxY});
-        thBg.setFillColor(Color(248, 250, 252));
-        target.draw(thBg);
+        float div0 = tblX + 54.f;
+        float div1 = tblX + std::floor(tblW * 0.34f);
+        float div2 = tblX + std::floor(tblW * 0.50f);
+        float div3 = tblX + std::floor(tblW * 0.61f);
+        float div4 = tblX + std::floor(tblW * 0.72f);
+        float div5 = tblX + std::floor(tblW * 0.85f);
 
-        float thY = thBoxY + 6.f;
-        Text th_id(boldFont, L"#", 14); th_id.setFillColor(Color(100, 116, 139)); th_id.setPosition({colX_id + 4.f, thY}); target.draw(th_id);
-        Text th_title(boldFont, L"TÊN PHIM", 14); th_title.setFillColor(Color(100, 116, 139)); th_title.setPosition({colX_title, thY}); target.draw(th_title);
-        Text th_genre(boldFont, L"THỂ LOẠI", 14); th_genre.setFillColor(Color(100, 116, 139)); th_genre.setPosition({colX_genre, thY}); target.draw(th_genre);
-        Text th_show(boldFont, L"SUẤT CHIẾU", 14); th_show.setFillColor(Color(100, 116, 139)); th_show.setPosition({colX_showtimes, thY}); target.draw(th_show);
-        Text th_tick(boldFont, L"SỐ VÉ BÁN", 14); th_tick.setFillColor(Color(100, 116, 139)); th_tick.setPosition({colX_tickets, thY}); target.draw(th_tick);
-        Text th_rev(boldFont, L"DOANH THU PHIM", 14); th_rev.setFillColor(Color(100, 116, 139)); th_rev.setPosition({colX_revenue, thY}); target.draw(th_rev);
-        Text th_sh(boldFont, L"TỶ TRỌNG", 14); th_sh.setFillColor(Color(100, 116, 139)); th_sh.setPosition({colX_share, thY}); target.draw(th_sh);
+        // Thanh tiêu đề Ocean Blue bo góc + vạch ngăn dọc
+        RoundedRectRenderer::draw(target, {tblX, thBoxY}, {tblW, thBoxH}, 6.f, Color(8, 125, 181));
+        for (float dx : {div0, div1, div2, div3, div4, div5}) {
+            RectangleShape hDiv(Vector2f(1.f, thBoxH));
+            hDiv.setPosition({dx, thBoxY});
+            hDiv.setFillColor(Color(255, 255, 255, 55));
+            target.draw(hDiv);
+        }
 
-        RectangleShape div(Vector2f(fullW - 2.f, 1.f));
-        div.setPosition({cPos.x + 1.f, thBoxY + thBoxH});
-        div.setFillColor(Color(226, 232, 240));
-        target.draw(div);
+        auto drawRevHdr = [&](const wstring& lbl, float xStart, float xEnd) {
+            Text h(boldFont, lbl, 13);
+            h.setFillColor(Color::White);
+            FloatRect hb = h.getLocalBounds();
+            h.setPosition({
+                std::round(xStart + (xEnd - xStart - hb.size.x) / 2.f - hb.position.x),
+                std::round(thBoxY + (thBoxH - hb.size.y) / 2.f - hb.position.y)
+            });
+            target.draw(h);
+        };
+        drawRevHdr(L"#", tblX, div0);
+        drawRevHdr(L"TÊN PHIM", div0, div1);
+        drawRevHdr(L"THỂ LOẠI", div1, div2);
+        drawRevHdr(L"SUẤT CHIẾU", div2, div3);
+        drawRevHdr(L"SỐ VÉ BÁN", div3, div4);
+        drawRevHdr(L"DOANH THU PHIM", div4, div5);
+        drawRevHdr(L"TỶ TRỌNG", div5, tblRight);
 
         // Các dòng dữ liệu phim
-        float rowTop = thBoxY + thBoxH + 2.f;
-        float footerH = 40.f;
+        float rowTop = thBoxY + thBoxH;
+        float footerH = 38.f;
         int rowCount = max(1, (int)moviesList.size());
-        float rowH = (botCardH - (rowTop - cPos.y) - footerH) / (float)rowCount;
+        float rowH = (botCardH - (rowTop - cPos.y) - footerH - 12.f) / (float)rowCount;
 
         int sumShowtimes = 0;
         for (size_t i = 0; i < moviesList.size(); ++i) {
@@ -1377,145 +1383,171 @@ void MovieRevenuePanel::drawTab1TicketsByMovie(RenderTarget& target) const {
             float ry = rowTop + i * rowH;
             float centerY = ry + rowH / 2.f;
 
-            if (i > 0) {
-                RectangleShape rLine(Vector2f(fullW - 48.f, 1.f));
-                rLine.setPosition({cPos.x + 24.f, ry});
-                rLine.setFillColor(Color(241, 245, 249));
-                target.draw(rLine);
+            RoundedRectRenderer::draw(target, {tblX, ry}, {tblW, rowH}, 0.f, Color::White, 0.5f, Color(226, 232, 240));
+            for (float dx : {div0, div1, div2, div3, div4, div5}) {
+                RectangleShape rDiv(Vector2f(1.f, rowH));
+                rDiv.setPosition({dx, ry});
+                rDiv.setFillColor(Color(241, 245, 249));
+                target.draw(rDiv);
             }
 
-            // Hạng (Rank Badge)
-            if (i < 3) {
-                Color rBg = (i == 0) ? Color(245, 158, 11) : (i == 1 ? Color(148, 163, 184) : Color(180, 83, 9));
-                float rRadius = 11.f;
-                CircleShape c(rRadius);
-                c.setPosition({colX_id, centerY - rRadius});
-                c.setFillColor(rBg);
-                target.draw(c);
+            // Hạng (Rank Circle đồng bộ kiểu Tổng quan cho cả top 3 và 4+)
+            Color rBg = (i == 0) ? Color(245, 158, 11)
+                      : (i == 1) ? Color(148, 163, 184)
+                      : (i == 2) ? Color(217, 119, 6)
+                                 : Color(241, 245, 249);
+            Color rFg = (i < 3) ? Color::White : Color(100, 116, 139);
+            float rRadius = 10.f;
+            CircleShape c(rRadius);
+            c.setPosition({std::round(tblX + (div0 - tblX) / 2.f - rRadius), std::round(centerY - rRadius)});
+            c.setFillColor(rBg);
+            target.draw(c);
 
-                Text rTxt(boldFont, to_string(i + 1), 14);
-                rTxt.setFillColor(Color::White);
-                FloatRect rb = rTxt.getLocalBounds();
-                rTxt.setPosition({
-                    colX_id + rRadius - rb.size.x / 2.f - rb.position.x,
-                    centerY - rb.size.y / 2.f - rb.position.y
-                });
-                target.draw(rTxt);
-            } else {
-                Text rTxt(boldFont, to_string(i + 1), 14);
-                rTxt.setFillColor(Color(100, 116, 139));
-                FloatRect rb = rTxt.getLocalBounds();
-                rTxt.setPosition({
-                    colX_id + 11.f - rb.size.x / 2.f - rb.position.x,
-                    centerY - rb.size.y / 2.f - rb.position.y
-                });
-                target.draw(rTxt);
-            }
+            Text rTxt(boldFont, to_string(i + 1), 13);
+            rTxt.setFillColor(rFg);
+            FloatRect rb = rTxt.getLocalBounds();
+            rTxt.setPosition({
+                std::round(tblX + (div0 - tblX) / 2.f - rb.size.x / 2.f - rb.position.x),
+                std::round(centerY - rb.size.y / 2.f - rb.position.y)
+            });
+            target.draw(rTxt);
 
             // Tên phim + nhãn HOT
-            Text tTxt(boldFont, moviesList[i].title, 14);
+            Text tTxt(boldFont, moviesList[i].title, 13);
             tTxt.setFillColor(Color(23, 32, 51));
             FloatRect ttb = tTxt.getLocalBounds();
-            tTxt.setPosition({colX_title, centerY - ttb.size.y / 2.f - ttb.position.y});
+            tTxt.setPosition({div0 + 14.f, std::round(centerY - ttb.size.y / 2.f - ttb.position.y)});
             target.draw(tTxt);
 
             if (moviesList[i].isHot) {
                 Vector2f hotSize(42.f, 20.f);
-                Vector2f hotPos(colX_title + ttb.size.x + 10.f, centerY - hotSize.y / 2.f);
+                Vector2f hotPos(div0 + 14.f + ttb.size.x + 10.f, std::round(centerY - hotSize.y / 2.f));
                 RoundedRectRenderer::draw(target, hotPos, hotSize, 4.f, Color(254, 226, 226));
-                Text hotTxt(boldFont, L"HOT", 14);
+                Text hotTxt(boldFont, L"HOT", 12);
                 hotTxt.setFillColor(Color(225, 29, 72));
                 FloatRect hb = hotTxt.getLocalBounds();
                 hotTxt.setPosition({
-                    hotPos.x + (hotSize.x - hb.size.x) / 2.f - hb.position.x,
-                    hotPos.y + (hotSize.y - hb.size.y) / 2.f - hb.position.y
+                    std::round(hotPos.x + (hotSize.x - hb.size.x) / 2.f - hb.position.x),
+                    std::round(hotPos.y + (hotSize.y - hb.size.y) / 2.f - hb.position.y)
                 });
                 target.draw(hotTxt);
             }
 
-            // Thể loại
-            Text gTxt(font, moviesList[i].genre, 14);
+            // Thể loại (căn giữa)
+            Text gTxt(font, moviesList[i].genre, 13);
             gTxt.setFillColor(Color(100, 116, 139));
             FloatRect gtb = gTxt.getLocalBounds();
-            gTxt.setPosition({colX_genre, centerY - gtb.size.y / 2.f - gtb.position.y});
+            gTxt.setPosition({
+                std::round(div1 + (div2 - div1 - gtb.size.x) / 2.f - gtb.position.x),
+                std::round(centerY - gtb.size.y / 2.f - gtb.position.y)
+            });
             target.draw(gTxt);
 
-            // Suất chiếu
-            Text sTxt(boldFont, to_string(moviesList[i].showtimes), 14);
+            // Suất chiếu (căn giữa)
+            Text sTxt(boldFont, to_string(moviesList[i].showtimes), 13);
             sTxt.setFillColor(Color(51, 65, 85));
             FloatRect stb = sTxt.getLocalBounds();
-            sTxt.setPosition({colX_showtimes + 24.f - stb.size.x / 2.f - stb.position.x, centerY - stb.size.y / 2.f - stb.position.y});
+            sTxt.setPosition({
+                std::round(div2 + (div3 - div2 - stb.size.x) / 2.f - stb.position.x),
+                std::round(centerY - stb.size.y / 2.f - stb.position.y)
+            });
             target.draw(sTxt);
 
-            // Số vé bán
-            Text tickTxt(boldFont, to_wstring(moviesList[i].tickets) + L" vé", 14);
+            // Số vé bán (căn giữa, xanh dương giống Tổng quan)
+            Text tickTxt(boldFont, to_wstring(moviesList[i].tickets) + L" vé", 13);
             tickTxt.setFillColor(Color(8, 125, 181));
             FloatRect tkb = tickTxt.getLocalBounds();
-            tickTxt.setPosition({colX_tickets + 8.f, centerY - tkb.size.y / 2.f - tkb.position.y});
+            tickTxt.setPosition({
+                std::round(div3 + (div4 - div3 - tkb.size.x) / 2.f - tkb.position.x),
+                std::round(centerY - tkb.size.y / 2.f - tkb.position.y)
+            });
             target.draw(tickTxt);
 
-            // Doanh thu phim
+            // Doanh thu phim (căn giữa, đỏ crimson giống Tổng quan)
             Text revTxt(boldFont, s2ws(toCurrency(moviesList[i].revenue)), 14);
-            revTxt.setFillColor(Color(23, 32, 51));
+            revTxt.setFillColor(Color(225, 29, 72));
             FloatRect rvb = revTxt.getLocalBounds();
-            revTxt.setPosition({colX_revenue, centerY - rvb.size.y / 2.f - rvb.position.y});
+            revTxt.setPosition({
+                std::round(div4 + (div5 - div4 - rvb.size.x) / 2.f - rvb.position.x),
+                std::round(centerY - rvb.size.y / 2.f - rvb.position.y)
+            });
             target.draw(revTxt);
 
-            // Tỷ trọng (Thanh tiến trình nhỏ + % chữ to rõ)
+            // Tỷ trọng (Thanh tiến trình nhỏ + % căn giữa trong cột)
             float barTrackW = 64.f;
             float barH = 6.f;
-            Vector2f barPos(colX_share, centerY - barH / 2.f);
+            stringstream ss;
+            ss << fixed << setprecision(1) << moviesList[i].share << "%";
+            Text shTxt(boldFont, ss.str(), 13);
+            shTxt.setFillColor(Color(71, 85, 105));
+            FloatRect shb = shTxt.getLocalBounds();
+
+            float totalShareW = barTrackW + 10.f + shb.size.x;
+            float shareStartX = div5 + (tblRight - div5 - totalShareW) / 2.f;
+            Vector2f barPos(std::round(shareStartX), std::round(centerY - barH / 2.f));
             RoundedRectRenderer::draw(target, barPos, {barTrackW, barH}, 3.f, Color(241, 245, 249));
             float fillW = max(5.f, min(barTrackW, (moviesList[i].share / 40.f) * barTrackW));
             RoundedRectRenderer::draw(target, barPos, {fillW, barH}, 3.f, Color(8, 125, 181));
 
-            stringstream ss;
-            ss << fixed << setprecision(1) << moviesList[i].share << "%";
-            Text shTxt(boldFont, ss.str(), 14);
-            shTxt.setFillColor(Color(71, 85, 105));
-            FloatRect shb = shTxt.getLocalBounds();
-            shTxt.setPosition({colX_share + barTrackW + 10.f, centerY - shb.size.y / 2.f - shb.position.y});
+            shTxt.setPosition({
+                std::round(shareStartX + barTrackW + 10.f - shb.position.x),
+                std::round(centerY - shb.size.y / 2.f - shb.position.y)
+            });
             target.draw(shTxt);
         }
 
         // Dòng tổng cộng dưới đáy bảng (TỔNG CỘNG TOÀN BỘ)
-        float footY = cPos.y + botCardH - footerH;
-        RoundedRectRenderer::draw(target, {cPos.x + 1.f, footY}, {fullW - 2.f, footerH - 1.f}, 8.f, Color(248, 250, 252));
-        RectangleShape footLine(Vector2f(fullW - 2.f, 1.f));
-        footLine.setPosition({cPos.x + 1.f, footY});
-        footLine.setFillColor(Color(226, 232, 240));
-        target.draw(footLine);
+        float footY = rowTop + rowCount * rowH;
+        RoundedRectRenderer::draw(target, {tblX, footY}, {tblW, footerH}, 0.f, Color(248, 250, 252), 0.5f, Color(226, 232, 240));
+        for (float dx : {div2, div3, div4, div5}) {
+            RectangleShape fDiv(Vector2f(1.f, footerH));
+            fDiv.setPosition({dx, footY});
+            fDiv.setFillColor(Color(226, 232, 240));
+            target.draw(fDiv);
+        }
 
         float fCenterY = footY + footerH / 2.f;
 
-        Text fTitle(boldFont, L"TỔNG CỘNG TOÀN BỘ", 14);
+        Text fTitle(boldFont, L"TỔNG CỘNG TOÀN BỘ", 13);
         fTitle.setFillColor(Color(71, 85, 105));
         FloatRect ftb = fTitle.getLocalBounds();
-        fTitle.setPosition({colX_id, fCenterY - ftb.size.y / 2.f - ftb.position.y});
+        fTitle.setPosition({tblX + 16.f, std::round(fCenterY - ftb.size.y / 2.f - ftb.position.y)});
         target.draw(fTitle);
 
-        Text fShow(boldFont, to_wstring(sumShowtimes) + L" suất", 14);
+        Text fShow(boldFont, to_wstring(sumShowtimes) + L" suất", 13);
         fShow.setFillColor(Color(23, 32, 51));
         FloatRect fsb = fShow.getLocalBounds();
-        fShow.setPosition({colX_showtimes, fCenterY - fsb.size.y / 2.f - fsb.position.y});
+        fShow.setPosition({
+            std::round(div2 + (div3 - div2 - fsb.size.x) / 2.f - fsb.position.x),
+            std::round(fCenterY - fsb.size.y / 2.f - fsb.position.y)
+        });
         target.draw(fShow);
 
-        Text fTick(boldFont, to_wstring(totalTickets) + L" vé", 15.f);
+        Text fTick(boldFont, to_wstring(totalTickets) + L" vé", 14);
         fTick.setFillColor(Color(8, 125, 181));
         FloatRect ftkb = fTick.getLocalBounds();
-        fTick.setPosition({colX_tickets + 8.f, fCenterY - ftkb.size.y / 2.f - ftkb.position.y});
+        fTick.setPosition({
+            std::round(div3 + (div4 - div3 - ftkb.size.x) / 2.f - ftkb.position.x),
+            std::round(fCenterY - ftkb.size.y / 2.f - ftkb.position.y)
+        });
         target.draw(fTick);
 
-        Text fRev(boldFont, s2ws(toCurrency(movieRevenue)), 15.f);
-        fRev.setFillColor(Color(23, 32, 51));
+        Text fRev(boldFont, s2ws(toCurrency(movieRevenue)), 14);
+        fRev.setFillColor(Color(225, 29, 72));
         FloatRect frvb = fRev.getLocalBounds();
-        fRev.setPosition({colX_revenue, fCenterY - frvb.size.y / 2.f - frvb.position.y});
+        fRev.setPosition({
+            std::round(div4 + (div5 - div4 - frvb.size.x) / 2.f - frvb.position.x),
+            std::round(fCenterY - frvb.size.y / 2.f - frvb.position.y)
+        });
         target.draw(fRev);
 
-        Text fShare(boldFont, L"100.0%", 14);
+        Text fShare(boldFont, L"100.0%", 13);
         fShare.setFillColor(Color(23, 32, 51));
         FloatRect fshb = fShare.getLocalBounds();
-        fShare.setPosition({colX_share + 74.f, fCenterY - fshb.size.y / 2.f - fshb.position.y});
+        fShare.setPosition({
+            std::round(div5 + (tblRight - div5 - fshb.size.x) / 2.f - fshb.position.x),
+            std::round(fCenterY - fshb.size.y / 2.f - fshb.position.y)
+        });
         target.draw(fShare);
     }
 }
