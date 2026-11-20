@@ -1769,39 +1769,18 @@ void MoviePanel::render(RenderWindow& window) {
         if (notificationClock.getElapsedTime().asSeconds() > 3.0f) {
             notificationVisible = false;
         } else {
-            const float toastW = 380.f;
-            const float toastH = 48.f;
-            const float toastX = (1728.f - toastW) / 2.f;
-            const float toastY = 972.f - 74.f;
-            RoundedRectRenderer::draw(window, {toastX, toastY}, {toastW, toastH}, 8.f, Color(22, 163, 74, 245), 1.5f, Color(21, 128, 61));
-
-            Text nMsg(boldFont, notificationMessage, 18);
+            Text nMsg(boldFont, notificationMessage, 14);
             nMsg.setFillColor(Color::White);
             FloatRect nmb = nMsg.getLocalBounds();
-            float iconW = 16.f;
-            float iconGap = 10.f;
-            float totalContentW = iconW + iconGap + nmb.size.x;
-            float cStartX = toastX + (toastW - totalContentW) / 2.f;
-
-            // Larger crisp checkmark centered vertically
-            float ckY = toastY + (toastH - 13.f) / 2.f;
-            RectangleShape tc1({7.f, 2.8f});
-            tc1.setOrigin({0.f, 1.4f});
-            tc1.setFillColor(Color::White);
-            tc1.setRotation(degrees(45.f));
-            tc1.setPosition({cStartX + 1.f, ckY + 6.5f});
-            window.draw(tc1);
-
-            RectangleShape tc2({13.f, 2.8f});
-            tc2.setOrigin({0.f, 1.4f});
-            tc2.setFillColor(Color::White);
-            tc2.setRotation(degrees(-48.f));
-            tc2.setPosition({cStartX + 5.5f, ckY + 11.f});
-            window.draw(tc2);
+            float notW = max(380.f, min(width - 80.f, nmb.size.x + 48.f));
+            float notH = 42.f;
+            float notX = position.x + (width - notW) / 2.f;
+            float notY = position.y + height - 60.f;
+            RoundedRectRenderer::draw(window, {notX, notY}, {notW, notH}, 8.f, Color(22, 163, 74, 245), 1.5f, Color(21, 128, 61));
 
             nMsg.setPosition({
-                cStartX + iconW + iconGap - nmb.position.x,
-                toastY + (toastH - nmb.size.y) / 2.f - nmb.position.y - 1.f
+                std::round(notX + (notW - nmb.size.x) / 2.f - nmb.position.x),
+                std::round(notY + (notH - nmb.size.y) / 2.f - nmb.position.y)
             });
             window.draw(nMsg);
         }

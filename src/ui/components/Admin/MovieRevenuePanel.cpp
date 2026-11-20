@@ -1395,8 +1395,8 @@ void MovieRevenuePanel::drawTab1TicketsByMovie(RenderTarget& target) const {
             Color rBg = (i == 0) ? Color(245, 158, 11)
                       : (i == 1) ? Color(148, 163, 184)
                       : (i == 2) ? Color(217, 119, 6)
-                                 : Color(241, 245, 249);
-            Color rFg = (i < 3) ? Color::White : Color(100, 116, 139);
+                                 : Color(238, 244, 254);
+            Color rFg = (i < 3) ? Color::White : Color(80, 102, 128);
             float rRadius = 10.f;
             CircleShape c(rRadius);
             c.setPosition({std::round(tblX + (div0 - tblX) / 2.f - rRadius), std::round(centerY - rRadius)});
@@ -2628,21 +2628,8 @@ void MovieRevenuePanel::drawTab4RevenueByCombo(RenderTarget& target) const {
     }
 }
 
-void MovieRevenuePanel::drawBottomBar(RenderTarget& target) const {
-    float barY = height - 28.f;
-
-    RectangleShape div(Vector2f(width - 40.f, 1.f));
-    div.setPosition({position.x + 20.f, barY - 4.f});
-    div.setFillColor(Color(226, 232, 240));
-    target.draw(div);
-
-    Text authText(font);
-    authText.setString(L"Phụ trách: Admin CineCore (Toàn quyền)  •  1728x972 HD");
-    authText.setCharacterSize(12.f);
-    authText.setFillColor(Color(100, 116, 139));
-    FloatRect ab = authText.getLocalBounds();
-    authText.setPosition({position.x + width - ab.size.x - 20.f, barY});
-    target.draw(authText);
+void MovieRevenuePanel::drawBottomBar(RenderTarget& /*target*/) const {
+    // Đã xóa thanh trạng thái / chữ nhỏ ở dưới chân giao diện theo yêu cầu
 }
 
 void MovieRevenuePanel::drawToast(RenderTarget& target) const {

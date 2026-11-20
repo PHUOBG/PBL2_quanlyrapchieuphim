@@ -1167,8 +1167,8 @@ void OverviewPanel::drawTopRightTable(RenderTarget& target) const {
         Color rankBg = (i == 0) ? Color(245, 158, 11)
                      : (i == 1) ? Color(148, 163, 184)
                      : (i == 2) ? Color(217, 119, 6)
-                                : Color(241, 245, 249);
-        Color rankFg = (i < 3) ? Color::White : Color(100, 116, 139);
+                                : Color(238, 244, 254);
+        Color rankFg = (i < 3) ? Color::White : Color(80, 102, 128);
         float cY = ry + (rowH - 20.f) / 2.f;
         CircleShape rCircle(10.f);
         rCircle.setPosition({tblX + 12.f, std::round(cY)});
