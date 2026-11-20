@@ -947,8 +947,8 @@ void RoomPanel::render(RenderWindow& win) {
     };
 
     // 3. Số lượng hàng ghế (A - J) & Số lượng cột ghế (1 - 10)
-    drawStepper(cardY + 206.f, Color(8, 125, 181), L"S\u1ed1 l\u01b0\u1ee3ng h\u00e0ng gh\u1ebf", L"H\u00e0ng (A - J)", inputRows);
-    drawStepper(cardY + 288.f, Color(99, 102, 241), L"S\u1ed1 l\u01b0\u1ee3ng c\u1ed9t gh\u1ebf", L"C\u1ed9t (1 - 10)", inputCols);
+    drawStepper(cardY + 206.f, Color(8, 125, 181), L"S\u1ed1 l\u01b0\u1ee3ng h\u00e0ng gh\u1ebf", L"", inputRows);
+    drawStepper(cardY + 288.f, Color(99, 102, 241), L"S\u1ed1 l\u01b0\u1ee3ng c\u1ed9t gh\u1ebf", L"", inputCols);
 
     // 4. Trạng thái phòng chiếu
     Text lbl5(boldFont, L"Tr\u1ea1ng th\u00e1i ph\u00f2ng chi\u1ebfu:", 14); lbl5.setFillColor(Color(51, 65, 85)); lbl5.setPosition({position.x + 50.f, cardY + 372.f}); win.draw(lbl5);
