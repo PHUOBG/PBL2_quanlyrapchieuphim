@@ -1023,7 +1023,7 @@ void VoucherPanel::render(RenderWindow& win) {
     auto drawCenteredKpi = [&](float cX, const wstring& titleStr, const wstring& valStr, Color valCol, const wstring& extraStr = L"", Color extraCol = Color::Transparent) {
         drawRoundedCard(win, {cX, statY}, {cardW, cardH}, 10.f, Color::White, 1.f, Color(226, 232, 240));
 
-        Text tLbl(boldFont, titleStr, 14);
+        Text tLbl(boldFont, titleStr, 16);
         tLbl.setFillColor(Color(100, 116, 139));
         FloatRect tb = tLbl.getLocalBounds();
         tLbl.setPosition({std::round(cX + (cardW - tb.size.x) / 2.f - tb.position.x), std::round(statY + 14.f - tb.position.y)});

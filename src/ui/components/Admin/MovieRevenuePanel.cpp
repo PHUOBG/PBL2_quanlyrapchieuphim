@@ -1010,8 +1010,8 @@ void MovieRevenuePanel::drawHeader(RenderTarget& target) const {
 }
 
 void MovieRevenuePanel::drawKpiCards(RenderTarget& target) const {
-    const float cardY = position.y + 108.f;
-    const float cardH = 90.f;
+    const float cardY = position.y + 106.f;
+    const float cardH = 94.f;
     const float margin = 20.f;
     const float gap = 14.f;
     const float availableW = width - margin * 2.f;
@@ -1042,14 +1042,14 @@ void MovieRevenuePanel::drawKpiCards(RenderTarget& target) const {
         fLeft.setString(L"+18.4% so với quý trước");
         fLeft.setCharacterSize(15);
         fLeft.setFillColor(Color(21, 128, 61));
-        fLeft.setPosition({cPos.x + 16.f, std::round(cPos.y + 63.f)});
+        fLeft.setPosition({cPos.x + 16.f, std::round(cPos.y + 68.f)});
         target.draw(fLeft);
 
         Text fRight(font);
         fRight.setString(L"Đã quyết toán VAT");
         fRight.setCharacterSize(15);
         fRight.setFillColor(Color(148, 163, 184));
-        fRight.setPosition({std::round(cPos.x + cardW - 16.f - fRight.getGlobalBounds().size.x), std::round(cPos.y + 63.f)});
+        fRight.setPosition({std::round(cPos.x + cardW - 16.f - fRight.getGlobalBounds().size.x), std::round(cPos.y + 68.f)});
         target.draw(fRight);
     }
 
@@ -1079,14 +1079,14 @@ void MovieRevenuePanel::drawKpiCards(RenderTarget& target) const {
         fLeft.setString(L"Chiếm 59.1% tổng nguồn thu");
         fLeft.setCharacterSize(15);
         fLeft.setFillColor(Color(8, 125, 181));
-        fLeft.setPosition({cPos.x + 16.f, std::round(cPos.y + 63.f)});
+        fLeft.setPosition({cPos.x + 16.f, std::round(cPos.y + 68.f)});
         target.draw(fLeft);
 
         Text fRight(font);
         fRight.setString(to_wstring(totalTickets) + L" vé đã xuất");
         fRight.setCharacterSize(15);
         fRight.setFillColor(Color(148, 163, 184));
-        fRight.setPosition({std::round(cPos.x + cardW - 16.f - fRight.getGlobalBounds().size.x), std::round(cPos.y + 63.f)});
+        fRight.setPosition({std::round(cPos.x + cardW - 16.f - fRight.getGlobalBounds().size.x), std::round(cPos.y + 68.f)});
         target.draw(fRight);
     }
 
@@ -1117,14 +1117,14 @@ void MovieRevenuePanel::drawKpiCards(RenderTarget& target) const {
         fLeft.setString(L"Chiếm 40.9% tổng nguồn thu");
         fLeft.setCharacterSize(15);
         fLeft.setFillColor(Color(217, 119, 6));
-        fLeft.setPosition({cPos.x + 16.f, std::round(cPos.y + 63.f)});
+        fLeft.setPosition({cPos.x + 16.f, std::round(cPos.y + 68.f)});
         target.draw(fLeft);
 
         Text fRight(font);
         fRight.setString(to_wstring(totalCombos) + L" Combo & Nước");
         fRight.setCharacterSize(15);
         fRight.setFillColor(Color(148, 163, 184));
-        fRight.setPosition({std::round(cPos.x + cardW - 16.f - fRight.getGlobalBounds().size.x), std::round(cPos.y + 63.f)});
+        fRight.setPosition({std::round(cPos.x + cardW - 16.f - fRight.getGlobalBounds().size.x), std::round(cPos.y + 68.f)});
         target.draw(fRight);
     }
 }
@@ -2620,12 +2620,12 @@ void MovieRevenuePanel::drawToast(RenderTarget& target) const {
     toast.setFillColor(Color::White);
     FloatRect tb = toast.getLocalBounds();
 
-    float tw = tb.size.x + 36.f;
-    float th = 38.f;
-    Vector2f tPos(position.x + (width - tw) / 2.f, position.y + height - 76.f);
+    float tw = max(380.f, min(width - 80.f, tb.size.x + 48.f));
+    float th = 42.f;
+    Vector2f tPos(position.x + (width - tw) / 2.f, position.y + height - 60.f);
 
-    RoundedRectRenderer::draw(target, tPos, {tw, th}, 19.f, Color(15, 23, 42, 235), 1.f, Color(51, 65, 85));
-    toast.setPosition({tPos.x + 18.f, tPos.y + 9.f});
+    RoundedRectRenderer::draw(target, tPos, {tw, th}, 8.f, Color(22, 163, 74, 245), 1.5f, Color(21, 128, 61));
+    toast.setPosition({std::round(tPos.x + (tw - tb.size.x) / 2.f - tb.position.x), std::round(tPos.y + (th - tb.size.y) / 2.f - tb.position.y)});
     target.draw(toast);
 }
 

@@ -1773,7 +1773,7 @@ void MoviePanel::render(RenderWindow& window) {
             const float toastH = 48.f;
             const float toastX = (1728.f - toastW) / 2.f;
             const float toastY = 972.f - 74.f;
-            RoundedRectRenderer::draw(window, {toastX, toastY}, {toastW, toastH}, 10.f, notificationColor);
+            RoundedRectRenderer::draw(window, {toastX, toastY}, {toastW, toastH}, 8.f, Color(22, 163, 74, 245), 1.5f, Color(21, 128, 61));
 
             Text nMsg(boldFont, notificationMessage, 18);
             nMsg.setFillColor(Color::White);

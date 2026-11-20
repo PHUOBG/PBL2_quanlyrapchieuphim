@@ -871,10 +871,10 @@ void ComboPanel::render(RenderWindow& win) {
         tVal.setPosition({std::round(cX + (cardW - vb.size.x) / 2.f - vb.position.x), std::round(statY + 34.f)});
         win.draw(tVal);
 
-        Text tSub(font, subStr, 14);
+        Text tSub(font, subStr, 16);
         tSub.setFillColor(Color(100, 116, 139));
         FloatRect sb = tSub.getLocalBounds();
-        tSub.setPosition({std::round(cX + (cardW - sb.size.x) / 2.f - sb.position.x), std::round(statY + 64.f)});
+        tSub.setPosition({std::round(cX + (cardW - sb.size.x) / 2.f - sb.position.x), std::round(statY + 62.f)});
         win.draw(tSub);
     };
 

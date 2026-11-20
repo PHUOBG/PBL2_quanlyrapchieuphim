@@ -831,11 +831,11 @@ void AdminProfilePanel::drawToast(RenderTarget& target) const {
     toast.setFillColor(Color::White);
     FloatRect tb = toast.getLocalBounds();
 
-    float tw = tb.size.x + 36.f;
-    float th = 38.f;
-    Vector2f tPos(position.x + (width - tw) / 2.f, position.y + height - 76.f);
+    float tw = max(380.f, min(width - 80.f, tb.size.x + 48.f));
+    float th = 42.f;
+    Vector2f tPos(position.x + (width - tw) / 2.f, position.y + height - 60.f);
 
-    RoundedRectRenderer::draw(target, tPos, {tw, th}, 19.f, Color(15, 23, 42, 235), 1.f, Color(51, 65, 85));
-    toast.setPosition({tPos.x + 18.f, tPos.y + 9.f});
+    RoundedRectRenderer::draw(target, tPos, {tw, th}, 8.f, Color(22, 163, 74, 245), 1.5f, Color(21, 128, 61));
+    toast.setPosition({std::round(tPos.x + (tw - tb.size.x) / 2.f - tb.position.x), std::round(tPos.y + (th - tb.size.y) / 2.f - tb.position.y)});
     target.draw(toast);
 }

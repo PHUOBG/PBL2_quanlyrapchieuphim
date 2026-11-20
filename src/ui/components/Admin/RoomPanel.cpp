@@ -1251,17 +1251,17 @@ void RoomPanel::render(RenderWindow& win) {
         if (notificationClock.getElapsedTime().asSeconds() > 2.5f) {
             notificationVisible = false;
         } else {
-            float notW = 400.f;
-            float notH = 44.f;
-            float notX = position.x + (width - notW) / 2.f;
-            float notY = position.y + 35.f; // Nằm ở giữa trên cao, cực kỳ rõ ràng và dễ thấy
-            drawRoundedCard(win, {notX, notY}, {notW, notH}, 8.f, Color(22, 163, 74, 245), 1.5f, Color(21, 128, 61));
             Text notText(boldFont, s2ws(notificationMessage), 14);
             notText.setFillColor(Color::White);
             FloatRect ntb = notText.getLocalBounds();
+            float notW = max(380.f, min(width - 80.f, ntb.size.x + 48.f));
+            float notH = 42.f;
+            float notX = position.x + (width - notW) / 2.f;
+            float notY = position.y + height - 60.f;
+            drawRoundedCard(win, {notX, notY}, {notW, notH}, 8.f, Color(22, 163, 74, 245), 1.5f, Color(21, 128, 61));
             notText.setPosition({
-                std::floor(notX + (notW - ntb.size.x) / 2.f - ntb.position.x),
-                std::floor(notY + (notH - ntb.size.y) / 2.f - ntb.position.y)
+                std::round(notX + (notW - ntb.size.x) / 2.f - ntb.position.x),
+                std::round(notY + (notH - ntb.size.y) / 2.f - ntb.position.y)
             });
             win.draw(notText);
         }
