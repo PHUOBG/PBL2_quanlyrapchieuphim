@@ -440,7 +440,38 @@ void OverviewPanel::calculateStats() {
 
     newCustomersThisMonth = static_cast<int>(registrationTimes.size());
 
-    // Cập nhật thống kê 4 tháng động
+    // Cập nhật thống kê 4 tháng động (ưu tiên 4 tháng gần nhất có dữ liệu thực tế)
+    long long currentWindowSum = 0;
+    for (int i = 0; i < 4; ++i) currentWindowSum += monthRevMap[mOrder[i]];
+    if (currentWindowSum == 0 && !monthRevMap.empty()) {
+        vector<string> activeMonths;
+        for (const auto& kv : monthRevMap) {
+            if (kv.second > 0) activeMonths.push_back(kv.first);
+        }
+        sort(activeMonths.begin(), activeMonths.end(), [](const string& a, const string& b) {
+            // Format "MM/YYYY" -> compare YYYY then MM
+            string ya = a.size() >= 7 ? a.substr(3, 4) : "";
+            string yb = b.size() >= 7 ? b.substr(3, 4) : "";
+            if (ya != yb) return ya < yb;
+            return a.substr(0, 2) < b.substr(0, 2);
+        });
+        if (activeMonths.size() >= 4) {
+            for (int i = 0; i < 4; ++i) {
+                mOrder[i] = activeMonths[activeMonths.size() - 4 + i];
+            }
+        } else if (!activeMonths.empty()) {
+            // Pad back from the latest active month
+            int lm = stoi(activeMonths.back().substr(0, 2));
+            int ly = stoi(activeMonths.back().substr(3, 4));
+            for (int i = 3; i >= 0; --i) {
+                char buf[16];
+                snprintf(buf, sizeof(buf), "%02d/%04d", lm, ly);
+                mOrder[i] = buf;
+                if (--lm < 1) { lm = 12; --ly; }
+            }
+        }
+    }
+
     monthlyStatsList.clear();
     long long accRev = 0;
     long long maxMonthRev = 0;
@@ -809,90 +840,60 @@ void OverviewPanel::drawKpiCards(RenderTarget& target) const {
     const float availableW = width - margin * 2.f;
     const float cardW = (availableW - gap * 5.f) / 6.f;
 
-    auto drawCardTitle = [&](Vector2f cardPos, const wstring& titleStr, float maxW) {
-        Text probe(boldFont, titleStr, 15);
-        if (probe.getLocalBounds().size.x <= maxW) {
-            probe.setFillColor(Color(71, 85, 105));
-            probe.setPosition({cardPos.x + 14.f, std::round(cardPos.y + 11.f)});
-            target.draw(probe);
-            return;
-        }
-        // Wrap cleanly onto 2 lines at word boundary
-        wstringstream wss(titleStr);
-        wstring w, l1, l2;
-        while (wss >> w) {
-            wstring cand = l1.empty() ? w : (l1 + L" " + w);
-            Text tp(boldFont, cand, 15);
-            if (tp.getLocalBounds().size.x <= maxW || l1.empty()) l1 = cand;
-            else l2 = l2.empty() ? w : (l2 + L" " + w);
-        }
-        Text t(boldFont, l2.empty() ? l1 : (l1 + L"\n" + l2), 15);
-        t.setLineSpacing(1.06f);
+    auto drawCardTitle = [&](Vector2f cardPos, const wstring& titleStr) {
+        Text t(boldFont, titleStr, 15);
         t.setFillColor(Color(71, 85, 105));
-        t.setPosition({cardPos.x + 14.f, std::round(cardPos.y + 8.f)});
+        t.setPosition({cardPos.x + 14.f, std::round(cardPos.y + 12.f)});
         target.draw(t);
     };
 
     auto drawStandardCard = [&](int idx, const wstring& label, const wstring& valStr, const wstring& unitStr,
                                 const wstring& subStr, const wstring& footLeft, const Color& footLeftColor,
-                                const wstring& footRight, const Color& iconBg, const wstring& iconChar, const Color& iconColor) {
+                                const wstring& footRight) {
         float x = position.x + margin + idx * (cardW + gap);
         Vector2f cardPos(x, cardY);
         RoundedRectRenderer::draw(target, cardPos, {cardW, cardH}, 10.f, Color::White, 1.f, Color(226, 232, 240));
 
-        float badgeW = (iconChar.length() > 1 && iconChar != L"PLAY") ? 42.f : 28.f;
-        drawCardTitle(cardPos, label, cardW - 28.f - badgeW - 6.f);
-
-        Vector2f iconPos(cardPos.x + cardW - 14.f - badgeW, cardPos.y + 10.f);
-        RoundedRectRenderer::draw(target, iconPos, {badgeW, 26.f}, 6.f, iconBg);
-
-        if (iconChar == L"PLAY") {
-            UITheme::drawPlayIcon(target, {iconPos.x + badgeW / 2.f, iconPos.y + 13.f}, 11.f, iconColor);
-        } else {
-            Text iconTxt(boldFont, iconChar, iconChar.length() > 1 ? 11 : 13);
-            iconTxt.setFillColor(iconColor);
-            FloatRect ib = iconTxt.getLocalBounds();
-            iconTxt.setPosition({std::round(iconPos.x + (badgeW - ib.size.x) / 2.f - ib.position.x), std::round(iconPos.y + (26.f - ib.size.y) / 2.f - ib.position.y)});
-            target.draw(iconTxt);
-        }
+        drawCardTitle(cardPos, label);
 
         // Value
         Text val(boldFont, valStr, 22);
         val.setFillColor(Color(23, 32, 51));
-        val.setPosition({cardPos.x + 14.f, std::round(cardPos.y + 44.f)});
+        val.setPosition({cardPos.x + 14.f, std::round(cardPos.y + 39.f)});
         target.draw(val);
 
         if (!unitStr.empty()) {
-            Text unit(font, unitStr, 13);
+            Text unit(font, unitStr, 15);
             unit.setFillColor(Color(100, 116, 139));
-            unit.setPosition({std::round(val.getPosition().x + val.getGlobalBounds().size.x + 6.f), std::round(cardPos.y + 50.f)});
+            unit.setPosition({std::round(val.getPosition().x + val.getGlobalBounds().size.x + 6.f), std::round(cardPos.y + 44.f)});
             target.draw(unit);
         }
 
         // Subtitle
-        Text sub(font, subStr, 13);
-        sub.setFillColor(Color(148, 163, 184));
-        sub.setPosition({cardPos.x + 14.f, std::round(cardPos.y + 73.f)});
-        target.draw(sub);
+        if (!subStr.empty()) {
+            Text sub(font, subStr, 13);
+            sub.setFillColor(Color(148, 163, 184));
+            sub.setPosition({cardPos.x + 14.f, std::round(cardPos.y + 70.f)});
+            target.draw(sub);
+        }
 
         // Footer
-        Text fLeft(boldFont, footLeft, 13);
+        Text fLeft(boldFont, footLeft, 15);
         fLeft.setFillColor(footLeftColor);
-        fLeft.setPosition({cardPos.x + 14.f, std::round(cardPos.y + 96.f)});
+        fLeft.setPosition({cardPos.x + 14.f, std::round(cardPos.y + 95.f)});
         target.draw(fLeft);
 
         if (!footRight.empty()) {
-            Text fRight(font, footRight, 13);
+            Text fRight(font, footRight, 15);
             fRight.setFillColor(Color(100, 116, 139));
-            fRight.setPosition({std::round(fLeft.getPosition().x + fLeft.getGlobalBounds().size.x + 5.f), std::round(cardPos.y + 96.f)});
+            fRight.setPosition({std::round(fLeft.getPosition().x + fLeft.getGlobalBounds().size.x + 5.f), std::round(cardPos.y + 95.f)});
             target.draw(fRight);
         }
     };
 
     // 1. Doanh thu trong ngày
     drawStandardCard(0, L"Doanh thu trong ngày", s2ws(toCurrency(dailyRevenue)), L"",
-                     L"Hôm nay (27/10/2026)", L"\u2191 +12.5%", Color(21, 128, 61), L"so với hôm qua",
-                     Color(224, 242, 254), L"\u0111", Color(8, 125, 181));
+                     L"Hôm nay (27/10/2026)", L"\u2191 +12.5%", Color(21, 128, 61), L"so với hôm qua");
 
     // 2. Khách hàng mới
     {
@@ -900,51 +901,36 @@ void OverviewPanel::drawKpiCards(RenderTarget& target) const {
         Vector2f cardPos(x, cardY);
         RoundedRectRenderer::draw(target, cardPos, {cardW, cardH}, 10.f, Color::White, 1.f, Color(226, 232, 240));
 
-        drawCardTitle(cardPos, L"Khách hàng mới", cardW - 62.f);
-
-        Vector2f iconPos(cardPos.x + cardW - 42.f, cardPos.y + 10.f);
-        RoundedRectRenderer::draw(target, iconPos, {28.f, 26.f}, 6.f, Color(220, 252, 231));
-        CircleShape uHead(3.8f);
-        uHead.setPosition({iconPos.x + 14.f - 3.8f, iconPos.y + 5.5f});
-        uHead.setFillColor(Color(21, 128, 61));
-        target.draw(uHead);
-        ConvexShape uBody;
-        uBody.setPointCount(4);
-        uBody.setPoint(0, {iconPos.x + 9.f, iconPos.y + 20.f});
-        uBody.setPoint(1, {iconPos.x + 19.f, iconPos.y + 20.f});
-        uBody.setPoint(2, {iconPos.x + 17.5f, iconPos.y + 14.5f});
-        uBody.setPoint(3, {iconPos.x + 10.5f, iconPos.y + 14.5f});
-        uBody.setFillColor(Color(21, 128, 61));
-        target.draw(uBody);
+        drawCardTitle(cardPos, L"Khách hàng mới");
 
         Text val(boldFont, to_wstring(newCustomersThisMonth), 22);
         val.setFillColor(Color(23, 32, 51));
-        val.setPosition({cardPos.x + 14.f, std::round(cardPos.y + 44.f)});
+        val.setPosition({cardPos.x + 14.f, std::round(cardPos.y + 39.f)});
         target.draw(val);
 
-        Text unit(font, L"thành viên", 13);
+        Text unit(font, L"thành viên", 15);
         unit.setFillColor(Color(100, 116, 139));
-        unit.setPosition({std::round(val.getPosition().x + val.getGlobalBounds().size.x + 6.f), std::round(cardPos.y + 50.f)});
+        unit.setPosition({std::round(val.getPosition().x + val.getGlobalBounds().size.x + 6.f), std::round(cardPos.y + 44.f)});
         target.draw(unit);
 
         Text sub(font, L"Tháng 10/2026", 13);
         sub.setFillColor(Color(148, 163, 184));
-        sub.setPosition({cardPos.x + 14.f, std::round(cardPos.y + 73.f)});
+        sub.setPosition({cardPos.x + 14.f, std::round(cardPos.y + 70.f)});
         target.draw(sub);
 
-        Text progLbl(font, L"Mục tiêu: ", 13);
+        Text progLbl(font, L"Mục tiêu: ", 15);
         progLbl.setFillColor(Color(100, 116, 139));
-        progLbl.setPosition({cardPos.x + 14.f, std::round(cardPos.y + 96.f)});
+        progLbl.setPosition({cardPos.x + 14.f, std::round(cardPos.y + 95.f)});
         target.draw(progLbl);
 
-        Text progPct(boldFont, L"74%", 13);
+        Text progPct(boldFont, L"74%", 15);
         progPct.setFillColor(Color(23, 32, 51));
-        progPct.setPosition({std::round(progLbl.getPosition().x + progLbl.getGlobalBounds().size.x), std::round(cardPos.y + 96.f)});
+        progPct.setPosition({std::round(progLbl.getPosition().x + progLbl.getGlobalBounds().size.x), std::round(cardPos.y + 95.f)});
         target.draw(progPct);
 
-        Text progCnt(font, L" (148/200)", 13);
+        Text progCnt(font, L" (148/200)", 15);
         progCnt.setFillColor(Color(148, 163, 184));
-        progCnt.setPosition({std::round(progPct.getPosition().x + progPct.getGlobalBounds().size.x), std::round(cardPos.y + 96.f)});
+        progCnt.setPosition({std::round(progPct.getPosition().x + progPct.getGlobalBounds().size.x), std::round(cardPos.y + 95.f)});
         target.draw(progCnt);
     }
 
@@ -954,89 +940,45 @@ void OverviewPanel::drawKpiCards(RenderTarget& target) const {
         Vector2f cardPos(x, cardY);
         RoundedRectRenderer::draw(target, cardPos, {cardW, cardH}, 10.f, Color::White, 1.f, Color(226, 232, 240));
 
-        drawCardTitle(cardPos, L"Tổng vé bán ra", cardW - 62.f);
-
-        Vector2f iconPos(cardPos.x + cardW - 42.f, cardPos.y + 10.f);
-        RoundedRectRenderer::draw(target, iconPos, {28.f, 26.f}, 6.f, Color(254, 243, 199));
-        RoundedRectRenderer::draw(target, {iconPos.x + 7.f, iconPos.y + 7.5f}, {14.f, 11.f}, 2.f, Color(217, 119, 6));
-        RectangleShape tDash({6.f, 1.5f});
-        tDash.setPosition({iconPos.x + 11.f, iconPos.y + 12.2f});
-        tDash.setFillColor(Color(254, 243, 199));
-        target.draw(tDash);
+        drawCardTitle(cardPos, L"Tổng vé bán ra");
 
         Text val(boldFont, to_wstring(totalTicketsThisMonth), 22);
         val.setFillColor(Color(23, 32, 51));
-        val.setPosition({cardPos.x + 14.f, std::round(cardPos.y + 44.f)});
+        val.setPosition({cardPos.x + 14.f, std::round(cardPos.y + 39.f)});
         target.draw(val);
 
-        Text unit(font, L"vé", 13);
+        Text unit(font, L"vé", 15);
         unit.setFillColor(Color(100, 116, 139));
-        unit.setPosition({std::round(val.getPosition().x + val.getGlobalBounds().size.x + 6.f), std::round(cardPos.y + 50.f)});
+        unit.setPosition({std::round(val.getPosition().x + val.getGlobalBounds().size.x + 6.f), std::round(cardPos.y + 44.f)});
         target.draw(unit);
 
         Text sub(font, L"Tháng 10/2026", 13);
         sub.setFillColor(Color(148, 163, 184));
-        sub.setPosition({cardPos.x + 14.f, std::round(cardPos.y + 73.f)});
+        sub.setPosition({cardPos.x + 14.f, std::round(cardPos.y + 70.f)});
         target.draw(sub);
 
-        Text stdTxt(boldFont, L"Standard: " + to_wstring(standardTicketsCount), 13);
+        Text stdTxt(boldFont, L"Standard: " + to_wstring(standardTicketsCount), 15);
         stdTxt.setFillColor(Color(8, 125, 181));
-        stdTxt.setPosition({cardPos.x + 14.f, std::round(cardPos.y + 96.f)});
+        stdTxt.setPosition({cardPos.x + 14.f, std::round(cardPos.y + 95.f)});
         target.draw(stdTxt);
 
-        Text vipTxt(boldFont, L"VIP: " + to_wstring(vipTicketsCount), 13);
+        Text vipTxt(boldFont, L"VIP: " + to_wstring(vipTicketsCount), 15);
         vipTxt.setFillColor(Color(217, 119, 6));
-        FloatRect vb = vipTxt.getLocalBounds();
-        vipTxt.setPosition({std::round(cardPos.x + cardW - 14.f - vb.size.x), std::round(cardPos.y + 96.f)});
+        vipTxt.setPosition({std::round(stdTxt.getPosition().x + stdTxt.getGlobalBounds().size.x + 16.f), std::round(cardPos.y + 95.f)});
         target.draw(vipTxt);
     }
 
-    // 4. Tổng doanh thu (Clean White Card matching target design)
-    {
-        float x = position.x + margin + 3 * (cardW + gap);
-        Vector2f cardPos(x, cardY);
-        RoundedRectRenderer::draw(target, cardPos, {cardW, cardH}, 10.f, Color::White, 1.f, Color(226, 232, 240));
-
-        drawCardTitle(cardPos, L"Tổng doanh thu", cardW - 96.f);
-
-        Vector2f badgePos(cardPos.x + cardW - 80.f, cardPos.y + 10.f);
-        RoundedRectRenderer::draw(target, badgePos, {66.f, 24.f}, 12.f, Color(224, 242, 254));
-        Text badgeTxt(boldFont, L"T10/2026", 12);
-        badgeTxt.setFillColor(Color(8, 125, 181));
-        FloatRect bb = badgeTxt.getLocalBounds();
-        badgeTxt.setPosition({std::round(badgePos.x + (66.f - bb.size.x) / 2.f - bb.position.x), std::round(badgePos.y + (24.f - bb.size.y) / 2.f - bb.position.y)});
-        target.draw(badgeTxt);
-
-        Text val(boldFont, s2ws(toCurrency(totalRevenueThisMonth)), 22);
-        val.setFillColor(Color(23, 32, 51));
-        val.setPosition({cardPos.x + 14.f, std::round(cardPos.y + 44.f)});
-        target.draw(val);
-
-        Text sub(font, L"Toàn rạp CineCore", 13);
-        sub.setFillColor(Color(148, 163, 184));
-        sub.setPosition({cardPos.x + 14.f, std::round(cardPos.y + 73.f)});
-        target.draw(sub);
-
-        Text fLeft(boldFont, L"\u2191 +28.4%", 13);
-        fLeft.setFillColor(Color(21, 128, 61));
-        fLeft.setPosition({cardPos.x + 14.f, std::round(cardPos.y + 96.f)});
-        target.draw(fLeft);
-
-        Text fRight(font, L"vượt KPI quý", 13);
-        fRight.setFillColor(Color(100, 116, 139));
-        fRight.setPosition({std::round(fLeft.getPosition().x + fLeft.getGlobalBounds().size.x + 5.f), std::round(cardPos.y + 96.f)});
-        target.draw(fRight);
-    }
+    // 4. Tổng doanh thu
+    drawStandardCard(3, L"Tổng doanh thu", s2ws(toCurrency(totalRevenueThisMonth)), L"",
+                     L"Toàn rạp CineCore", L"\u2191 +28.4%", Color(21, 128, 61), L"vượt KPI quý");
 
     // 5. Doanh thu theo phim
     drawStandardCard(4, L"Doanh thu theo phim", s2ws(toCurrency(movieRevenueThisMonth)), L"",
-                     L"8 phim đang công chiếu", L"Chiếm 70.0%", Color(8, 125, 181), L"tổng doanh thu",
-                     Color(224, 242, 254), L"PLAY", Color(8, 125, 181));
+                     L"8 phim đang công chiếu", L"Chiếm 70.0%", Color(8, 125, 181), L"tổng doanh thu");
 
     // 6. Doanh thu combo F&B
     drawStandardCard(5, L"Doanh thu combo F&B", s2ws(toCurrency(comboRevenueThisMonth)), L"",
-                     L"Bắp Caramel / Phô mai", L"Chiếm 30.0%", Color(225, 29, 72), L"+18.2% vs T9",
-                     Color(255, 228, 230), L"F&B", Color(225, 29, 72));
+                     L"", L"Chiếm 30.0%", Color(225, 29, 72), L"+18.2% vs T9");
 }
 
 void OverviewPanel::drawTopLeftChart(RenderTarget& target) const {
@@ -1060,7 +1002,7 @@ void OverviewPanel::drawTopLeftChart(RenderTarget& target) const {
     target.draw(dot);
 
     Text title(boldFont);
-    title.setString(L"Phim bán chạy nhất (Số lượng vé bán ra)");
+    title.setString(L"Phim bán chạy nhất");
     title.setCharacterSize(17);
     title.setFillColor(Color(23, 32, 51));
     title.setPosition({cardX + 30.f, std::round(cardY + 10.f)});
@@ -1174,24 +1116,16 @@ void OverviewPanel::drawTopRightTable(RenderTarget& target) const {
     title.setPosition({cardX + 30.f, std::round(cardY + 10.f)});
     target.draw(title);
 
-    // Right subtitle: "Tổng: 101 vé"
-    Text totTxt(boldFont);
-    totTxt.setString(L"Tổng: " + to_wstring(totalTicketsThisMonth) + L" vé");
-    totTxt.setCharacterSize(13.f);
-    totTxt.setFillColor(Color(23, 32, 51));
-    totTxt.setPosition({cardX + cardW - totTxt.getGlobalBounds().size.x - 16.f, cardY + 13.f});
-    target.draw(totTxt);
-
     // Table Header Columns
     float colTitleX = cardX + 20.f;
     float colTicketsX = cardX + cardW - 180.f;
     float colRevenueX = cardX + cardW - 20.f;
 
     Text th1(boldFont);
-    th1.setString(L"#  TÊN PHIM");
+    th1.setString(L"TÊN PHIM");
     th1.setCharacterSize(14);
     th1.setFillColor(Color(148, 163, 184));
-    th1.setPosition({colTitleX, cardY + 44.f});
+    th1.setPosition({colTitleX + 28.f, cardY + 44.f});
     target.draw(th1);
 
     Text th2(boldFont);
@@ -1295,16 +1229,22 @@ void OverviewPanel::drawBottomLeftChart(RenderTarget& target) const {
     target.draw(dot);
 
     Text title(boldFont);
-    title.setString(L"Biến động doanh thu theo tháng (Xu hướng tăng trưởng)");
+    title.setString(L"Biến động doanh thu theo tháng");
     title.setCharacterSize(17);
     title.setFillColor(Color(23, 32, 51));
     title.setPosition({cardX + 30.f, std::round(cardY + 10.f)});
     target.draw(title);
 
-    // Right badge: "● Đạt đỉnh: 11/2025 (4.305.000 Đ)"
-    Text badgeTxt(boldFont);
-    badgeTxt.setString(L"● Đạt đỉnh: 11/2025 (4.305.000 Đ)");
-    badgeTxt.setCharacterSize(12);
+    // Dynamic peak badge
+    wstring peakLabel = L"● Đạt đỉnh: --";
+    long long maxPeakRev = 0;
+    for (const auto& m : monthlyStatsList) {
+        if (m.revenue > maxPeakRev) {
+            maxPeakRev = m.revenue;
+            peakLabel = L"● Đạt đỉnh: " + m.displayMonth + L" (" + s2ws(toCurrency(m.revenue)) + L")";
+        }
+    }
+    Text badgeTxt(boldFont, peakLabel, 12);
     badgeTxt.setFillColor(Color(219, 39, 119));
     FloatRect bb = badgeTxt.getLocalBounds();
     float badgeW = bb.size.x + 20.f;
@@ -1314,23 +1254,25 @@ void OverviewPanel::drawBottomLeftChart(RenderTarget& target) const {
     target.draw(badgeTxt);
 
     // Area & Line Chart
-    const float chartLeft = cardX + 86.f;
+    const float chartLeft = cardX + 94.f;
     const float chartBottom = cardY + cardH - 42.f;
-    const float chartW = cardW - 110.f;
-    const float maxRev = 5000000.f;
+    const float chartW = cardW - 118.f;
+    long long ceilStep = 1000000LL;
+    long long maxRevInt = max(5000000LL, ((maxPeakRev + ceilStep - 1) / ceilStep) * ceilStep);
+    const float maxRev = static_cast<float>(maxRevInt);
     const float chartH = max(120.f, cardH - 110.f);
 
-    // Y-Axis horizontal grid lines and labels
-    const array<long long, 6> yRevTicks = {0, 1000000, 2000000, 3000000, 4000000, 5000000};
-    for (auto val : yRevTicks) {
+    // Y-Axis horizontal grid lines and labels (6 ticks: 0..maxRevInt)
+    for (int t = 0; t <= 5; ++t) {
+        long long val = (maxRevInt * t) / 5;
         float y = chartBottom - ((float)val / maxRev) * chartH;
 
         Text lbl(font);
         lbl.setString(s2ws(toCurrency(val)));
-        lbl.setCharacterSize(14);
+        lbl.setCharacterSize(13);
         lbl.setFillColor(Color(148, 163, 184));
         FloatRect lb = lbl.getLocalBounds();
-        lbl.setPosition({chartLeft - lb.size.x - 10.f, y - 7.f});
+        lbl.setPosition({std::round(chartLeft - lb.size.x - 10.f), std::round(y - 7.f)});
         target.draw(lbl);
 
         RectangleShape line(Vector2f(chartW, 1.f));
@@ -1454,18 +1396,7 @@ void OverviewPanel::drawBottomRightTable(RenderTarget& target) const {
     title.setPosition({cardX + 30.f, std::round(cardY + 10.f)});
     target.draw(title);
 
-    // Right badge: "Q4-2025 Data"
-    Vector2f badgePos(cardX + cardW - 110.f, cardY + 12.f);
-    RoundedRectRenderer::draw(target, badgePos, {95.f, 22.f}, 4.f, Color(241, 245, 249), 1.f, Color(226, 232, 240));
-    Text badgeTxt(font);
-    badgeTxt.setString(L"Q4-2025 Data");
-    badgeTxt.setCharacterSize(12.f);
-    badgeTxt.setFillColor(Color(100, 116, 139));
-    badgeTxt.setPosition({badgePos.x + 8.f, badgePos.y + 3.f});
-    target.draw(badgeTxt);
-
     // Table Header Columns
-    float colMonthX = cardX + 24.f;
     float colChangeX = cardX + std::floor(cardW * 0.44f);
     float colRevX = cardX + cardW - 24.f;
 
@@ -1573,9 +1504,9 @@ void OverviewPanel::drawBottomRightTable(RenderTarget& target) const {
     // Summary row
     Text sumLbl(font);
     sumLbl.setString(L"Tổng doanh thu tích lũy 4 tháng:");
-    sumLbl.setCharacterSize(14);
+    sumLbl.setCharacterSize(16);
     sumLbl.setFillColor(Color(100, 116, 139));
-    sumLbl.setPosition({colMonthX, sumDivY + 12.f});
+    sumLbl.setPosition({cardX + 24.f, std::round(sumDivY + 10.f)});
     target.draw(sumLbl);
 
     Text sumVal(boldFont);
