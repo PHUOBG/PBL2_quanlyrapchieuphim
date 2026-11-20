@@ -694,8 +694,8 @@ void MovieRevenuePanel::handleEvent(const Event& event, const RenderWindow& /*wi
         if (mousePress->button == Mouse::Button::Left) {
             Vector2f mPos(static_cast<float>(mousePress->position.x), static_cast<float>(mousePress->position.y));
 
-            // 1. Tab Bar Clicking: y ≈ position.y + 174.f, height 36.f
-            float tabY = position.y + 174.f;
+            // 1. Tab Bar Clicking: y ≈ position.y + 206.f, height 36.f
+            float tabY = position.y + 206.f;
             float tabX = position.x + 20.f;
 
             // Tab 0: Số vé bán ra theo phim (~200px)
@@ -727,13 +727,13 @@ void MovieRevenuePanel::handleEvent(const Event& event, const RenderWindow& /*wi
             }
 
             // 2. Buttons in Header: Tải dữ liệu & Xuất Excel
-            FloatRect reloadRect({position.x + width - 230.f, position.y + 16.f}, {100.f, 36.f});
+            FloatRect reloadRect({position.x + width - 260.f, position.y + 37.f}, {110.f, 38.f});
             if (reloadRect.contains(mPos)) {
                 refresh();
                 return;
             }
 
-            FloatRect exportRect({position.x + width - 120.f, position.y + 16.f}, {100.f, 36.f});
+            FloatRect exportRect({position.x + width - 140.f, position.y + 37.f}, {105.f, 38.f});
             bool clickBottomExport = (activeTab == RevenueTab::TOTAL_REVENUE) &&
                 FloatRect({position.x + 20.f + (width - 40.f) * 0.89f - 12.f, position.y + height - 74.f}, {116.f, 36.f}).contains(mPos);
             if (exportRect.contains(mPos) || clickBottomExport) {
@@ -746,24 +746,24 @@ void MovieRevenuePanel::handleEvent(const Event& event, const RenderWindow& /*wi
             }
 
             if (activeTab == RevenueTab::TOTAL_REVENUE &&
-                FloatRect({position.x + width - 146.f, position.y + 544.f}, {106.f, 30.f}).contains(mPos)) {
+                FloatRect({position.x + width - 146.f, position.y + 576.f}, {106.f, 30.f}).contains(mPos)) {
                 activeTab = RevenueTab::REVENUE_BY_MOVIE;
                 return;
             }
 
             // 3. Date Range Filter Box & Dropdown
-            FloatRect dateBox({position.x + width - 520.f, position.y + 14.f}, {280.f, 36.f});
+            FloatRect dateBox({position.x + width - 530.f, position.y + 37.f}, {260.f, 38.f});
             if (dateBox.contains(mPos)) {
                 dateDropdownOpen = !dateDropdownOpen;
                 return;
             }
 
             if (dateDropdownOpen) {
-                float ddX = position.x + width - 520.f;
-                float ddY = position.y + 14.f + 40.f;
+                float ddX = position.x + width - 530.f;
+                float ddY = position.y + 79.f;
                 float itemH = 36.f;
                 for (int i = 0; i < (int)dateFilterOptions.size(); ++i) {
-                    FloatRect itemRect({ddX, ddY + i * itemH}, {280.f, itemH});
+                    FloatRect itemRect({ddX, ddY + i * itemH}, {260.f, itemH});
                     if (itemRect.contains(mPos)) {
                         selectedDateFilter = i;
                         dateDropdownOpen = false;
@@ -779,7 +779,7 @@ void MovieRevenuePanel::handleEvent(const Event& event, const RenderWindow& /*wi
 
             // 4. Click "Chi tiết" trên bảng Tổng kết doanh thu theo tháng (Tab 2)
             if (activeTab == RevenueTab::TOTAL_REVENUE && !monthsList.empty()) {
-                const float contentY = position.y + 218.f;
+                const float contentY = position.y + 250.f;
                 const float availableW = width - 40.f;
                 const float topH = 296.f;
                 const float bTableY = contentY + topH + 14.f;
@@ -805,7 +805,7 @@ void MovieRevenuePanel::handleEvent(const Event& event, const RenderWindow& /*wi
 void MovieRevenuePanel::update(const Vector2f& mousePos, bool /*mouseDown*/) {
     // Check tab hover
     hoveredTab = -1;
-    float tabY = position.y + 174.f;
+    float tabY = position.y + 206.f;
     float tabX = position.x + 20.f;
     if (FloatRect({tabX, tabY}, {200.f, 36.f}).contains(mousePos)) hoveredTab = 0;
     else if (FloatRect({tabX + 210.f, tabY}, {140.f, 36.f}).contains(mousePos)) hoveredTab = 1;
@@ -813,16 +813,16 @@ void MovieRevenuePanel::update(const Vector2f& mousePos, bool /*mouseDown*/) {
     else if (FloatRect({tabX + 550.f, tabY}, {190.f, 36.f}).contains(mousePos)) hoveredTab = 3;
 
     // Button hovers
-    reloadHovered = FloatRect({position.x + width - 230.f, position.y + 16.f}, {100.f, 36.f}).contains(mousePos);
-    exportHovered = FloatRect({position.x + width - 120.f, position.y + 16.f}, {100.f, 36.f}).contains(mousePos);
+    reloadHovered = FloatRect({position.x + width - 260.f, position.y + 37.f}, {110.f, 38.f}).contains(mousePos);
+    exportHovered = FloatRect({position.x + width - 140.f, position.y + 37.f}, {105.f, 38.f}).contains(mousePos);
 
     hoveredDateItem = -1;
     if (dateDropdownOpen) {
-        float ddX = position.x + width - 520.f;
-        float ddY = position.y + 14.f + 40.f;
+        float ddX = position.x + width - 530.f;
+        float ddY = position.y + 79.f;
         float itemH = 36.f;
         for (int i = 0; i < 5; ++i) {
-            if (FloatRect({ddX, ddY + i * itemH}, {280.f, itemH}).contains(mousePos)) {
+            if (FloatRect({ddX, ddY + i * itemH}, {260.f, itemH}).contains(mousePos)) {
                 hoveredDateItem = i;
                 break;
             }
@@ -847,7 +847,7 @@ void MovieRevenuePanel::update(const Vector2f& mousePos, bool /*mouseDown*/) {
 
     hoveredDetailRow = -1;
     if (detailMonthIndex < 0 && !reportModalOpen && activeTab == RevenueTab::TOTAL_REVENUE && !monthsList.empty()) {
-        const float contentY = position.y + 218.f;
+        const float contentY = position.y + 250.f;
         const float availableW = width - 40.f;
         const float topH = 296.f;
         const float bTableY = contentY + topH + 14.f;
@@ -910,10 +910,9 @@ void MovieRevenuePanel::render(RenderTarget& target) const {
 
     // 6b. Dropdown chọn kỳ doanh thu
     if (dateDropdownOpen) {
-        float topY = position.y + 14.f;
-        float ddX = position.x + width - 520.f;
-        float ddY = topY + 40.f;
-        float ddW = 280.f;
+        float ddX = position.x + width - 530.f;
+        float ddY = position.y + 79.f;
+        float ddW = 260.f;
         float itemH = 36.f;
         const int optCount = static_cast<int>(dateFilterOptions.size());
         RoundedRectRenderer::draw(target, {ddX, ddY}, {ddW, optCount * itemH}, 8.f, Color::White, 1.2f, Color(203, 213, 225));
@@ -948,20 +947,6 @@ void MovieRevenuePanel::render(RenderTarget& target) const {
 }
 
 void MovieRevenuePanel::drawHeader(RenderTarget& target) const {
-    float topY = position.y + 14.f;
-
-    // Title
-    Text titleText(boldFont);
-    titleText.setString(L"Quản lý doanh thu");
-    titleText.setCharacterSize(24);
-    titleText.setFillColor(Color(23, 32, 51)); // Slate-900
-    titleText.setPosition({position.x + 20.f, topY});
-    target.draw(titleText);
-
-    // Badge next to title depending on active tab
-    float titleW = titleText.getGlobalBounds().size.x;
-    Vector2f badgePos(position.x + 20.f + titleW + 12.f, topY + 4.f);
-
     wstring badgeStr = L"Quyết toán tài chính theo kỳ";
     Color bBg = Color(224, 242, 254);
     Color bTxt = Color(8, 125, 181);
@@ -980,72 +965,53 @@ void MovieRevenuePanel::drawHeader(RenderTarget& target) const {
         bTxt = Color(217, 119, 6);
     }
 
-    Text badgeText(boldFont);
-    badgeText.setString(badgeStr);
-    badgeText.setCharacterSize(14);
-    badgeText.setFillColor(bTxt);
-    FloatRect bb = badgeText.getLocalBounds();
-    float badgeW = bb.size.x + 24.f;
-    float badgeH = 24.f;
+    UITheme::drawSectionHeaderCard(target, position.x + 20.f, position.y + 14.f, width - 40.f,
+                                   L"Quản lý doanh thu",
+                                   badgeStr, bBg, bTxt,
+                                   L"Thống kê chi tiết bán vé, cơ cấu sản phẩm F&B và doanh thu phim chiếu rạp.",
+                                   boldFont, font, false);
 
-    RoundedRectRenderer::draw(target, badgePos, {badgeW, badgeH}, badgeH / 2.f, bBg);
-    badgeText.setPosition({
-        badgePos.x + (badgeW - bb.size.x) / 2.f - bb.position.x,
-        badgePos.y + (badgeH - bb.size.y) / 2.f - bb.position.y
-    });
-    target.draw(badgeText);
+    // Right Controls inside header card
+    float btnY = position.y + 37.f;
+    Vector2f dateRangePos(position.x + width - 530.f, btnY);
+    RoundedRectRenderer::draw(target, dateRangePos, {260.f, 38.f}, 8.f, Color::White, dateDropdownOpen ? 1.6f : 1.f, dateDropdownOpen ? Color(8, 125, 181) : Color(203, 213, 225));
 
-    // Subtitle
-    Text subText(font);
-    subText.setString(L"Thống kê chi tiết bán vé, cơ cấu sản phẩm F&B và doanh thu phim chiếu rạp.");
-    subText.setCharacterSize(14);
-    subText.setFillColor(Color(100, 116, 139));
-    subText.setPosition({position.x + 20.f, topY + 30.f});
-    target.draw(subText);
-
-    // Right Controls
-    // Date Range Box: "Từ: 01/09/2025  →  Đến: 24/12/2025"
-    Vector2f dateRangePos(position.x + width - 520.f, topY);
-    RoundedRectRenderer::draw(target, dateRangePos, {280.f, 36.f}, 6.f, Color::White, dateDropdownOpen ? 1.6f : 1.f, dateDropdownOpen ? Color(8, 125, 181) : Color(203, 213, 225));
-    
     wstring curDateStr = (!dateFilterOptions.empty() && selectedDateFilter >= 0 && selectedDateFilter < (int)dateFilterOptions.size())
                          ? dateFilterOptions[selectedDateFilter].first
                          : L"Tất cả thời gian";
     Text dateRangeTxt(font, curDateStr, 14);
     dateRangeTxt.setFillColor(Color(30, 41, 59));
-    dateRangeTxt.setPosition({dateRangePos.x + 12.f, dateRangePos.y + 9.f});
+    FloatRect drb = dateRangeTxt.getLocalBounds();
+    dateRangeTxt.setPosition({std::round(dateRangePos.x + 14.f), std::round(dateRangePos.y + (38.f - drb.size.y) / 2.f - drb.position.y)});
     target.draw(dateRangeTxt);
-
-    UITheme::drawChevronDown(target, {dateRangePos.x + 262.f, dateRangePos.y + 17.f}, 4.2f, Color(100, 116, 139));
+    UITheme::drawChevronDown(target, {dateRangePos.x + 242.f, dateRangePos.y + 19.f}, 4.2f, Color(100, 116, 139));
 
     // Button "Tải dữ liệu"
-    Vector2f reloadPos(position.x + width - 230.f, topY);
-    Color reloadBg = reloadHovered ? Color(18, 59, 93) : Color(8, 125, 181);
-    RoundedRectRenderer::draw(target, reloadPos, {100.f, 36.f}, 6.f, reloadBg);
-    Text reloadTxt(boldFont);
-    reloadTxt.setString(L"Tải dữ liệu");
-    reloadTxt.setCharacterSize(12.f);
-    reloadTxt.setFillColor(Color::White);
+    Vector2f reloadPos(position.x + width - 260.f, btnY);
+    Color reloadBg = reloadHovered ? Color(241, 245, 249) : Color::White;
+    Color reloadBorder = reloadHovered ? Color(8, 125, 181) : Color(203, 213, 225);
+    RoundedRectRenderer::draw(target, reloadPos, {110.f, 38.f}, 8.f, reloadBg, 1.f, reloadBorder);
+    UITheme::drawReloadIcon(target, {reloadPos.x + 20.f, reloadPos.y + 19.f}, 15.f, Color(71, 85, 105));
+    Text reloadTxt(boldFont, L"Tải dữ liệu", 14);
+    reloadTxt.setFillColor(Color(51, 65, 85));
     FloatRect relB = reloadTxt.getLocalBounds();
-    reloadTxt.setPosition({reloadPos.x + (100.f - relB.size.x) / 2.f - relB.position.x, reloadPos.y + (36.f - relB.size.y) / 2.f - relB.position.y});
+    reloadTxt.setPosition({std::round(reloadPos.x + 34.f), std::round(reloadPos.y + (38.f - relB.size.y) / 2.f - relB.position.y)});
     target.draw(reloadTxt);
 
     // Button "Xuất Excel"
-    Vector2f exportPos(position.x + width - 120.f, topY);
-    Color exportBg = exportHovered ? Color(4, 120, 87) : Color(21, 128, 61);
-    RoundedRectRenderer::draw(target, exportPos, {100.f, 36.f}, 6.f, exportBg);
-    Text exportTxt(boldFont);
-    exportTxt.setString(L"Xuất Excel");
-    exportTxt.setCharacterSize(12.f);
+    Vector2f exportPos(position.x + width - 140.f, btnY);
+    Color exportBg = exportHovered ? Color(2, 132, 199) : Color(8, 125, 181);
+    RoundedRectRenderer::draw(target, exportPos, {105.f, 38.f}, 8.f, exportBg);
+    Text exportTxt(boldFont, L"Xuất Excel", 14);
     exportTxt.setFillColor(Color::White);
     FloatRect expB = exportTxt.getLocalBounds();
-    exportTxt.setPosition({exportPos.x + (100.f - expB.size.x) / 2.f - expB.position.x, exportPos.y + (36.f - expB.size.y) / 2.f - expB.position.y});
+    exportTxt.setPosition({std::round(exportPos.x + (105.f - expB.size.x) / 2.f - expB.position.x), std::round(exportPos.y + (38.f - expB.size.y) / 2.f - expB.position.y)});
     target.draw(exportTxt);
 }
 
 void MovieRevenuePanel::drawKpiCards(RenderTarget& target) const {
-    const float cardY = position.y + 64.f;
-    const float cardH = 98.f;
+    const float cardY = position.y + 108.f;
+    const float cardH = 90.f;
     const float margin = 20.f;
     const float gap = 14.f;
     const float availableW = width - margin * 2.f;
@@ -1164,7 +1130,7 @@ void MovieRevenuePanel::drawKpiCards(RenderTarget& target) const {
 }
 
 void MovieRevenuePanel::drawTabBar(RenderTarget& target) const {
-    const float tabY = position.y + 174.f;
+    const float tabY = position.y + 206.f;
     const float tabH = 34.f;
     float tabX = position.x + 20.f;
 
@@ -1208,7 +1174,7 @@ void MovieRevenuePanel::drawTabBar(RenderTarget& target) const {
 
 void MovieRevenuePanel::drawTab1TicketsByMovie(RenderTarget& target) const {
     const float fullW = width - 40.f;
-    const float topCardY = position.y + 218.f;
+    const float topCardY = position.y + 250.f;
     const float topCardH = 262.f;
     const float botCardY = topCardY + topCardH + 12.f;
     const float botCardH = height - 28.f - botCardY - 4.f;
@@ -1555,7 +1521,7 @@ void MovieRevenuePanel::drawTab1TicketsByMovie(RenderTarget& target) const {
 }
 
 void MovieRevenuePanel::drawTab2TotalRevenue(RenderTarget& target) const {
-    const float contentY = position.y + 218.f;
+    const float contentY = position.y + 250.f;
     const float availableW = width - 40.f;
     const float topH = 296.f;
     const float leftW = availableW * 0.56f;
@@ -2150,7 +2116,7 @@ void MovieRevenuePanel::drawTab2TotalRevenue(RenderTarget& target) const {
 }
 
 void MovieRevenuePanel::drawTab3RevenueByMovie(RenderTarget& target) const {
-    const float contentY = position.y + 218.f;
+    const float contentY = position.y + 250.f;
     const float availableW = width - 40.f;
     const float totalH = height - 28.f - contentY - 4.f;
     const float leftW = availableW * 0.56f;
@@ -2362,7 +2328,7 @@ void MovieRevenuePanel::drawTab3RevenueByMovie(RenderTarget& target) const {
 }
 
 void MovieRevenuePanel::drawTab4RevenueByCombo(RenderTarget& target) const {
-    const float contentY = position.y + 218.f;
+    const float contentY = position.y + 250.f;
     const float availableW = width - 40.f;
 
     // =========================================================================
