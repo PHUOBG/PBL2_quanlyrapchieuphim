@@ -1180,10 +1180,10 @@ void VoucherPanel::render(RenderWindow& win) {
             win.draw(c2);
         }
 
-        // Mã Voucher & Tag & Subtitle (căn giữa trong [tableX + 38, div1 - 6])
-        float colLeft = tableX + 38.f;
-        float colRight = div1 - 6.f;
-        float maxCodeColW = colRight - colLeft - 8.f;
+        // Mã Voucher & Tag & Subtitle (căn trái trong [tableX + 42, div1 - 8])
+        float colLeft = tableX + 42.f;
+        float colRight = div1 - 8.f;
+        float maxCodeColW = colRight - colLeft;
 
         Text codeTxt(boldFont, s2ws(v.code), 15);
         codeTxt.setFillColor(Color(23, 32, 51));
@@ -1201,13 +1201,11 @@ void VoucherPanel::render(RenderWindow& win) {
             }
         }
 
-        float groupW = codeBounds.size.x + (showTag ? (8.f + tagW) : 0.f);
-        float groupX = colLeft + ((colRight - colLeft) - groupW) / 2.f;
-        codeTxt.setPosition({std::round(groupX - codeBounds.position.x), std::round(rY + 12.f)});
+        codeTxt.setPosition({std::round(colLeft - codeBounds.position.x), std::round(rY + 12.f)});
         win.draw(codeTxt);
 
         if (showTag) {
-            float tagX = groupX + codeBounds.size.x + 8.f;
+            float tagX = colLeft + codeBounds.size.x + 8.f;
             Color tagBg = Color(220, 252, 231);
             Color tagFg = Color(22, 101, 52);
             if (v.tag == L"VIP") { tagBg = Color(254, 243, 199); tagFg = Color(180, 83, 9); }
@@ -1218,12 +1216,12 @@ void VoucherPanel::render(RenderWindow& win) {
             win.draw(tgTxt);
         }
 
-        // Subtitle cắt gọn và căn giữa trong [colLeft, colRight]
+        // Subtitle cắt gọn và căn trái trong [colLeft, colRight]
         wstring sub = ellipsizeText(font, v.subtitle, 14, maxCodeColW);
         Text subTxt(font, sub, 14);
         subTxt.setFillColor(Color(100, 116, 139));
         FloatRect subB = subTxt.getLocalBounds();
-        subTxt.setPosition({std::round(colLeft + ((colRight - colLeft) - subB.size.x) / 2.f - subB.position.x), std::round(rY + 38.f)});
+        subTxt.setPosition({std::round(colLeft - subB.position.x), std::round(rY + 38.f)});
         win.draw(subTxt);
 
         // Loại Voucher (Pill gọn: % hoặc Tiền)

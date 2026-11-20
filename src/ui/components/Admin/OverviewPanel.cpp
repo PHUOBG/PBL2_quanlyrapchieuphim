@@ -810,10 +810,10 @@ void OverviewPanel::drawKpiCards(RenderTarget& target) const {
     const float cardW = (availableW - gap * 5.f) / 6.f;
 
     auto drawCardTitle = [&](Vector2f cardPos, const wstring& titleStr, float maxW) {
-        Text probe(boldFont, titleStr, 13);
+        Text probe(boldFont, titleStr, 15);
         if (probe.getLocalBounds().size.x <= maxW) {
             probe.setFillColor(Color(71, 85, 105));
-            probe.setPosition({cardPos.x + 14.f, std::round(cardPos.y + 12.f)});
+            probe.setPosition({cardPos.x + 14.f, std::round(cardPos.y + 11.f)});
             target.draw(probe);
             return;
         }
@@ -822,14 +822,14 @@ void OverviewPanel::drawKpiCards(RenderTarget& target) const {
         wstring w, l1, l2;
         while (wss >> w) {
             wstring cand = l1.empty() ? w : (l1 + L" " + w);
-            Text tp(boldFont, cand, 13);
+            Text tp(boldFont, cand, 15);
             if (tp.getLocalBounds().size.x <= maxW || l1.empty()) l1 = cand;
             else l2 = l2.empty() ? w : (l2 + L" " + w);
         }
-        Text t(boldFont, l2.empty() ? l1 : (l1 + L"\n" + l2), 13);
-        t.setLineSpacing(1.08f);
+        Text t(boldFont, l2.empty() ? l1 : (l1 + L"\n" + l2), 15);
+        t.setLineSpacing(1.06f);
         t.setFillColor(Color(71, 85, 105));
-        t.setPosition({cardPos.x + 14.f, std::round(cardPos.y + 10.f)});
+        t.setPosition({cardPos.x + 14.f, std::round(cardPos.y + 8.f)});
         target.draw(t);
     };
 
@@ -1061,19 +1061,12 @@ void OverviewPanel::drawTopLeftChart(RenderTarget& target) const {
 
     Text title(boldFont);
     title.setString(L"Phim bán chạy nhất (Số lượng vé bán ra)");
-    title.setCharacterSize(14);
+    title.setCharacterSize(17);
     title.setFillColor(Color(23, 32, 51));
-    title.setPosition({cardX + 30.f, cardY + 12.f});
+    title.setPosition({cardX + 30.f, std::round(cardY + 10.f)});
     target.draw(title);
 
-    // Right tags: "Đơn vị: Vé", "Top 8 thịnh hành"
-    Text unitTxt(font);
-    unitTxt.setString(L"Đơn vị: Vé");
-    unitTxt.setCharacterSize(12);
-    unitTxt.setFillColor(Color(148, 163, 184));
-    unitTxt.setPosition({cardX + cardW - 205.f, cardY + 14.f});
-    target.draw(unitTxt);
-
+    // Right tag: "Top 8 thịnh hành"
     Vector2f badgePos(cardX + cardW - 122.f, cardY + 11.f);
     RoundedRectRenderer::draw(target, badgePos, {108.f, 24.f}, 12.f, Color(224, 242, 254));
     Text badgeTxt(boldFont);
@@ -1176,9 +1169,9 @@ void OverviewPanel::drawTopRightTable(RenderTarget& target) const {
 
     Text title(boldFont);
     title.setString(L"Chi tiết vé & doanh thu theo phim");
-    title.setCharacterSize(14);
+    title.setCharacterSize(17);
     title.setFillColor(Color(23, 32, 51));
-    title.setPosition({cardX + 30.f, cardY + 12.f});
+    title.setPosition({cardX + 30.f, std::round(cardY + 10.f)});
     target.draw(title);
 
     // Right subtitle: "Tổng: 101 vé"
@@ -1235,47 +1228,29 @@ void OverviewPanel::drawTopRightTable(RenderTarget& target) const {
             RoundedRectRenderer::draw(target, {cardX + 12.f, ry - 2.f}, {cardW - 24.f, rowH - 2.f}, 4.f, Color(248, 250, 252));
         }
 
-        // Rank Circle or Number
-        if (i < 3) {
-            Color rankBg = (i == 0) ? Color(245, 158, 11) : (i == 1 ? Color(148, 163, 184) : Color(217, 119, 6));
-            CircleShape rCircle(9.f);
-            rCircle.setPosition({colTitleX, ry + 1.f});
-            rCircle.setFillColor(rankBg);
-            target.draw(rCircle);
+        // Rank Circle (uniform size 13 bold centered for all 1..8)
+        Color rankBg = (i == 0) ? Color(245, 158, 11)
+                     : (i == 1) ? Color(148, 163, 184)
+                     : (i == 2) ? Color(217, 119, 6)
+                                : Color(241, 245, 249);
+        Color rankFg = (i < 3) ? Color::White : Color(100, 116, 139);
+        CircleShape rCircle(10.f);
+        rCircle.setPosition({colTitleX, ry});
+        rCircle.setFillColor(rankBg);
+        target.draw(rCircle);
 
-            Text rTxt(boldFont);
-            rTxt.setString(to_string(i + 1));
-            rTxt.setCharacterSize(14);
-            rTxt.setFillColor(Color::White);
-            FloatRect rb = rTxt.getLocalBounds();
-            rTxt.setPosition({colTitleX + 9.f - rb.size.x / 2.f, ry + 2.f});
-            target.draw(rTxt);
-        } else {
-            Text rTxt(font);
-            rTxt.setString(to_string(i + 1));
-            rTxt.setCharacterSize(12.f);
-            rTxt.setFillColor(Color(148, 163, 184));
-            rTxt.setPosition({colTitleX + 5.f, ry + 1.f});
-            target.draw(rTxt);
-        }
-
-        // Poster thumbnail square with mini play icon
-        Vector2f postPos(colTitleX + 24.f, ry + 1.f);
-        RoundedRectRenderer::draw(target, postPos, {18.f, 18.f}, 3.f, Color(30, 41, 59));
-        ConvexShape postPlay;
-        postPlay.setPointCount(3);
-        postPlay.setPoint(0, {postPos.x + 6.5f, postPos.y + 4.5f});
-        postPlay.setPoint(1, {postPos.x + 13.f, postPos.y + 9.f});
-        postPlay.setPoint(2, {postPos.x + 6.5f, postPos.y + 13.5f});
-        postPlay.setFillColor(Color(148, 163, 184));
-        target.draw(postPlay);
+        Text rTxt(boldFont, to_string(i + 1), 13);
+        rTxt.setFillColor(rankFg);
+        FloatRect rb = rTxt.getLocalBounds();
+        rTxt.setPosition({std::round(colTitleX + 10.f - rb.size.x / 2.f - rb.position.x), std::round(ry + 10.f - rb.size.y / 2.f - rb.position.y)});
+        target.draw(rTxt);
 
         // Movie Title
         Text mTitle(boldFont);
         mTitle.setString(topMoviesList[i].displayTitle);
         mTitle.setCharacterSize(13.f);
         mTitle.setFillColor(Color(23, 32, 51));
-        mTitle.setPosition({postPos.x + 24.f, ry + 1.f});
+        mTitle.setPosition({colTitleX + 28.f, ry + 1.f});
         target.draw(mTitle);
 
         // Ticket Count
@@ -1321,9 +1296,9 @@ void OverviewPanel::drawBottomLeftChart(RenderTarget& target) const {
 
     Text title(boldFont);
     title.setString(L"Biến động doanh thu theo tháng (Xu hướng tăng trưởng)");
-    title.setCharacterSize(14);
+    title.setCharacterSize(17);
     title.setFillColor(Color(23, 32, 51));
-    title.setPosition({cardX + 30.f, cardY + 12.f});
+    title.setPosition({cardX + 30.f, std::round(cardY + 10.f)});
     target.draw(title);
 
     // Right badge: "● Đạt đỉnh: 11/2025 (4.305.000 Đ)"
@@ -1474,9 +1449,9 @@ void OverviewPanel::drawBottomRightTable(RenderTarget& target) const {
 
     Text title(boldFont);
     title.setString(L"Chi tiết & Tăng trưởng theo tháng");
-    title.setCharacterSize(14);
+    title.setCharacterSize(17);
     title.setFillColor(Color(23, 32, 51));
-    title.setPosition({cardX + 30.f, cardY + 12.f});
+    title.setPosition({cardX + 30.f, std::round(cardY + 10.f)});
     target.draw(title);
 
     // Right badge: "Q4-2025 Data"
@@ -1494,11 +1469,15 @@ void OverviewPanel::drawBottomRightTable(RenderTarget& target) const {
     float colChangeX = cardX + std::floor(cardW * 0.44f);
     float colRevX = cardX + cardW - 24.f;
 
+    float monthColLeft = cardX + 24.f;
+    float monthColRight = colChangeX - 16.f;
+
     Text th1(boldFont);
     th1.setString(L"THÁNG");
     th1.setCharacterSize(14);
     th1.setFillColor(Color(148, 163, 184));
-    th1.setPosition({colMonthX, cardY + 44.f});
+    FloatRect th1b = th1.getLocalBounds();
+    th1.setPosition({std::round(monthColLeft + ((monthColRight - monthColLeft) - th1b.size.x) / 2.f - th1b.position.x), cardY + 44.f});
     target.draw(th1);
 
     Text th2(boldFont);
@@ -1534,28 +1513,32 @@ void OverviewPanel::drawBottomRightTable(RenderTarget& target) const {
             RoundedRectRenderer::draw(target, {cardX + 16.f, ry - 4.f}, {cardW - 32.f, rowH - 4.f}, 4.f, Color(248, 250, 252));
         }
 
-        // Colored Bullet Dot
-        CircleShape rDot(3.5f);
-        rDot.setPosition({colMonthX, ry + 8.f});
-        rDot.setFillColor(dotColors[i % 4]);
-        target.draw(rDot);
-
-        // Month text
+        // Month text + Colored Bullet Dot centered in [monthColLeft, monthColRight]
         Text mTxt(boldFont);
         mTxt.setString(monthlyStatsList[i].displayMonth);
         mTxt.setCharacterSize(14);
         mTxt.setFillColor(Color(23, 32, 51));
-        mTxt.setPosition({colMonthX + 16.f, ry + 2.f});
+        FloatRect mb = mTxt.getLocalBounds();
+        float itemW = 7.f + 9.f + mb.size.x + (monthlyStatsList[i].isRecord ? 60.f : 0.f);
+        float startMX = monthColLeft + ((monthColRight - monthColLeft) - itemW) / 2.f;
+
+        CircleShape rDot(3.5f);
+        rDot.setPosition({std::round(startMX), std::round(ry + 8.f)});
+        rDot.setFillColor(dotColors[i % 4]);
+        target.draw(rDot);
+
+        mTxt.setPosition({std::round(startMX + 16.f - mb.position.x), std::round(ry + 2.f)});
         target.draw(mTxt);
 
         if (monthlyStatsList[i].isRecord) {
-            Vector2f recPos(mTxt.getPosition().x + mTxt.getGlobalBounds().size.x + 8.f, ry + 2.f);
+            Vector2f recPos(std::round(startMX + 16.f + mb.size.x + 8.f), std::round(ry + 2.f));
             RoundedRectRenderer::draw(target, recPos, {52.f, 20.f}, 4.f, Color(255, 228, 230));
             Text recTxt(boldFont);
             recTxt.setString(L"Kỷ lục");
-            recTxt.setCharacterSize(14);
+            recTxt.setCharacterSize(12);
             recTxt.setFillColor(Color(225, 29, 72));
-            recTxt.setPosition({recPos.x + 8.f, recPos.y + 2.f});
+            FloatRect rcb = recTxt.getLocalBounds();
+            recTxt.setPosition({std::round(recPos.x + (52.f - rcb.size.x) / 2.f - rcb.position.x), std::round(recPos.y + (20.f - rcb.size.y) / 2.f - rcb.position.y)});
             target.draw(recTxt);
         }
 
