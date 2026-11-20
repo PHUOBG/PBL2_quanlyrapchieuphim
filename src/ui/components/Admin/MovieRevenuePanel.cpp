@@ -1040,16 +1040,16 @@ void MovieRevenuePanel::drawKpiCards(RenderTarget& target) const {
         // Footer
         Text fLeft(boldFont);
         fLeft.setString(L"+18.4% so với quý trước");
-        fLeft.setCharacterSize(12.f);
+        fLeft.setCharacterSize(13);
         fLeft.setFillColor(Color(21, 128, 61));
-        fLeft.setPosition({cPos.x + 16.f, cPos.y + 74.f});
+        fLeft.setPosition({cPos.x + 16.f, std::round(cPos.y + 68.f)});
         target.draw(fLeft);
 
         Text fRight(font);
         fRight.setString(L"Đã quyết toán VAT");
-        fRight.setCharacterSize(12.f);
+        fRight.setCharacterSize(13);
         fRight.setFillColor(Color(148, 163, 184));
-        fRight.setPosition({cPos.x + cardW - 16.f - fRight.getGlobalBounds().size.x, cPos.y + 74.f});
+        fRight.setPosition({std::round(cPos.x + cardW - 16.f - fRight.getGlobalBounds().size.x), std::round(cPos.y + 68.f)});
         target.draw(fRight);
     }
 
@@ -1077,16 +1077,16 @@ void MovieRevenuePanel::drawKpiCards(RenderTarget& target) const {
 
         Text fLeft(boldFont);
         fLeft.setString(L"Chiếm 59.1% tổng nguồn thu");
-        fLeft.setCharacterSize(12.f);
+        fLeft.setCharacterSize(13);
         fLeft.setFillColor(Color(8, 125, 181));
-        fLeft.setPosition({cPos.x + 16.f, cPos.y + 74.f});
+        fLeft.setPosition({cPos.x + 16.f, std::round(cPos.y + 68.f)});
         target.draw(fLeft);
 
         Text fRight(font);
         fRight.setString(to_wstring(totalTickets) + L" vé đã xuất");
-        fRight.setCharacterSize(12.f);
+        fRight.setCharacterSize(13);
         fRight.setFillColor(Color(148, 163, 184));
-        fRight.setPosition({cPos.x + cardW - 16.f - fRight.getGlobalBounds().size.x, cPos.y + 74.f});
+        fRight.setPosition({std::round(cPos.x + cardW - 16.f - fRight.getGlobalBounds().size.x), std::round(cPos.y + 68.f)});
         target.draw(fRight);
     }
 
@@ -1115,16 +1115,16 @@ void MovieRevenuePanel::drawKpiCards(RenderTarget& target) const {
 
         Text fLeft(boldFont);
         fLeft.setString(L"Chiếm 40.9% tổng nguồn thu");
-        fLeft.setCharacterSize(12.f);
+        fLeft.setCharacterSize(13);
         fLeft.setFillColor(Color(217, 119, 6));
-        fLeft.setPosition({cPos.x + 16.f, cPos.y + 74.f});
+        fLeft.setPosition({cPos.x + 16.f, std::round(cPos.y + 68.f)});
         target.draw(fLeft);
 
         Text fRight(font);
         fRight.setString(to_wstring(totalCombos) + L" Combo & Nước");
-        fRight.setCharacterSize(12.f);
+        fRight.setCharacterSize(13);
         fRight.setFillColor(Color(148, 163, 184));
-        fRight.setPosition({cPos.x + cardW - 16.f - fRight.getGlobalBounds().size.x, cPos.y + 74.f});
+        fRight.setPosition({std::round(cPos.x + cardW - 16.f - fRight.getGlobalBounds().size.x), std::round(cPos.y + 68.f)});
         target.draw(fRight);
     }
 }
