@@ -878,13 +878,13 @@ void OverviewPanel::drawKpiCards(RenderTarget& target) const {
         }
 
         // Footer
-        Text fLeft(boldFont, footLeft, 15);
+        Text fLeft(boldFont, footLeft, 13);
         fLeft.setFillColor(footLeftColor);
         fLeft.setPosition({cardPos.x + 14.f, std::round(cardPos.y + 95.f)});
         target.draw(fLeft);
 
         if (!footRight.empty()) {
-            Text fRight(font, footRight, 15);
+            Text fRight(font, footRight, 13);
             fRight.setFillColor(Color(100, 116, 139));
             fRight.setPosition({std::round(fLeft.getPosition().x + fLeft.getGlobalBounds().size.x + 5.f), std::round(cardPos.y + 95.f)});
             target.draw(fRight);
@@ -918,17 +918,17 @@ void OverviewPanel::drawKpiCards(RenderTarget& target) const {
         sub.setPosition({cardPos.x + 14.f, std::round(cardPos.y + 70.f)});
         target.draw(sub);
 
-        Text progLbl(font, L"Mục tiêu: ", 15);
+        Text progLbl(font, L"Mục tiêu: ", 13);
         progLbl.setFillColor(Color(100, 116, 139));
         progLbl.setPosition({cardPos.x + 14.f, std::round(cardPos.y + 95.f)});
         target.draw(progLbl);
 
-        Text progPct(boldFont, L"74%", 15);
+        Text progPct(boldFont, L"74%", 13);
         progPct.setFillColor(Color(23, 32, 51));
         progPct.setPosition({std::round(progLbl.getPosition().x + progLbl.getGlobalBounds().size.x), std::round(cardPos.y + 95.f)});
         target.draw(progPct);
 
-        Text progCnt(font, L" (148/200)", 15);
+        Text progCnt(font, L" (148/200)", 13);
         progCnt.setFillColor(Color(148, 163, 184));
         progCnt.setPosition({std::round(progPct.getPosition().x + progPct.getGlobalBounds().size.x), std::round(cardPos.y + 95.f)});
         target.draw(progCnt);
@@ -957,12 +957,12 @@ void OverviewPanel::drawKpiCards(RenderTarget& target) const {
         sub.setPosition({cardPos.x + 14.f, std::round(cardPos.y + 70.f)});
         target.draw(sub);
 
-        Text stdTxt(boldFont, L"Standard: " + to_wstring(standardTicketsCount), 15);
+        Text stdTxt(boldFont, L"Standard: " + to_wstring(standardTicketsCount), 13);
         stdTxt.setFillColor(Color(8, 125, 181));
         stdTxt.setPosition({cardPos.x + 14.f, std::round(cardPos.y + 95.f)});
         target.draw(stdTxt);
 
-        Text vipTxt(boldFont, L"VIP: " + to_wstring(vipTicketsCount), 15);
+        Text vipTxt(boldFont, L"VIP: " + to_wstring(vipTicketsCount), 13);
         vipTxt.setFillColor(Color(217, 119, 6));
         vipTxt.setPosition({std::round(stdTxt.getPosition().x + stdTxt.getGlobalBounds().size.x + 16.f), std::round(cardPos.y + 95.f)});
         target.draw(vipTxt);
