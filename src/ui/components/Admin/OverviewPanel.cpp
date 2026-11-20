@@ -692,10 +692,10 @@ void OverviewPanel::update(const Vector2f& mousePos, bool /*mouseDown*/) {
 
     // Movie table hover
     hoveredMovieRow = -1;
-    float movieRowH = max(28.f, (topRowH - 74.f) / 8.f);
-    float movieTableTop = gridTopY + 66.f;
+    float movieRowH = max(28.f, (topRowH - 86.f) / 8.f);
+    float movieTableTop = gridTopY + 42.f + 34.f;
     for (int i = 0; i < (int)topMoviesList.size(); ++i) {
-        FloatRect rowRect({rightX + 12.f, movieTableTop + i * movieRowH}, {rightW - 24.f, movieRowH - 2.f});
+        FloatRect rowRect({rightX + 16.f, movieTableTop + i * movieRowH}, {rightW - 32.f, movieRowH});
         if (rowRect.contains(mousePos)) {
             hoveredMovieRow = i;
             break;
@@ -704,10 +704,10 @@ void OverviewPanel::update(const Vector2f& mousePos, bool /*mouseDown*/) {
 
     // Month table hover
     hoveredMonthRow = -1;
-    float monthRowH = max(36.f, (botRowH - 122.f) / 4.f);
-    float monthTableTop = botRowY + 68.f;
+    float monthRowH = max(36.f, (botRowH - 130.f) / 4.f);
+    float monthTableTop = botRowY + 42.f + 34.f;
     for (int i = 0; i < (int)monthlyStatsList.size(); ++i) {
-        FloatRect rowRect({rightX + 16.f, monthTableTop + i * monthRowH}, {rightW - 32.f, monthRowH - 4.f});
+        FloatRect rowRect({rightX + 16.f, monthTableTop + i * monthRowH}, {rightW - 32.f, monthRowH});
         if (rowRect.contains(mousePos)) {
             hoveredMonthRow = i;
             break;
@@ -1117,50 +1117,50 @@ void OverviewPanel::drawTopRightTable(RenderTarget& target) const {
     title.setPosition({cardX + 30.f, std::round(cardY + 10.f)});
     target.draw(title);
 
-    // Table Header Columns
-    float colTitleX = cardX + 20.f;
-    float colTicketsX = cardX + cardW - 180.f;
-    float colRevenueX = cardX + cardW - 20.f;
+    // Table Header Bar (Ocean Blue with vertical column dividers)
+    float tblX = cardX + 16.f;
+    float tblY = cardY + 42.f;
+    float tblW = cardW - 32.f;
+    float hdrH = 34.f;
+    float tblRight = tblX + tblW;
+    float div1 = tblX + std::floor(tblW * 0.62f);
+    float div2 = div1 + std::floor(tblW * 0.15f);
 
-    Text th1(boldFont);
-    th1.setString(L"TÊN PHIM");
-    th1.setCharacterSize(14);
-    th1.setFillColor(Color(148, 163, 184));
-    th1.setPosition({colTitleX + 28.f, cardY + 44.f});
-    target.draw(th1);
+    RoundedRectRenderer::draw(target, {tblX, tblY}, {tblW, hdrH}, 6.f, Color(8, 125, 181));
+    for (float dx : {div1, div2}) {
+        RectangleShape hDiv(Vector2f(1.f, hdrH));
+        hDiv.setPosition({dx, tblY});
+        hDiv.setFillColor(Color(255, 255, 255, 55));
+        target.draw(hDiv);
+    }
 
-    Text th2(boldFont);
-    th2.setString(L"SỐ VÉ");
-    th2.setCharacterSize(14);
-    th2.setFillColor(Color(148, 163, 184));
-    th2.setPosition({colTicketsX, cardY + 44.f});
-    target.draw(th2);
+    auto drawMovieHdr = [&](const wstring& lbl, float xStart, float xEnd) {
+        Text h(boldFont, lbl, 13);
+        h.setFillColor(Color::White);
+        FloatRect hb = h.getLocalBounds();
+        h.setPosition({std::round(xStart + (xEnd - xStart - hb.size.x) / 2.f - hb.position.x), std::round(tblY + (hdrH - hb.size.y) / 2.f - hb.position.y)});
+        target.draw(h);
+    };
+    drawMovieHdr(L"TÊN PHIM", tblX, div1);
+    drawMovieHdr(L"SỐ VÉ", div1, div2);
+    drawMovieHdr(L"DOANH THU", div2, tblRight);
 
-    Text th3(boldFont);
-    th3.setString(L"DOANH THU");
-    th3.setCharacterSize(14);
-    th3.setFillColor(Color(148, 163, 184));
-    FloatRect th3b = th3.getLocalBounds();
-    th3.setPosition({colRevenueX - th3b.size.x, cardY + 44.f});
-    target.draw(th3);
-
-    // Divider line
-    RectangleShape div(Vector2f(cardW - 40.f, 1.f));
-    div.setPosition({cardX + 20.f, cardY + 62.f});
-    div.setFillColor(Color(241, 245, 249));
-    target.draw(div);
-
-    // Table Rows (8 movies)
-    float rowTop = cardY + 66.f;
-    float rowH = max(28.f, (cardH - 74.f) / 8.f);
+    // Table Rows (8 movies) with vertical & horizontal cell borders
+    float rowTop = tblY + hdrH;
+    float rowH = max(28.f, (cardH - 86.f) / 8.f);
     int n = min(8, (int)topMoviesList.size());
 
     for (int i = 0; i < n; ++i) {
         float ry = rowTop + i * rowH;
 
-        // Hover highlight
-        if (hoveredMovieRow == i) {
-            RoundedRectRenderer::draw(target, {cardX + 12.f, ry - 2.f}, {cardW - 24.f, rowH - 2.f}, 4.f, Color(248, 250, 252));
+        Color rowBg = (hoveredMovieRow == i) ? Color(248, 250, 252) : Color::White;
+        RoundedRectRenderer::draw(target, {tblX, ry}, {tblW, rowH}, 0.f, rowBg, 0.5f, Color(226, 232, 240));
+
+        for (float dx : {div1, div2}) {
+            RectangleShape rDiv(Vector2f(1.f, rowH));
+            rDiv.setPosition({dx, ry});
+            rDiv.setFillColor(Color(241, 245, 249));
+            target.draw(rDiv);
         }
 
         // Rank Circle (uniform size 13 bold centered for all 1..8)
@@ -1169,40 +1169,37 @@ void OverviewPanel::drawTopRightTable(RenderTarget& target) const {
                      : (i == 2) ? Color(217, 119, 6)
                                 : Color(241, 245, 249);
         Color rankFg = (i < 3) ? Color::White : Color(100, 116, 139);
+        float cY = ry + (rowH - 20.f) / 2.f;
         CircleShape rCircle(10.f);
-        rCircle.setPosition({colTitleX, ry});
+        rCircle.setPosition({tblX + 12.f, std::round(cY)});
         rCircle.setFillColor(rankBg);
         target.draw(rCircle);
 
         Text rTxt(boldFont, to_string(i + 1), 13);
         rTxt.setFillColor(rankFg);
         FloatRect rb = rTxt.getLocalBounds();
-        rTxt.setPosition({std::round(colTitleX + 10.f - rb.size.x / 2.f - rb.position.x), std::round(ry + 10.f - rb.size.y / 2.f - rb.position.y)});
+        rTxt.setPosition({std::round(tblX + 12.f + 10.f - rb.size.x / 2.f - rb.position.x), std::round(cY + 10.f - rb.size.y / 2.f - rb.position.y)});
         target.draw(rTxt);
 
         // Movie Title
-        Text mTitle(boldFont);
-        mTitle.setString(topMoviesList[i].displayTitle);
-        mTitle.setCharacterSize(13.f);
+        Text mTitle(boldFont, topMoviesList[i].displayTitle, 13);
         mTitle.setFillColor(Color(23, 32, 51));
-        mTitle.setPosition({colTitleX + 28.f, ry + 1.f});
+        FloatRect mtb = mTitle.getLocalBounds();
+        mTitle.setPosition({tblX + 40.f, std::round(ry + (rowH - mtb.size.y) / 2.f - mtb.position.y)});
         target.draw(mTitle);
 
-        // Ticket Count
-        Text tCount(boldFont);
-        tCount.setString(to_string(topMoviesList[i].tickets));
-        tCount.setCharacterSize(13.f);
-        tCount.setFillColor(Color(37, 99, 235));
-        tCount.setPosition({colTicketsX + 10.f, ry + 1.f});
+        // Ticket Count (centered in [div1, div2])
+        Text tCount(boldFont, to_string(topMoviesList[i].tickets), 13);
+        tCount.setFillColor(Color(8, 125, 181));
+        FloatRect tcb = tCount.getLocalBounds();
+        tCount.setPosition({std::round(div1 + (div2 - div1 - tcb.size.x) / 2.f - tcb.position.x), std::round(ry + (rowH - tcb.size.y) / 2.f - tcb.position.y)});
         target.draw(tCount);
 
-        // Revenue
-        Text revTxt(boldFont);
-        revTxt.setString(s2ws(toCurrency(topMoviesList[i].revenue)));
-        revTxt.setCharacterSize(14);
+        // Revenue (centered in [div2, tblRight])
+        Text revTxt(boldFont, s2ws(toCurrency(topMoviesList[i].revenue)), 14);
         revTxt.setFillColor(Color(225, 29, 72));
         FloatRect revB = revTxt.getLocalBounds();
-        revTxt.setPosition({colRevenueX - revB.size.x, ry + 1.f});
+        revTxt.setPosition({std::round(div2 + (tblRight - div2 - revB.size.x) / 2.f - revB.position.x), std::round(ry + (rowH - revB.size.y) / 2.f - revB.position.y)});
         target.draw(revTxt);
     }
 }
@@ -1397,66 +1394,62 @@ void OverviewPanel::drawBottomRightTable(RenderTarget& target) const {
     title.setPosition({cardX + 30.f, std::round(cardY + 10.f)});
     target.draw(title);
 
-    // Table Header Columns
-    float colChangeX = cardX + std::floor(cardW * 0.44f);
-    float colRevX = cardX + cardW - 24.f;
+    // Table Header Bar (Ocean Blue with vertical column dividers)
+    float tblX = cardX + 16.f;
+    float tblY = cardY + 42.f;
+    float tblW = cardW - 32.f;
+    float hdrH = 34.f;
+    float tblRight = tblX + tblW;
+    float div1 = tblX + std::floor(tblW * 0.38f);
+    float div2 = div1 + std::floor(tblW * 0.31f);
 
-    float monthColLeft = cardX + 24.f;
-    float monthColRight = colChangeX - 16.f;
+    RoundedRectRenderer::draw(target, {tblX, tblY}, {tblW, hdrH}, 6.f, Color(8, 125, 181));
+    for (float dx : {div1, div2}) {
+        RectangleShape hDiv(Vector2f(1.f, hdrH));
+        hDiv.setPosition({dx, tblY});
+        hDiv.setFillColor(Color(255, 255, 255, 55));
+        target.draw(hDiv);
+    }
 
-    Text th1(boldFont);
-    th1.setString(L"THÁNG");
-    th1.setCharacterSize(14);
-    th1.setFillColor(Color(148, 163, 184));
-    FloatRect th1b = th1.getLocalBounds();
-    th1.setPosition({std::round(monthColLeft + ((monthColRight - monthColLeft) - th1b.size.x) / 2.f - th1b.position.x), cardY + 44.f});
-    target.draw(th1);
+    auto drawMonthHdr = [&](const wstring& lbl, float xStart, float xEnd) {
+        Text h(boldFont, lbl, 13);
+        h.setFillColor(Color::White);
+        FloatRect hb = h.getLocalBounds();
+        h.setPosition({std::round(xStart + (xEnd - xStart - hb.size.x) / 2.f - hb.position.x), std::round(tblY + (hdrH - hb.size.y) / 2.f - hb.position.y)});
+        target.draw(h);
+    };
+    drawMonthHdr(L"THÁNG", tblX, div1);
+    drawMonthHdr(L"BIẾN ĐỘNG", div1, div2);
+    drawMonthHdr(L"DOANH THU", div2, tblRight);
 
-    Text th2(boldFont);
-    th2.setString(L"BIẾN ĐỘNG");
-    th2.setCharacterSize(14);
-    th2.setFillColor(Color(148, 163, 184));
-    th2.setPosition({colChangeX, cardY + 44.f});
-    target.draw(th2);
-
-    Text th3(boldFont);
-    th3.setString(L"DOANH THU");
-    th3.setCharacterSize(14);
-    th3.setFillColor(Color(148, 163, 184));
-    FloatRect th3b = th3.getLocalBounds();
-    th3.setPosition({colRevX - th3b.size.x, cardY + 44.f});
-    target.draw(th3);
-
-    // Divider line
-    RectangleShape div(Vector2f(cardW - 48.f, 1.f));
-    div.setPosition({cardX + 24.f, cardY + 62.f});
-    div.setFillColor(Color(241, 245, 249));
-    target.draw(div);
-
-    // 4 Month Rows
-    float rowTop = cardY + 68.f;
-    float rowH = max(36.f, (cardH - 122.f) / 4.f);
+    // 4 Month Rows with vertical & horizontal cell borders
+    float rowTop = tblY + hdrH;
+    float rowH = max(36.f, (cardH - 130.f) / 4.f);
     const array<Color, 4> dotColors = {Color(8, 125, 181), Color(21, 128, 61), Color(244, 63, 94), Color(245, 158, 11)};
 
     for (size_t i = 0; i < monthlyStatsList.size(); ++i) {
         float ry = rowTop + i * rowH;
 
-        if (hoveredMonthRow == (int)i) {
-            RoundedRectRenderer::draw(target, {cardX + 16.f, ry - 4.f}, {cardW - 32.f, rowH - 4.f}, 4.f, Color(248, 250, 252));
+        Color rowBg = (hoveredMonthRow == (int)i) ? Color(248, 250, 252) : Color::White;
+        RoundedRectRenderer::draw(target, {tblX, ry}, {tblW, rowH}, 0.f, rowBg, 0.5f, Color(226, 232, 240));
+
+        for (float dx : {div1, div2}) {
+            RectangleShape rDiv(Vector2f(1.f, rowH));
+            rDiv.setPosition({dx, ry});
+            rDiv.setFillColor(Color(241, 245, 249));
+            target.draw(rDiv);
         }
 
-        // Month text + Colored Bullet Dot aligned uniformly in [monthColLeft, monthColRight]
-        Text mTxt(boldFont);
-        mTxt.setString(monthlyStatsList[i].displayMonth);
-        mTxt.setCharacterSize(14);
+        // Month text + Colored Bullet Dot aligned uniformly in [tblX, div1]
+        Text mTxt(boldFont, monthlyStatsList[i].displayMonth, 14);
         mTxt.setFillColor(Color(23, 32, 51));
         FloatRect mb = mTxt.getLocalBounds();
         float itemW = 7.f + 9.f + mb.size.x;
-        float startMX = monthColLeft + ((monthColRight - monthColLeft) - itemW) / 2.f;
-        float textY = monthlyStatsList[i].isRecord ? (ry - 2.f) : (ry + 2.f);
+        float startMX = tblX + ((div1 - tblX) - itemW) / 2.f;
+        float textY = monthlyStatsList[i].isRecord ? (ry + 3.f) : (ry + (rowH - mb.size.y) / 2.f - mb.position.y);
 
         CircleShape rDot(3.5f);
-        rDot.setPosition({std::round(startMX), std::round(textY + 6.f)});
+        rDot.setPosition({std::round(startMX), std::round((monthlyStatsList[i].isRecord ? (ry + 8.f) : (ry + rowH / 2.f - 3.5f)))});
         rDot.setFillColor(dotColors[i % 4]);
         target.draw(rDot);
 
@@ -1465,60 +1458,46 @@ void OverviewPanel::drawBottomRightTable(RenderTarget& target) const {
 
         if (monthlyStatsList[i].isRecord) {
             float recW = 54.f;
-            float recX = monthColLeft + ((monthColRight - monthColLeft) - recW) / 2.f;
-            Vector2f recPos(std::round(recX), std::round(ry + 18.f));
-            RoundedRectRenderer::draw(target, recPos, {recW, 18.f}, 4.f, Color(255, 228, 230));
-            Text recTxt(boldFont);
-            recTxt.setString(L"Kỷ lục");
-            recTxt.setCharacterSize(12);
+            float recX = tblX + ((div1 - tblX) - recW) / 2.f;
+            Vector2f recPos(std::round(recX), std::round(ry + rowH - 21.f));
+            RoundedRectRenderer::draw(target, recPos, {recW, 17.f}, 4.f, Color(255, 228, 230));
+            Text recTxt(boldFont, L"Kỷ lục", 11);
             recTxt.setFillColor(Color(225, 29, 72));
             FloatRect rcb = recTxt.getLocalBounds();
-            recTxt.setPosition({std::round(recPos.x + (recW - rcb.size.x) / 2.f - rcb.position.x), std::round(recPos.y + (18.f - rcb.size.y) / 2.f - rcb.position.y)});
+            recTxt.setPosition({std::round(recPos.x + (recW - rcb.size.x) / 2.f - rcb.position.x), std::round(recPos.y + (17.f - rcb.size.y) / 2.f - rcb.position.y)});
             target.draw(recTxt);
         }
 
-        // Change Badge pill
-        Vector2f chgPos(colChangeX, ry);
-        RoundedRectRenderer::draw(target, chgPos, {82.f, 24.f}, 4.f, monthlyStatsList[i].badgeBg);
-        Text chgTxt(boldFont);
-        chgTxt.setString(monthlyStatsList[i].changeBadge);
-        chgTxt.setCharacterSize(12.f);
+        // Change Badge pill (centered in [div1, div2])
+        float chgW = 84.f;
+        float chgH = 24.f;
+        Vector2f chgPos(std::round(div1 + (div2 - div1 - chgW) / 2.f), std::round(ry + (rowH - chgH) / 2.f));
+        RoundedRectRenderer::draw(target, chgPos, {chgW, chgH}, 4.f, monthlyStatsList[i].badgeBg);
+        Text chgTxt(boldFont, monthlyStatsList[i].changeBadge, 12);
         chgTxt.setFillColor(monthlyStatsList[i].badgeText);
         FloatRect chgB = chgTxt.getLocalBounds();
-        chgTxt.setPosition({chgPos.x + 41.f - chgB.size.x / 2.f, chgPos.y + 3.f});
+        chgTxt.setPosition({std::round(chgPos.x + (chgW - chgB.size.x) / 2.f - chgB.position.x), std::round(chgPos.y + (chgH - chgB.size.y) / 2.f - chgB.position.y)});
         target.draw(chgTxt);
 
-        // Revenue
-        Text revTxt(boldFont);
-        revTxt.setString(s2ws(toCurrency(monthlyStatsList[i].revenue)));
-        revTxt.setCharacterSize(14);
+        // Revenue (centered in [div2, tblRight])
+        Text revTxt(boldFont, s2ws(toCurrency(monthlyStatsList[i].revenue)), 14);
         revTxt.setFillColor(Color(23, 32, 51));
         FloatRect revB = revTxt.getLocalBounds();
-        revTxt.setPosition({colRevX - revB.size.x, ry + 2.f});
+        revTxt.setPosition({std::round(div2 + (tblRight - div2 - revB.size.x) / 2.f - revB.position.x), std::round(ry + (rowH - revB.size.y) / 2.f - revB.position.y)});
         target.draw(revTxt);
     }
 
-    // Divider before summary
-    float sumDivY = rowTop + 4 * rowH + 6.f;
-    RectangleShape sDiv(Vector2f(cardW - 48.f, 1.f));
-    sDiv.setPosition({cardX + 24.f, sumDivY});
-    sDiv.setFillColor(Color(226, 232, 240));
-    target.draw(sDiv);
-
-    // Summary row
-    Text sumLbl(font);
-    sumLbl.setString(L"Tổng doanh thu tích lũy 4 tháng:");
-    sumLbl.setCharacterSize(16);
+    // Summary row below table
+    float sumDivY = rowTop + 4 * rowH + 10.f;
+    Text sumLbl(font, L"Tổng doanh thu tích lũy 4 tháng:", 16);
     sumLbl.setFillColor(Color(100, 116, 139));
-    sumLbl.setPosition({cardX + 24.f, std::round(sumDivY + 10.f)});
+    sumLbl.setPosition({tblX, std::round(sumDivY + 4.f)});
     target.draw(sumLbl);
 
-    Text sumVal(boldFont);
-    sumVal.setString(s2ws(toCurrency(totalAccumulatedRevenue)));
-    sumVal.setCharacterSize(18.f);
+    Text sumVal(boldFont, s2ws(toCurrency(totalAccumulatedRevenue)), 18);
     sumVal.setFillColor(Color(23, 32, 51));
     FloatRect sb = sumVal.getLocalBounds();
-    sumVal.setPosition({colRevX - sb.size.x, sumDivY + 8.f});
+    sumVal.setPosition({std::round(tblRight - sb.size.x), std::round(sumDivY + 2.f)});
     target.draw(sumVal);
 }
 
