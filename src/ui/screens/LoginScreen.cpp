@@ -1,6 +1,7 @@
 ﻿#include "UI/screens/LoginScreen.h"
 #include "UI/components/Admin/RoundedRectRenderer.h"
 #include "UI/components/Admin/FontManager.h"
+#include "utils/FileUtils.h"
 #include "core/AppState.h"
 #include "core/AppRole.h"
 #include <SFML/Graphics.hpp>
@@ -16,10 +17,8 @@ LoginScreen::LoginScreen(const Font& fontRef, AuthService& authRef)
       statusColor(Color(220, 38, 38)),
       forgotMsgColor(Color(220, 38, 38))
 {
-    if (logoTexture.loadFromFile("../assets/elements/cinexine_logo.png") ||
-        logoTexture.loadFromFile("assets/elements/cinexine_logo.png") ||
-        logoTexture.loadFromFile("../assets/elements/icon.png") ||
-        logoTexture.loadFromFile("assets/elements/icon.png")) {
+    if (FileUtils::safeLoadFromFile(logoTexture, "assets/elements/cinexine_logo.png") ||
+        FileUtils::safeLoadFromFile(logoTexture, "assets/elements/icon.png")) {
         logoTexture.setSmooth(true);
         logoSprite.emplace(logoTexture);
     }

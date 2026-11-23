@@ -33,10 +33,8 @@ App::App()
 
     // Set Window and Taskbar Icon
     Image appIcon;
-    if (appIcon.loadFromFile("../assets/elements/icon.png") ||
-        appIcon.loadFromFile("assets/elements/icon.png") ||
-        appIcon.loadFromFile("../assets/elements/cinexine_logo.png") ||
-        appIcon.loadFromFile("assets/elements/cinexine_logo.png")) {
+    if (FileUtils::safeLoadFromFile(appIcon, "assets/elements/icon.png") ||
+        FileUtils::safeLoadFromFile(appIcon, "assets/elements/cinexine_logo.png")) {
         window.setIcon(appIcon.getSize(), appIcon.getPixelsPtr());
     }
 

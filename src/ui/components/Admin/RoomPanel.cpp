@@ -49,17 +49,10 @@ RoomPanel::RoomPanel(Font& fontRef, float w, float h)
       zoomFactor(1.0f)
 {
 
-    if (!logoTex.loadFromFile("assets/elements/cinexine_icon.png") &&
-        !logoTex.loadFromFile("../assets/elements/cinexine_icon.png") &&
-        !logoTex.loadFromFile("assets/elements/icon.png") &&
-        !logoTex.loadFromFile("../assets/elements/icon.png")) {
-        hasLogo = false;
-    } else {
-        hasLogo = true;
-    }
+    hasLogo = FileUtils::safeLoadFromFile(logoTex, "assets/elements/cinexine_icon.png") ||
+              FileUtils::safeLoadFromFile(logoTex, "assets/elements/icon.png");
 
-    if (reloadTex.loadFromFile("assets/elements/reload.png") ||
-        reloadTex.loadFromFile("../assets/elements/reload.png")) {
+    if (FileUtils::safeLoadFromFile(reloadTex, "assets/elements/reload.png")) {
         reloadTex.setSmooth(true);
         hasReloadTex = true;
     }

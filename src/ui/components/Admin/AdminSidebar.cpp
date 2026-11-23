@@ -1,5 +1,6 @@
 #include "UI/components/Admin/AdminSidebar.h"
 #include "UI/components/Admin/FontManager.h"
+#include "utils/FileUtils.h"
 #include <cmath>
 
 AdminSidebar::AdminSidebar(float w, float h, const string& uName)
@@ -36,10 +37,8 @@ AdminSidebar::AdminSidebar(float w, float h, const string& uName)
         {SidebarElementType::MENU_ITEM, L"Th\u00f4ng tin c\u00e1 nh\u00e2n", AppState::ADMIN_CHANGE_PASSWORD, {}}
     };
 
-    if (logoTexture.loadFromFile("../assets/elements/cinexine_logo.png") ||
-        logoTexture.loadFromFile("assets/elements/cinexine_logo.png") ||
-        logoTexture.loadFromFile("../assets/elements/icon.png") ||
-        logoTexture.loadFromFile("assets/elements/icon.png")) {
+    if (FileUtils::safeLoadFromFile(logoTexture, "assets/elements/cinexine_logo.png") ||
+        FileUtils::safeLoadFromFile(logoTexture, "assets/elements/icon.png")) {
         logoTexture.setSmooth(true);
         logoSprite.emplace(logoTexture);
     }

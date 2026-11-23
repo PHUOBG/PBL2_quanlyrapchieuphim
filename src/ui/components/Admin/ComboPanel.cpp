@@ -52,8 +52,7 @@ ComboPanel::ComboPanel(Font& fontRef, float w, float h)
       width(w), height(h), position(280.f, 0.f)
 {
 
-    if (reloadTex.loadFromFile("assets/elements/reload.png") ||
-        reloadTex.loadFromFile("../assets/elements/reload.png")) {
+    if (FileUtils::safeLoadFromFile(reloadTex, "assets/elements/reload.png")) {
         reloadTex.setSmooth(true);
         hasReloadTex = true;
     }
@@ -99,7 +98,7 @@ const Texture* ComboPanel::getComboTexture(const string& id, const wstring& name
     tex.setSmooth(true);
     bool loaded = false;
     for (const auto& c : candidates) {
-        if (tex.loadFromFile(c)) {
+        if (FileUtils::safeLoadFromFile(tex, c)) {
             loaded = true;
             break;
         }

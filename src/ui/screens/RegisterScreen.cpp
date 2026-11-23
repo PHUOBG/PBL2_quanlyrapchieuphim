@@ -1,6 +1,7 @@
 #include "UI/screens/RegisterScreen.h"
 #include "UI/components/Admin/RoundedRectRenderer.h"
 #include "UI/components/Admin/FontManager.h"
+#include "utils/FileUtils.h"
 #ifdef _WIN32
 #include <windows.h>
 #endif
@@ -21,10 +22,8 @@ static std::string wstring_to_utf8(const std::wstring& wstr) {
 
 RegisterScreen::RegisterScreen(const Font& f, AuthService& authRef)
     : auth(authRef), font(f), boldFont(FontManager::instance().bold()) {
-    if (logoTexture.loadFromFile("../assets/elements/cinexine_logo.png") ||
-        logoTexture.loadFromFile("assets/elements/cinexine_logo.png") ||
-        logoTexture.loadFromFile("../assets/elements/icon.png") ||
-        logoTexture.loadFromFile("assets/elements/icon.png")) {
+    if (FileUtils::safeLoadFromFile(logoTexture, "assets/elements/cinexine_logo.png") ||
+        FileUtils::safeLoadFromFile(logoTexture, "assets/elements/icon.png")) {
         logoTexture.setSmooth(true);
         logoSprite.emplace(logoTexture);
     }

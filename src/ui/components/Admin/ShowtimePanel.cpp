@@ -83,8 +83,7 @@ ShowtimePanel::ShowtimePanel(Font& fontRef, float w, float h)
         L"S\u1eafp chi\u1ebfu"
     };
 
-    if (reloadTex.loadFromFile("assets/elements/reload.png") ||
-        reloadTex.loadFromFile("../assets/elements/reload.png")) {
+    if (FileUtils::safeLoadFromFile(reloadTex, "assets/elements/reload.png")) {
         reloadTex.setSmooth(true);
         hasReloadTex = true;
     }

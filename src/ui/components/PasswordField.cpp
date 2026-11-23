@@ -1,4 +1,5 @@
 #include "UI/components/PasswordField.h"
+#include "utils/FileUtils.h"
 #include <algorithm>
 
 PasswordField::PasswordField(const sf::Font& font, float width, float height)
@@ -28,8 +29,8 @@ PasswordField::PasswordField(const sf::Font& font, float width, float height)
 }
 
 void PasswordField::loadTextures() {
-    if (eyeOpenTexture_.loadFromFile("../assets/elements/eye-open.png") &&
-        eyeClosedTexture_.loadFromFile("../assets/elements/eye-close.png")) {
+    if (FileUtils::safeLoadFromFile(eyeOpenTexture_, "assets/elements/eye-open.png") &&
+        FileUtils::safeLoadFromFile(eyeClosedTexture_, "assets/elements/eye-close.png")) {
         eyeOpenTexture_.setSmooth(true);
         eyeClosedTexture_.setSmooth(true);
         eyeSprite_ = std::make_unique<sf::Sprite>(eyeClosedTexture_);

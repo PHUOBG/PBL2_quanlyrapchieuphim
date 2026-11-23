@@ -36,8 +36,7 @@ TicketPanel::TicketPanel(Font& fontRef, float w, float h)
       width(w), height(h), position(280.f, 0.f),
       repository(FileUtils::resolveDataPath("data/tickets.txt"))
 {
-    if (reloadTex.loadFromFile("assets/elements/reload.png") ||
-        reloadTex.loadFromFile("../assets/elements/reload.png")) {
+    if (FileUtils::safeLoadFromFile(reloadTex, "assets/elements/reload.png")) {
         reloadTex.setSmooth(true);
         hasReloadTex = true;
     }

@@ -57,6 +57,39 @@ public:
         return relative;
     }
 
+    template <typename T>
+    static bool safeLoadFromFile(T& target, const string& path) {
+        namespace fs = std::filesystem;
+        try {
+            string resolved = resolveDataPath(path);
+            if (!resolved.empty() && fs::exists(resolved)) {
+                return target.loadFromFile(resolved);
+            }
+            if (fs::exists(path)) {
+                return target.loadFromFile(path);
+            }
+        } catch (...) {
+            return false;
+        }
+        return false;
+    }
+
+    template <typename T>
+    static bool safeLoadFromFile(T& target, const wstring& wpath) {
+        namespace fs = std::filesystem;
+        try {
+            fs::path p(wpath);
+            if (fs::exists(p)) {
+                return target.loadFromFile(p.string());
+            }
+            string s(wpath.begin(), wpath.end());
+            return safeLoadFromFile(target, s);
+        } catch (...) {
+            return false;
+        }
+        return false;
+    }
+
     static bool ensureDirectoryExists(const string& dirPath) {
         if (filesystem::exists(dirPath)) return true;
         return filesystem::create_directories(dirPath);

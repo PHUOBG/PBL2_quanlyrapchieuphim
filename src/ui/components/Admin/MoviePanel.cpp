@@ -133,7 +133,7 @@ const Texture* MoviePanel::getPosterTexture(const string& rawPath, const string&
 
     bool loaded = false;
     for (const auto& c : candidates) {
-        if (!c.empty() && (tex.loadFromFile(c) || tex.loadFromFile(s2ws(c)))) {
+        if (!c.empty() && (FileUtils::safeLoadFromFile(tex, c) || FileUtils::safeLoadFromFile(tex, s2ws(c)))) {
             loaded = true;
             break;
         }

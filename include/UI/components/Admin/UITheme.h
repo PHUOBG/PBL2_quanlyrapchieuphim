@@ -7,6 +7,7 @@
 #include <algorithm>
 #include "UI/components/Admin/RoundedRectRenderer.h"
 #include "UI/components/Admin/FontManager.h"
+#include "utils/FileUtils.h"
 
 namespace UITheme {
     using namespace sf;
@@ -241,10 +242,8 @@ namespace UITheme {
         static bool s_logoTried = false;
         if (!s_logoTried) {
             s_logoTried = true;
-            s_logoLoaded = s_logoTex.loadFromFile("assets/elements/cinexine_icon.png") ||
-                           s_logoTex.loadFromFile("../assets/elements/cinexine_icon.png") ||
-                           s_logoTex.loadFromFile("assets/elements/icon.png") ||
-                           s_logoTex.loadFromFile("../assets/elements/icon.png");
+            s_logoLoaded = FileUtils::safeLoadFromFile(s_logoTex, "assets/elements/cinexine_icon.png") ||
+                           FileUtils::safeLoadFromFile(s_logoTex, "assets/elements/icon.png");
             if (s_logoLoaded) s_logoTex.setSmooth(true);
         }
         if (s_logoLoaded) {
@@ -444,10 +443,8 @@ namespace UITheme {
         static bool loaded = false;
         if (!attempted) {
             attempted = true;
-            bool ok1 = openTex.loadFromFile("../assets/elements/eye-open.png") ||
-                       openTex.loadFromFile("assets/elements/eye-open.png");
-            bool ok2 = closeTex.loadFromFile("../assets/elements/eye-close.png") ||
-                       closeTex.loadFromFile("assets/elements/eye-close.png");
+            bool ok1 = FileUtils::safeLoadFromFile(openTex, "assets/elements/eye-open.png");
+            bool ok2 = FileUtils::safeLoadFromFile(closeTex, "assets/elements/eye-close.png");
             loaded = ok1 && ok2;
             if (loaded) {
                 openTex.setSmooth(true);
