@@ -1750,7 +1750,7 @@ void MovieRevenuePanel::drawTab2TotalRevenue(RenderTarget& target) const {
         });
         target.draw(dTitle);
 
-        Text dVal(boldFont, L"11.84M", 16);
+        Text dVal(boldFont, L"11.84 M", 16);
         dVal.setFillColor(Color(23, 32, 51));
         FloatRect dvb = dVal.getLocalBounds();
         dVal.setPosition({
@@ -2415,15 +2415,15 @@ void MovieRevenuePanel::drawTab4RevenueByCombo(RenderTarget& target) const {
     target.draw(title);
 
     float titleW = title.getGlobalBounds().size.x;
-    Vector2f bPos(cPos.x + 24.f + titleW + 12.f, cPos.y + 15.f);
-    Vector2f bSize(106.f, 22.f);
+    Vector2f bPos(cPos.x + 24.f + titleW + 12.f, cPos.y + 13.f);
+    Vector2f bSize(115.f, 24.f);
     RoundedRectRenderer::draw(target, bPos, bSize, 5.f, Color(254, 243, 199));
     Text bTxt(boldFont, L"10 MÃ SẢN PHẨM", 11.f);
     bTxt.setFillColor(Color(180, 83, 9));
     FloatRect bb = bTxt.getLocalBounds();
     bTxt.setPosition({
         std::round(bPos.x + (bSize.x - bb.size.x) / 2.f - bb.position.x),
-        std::round(bPos.y + (bSize.y - bb.size.y) / 2.f - bb.position.y)
+        std::round(bPos.y + (bSize.y - bb.size.y) / 2.f - bb.position.y - 2.5f)
     });
     target.draw(bTxt);
 
