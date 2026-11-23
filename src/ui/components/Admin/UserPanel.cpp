@@ -779,7 +779,7 @@ void UserPanel::drawHeader(RenderTarget& target) const {
 
 void UserPanel::drawKpiCards(RenderTarget& target) const {
     const float cardY = position.y + 110.f;
-    const float cardH = 104.f;
+    const float cardH = 88.f;
     const float margin = 20.f;
     const float gap = 12.f;
     const float availableW = width - margin * 2.f;
@@ -794,29 +794,22 @@ void UserPanel::drawKpiCards(RenderTarget& target) const {
         lbl.setString(L"TỔNG KHÁCH HÀNG");
         lbl.setCharacterSize(14);
         lbl.setFillColor(Color(100, 116, 139));
-        lbl.setPosition({cPos.x + 16.f, cPos.y + 12.f});
+        lbl.setPosition({cPos.x + 16.f, cPos.y + 14.f});
         target.draw(lbl);
 
         Text val(boldFont);
         val.setString(to_string(totalCount));
         val.setCharacterSize(24);
         val.setFillColor(Color(23, 32, 51));
-        val.setPosition({cPos.x + 16.f, cPos.y + 36.f});
+        val.setPosition({cPos.x + 16.f, cPos.y + 40.f});
         target.draw(val);
 
         Text badge(boldFont);
         badge.setString(L"\u2191 +2 tuần này");
         badge.setCharacterSize(17);
         badge.setFillColor(Color(21, 128, 61));
-        badge.setPosition({std::round(val.getPosition().x + val.getGlobalBounds().size.x + 10.f), std::round(cPos.y + 42.f)});
+        badge.setPosition({std::round(val.getPosition().x + val.getGlobalBounds().size.x + 10.f), std::round(cPos.y + 45.f)});
         target.draw(badge);
-
-        Text foot(font);
-        foot.setString(L"100% đã xác minh số điện thoại");
-        foot.setCharacterSize(14);
-        foot.setFillColor(Color(100, 116, 139));
-        foot.setPosition({cPos.x + 16.f, std::round(cPos.y + 74.f)});
-        target.draw(foot);
     }
 
     // Card 2: ĐANG HOẠT ĐỘNG (ACTIVE)
@@ -828,29 +821,22 @@ void UserPanel::drawKpiCards(RenderTarget& target) const {
         lbl.setString(L"ĐANG HOẠT ĐỘNG (ACTIVE)");
         lbl.setCharacterSize(14);
         lbl.setFillColor(Color(100, 116, 139));
-        lbl.setPosition({cPos.x + 16.f, cPos.y + 12.f});
+        lbl.setPosition({cPos.x + 16.f, cPos.y + 14.f});
         target.draw(lbl);
 
         Text val(boldFont);
         val.setString(to_string(activeCount));
         val.setCharacterSize(24);
         val.setFillColor(Color(23, 32, 51));
-        val.setPosition({cPos.x + 16.f, cPos.y + 36.f});
+        val.setPosition({cPos.x + 16.f, cPos.y + 40.f});
         target.draw(val);
 
         Text unit(boldFont);
         unit.setString(L"/ " + to_wstring(totalCount) + L" tài khoản");
         unit.setCharacterSize(22);
         unit.setFillColor(Color(23, 32, 51));
-        unit.setPosition({std::round(val.getPosition().x + val.getGlobalBounds().size.x + 8.f), std::round(cPos.y + 38.f)});
+        unit.setPosition({std::round(val.getPosition().x + val.getGlobalBounds().size.x + 8.f), std::round(cPos.y + 42.f)});
         target.draw(unit);
-
-        Text foot(font);
-        foot.setString(L"Đã đặt vé trong 30 ngày qua");
-        foot.setCharacterSize(14);
-        foot.setFillColor(Color(100, 116, 139));
-        foot.setPosition({cPos.x + 16.f, std::round(cPos.y + 74.f)});
-        target.draw(foot);
     }
 
     // Card 3: HẠNG THẺ HỘI VIÊN
@@ -862,14 +848,14 @@ void UserPanel::drawKpiCards(RenderTarget& target) const {
         lbl.setString(L"HẠNG THẺ HỘI VIÊN");
         lbl.setCharacterSize(14);
         lbl.setFillColor(Color(100, 116, 139));
-        lbl.setPosition({cPos.x + 16.f, cPos.y + 12.f});
+        lbl.setPosition({cPos.x + 16.f, cPos.y + 14.f});
         target.draw(lbl);
 
         // 3 Badges in a row: 6 Vàng, 7 Bạc, 2 Chuẩn
         float pW = (cardW - 32.f - 16.f) / 3.f;
 
         auto drawTierPill = [&](int idx, int count, const wstring& name, Color bg, Color txt) {
-            Vector2f pPos(cPos.x + 16.f + idx * (pW + 8.f), cPos.y + 37.f);
+            Vector2f pPos(cPos.x + 16.f + idx * (pW + 8.f), cPos.y + 42.f);
             RoundedRectRenderer::draw(target, pPos, {pW, 28.f}, 4.f, bg);
             Text pTxt(boldFont);
             pTxt.setString(to_wstring(count) + L" " + name);
@@ -883,13 +869,6 @@ void UserPanel::drawKpiCards(RenderTarget& target) const {
         drawTierPill(0, goldCount, L"Vàng", Color(254, 243, 199), Color(180, 83, 9));
         drawTierPill(1, silverCount, L"Bạc", Color(241, 245, 249), Color(71, 85, 105));
         drawTierPill(2, standardCount, L"Chuẩn", Color(224, 242, 254), Color(8, 125, 181));
-
-        Text foot(font);
-        foot.setString(L"Tỷ lệ khách hàng thân thiết cao");
-        foot.setCharacterSize(14);
-        foot.setFillColor(Color(100, 116, 139));
-        foot.setPosition({cPos.x + 16.f, std::round(cPos.y + 74.f)});
-        target.draw(foot);
     }
 
     // Card 4: TỔNG CHI TIÊU BÌNH QUÂN
@@ -901,30 +880,22 @@ void UserPanel::drawKpiCards(RenderTarget& target) const {
         lbl.setString(L"TỔNG CHI TIÊU BÌNH QUÂN");
         lbl.setCharacterSize(14);
         lbl.setFillColor(Color(100, 116, 139));
-        lbl.setPosition({cPos.x + 16.f, cPos.y + 12.f});
+        lbl.setPosition({cPos.x + 16.f, cPos.y + 14.f});
         target.draw(lbl);
 
         Text val(boldFont);
         val.setString(s2ws(formatCurrency(avgSpending)));
         val.setCharacterSize(24);
         val.setFillColor(Color(23, 32, 51));
-        val.setPosition({cPos.x + 16.f, cPos.y + 36.f});
+        val.setPosition({cPos.x + 16.f, cPos.y + 40.f});
         target.draw(val);
 
         Text unit(boldFont);
         unit.setString(L"VNĐ");
         unit.setCharacterSize(22);
         unit.setFillColor(Color(23, 32, 51));
-        unit.setPosition({std::round(val.getPosition().x + val.getGlobalBounds().size.x + 8.f), std::round(cPos.y + 38.f)});
+        unit.setPosition({std::round(val.getPosition().x + val.getGlobalBounds().size.x + 8.f), std::round(cPos.y + 42.f)});
         target.draw(unit);
-
-        stringstream ss; ss << fixed << setprecision(1) << avgTicketsPerUser;
-        Text foot(font);
-        foot.setString(L"Trung bình " + s2ws(ss.str()) + L" vé / khách");
-        foot.setCharacterSize(14);
-        foot.setFillColor(Color(100, 116, 139));
-        foot.setPosition({cPos.x + 16.f, std::round(cPos.y + 74.f)});
-        target.draw(foot);
     }
 }
 
