@@ -1,4 +1,5 @@
 #include "UI/screens/BaseScreen.h"
+#include "utils/FileUtils.h"
 
 // Định nghĩa static variables
 string BaseScreen::loggedInUsername = "";
@@ -7,13 +8,13 @@ bool BaseScreen::logoutRequested = false;
 
 BaseScreen::BaseScreen(Font& f)
 	:   font(f),
-		background_tex("../assets/elements/background.png"),
 		background_sprite(background_tex),
-		searchBar_tex("../assets/elements/search_bar.png"),
 		searchBar_sprite(searchBar_tex),
 		accountButton(f, L"Thông tin cá nhân", 18, {0.f, 0.f}),
 		logoutButton(f, L"Đăng xuất", 18, {0.f, 0.f})
 {
+	FileUtils::safeLoadFromFile(background_tex, "assets/elements/background.png");
+	FileUtils::safeLoadFromFile(searchBar_tex, "assets/elements/search_bar.png");
 	buttons.push_back(TextButton(font, L"CiNeXíNè", 50, {90.f, 40.f}));
 	buttons.push_back(TextButton(font, L"Đặt vé ngay", 23, {1150.f, 50.f}));
 	buttons.push_back(TextButton(font, L"Đăng nhập | Đăng ký", 22, {1360.f, 50.f}));
