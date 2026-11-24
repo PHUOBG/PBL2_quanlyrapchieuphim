@@ -859,10 +859,17 @@ void UserPanel::drawKpiCards(RenderTarget& target) const {
             RoundedRectRenderer::draw(target, pPos, {pW, 28.f}, 4.f, bg);
             Text pTxt(boldFont);
             pTxt.setString(to_wstring(count) + L" " + name);
-            pTxt.setCharacterSize(17);
+            pTxt.setCharacterSize(16);
             pTxt.setFillColor(txt);
             FloatRect pb = pTxt.getLocalBounds();
-            pTxt.setPosition({std::round(pPos.x + (pW - pb.size.x) / 2.f - pb.position.x), std::round(pPos.y + (28.f - pb.size.y) / 2.f - pb.position.y)});
+            float posX = std::round(pPos.x + (pW - pb.size.x) / 2.f - pb.position.x);
+            float posY = std::round(pPos.y + (28.f - pb.size.y) / 2.f - pb.position.y);
+            if (idx == 2) {
+                // "Chuẩn" with diacritic hook on 'ẩ' shifts bounding box; adjust optical center
+                posX -= 3.5f;
+                posY = std::round(pPos.y + 2.f);
+            }
+            pTxt.setPosition({posX, posY});
             target.draw(pTxt);
         };
 
