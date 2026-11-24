@@ -1,4 +1,4 @@
-﻿#include "UI/screens/LoginScreen.h"
+#include "UI/screens/LoginScreen.h"
 #include "UI/components/Admin/RoundedRectRenderer.h"
 #include "UI/components/Admin/FontManager.h"
 #include "utils/FileUtils.h"

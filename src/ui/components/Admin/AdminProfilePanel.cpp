@@ -457,14 +457,14 @@ void AdminProfilePanel::drawHeaderBanner(RenderTarget& target) const {
     const float gap = 8.f;
     float contentW = iconW + gap + db.size.x;
     float startX = std::round(delPos.x + (230.f - contentW) / 2.f);
-    float centerY = delPos.y + 21.f;
+    float centerY = delPos.y + 20.f;
 
     // Vector trash icon
-    RectangleShape trHandle({4.f, 1.5f}); trHandle.setFillColor(Color::White); trHandle.setPosition({startX + 3.f, std::round(centerY - 6.5f)}); target.draw(trHandle);
-    RectangleShape trLid({10.f, 1.5f}); trLid.setFillColor(Color::White); trLid.setPosition({startX, std::round(centerY - 4.5f)}); target.draw(trLid);
-    RoundedRectRenderer::draw(target, {startX + 1.f, std::round(centerY - 2.f)}, {8.f, 9.f}, 1.5f, Color::Transparent, 1.4f, Color::White);
+    RectangleShape trHandle({4.f, 1.5f}); trHandle.setFillColor(Color::White); trHandle.setPosition({startX + 3.f, std::round(centerY - 8.f)}); target.draw(trHandle);
+    RectangleShape trLid({10.f, 1.5f}); trLid.setFillColor(Color::White); trLid.setPosition({startX, std::round(centerY - 6.f)}); target.draw(trLid);
+    RoundedRectRenderer::draw(target, {startX + 1.f, std::round(centerY - 3.5f)}, {8.f, 9.f}, 1.5f, Color::Transparent, 1.4f, Color::White);
 
-    delTxt.setPosition({startX + iconW + gap - db.position.x, std::round(centerY - db.size.y / 2.f - db.position.y)});
+    delTxt.setPosition({startX + iconW + gap - db.position.x, std::round(centerY - db.size.y / 2.f - db.position.y - 2.5f)});
     target.draw(delTxt);
 }
 
