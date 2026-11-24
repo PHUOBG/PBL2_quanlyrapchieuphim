@@ -1021,10 +1021,10 @@ void MovieRevenuePanel::drawKpiCards(RenderTarget& target) const {
         Vector2f cPos(position.x + margin, cardY);
         RoundedRectRenderer::draw(target, cPos, {cardW, cardH}, 8.f, Color::White, 1.f, Color(226, 232, 240));
 
-        Text lbl(font);
+        Text lbl(boldFont);
         lbl.setString(L"Tổng doanh thu toàn rạp (01/09/2025 - 24/12/2025)");
         lbl.setCharacterSize(16);
-        lbl.setFillColor(Color(100, 116, 139));
+        lbl.setFillColor(Color(23, 32, 51));
         lbl.setPosition({cPos.x + 16.f, std::round(cPos.y + 10.f)});
         target.draw(lbl);
 
@@ -1060,10 +1060,10 @@ void MovieRevenuePanel::drawKpiCards(RenderTarget& target) const {
         float borderW = isMovieTab ? 2.f : 1.f;
         RoundedRectRenderer::draw(target, cPos, {cardW, cardH}, 8.f, Color::White, borderW, borderCol);
 
-        Text lbl(font);
+        Text lbl(boldFont);
         lbl.setString(L"Doanh thu phim (01/09/2025 - 24/12/2025)");
         lbl.setCharacterSize(16);
-        lbl.setFillColor(Color(100, 116, 139));
+        lbl.setFillColor(Color(23, 32, 51));
         lbl.setPosition({cPos.x + 16.f, std::round(cPos.y + 10.f)});
         target.draw(lbl);
 
@@ -1098,10 +1098,10 @@ void MovieRevenuePanel::drawKpiCards(RenderTarget& target) const {
         Color bgCol = isComboTab ? Color(255, 251, 235) : Color::White;
         RoundedRectRenderer::draw(target, cPos, {cardW, cardH}, 8.f, bgCol, borderW, borderCol);
 
-        Text lbl(font);
+        Text lbl(boldFont);
         lbl.setString(L"Doanh thu combo F&B (01/09/2025 - 24/12/2025)");
         lbl.setCharacterSize(16);
-        lbl.setFillColor(Color(100, 116, 139));
+        lbl.setFillColor(Color(23, 32, 51));
         lbl.setPosition({cPos.x + 16.f, std::round(cPos.y + 10.f)});
         target.draw(lbl);
 
