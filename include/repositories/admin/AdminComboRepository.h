@@ -2,10 +2,11 @@
 
 #include <string>
 #include <vector>
+#include "repositories/booking/ComboRepository.h"
 
 using namespace std;
 
-class AdminComboRepository {
+class AdminComboRepository : public ComboRepository {
 private:
     string filePath;
     vector<vector<string>> data;
@@ -26,4 +27,6 @@ public:
     vector<vector<string>> getAllData() const;
     vector<string> getRecord(int index) const;
     int getRecordCount() const;
+
+    DLL<Combo> getCombos() const;
 };

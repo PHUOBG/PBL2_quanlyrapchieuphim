@@ -160,3 +160,21 @@ vector<string> AdminComboRepository::getRecord(int index) const {
     if (index < 0 || index >= (int)data.size()) return {};
     return data[index];
 }
+
+DLL<Combo> AdminComboRepository::getCombos() const {
+    DLL<Combo> list;
+    for (const auto& row : data) {
+        if (row.size() < 3) continue;
+        Combo c;
+        c.id = row[0];
+        c.name = sf::String::fromUtf8(row[1].begin(), row[1].end());
+        try {
+            c.price = std::stoi(row[2]);
+        } catch (...) {
+            c.price = 0;
+        }
+        list.push_back(c);
+    }
+    return list;
+}
+

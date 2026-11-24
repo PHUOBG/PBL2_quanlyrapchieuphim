@@ -2,6 +2,8 @@
 
 #include <string>
 #include <SFML/System/String.hpp>
+#include "data-structures/DLL.h"
+
 using namespace std;
 using namespace sf;
 
@@ -22,16 +24,24 @@ struct Ticket {
 };
 
 class TicketRepository {
-private:
+protected:
     string filename;
 
     string generateTicketId();
     string getCurrentDate();
     string getCurrentTime();
 
-public:
-    TicketRepository(const string& filepath = "../data/tickets.txt");
+    static string trim(const string& value);
+    static bool parseLine(const string& line, Ticket& ticket);
+    static DLL<string> split(const string& line, char delimiter);
 
+public:
+    explicit TicketRepository(const string& filepath = "../data/tickets.txt");
+
+    // Unified Query & Read
+    DLL<Ticket> loadAll() const;
+
+    // Creation & Save
     Ticket createTicket(
         const string& showtimeId,
         const string& title,
@@ -46,7 +56,12 @@ public:
     );
 
     bool saveTicket(const Ticket& ticket);
+    bool writeTickets(const DLL<Ticket>& tickets) const;
 
+    // Deletion & Seat Release
+    bool deleteTicket(const string& ticketId);
+
+    // UTF-8 Display Helpers
     static String getTitleUtf8(const Ticket& t);
     static String getRoomUtf8(const Ticket& t);
     static String getFullNameUtf8(const Ticket& t);

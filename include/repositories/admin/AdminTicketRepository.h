@@ -4,18 +4,11 @@
 #include "data-structures/DLL.h"
 #include "repositories/booking/TicketRepository.h"
 
-class AdminTicketRepository {
-private:
-    std::string filePath;
-
-    static std::string trim(const std::string& value);
-    static bool parseLine(const std::string& line, Ticket& ticket);
-    static DLL<std::string> split(const std::string& line, char delimiter);
-    bool writeTickets(const DLL<Ticket>& tickets) const;
-
+/**
+ * @brief AdminTicketRepository provides ticket management operations for Admin panels.
+ * Inherits all core CRUD and seat release capabilities from the unified TicketRepository.
+ */
+class AdminTicketRepository : public TicketRepository {
 public:
     explicit AdminTicketRepository(const std::string& path);
-
-    DLL<Ticket> loadAll() const;
-    bool deleteTicket(const std::string& ticketId);
 };
