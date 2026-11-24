@@ -1102,10 +1102,10 @@ void VoucherPanel::render(RenderWindow& win) {
     wstring sVPrompt = searchVoucherQuery.empty()
         ? (searchVoucherActive ? L"|" : L"T\u00ecm theo m\u00e3 voucher ho\u1eb7c chi\u1ebfn d\u1ecbch...")
         : (searchVoucherQuery + (searchVoucherActive ? L"|" : L""));
-    sVPrompt = ellipsizeText(font, sVPrompt, 14, L.searchVW - 20.f);
-    Text sVTxt(font, sVPrompt, 14);
+    sVPrompt = ellipsizeText(font, sVPrompt, 15.5f, L.searchVW - 20.f);
+    Text sVTxt(font, sVPrompt, 15.5f);
     sVTxt.setFillColor(searchVoucherQuery.empty() && !searchVoucherActive ? Color(148, 163, 184) : Color(23, 32, 51));
-    sVTxt.setPosition({L.contentX + 10.f, std::round(fltY + 8.f)});
+    sVTxt.setPosition({L.contentX + 10.f, std::round(fltY + 7.f)});
     win.draw(sVTxt);
 
     vector<pair<wstring, float>> vPills = {{L"T\u1ea5t c\u1ea3", L.pillW[0]}, {L"Gi\u1ea3m %", L.pillW[1]}, {L"Gi\u1ea3m ti\u1ec1n", L.pillW[2]}};
@@ -1410,10 +1410,10 @@ void VoucherPanel::render(RenderWindow& win) {
     wstring sRPrompt = searchRecipientQuery.empty()
         ? (searchRecipientActive ? L"|" : L"T\u00ecm theo Email ho\u1eb7c T\u00ean kh\u00e1ch h\u00e0ng...")
         : (searchRecipientQuery + (searchRecipientActive ? L"|" : L""));
-    sRPrompt = ellipsizeText(font, sRPrompt, 14, L.rSearchW - 18.f);
-    Text sRTxt(font, sRPrompt, 14);
+    sRPrompt = ellipsizeText(font, sRPrompt, 15.5f, L.rSearchW - 18.f);
+    Text sRTxt(font, sRPrompt, 15.5f);
     sRTxt.setFillColor(searchRecipientQuery.empty() && !searchRecipientActive ? Color(148, 163, 184) : Color(23, 32, 51));
-    sRTxt.setPosition({rightX + 26.f, std::round(rFltY + 8.f)});
+    sRTxt.setPosition({rightX + 26.f, std::round(rFltY + 7.f)});
     win.draw(sRTxt);
 
     float rCountX = rightX + rightW - 16.f - L.rCountW;

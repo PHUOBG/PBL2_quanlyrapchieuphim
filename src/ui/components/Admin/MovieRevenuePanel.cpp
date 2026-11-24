@@ -1794,10 +1794,10 @@ void MovieRevenuePanel::drawTab2TotalRevenue(RenderTarget& target) const {
 
         auto drawStatPill = [&](int idx, const wstring& l, const wstring& v) {
             Vector2f pPos(cPos.x + 24.f + idx * (pW + 12.f), pillY);
-            RoundedRectRenderer::draw(target, pPos, {pW, pH}, 8.f, Color(248, 250, 252));
+            RoundedRectRenderer::draw(target, pPos, {pW, pH}, 8.f, Color(239, 246, 255), 1.f, Color(186, 230, 253));
 
             Text pl(boldFont, l, 14);
-            pl.setFillColor(Color(148, 163, 184));
+            pl.setFillColor(Color(8, 125, 181));
             FloatRect plb = pl.getLocalBounds();
             pl.setPosition({pPos.x + (pW - plb.size.x) / 2.f - plb.position.x, pPos.y + 9.f});
             target.draw(pl);
@@ -2657,7 +2657,7 @@ void MovieRevenuePanel::drawTab4RevenueByCombo(RenderTarget& target) const {
             target.draw(tdCode);
 
             // Chi tiết gói sản phẩm: căn trái lề 14px
-            Text tdDesc(font, cbItem.name, 14.5f);
+            Text tdDesc(font, cbItem.name, 16.f);
             tdDesc.setFillColor(Color(51, 65, 85));
             FloatRect dsb = tdDesc.getLocalBounds();
             tdDesc.setPosition({
@@ -2667,7 +2667,7 @@ void MovieRevenuePanel::drawTab4RevenueByCombo(RenderTarget& target) const {
             target.draw(tdDesc);
 
             // Số lượng bán: căn giữa
-            Text tdQty(boldFont, to_wstring(cbItem.quantity) + L" combo", 14.5f);
+            Text tdQty(boldFont, to_wstring(cbItem.quantity) + L" combo", 16.f);
             tdQty.setFillColor(Color(8, 125, 181));
             FloatRect qtb = tdQty.getLocalBounds();
             tdQty.setPosition({
@@ -2677,7 +2677,7 @@ void MovieRevenuePanel::drawTab4RevenueByCombo(RenderTarget& target) const {
             target.draw(tdQty);
 
             // Đơn giá tham chiếu: căn giữa
-            Text tdPrice(font, s2ws(toCurrency(cbItem.unitPrice)), 14.5f);
+            Text tdPrice(font, s2ws(toCurrency(cbItem.unitPrice)), 16.f);
             tdPrice.setFillColor(Color(100, 116, 139));
             FloatRect prb = tdPrice.getLocalBounds();
             tdPrice.setPosition({
@@ -2951,9 +2951,9 @@ void MovieRevenuePanel::drawMonthDetailModal(RenderTarget& target) const {
         v.setPosition({cp.x + 14.f, cp.y + 35.f});
         target.draw(v);
 
-        Text n(boldFont, note, 12.5f);
+        Text n(boldFont, note, 14.f);
         n.setFillColor(Color(100, 116, 139));
-        n.setPosition({cp.x + 14.f, cp.y + 65.f});
+        n.setPosition({cp.x + 14.f, cp.y + 64.f});
         target.draw(n);
     };
 
