@@ -1402,20 +1402,27 @@ void VoucherPanel::render(RenderWindow& win) {
     uTotTxt.setPosition({std::round(rCountX + (L.rCountW - utb.size.x) / 2.f - utb.position.x), std::round(rFltY + (34.f - utb.size.y) / 2.f - utb.position.y)});
     win.draw(uTotTxt);
 
-    // Header Bảng Người Nhận (43% / 27% / 10% / 20%)
+    // Header Bảng Người Nhận (43% / 27% / 10% / 20%) - đồng bộ màu xanh với bảng Voucher
     float rTblY = L.rTblY;
-    drawRoundedCard(win, {L.rTblX, rTblY}, {L.rTblW, L.rHdrH}, 6.f, Color(248, 250, 252), 1.f, Color(226, 232, 240));
+    drawRoundedCard(win, {L.rTblX, rTblY}, {L.rTblW, L.rHdrH}, 6.f, Color(8, 125, 181));
+
+    for (float dx : {L.rDiv1, L.rDiv2, L.rDiv3}) {
+        RectangleShape hDiv(Vector2f(1.f, L.rHdrH));
+        hDiv.setPosition({dx, rTblY});
+        hDiv.setFillColor(Color(255, 255, 255, 45));
+        win.draw(hDiv);
+    }
 
     auto drawRecipHdr = [&](const wstring& lbl, float xPos) {
         Text h(boldFont, lbl, 14);
-        h.setFillColor(Color(71, 85, 105));
+        h.setFillColor(Color::White);
         FloatRect hb = h.getLocalBounds();
         h.setPosition({std::round(xPos), std::round(rTblY + (L.rHdrH - hb.size.y) / 2.f - hb.position.y)});
         win.draw(h);
     };
     auto drawRecipCenterHdr = [&](const wstring& lbl, float xStart, float xEnd) {
         Text h(boldFont, lbl, 14);
-        h.setFillColor(Color(71, 85, 105));
+        h.setFillColor(Color::White);
         FloatRect hb = h.getLocalBounds();
         h.setPosition({std::round(xStart + (xEnd - xStart - hb.size.x) / 2.f - hb.position.x), std::round(rTblY + (L.rHdrH - hb.size.y) / 2.f - hb.position.y)});
         win.draw(h);

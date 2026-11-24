@@ -741,7 +741,7 @@ void ComboPanel::render(RenderWindow& win) {
     UITheme::drawSectionHeaderCard(win, position.x + 30.f, position.y + 16.f, width - 60.f,
                                    L"Qu\u1ea3n l\u00fd combo b\u1eafp n\u01b0\u1edbc",
                                    to_wstring(allCombos.size()) + L" Combo \u0110ang B\u00e1n",
-                                   Color(220, 252, 231), Color(22, 101, 52),
+                                   Color(224, 242, 254), Color(8, 125, 181),
                                    L"C\u1eadp nh\u1eadt b\u1ea3ng gi\u00e1, c\u00f4ng th\u1ee9c m\u00f3n b\u1eafp rang, n\u01b0\u1edbc ng\u1ecdt v\u00e0 c\u00e1c g\u00f3i \u01b0u \u0111\u00e3i t\u1ea1i qu\u1ea7y b\u1eafp n\u01b0\u1edbc.",
                                    boldFont, font, false);
 

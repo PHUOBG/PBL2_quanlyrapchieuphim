@@ -963,9 +963,9 @@ void ShowtimePanel::render(RenderWindow& win) {
 
     Text h1(boldFont, L"GI\u1edc CHI\u1ebeU", 14); h1.setFillColor(Color::White); centerColText(h1, tableX, div1, tableY + 14.f);
     Text h2(boldFont, L"PH\u00d2NG", 14); h2.setFillColor(Color::White); centerColText(h2, div1, div2, tableY + 14.f);
-    Text h3(boldFont, L"PHIM", 14); h3.setFillColor(Color::White); h3.setPosition({div2 + 24.f, tableY + 14.f}); win.draw(h3);
+    Text h3(boldFont, L"PHIM", 14); h3.setFillColor(Color::White); centerColText(h3, div2, div3, tableY + 14.f);
     Text h4(boldFont, L"GI\u00c1 V\u00c9", 14); h4.setFillColor(Color::White); centerColText(h4, div3, div4, tableY + 14.f);
-    Text h5(boldFont, L"T\u1ef6 L\u1ec6 L\u1ea4P \u0110\u1ea6Y", 14); h5.setFillColor(Color::White); h5.setPosition({div4 + 24.f, tableY + 14.f}); win.draw(h5);
+    Text h5(boldFont, L"T\u1ef6 L\u1ec6 L\u1ea4P \u0110\u1ea6Y", 14); h5.setFillColor(Color::White); centerColText(h5, div4, div5, tableY + 14.f);
 
     Text h6(boldFont, L"THAO T\u00c1C", 14); h6.setFillColor(Color::White);
     centerColText(h6, div5, tableRight, tableY + 14.f);
