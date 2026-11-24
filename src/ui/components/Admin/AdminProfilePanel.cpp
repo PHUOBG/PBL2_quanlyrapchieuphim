@@ -404,22 +404,26 @@ void AdminProfilePanel::drawHeaderBanner(RenderTarget& target) const {
 
     float tW = title.getGlobalBounds().size.x;
     Vector2f bPos(textX + tW + 14.f, cardY + 26.f);
-    RoundedRectRenderer::draw(target, bPos, {195.f, 28.f}, 14.f, Color(224, 242, 254), 1.f, Color(186, 230, 253));
-    UITheme::drawShieldIcon(target, {bPos.x + 15.f, bPos.y + 14.f}, 6.f, Color(8, 125, 181));
     Text bTxt(boldFont, L"Quản trị viên cấp cao", 15.f);
     bTxt.setFillColor(Color(8, 125, 181));
-    bTxt.setPosition({bPos.x + 27.f, bPos.y + 3.5f});
+    float bPillW = bTxt.getGlobalBounds().size.x + 40.f;
+    RoundedRectRenderer::draw(target, bPos, {bPillW, 28.f}, 14.f, Color(224, 242, 254), 1.f, Color(186, 230, 253));
+    UITheme::drawShieldIcon(target, {bPos.x + 15.f, bPos.y + 14.f}, 6.f, Color(8, 125, 181));
+    FloatRect btb = bTxt.getLocalBounds();
+    bTxt.setPosition({bPos.x + 28.f, std::round(bPos.y + (28.f - btb.size.y) / 2.f - btb.position.y)});
     target.draw(bTxt);
 
-    Vector2f stPos(bPos.x + 205.f, cardY + 26.f);
-    RoundedRectRenderer::draw(target, stPos, {195.f, 28.f}, 14.f, Color(220, 252, 231), 1.f, Color(167, 243, 208));
-    CircleShape stDot(3.5f);
-    stDot.setFillColor(Color(21, 128, 61));
-    stDot.setPosition({stPos.x + 12.f, stPos.y + 10.5f});
-    target.draw(stDot);
+    Vector2f stPos(bPos.x + bPillW + 12.f, cardY + 26.f);
     Text stTxt(boldFont, L"Đang hoạt động (Active)", 15.f);
     stTxt.setFillColor(Color(21, 128, 61));
-    stTxt.setPosition({stPos.x + 24.f, stPos.y + 3.5f});
+    float stPillW = stTxt.getGlobalBounds().size.x + 44.f;
+    RoundedRectRenderer::draw(target, stPos, {stPillW, 28.f}, 14.f, Color(220, 252, 231), 1.f, Color(167, 243, 208));
+    CircleShape stDot(3.5f);
+    stDot.setFillColor(Color(21, 128, 61));
+    stDot.setPosition({stPos.x + 14.f, stPos.y + 10.5f});
+    target.draw(stDot);
+    FloatRect stb = stTxt.getLocalBounds();
+    stTxt.setPosition({stPos.x + 26.f, std::round(stPos.y + (28.f - stb.size.y) / 2.f - stb.position.y)});
     target.draw(stTxt);
 
     // Line 2: Email • Vai trò • Đăng nhập gần nhất • IP pill (tăng 30% cỡ chữ lên 17px)
