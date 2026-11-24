@@ -1,5 +1,4 @@
 movie_id|title|age_rating|country|language|genres|duration_min|release_date|end_date|director|cast|synopsis|poster_path|status
-#PBL-001|Lật Mặt 6: Tấm Vé Định Mệnh|T16|Việt Nam|Tiếng Việt|Hành động, Hài, Kịch tính|135|28/04/2024|30/12/2030|Lý Hải|Quốc Cường, Trung Dũng, Huy Khánh|Nhóm bạn thân trúng vé số độc đắc 136 tỷ.|../assets/posters/latmat6-tamvedinhmenh.jpg|Đang chiếu
 #PBL-002|Người Nhện: Du Hành Vũ Trụ Nhện|T13|Mỹ|Tiếng Anh|Hoạt hình, Viễn tưởng, Phiêu lưu|140|01/06/2024|30/12/2030|Shameik Moore|Hailee Steinfeld, Oscar Isaac|Miles Morales phiêu lưu xuyên đa vũ trụ người nhện.|../assets/posters/spiderman.jpg|Đang chiếu
 #PBL-003|Vây Hãm: Không Lối Thoát|T18|Hàn Quốc|Tiếng Hàn|Hành động, Tội phạm|105|15/06/2024|30/12/2030|Lee Sang Young|Ma Dong-seok, Lee Joon-hyuk|Thanh tra Ma Seok-do dẫn đầu đội truy lùng đường dây ma túy.|../assets/posters/vayhamkhongloithoat.jpg|Sắp chiếu
 #PBL-004|Fast and Furious 10 (Fast X)|T16|Mỹ|Tiếng Anh|Đua xe, Hành động gay cấn|140|19/05/2024|30/12/2030|Louis Leterrier|Vin Diesel, Jason Momoa|Dom Toretto đối đầu kẻ thù nguy hiểm Dante Reyes.|../assets/posters/PBl04.jpg|Đang chiếu

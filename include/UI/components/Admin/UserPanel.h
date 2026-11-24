@@ -7,7 +7,11 @@
 #include <unordered_map>
 #include "repositories/UserRepository.h"
 #include "repositories/booking/TicketRepository.h"
+#include "exporters/CustomerReportExporter.h"
+#include "UI/components/Admin/DeleteConfirmModal.h"
 
+#ifndef CUSTOMER_TIER_DEFINED
+#define CUSTOMER_TIER_DEFINED
 enum class CustomerTier {
     STANDARD,
     SILVER,
@@ -30,6 +34,7 @@ struct CustomerItem {
     long long totalSpent = 0;
     bool selected = false;
 };
+#endif
 
 class UserPanel {
 private:
@@ -93,6 +98,8 @@ private:
     void loadData();
     void applyFilter();
     void calculateCustomerStats();
+    DeleteConfirmModal deleteModal;
+    void performDeleteCustomer(const std::string& email);
 
     // Render methods
     void drawHeader(sf::RenderTarget& target) const;

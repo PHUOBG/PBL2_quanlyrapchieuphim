@@ -5,6 +5,7 @@
 #include <memory>
 #include <chrono>
 #include <optional>
+#include "UI/components/Admin/DeleteConfirmModal.h"
 
 using namespace sf;
 using namespace std;
@@ -74,6 +75,9 @@ private:
     string popupStartTime;
     string popupPrice;
     int popupActiveField = 0;
+
+    DeleteConfirmModal deleteModal;
+    void performDeleteShowtime(const string& delId);
 
     void initSampleShowtimes();
     void loadShowtimesFromFile();

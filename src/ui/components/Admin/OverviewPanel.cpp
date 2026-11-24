@@ -530,62 +530,33 @@ void OverviewPanel::calculateStats() {
 }
 
 void OverviewPanel::openExportedFile(const string& path) const {
-#ifdef _WIN32
-    ShellExecuteA(NULL, "open", path.c_str(), NULL, NULL, SW_SHOWNORMAL);
-#else
-    system(("start \"\" \"" + path + "\"").c_str());
-#endif
+    CsvExporter::openExportedFile(path);
 }
 
 bool OverviewPanel::exportReportToCsv() {
-    string outPath = FileUtils::resolveDataPath("data/overview_report.csv");
-    ofstream out(outPath, ios::binary);
-    if (!out.is_open()) {
-        outPath = "overview_report.csv";
-        out.open(outPath, ios::binary);
-        if (!out.is_open()) return false;
+    wstring period = (selectedDateIndex >= 0 && selectedDateIndex < (int)dateOptions.size())
+                     ? dateOptions[selectedDateIndex] : L"Toàn kỳ";
+    wstring room = (selectedRoomIndex >= 0 && selectedRoomIndex < (int)roomOptions.size())
+                   ? roomOptions[selectedRoomIndex] : L"Tất cả phòng";
+
+    OverviewReportExporter exporter(period, room, searchQuery,
+                                   totalRevenueThisMonth, movieRevenueThisMonth, comboRevenueThisMonth,
+                                   totalTicketsThisMonth, standardTicketsCount, vipTicketsCount,
+                                   newCustomersThisMonth, topMoviesList, monthlyStatsList);
+    ExportResult res = exporter.exportToCsv("exports/overview_report.csv");
+    if (!res.success) {
+        toastMessage = L"Lỗi: Không thể tạo file báo cáo CSV!";
+    } else if (res.fileOpened) {
+        toastMessage = L"Đã xuất báo cáo và mở trong Excel / CSV thành công!";
+    } else {
+        toastMessage = L"Đã xuất báo cáo ra file CSV thành công!";
     }
-
-    // UTF-8 BOM để mở trực tiếp trên Microsoft Excel không bị lỗi font tiếng Việt
-    const unsigned char bom[] = {0xEF, 0xBB, 0xBF};
-    out.write(reinterpret_cast<const char*>(bom), sizeof(bom));
-
-    string periodStr = (selectedDateIndex >= 0 && selectedDateIndex < (int)dateOptions.size())
-                       ? UITheme::wstrToUtf8(dateOptions[selectedDateIndex]) : "Toàn kỳ";
-    string roomStr = (selectedRoomIndex >= 0 && selectedRoomIndex < (int)roomOptions.size())
-                     ? UITheme::wstrToUtf8(roomOptions[selectedRoomIndex]) : "Tất cả phòng";
-    string queryStr = searchQuery.empty() ? "Không có" : UITheme::wstrToUtf8(searchQuery);
-
-    out << "BÁO CÁO TỔNG QUAN DOANH THU & VẬN HÀNH RẠP CINECORE\n";
-    out << "Kỳ báo cáo," << periodStr << "\n";
-    out << "Phòng chiếu," << roomStr << "\n";
-    out << "Từ khóa lọc," << queryStr << "\n\n";
-
-    out << "CHỈ SỐ KPI,GIÁ TRỊ\n";
-    out << "Tổng doanh thu kỳ chọn," << totalRevenueThisMonth << "\n";
-    out << "Doanh thu vé phim," << movieRevenueThisMonth << "\n";
-    out << "Doanh thu combo F&B," << comboRevenueThisMonth << "\n";
-    out << "Tổng số vé bán ra," << totalTicketsThisMonth << " (Standard: " << standardTicketsCount << " - VIP: " << vipTicketsCount << ")\n";
-    out << "Khách hàng đăng ký," << newCustomersThisMonth << "\n\n";
-
-    out << "HẠNG,TÊN PHIM,SỐ VÉ BÁN,DOANH THU PHIM (VNĐ)\n";
-    for (size_t i = 0; i < topMoviesList.size(); ++i) {
-        out << (i + 1) << ",\"" << topMoviesList[i].title << "\"," << topMoviesList[i].tickets << "," << topMoviesList[i].revenue << "\n";
+    toastActive = true;
+    toastTimer = 3.f;
+    if (res.success) {
+        reportModalOpen = true;
     }
-
-    out << "\nTHÁNG,BIẾN ĐỘNG,DOANH THU (VNĐ)\n";
-    for (const auto& m : monthlyStatsList) {
-        out << m.month << ",\"" << UITheme::wstrToUtf8(m.changeBadge) << "\"," << m.revenue << "\n";
-    }
-    out.flush();
-    const bool writeOk = out.good();
-    out.close();
-    if (!writeOk) return false;
-
-    // Tự động mở file trực tiếp bằng ứng dụng mặc định của hệ điều hành (Excel/WPS/Notepad)
-    openExportedFile(outPath);
-    reportModalOpen = true;
-    return true;
+    return res.success;
 }
 
 void OverviewPanel::refresh() {
@@ -623,7 +594,10 @@ void OverviewPanel::handleEvent(const Event& event, const RenderWindow& /*window
                 // Nút "Mở file Excel / Ứng dụng ngoài"
                 FloatRect btnExcel({mx + mw - 340.f, my + mh - 50.f}, {210.f, 36.f});
                 if (btnExcel.contains(mPos)) {
-                    openExportedFile(FileUtils::resolveDataPath("data/overview_report.csv"));
+                    bool opened = CsvExporter::openExportedFile(CsvExporter::resolveExportPath("exports/overview_report.csv"));
+                    toastActive = true;
+                    toastTimer = 2.5f;
+                    toastMessage = opened ? L"Đã mở file báo cáo bằng Excel!" : L"Lỗi: Không thể mở file bằng Excel!";
                     return;
                 }
 
@@ -653,11 +627,7 @@ void OverviewPanel::handleEvent(const Event& event, const RenderWindow& /*window
             Vector2f mPos(static_cast<float>(mousePress->position.x), static_cast<float>(mousePress->position.y));
 
             if (exportRect.contains(mPos)) {
-                bool ok = exportReportToCsv();
-                toastActive = true;
-                toastTimer = 3.f;
-                toastMessage = ok ? L"Đã xuất báo cáo và mở trong Excel / CSV thành công!"
-                                  : L"Lỗi: Không thể tạo file báo cáo CSV!";
+                exportReportToCsv();
                 return;
             }
 
@@ -1691,7 +1661,7 @@ void OverviewPanel::drawReportModal(RenderTarget& target) const {
     target.draw(sep2);
 
     // File path info
-    Text pathTxt(font, L"Vị trí lưu file: data/overview_report.csv (Mở tự động bằng Excel)", 14);
+    Text pathTxt(font, L"Vị trí lưu file: exports/overview_report.csv (Mở tự động bằng Excel)", 14);
     pathTxt.setFillColor(Color(100, 116, 139));
     pathTxt.setPosition({mPos.x + 24.f, mPos.y + mh - 42.f});
     target.draw(pathTxt);

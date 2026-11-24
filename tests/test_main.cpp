@@ -25,6 +25,9 @@
 #include "services/BookingService.h"
 #include "services/ShowtimeCleanupService.h"
 #include "services/VoucherManager.h"
+#include "exporters/CsvExporter.h"
+#include "exporters/ComboReportExporter.h"
+#include "exporters/CustomerReportExporter.h"
 #include "utils/FileUtils.h"
 #include "utils/PasswordHasher.h"
 #include "utils/Validator.h"
@@ -584,6 +587,41 @@ int main() {
         CHECK(t.getSuggestions("cin", 5).size == 2);
         t.insert("cine");                                  // duplicate insert is harmless
         CHECK(t.getSuggestions("cin", 5).size == 2);
+    });
+
+    suite("CsvExporter_TemplateMethod", [] {
+        // 1. Test CSV Escaping chuẩn RFC 4180
+        CHECK(CsvExporter::escapeCsv("Hello") == "Hello");
+        CHECK(CsvExporter::escapeCsv("Hello, World") == "\"Hello, World\"");
+        CHECK(CsvExporter::escapeCsv("Say \"Hi\"") == "\"Say \"\"Hi\"\"\"");
+        CHECK(CsvExporter::escapeCsv("Line1\nLine2") == "\"Line1\nLine2\"");
+
+        // 2. Test Polymorphism & Template Method execution
+        std::vector<ComboItem> testCombos = {
+            {"CB01", L"Bắp, nước ngọt", L"Mô tả có dấu \"ngoặc\"", L"Combo Đơn", 85000, false, true, false}
+        };
+
+        std::unique_ptr<CsvExporter> exporter = std::make_unique<ComboReportExporter>(testCombos);
+        ExportResult res = exporter->exportToCsv("exports/test_export.csv", false);
+        CHECK(res.success);
+        CHECK(!res.filePath.empty());
+
+        // 3. Verify output file & UTF-8 BOM
+        std::ifstream in(res.filePath, std::ios::binary);
+        CHECK(in.is_open());
+        unsigned char bom[3] = {0};
+        in.read(reinterpret_cast<char*>(bom), 3);
+        CHECK(bom[0] == 0xEF && bom[1] == 0xBB && bom[2] == 0xBF);
+
+        std::stringstream ss;
+        ss << in.rdbuf();
+        std::string content = ss.str();
+        in.close();
+
+        CHECK(content.find("BẢNG GIÁ") != std::string::npos);
+        CHECK(content.find("CB01") != std::string::npos);
+        CHECK(content.find("\"Bắp, nước ngọt\"") != std::string::npos);
+        CHECK(content.find("\"Mô tả có dấu \"\"ngoặc\"\"\"") != std::string::npos);
     });
 
     std::cout << "\n==== " << g_pass << " checks passed, " << g_fail << " failed ====\n";

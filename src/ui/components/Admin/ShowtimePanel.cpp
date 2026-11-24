@@ -320,7 +320,35 @@ void ShowtimePanel::drawRoundedCard(RenderWindow& win, Vector2f pos, Vector2f sz
     RoundedRectRenderer::draw(win, pos, sz, r, fill, outline, outCol);
 }
 
+void ShowtimePanel::performDeleteShowtime(const string& delId) {
+    allShowtimes.erase(
+        remove_if(allShowtimes.begin(), allShowtimes.end(),
+                  [&](const ShowtimeItem& s) { return s.id == delId; }),
+        allShowtimes.end()
+    );
+    if (!saveShowtimesToFile()) {
+        loadShowtimesFromFile();
+        applyFilter();
+        notificationMessage = "Không thể lưu thay đổi (lỗi ghi file)!";
+        notificationClock.restart();
+        notificationVisible = true;
+        return;
+    }
+    applyFilter();
+    notificationMessage = "Đã xóa suất chiếu thành công!";
+    notificationClock.restart();
+    notificationVisible = true;
+}
+
 void ShowtimePanel::handleEvent(const Event& event, const RenderWindow& win) {
+    if (deleteModal.isOpen) {
+        int res = deleteModal.handleEvent(event, win);
+        if (res == 2) {
+            performDeleteShowtime(deleteModal.targetId);
+        }
+        return;
+    }
+
     // 1. ƯU TIÊN XỬ LÝ POPUP THÊM / SỬA SUẤT CHIẾU (MODAL BLOCKING)
     if (showAddPopup) {
         float popW = 450.f;
@@ -693,30 +721,18 @@ void ShowtimePanel::handleEvent(const Event& event, const RenderWindow& win) {
 
                 if (btnDel.contains(mousePos)) {
                     int realIdx = startIdx + r;
-                    string delId = filteredShowtimes[realIdx].id;
-                    if (g_lookups.ticketedShowtimes.count(delId) || filteredShowtimes[realIdx].bookedSeats > 0) {
+                    const auto& item = filteredShowtimes[realIdx];
+                    if (g_lookups.ticketedShowtimes.count(item.id) || item.bookedSeats > 0) {
                         notificationMessage = "Suất chiếu đã có vé, không thể xóa!";
                         notificationClock.restart();
                         notificationVisible = true;
                         return;
                     }
-                    allShowtimes.erase(
-                        remove_if(allShowtimes.begin(), allShowtimes.end(),
-                                  [&](const ShowtimeItem& s) { return s.id == delId; }),
-                        allShowtimes.end()
+                    deleteModal.open(
+                        L"X\u00c1C NH\u1eacN X\u00d3A SU\u1ea4T CHI\u1ebeU",
+                        L"B\u1ea1n c\u00f3 ch\u1eafc ch\u1eafn mu\u1ed1n x\u00f3a su\u1ea5t chi\u1ebfu \"" + item.movieTitle + L" (" + s2ws(item.startTime) + L")\" kh\u00f4ng?\nThao t\u00e1c n\u00e0y kh\u00f4ng th\u1ec3 ho\u00e0n t\u00e1c.",
+                        item.id
                     );
-                    if (!saveShowtimesToFile()) {
-                        loadShowtimesFromFile();
-                        applyFilter();
-                        notificationMessage = "Không thể lưu thay đổi (lỗi ghi file)!";
-                        notificationClock.restart();
-                        notificationVisible = true;
-                        return;
-                    }
-                    applyFilter();
-                    notificationMessage = "Đã xóa suất chiếu thành công!";
-                    notificationClock.restart();
-                    notificationVisible = true;
                     return;
                 }
             }
@@ -739,7 +755,9 @@ void ShowtimePanel::handleEvent(const Event& event, const RenderWindow& win) {
 }
 
 void ShowtimePanel::update(Vector2f mousePos, bool) {
+    deleteModal.update(mousePos);
     hoveredRow = -1;
+    if (deleteModal.isOpen) return;
     float tableY = position.y + 286.f;
     float rowH = 46.f;
     int startIdx = (currentPage - 1) * pageSize;
@@ -1224,4 +1242,6 @@ void ShowtimePanel::render(RenderWindow& win) {
             win.draw(notText);
         }
     }
+
+    deleteModal.render(win, font, boldFont);
 }

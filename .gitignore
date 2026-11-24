@@ -20,6 +20,11 @@ cmake_install.cmake
 *.log
 *.tmp
 
+# Exported Reports (generated automatically)
+exports/
+*.csv
+*tempCodeRunnerFile*
+
 # System files
 .DS_Store
 Thumbs.db

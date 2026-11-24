@@ -139,32 +139,10 @@ void TicketPanel::drawRoundedCard(RenderWindow& win, Vector2f pos, Vector2f sz, 
 
 void TicketPanel::handleEvent(const Event& event, const RenderWindow& win) {
     // 1. ƯU TIÊN XỬ LÝ MODAL XÁC NHẬN XÓA VÉ
-    if (deleteConfirmVisible) {
-        float popW = 420.f;
-        float popH = 210.f;
-        float popX = position.x + (width - popW) / 2.f;
-        float popY = position.y + (height - popH) / 2.f - 20.f;
-
-        if (const auto* mouseBtn = event.getIf<Event::MouseButtonPressed>()) {
-            if (mouseBtn->button == Mouse::Button::Left) {
-                Vector2f mousePos = win.mapPixelToCoords(Mouse::getPosition(win));
-                FloatRect btnConfirm({popX + 55.f, popY + 145.f}, {145.f, 38.f});
-                FloatRect btnCancel({popX + 220.f, popY + 145.f}, {145.f, 38.f});
-
-                if (btnConfirm.contains(mousePos)) {
-                    deleteSelectedTicket();
-                    return;
-                }
-                if (btnCancel.contains(mousePos) || !FloatRect({popX, popY}, {popW, popH}).contains(mousePos)) {
-                    deleteConfirmVisible = false;
-                    return;
-                }
-            }
-            return;
-        }
-        if (const auto* keyEv = event.getIf<Event::KeyPressed>()) {
-            if (keyEv->code == Keyboard::Key::Escape) { deleteConfirmVisible = false; return; }
-            if (keyEv->code == Keyboard::Key::Enter) { deleteSelectedTicket(); return; }
+    if (deleteModal.isOpen) {
+        int res = deleteModal.handleEvent(event, win);
+        if (res == 2) {
+            deleteSelectedTicket();
         }
         return;
     }
@@ -224,7 +202,11 @@ void TicketPanel::handleEvent(const Event& event, const RenderWindow& win) {
 
             if (btnDeleteRect.contains(mousePos)) {
                 if (selectedRow >= 0 && selectedRow < (int)filteredTickets.size()) {
-                    deleteConfirmVisible = true;
+                    wstring tIdW = s2ws(filteredTickets[selectedRow].ticketId);
+                    deleteModal.open(
+                        L"X\u00c1C NH\u1eacN X\u00d3A V\u00c9",
+                        L"B\u1ea1n c\u00f3 ch\u1eafc ch\u1eafn mu\u1ed1n x\u00f3a v\u00e9 \"" + tIdW + L"\" kh\u00f4ng?\nThao t\u00e1c n\u00e0y kh\u00f4ng th\u1ec3 ho\u00e0n t\u00e1c."
+                    );
                 } else {
                     notificationMessage = "Vui lòng chọn vé cần xóa!";
                     notificationClock.restart();
@@ -377,7 +359,9 @@ void TicketPanel::handleEvent(const Event& event, const RenderWindow& win) {
 }
 
 void TicketPanel::update(Vector2f mousePos, bool) {
+    deleteModal.update(mousePos);
     hoveredRow = -1;
+    if (deleteModal.isOpen) return;
     float barY = position.y + 114.f;
     btnViewHover = FloatRect({position.x + 30.f, barY}, {135.f, 38.f}).contains(mousePos);
     btnDeleteHover = FloatRect({position.x + 175.f, barY}, {95.f, 38.f}).contains(mousePos);
@@ -683,46 +667,7 @@ void TicketPanel::render(RenderWindow& win) {
     // ==========================================
     // 6B. MODAL POPUP: XÁC NHẬN XÓA VÉ
     // ==========================================
-    if (deleteConfirmVisible && selectedRow >= 0 && selectedRow < (int)filteredTickets.size()) {
-        RectangleShape overlay({width, height});
-        overlay.setPosition(position);
-        overlay.setFillColor(Color(15, 23, 42, 150));
-        win.draw(overlay);
-
-        float popW = 420.f;
-        float popH = 210.f;
-        float popX = position.x + (width - popW) / 2.f;
-        float popY = position.y + (height - popH) / 2.f - 20.f;
-
-        drawRoundedCard(win, {popX, popY}, {popW, popH}, 12.f, Color::White);
-
-        Text pTitle(boldFont, L"X\u00e1c nh\u1eadn h\u1ee7y / x\u00f3a v\u00e9", 14);
-        pTitle.setFillColor(Color(220, 38, 38));
-        pTitle.setPosition({popX + 28.f, popY + 22.f});
-        win.draw(pTitle);
-
-        wstring tIdW = s2ws(filteredTickets[selectedRow].ticketId);
-        wstring msgW = L"B\u1ea1n c\u00f3 ch\u1eafc ch\u1eafn mu\u1ed1n x\u00f3a v\u00e9 [" + tIdW + L"]\nkh\u1ecfi h\u1ec7 th\u1ed1ng? Thao t\u00e1c n\u00e0y kh\u00f4ng th\u1ec3 ho\u00e0n t\u00e1c.";
-        Text pMsg(font, msgW, 14);
-        pMsg.setFillColor(Color(51, 65, 85));
-        pMsg.setPosition({popX + 28.f, popY + 62.f});
-        win.draw(pMsg);
-
-        // Nút Xác nhận xóa & Hủy bỏ
-        drawRoundedCard(win, {popX + 55.f, popY + 145.f}, {145.f, 38.f}, 6.f, Color(220, 38, 38));
-        Text cfmTxt(boldFont, L"X\u00e1c nh\u1eadn x\u00f3a", 14);
-        cfmTxt.setFillColor(Color::White);
-        FloatRect cfb = cfmTxt.getLocalBounds();
-        cfmTxt.setPosition({popX + 55.f + (145.f - cfb.size.x) / 2.f - cfb.position.x, popY + 145.f + (38.f - cfb.size.y) / 2.f - cfb.position.y});
-        win.draw(cfmTxt);
-
-        drawRoundedCard(win, {popX + 220.f, popY + 145.f}, {145.f, 38.f}, 6.f, Color(241, 245, 249), 1.f, Color(203, 213, 225));
-        Text canTxt(boldFont, L"H\u1ee7y b\u1ecf", 14);
-        canTxt.setFillColor(Color(71, 85, 105));
-        FloatRect cab = canTxt.getLocalBounds();
-        canTxt.setPosition({popX + 220.f + (145.f - cab.size.x) / 2.f - cab.position.x, popY + 145.f + (38.f - cab.size.y) / 2.f - cab.position.y});
-        win.draw(canTxt);
-    }
+    deleteModal.render(win, font, boldFont);
 
     // ==========================================
     // 7. TOAST NOTIFICATION

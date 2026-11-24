@@ -4,10 +4,14 @@
 #include <memory>
 #include <vector>
 #include <string>
+#include "exporters/VoucherReportExporter.h"
+#include "UI/components/Admin/DeleteConfirmModal.h"
 
 using namespace sf;
 using namespace std;
 
+#ifndef VOUCHER_ITEM_DEFINED
+#define VOUCHER_ITEM_DEFINED
 struct VoucherItem {
     string code;            // "WELCOME"
     wstring subtitle;       // L"Chào mừng thành viên CineCore"
@@ -26,6 +30,7 @@ struct RecipientItem {
     int quantity = 1;
     bool isUsed = false;
 };
+#endif
 
 class VoucherPanel {
 private:
@@ -95,6 +100,9 @@ private:
     // Chọn người nhận & Popup Thu hồi
     int selectedRecipientIndex = -1;
     bool showRevokeConfirmPopup = false;
+
+    DeleteConfirmModal deleteModal;
+    void performDeleteVoucher(const string& code);
 
     void initDefaultData();
     void loadVouchersFromFile();

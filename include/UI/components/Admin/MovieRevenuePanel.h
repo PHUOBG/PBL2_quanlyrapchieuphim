@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include "data-structures/DLL.h"
 #include "repositories/booking/TicketRepository.h"
+#include "exporters/RevenueReportExporter.h"
 
 enum class RevenueTab {
     TICKETS_BY_MOVIE = 0,
@@ -15,6 +16,8 @@ enum class RevenueTab {
     REVENUE_BY_COMBO = 3
 };
 
+#ifndef MOVIE_REV_ITEM_DEFINED
+#define MOVIE_REV_ITEM_DEFINED
 struct MovieRevItem {
     std::string id;
     std::wstring title;
@@ -47,6 +50,7 @@ struct ComboRevItem {
     float share = 0.f;
     bool isTop1 = false;
 };
+#endif
 
 class MovieRevenuePanel {
 private:

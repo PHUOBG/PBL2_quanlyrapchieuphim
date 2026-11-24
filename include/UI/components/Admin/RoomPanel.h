@@ -4,6 +4,7 @@
 #include <vector>
 #include <memory>
 #include <functional>
+#include "UI/components/Admin/DeleteConfirmModal.h"
 
 using namespace sf;
 using namespace std;
@@ -75,6 +76,9 @@ private:
     void drawSeat(RenderWindow& win, float x, float y, float w, float h, SeatType type, const string& label, bool hovered);
     void drawRoundedCard(RenderWindow& win, Vector2f pos, Vector2f sz, float r, Color fill, float outline = 0.f, Color outCol = Color::Transparent);
     void drawIcon(RenderWindow& win, const string& iconName, Vector2f pos, Color col);
+
+    DeleteConfirmModal deleteModal;
+    void performDeleteRoom();
 
 public:
     RoomPanel(Font& fontRef, float w, float h);

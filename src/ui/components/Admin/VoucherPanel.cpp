@@ -129,60 +129,23 @@ void VoucherPanel::saveVouchersToFile() {
 }
 
 void VoucherPanel::openExportedFile(const string& path) const {
-#ifdef _WIN32
-    ShellExecuteA(NULL, "open", path.c_str(), NULL, NULL, SW_SHOWNORMAL);
-#else
-    system(("start \"\" \"" + path + "\"").c_str());
-#endif
+    CsvExporter::openExportedFile(path);
 }
 
 bool VoucherPanel::exportToExcel() {
-    string outPath = FileUtils::resolveDataPath("data/voucher_report.csv");
-    ofstream out(outPath, ios::binary);
-    if (!out.is_open()) {
-        outPath = "voucher_report.csv";
-        out.open(outPath, ios::binary);
-    }
-    if (!out.is_open()) return false;
-
-    // UTF-8 BOM so Excel opens with proper Vietnamese characters
-    const unsigned char bom[] = {0xEF, 0xBB, 0xBF};
-    out.write(reinterpret_cast<const char*>(bom), sizeof(bom));
-
-    out << "BÁO CÁO CHI TIẾT HỆ THỐNG VOUCHER & KHÁCH HÀNG NHẬN\n";
-    out << "Tổng số chiến dịch voucher: " << allVouchers.size() << "\n\n";
-
-    out << "MÃ VOUCHER,TÊN CHIẾN DỊCH,LOẠI VOUCHER,GIÁ TRỊ GIẢM,ĐƠN TỐI THIỂU (VNĐ),SỐ NGƯỜI NHẬN,TRẠNG THÁI\n";
-    for (const auto& v : allVouchers) {
-        string typeStr = (v.type == 2) ? "Giảm theo %" : "Giảm tiền trực tiếp";
-        string valStr = (v.type == 2) ? (to_string(v.value) + "%") : (formatPrice(v.value) + " đ");
-        out << "\"" << v.code << "\","
-            << "\"" << ws2s(v.subtitle) << "\","
-            << "\"" << typeStr << "\","
-            << "\"" << valStr << "\","
-            << v.minBill << ","
-            << v.recipientCount << ","
-            << "\"Đang phát hành\"\n";
-    }
-
-    out << "\n\n";
     string curCode = (selectedVoucherIndex >= 0 && selectedVoucherIndex < (int)filteredVouchers.size()) ? filteredVouchers[selectedVoucherIndex].code : "WELCOME";
-    out << "DANH SÁCH CHI TIẾT KHÁCH HÀNG NHẬN VOUCHER (" << curCode << ")\n";
-    out << "STT,EMAIL KHÁCH HÀNG,HỌ VÀ TÊN,SỐ LƯỢNG,NGÀY CẤP,TRẠNG THÁI\n";
-
-    int stt = 1;
-    for (const auto& r : currentRecipients) {
-        out << stt++ << ","
-            << "\"" << r.email << "\","
-            << "\"" << ws2s(r.fullName) << "\","
-            << r.quantity << ","
-            << "\"" << r.receivedDate << "\","
-            << "\"" << (r.isUsed ? "Đã dùng" : "Chưa dùng") << "\"\n";
+    VoucherReportExporter exporter(allVouchers, currentRecipients, curCode);
+    ExportResult res = exporter.exportToCsv("exports/voucher_report.csv");
+    if (!res.success) {
+        notificationMessage = "Không thể xuất file báo cáo voucher!";
+    } else if (res.fileOpened) {
+        notificationMessage = "Đã xuất báo cáo và mở tự động trong Excel thành công!";
+    } else {
+        notificationMessage = "Đã xuất báo cáo voucher ra file CSV thành công!";
     }
-
-    out.close();
-    openExportedFile(outPath);
-    return true;
+    notificationClock.restart();
+    notificationVisible = true;
+    return res.success;
 }
 
 int VoucherPanel::getVoucherPageSize() const {
@@ -356,7 +319,29 @@ VoucherLayout computeVoucherLayout(Vector2f pos, float width, float height) {
 }
 }
 
+void VoucherPanel::performDeleteVoucher(const string& selCode) {
+    for (auto it = allVouchers.begin(); it != allVouchers.end(); ++it) {
+        if (it->code == selCode) {
+            allVouchers.erase(it);
+            break;
+        }
+    }
+    saveVouchersToFile();
+    applyVoucherFilter();
+    notificationMessage = "Đã xóa voucher thành công!";
+    notificationClock.restart();
+    notificationVisible = true;
+}
+
 void VoucherPanel::handleEvent(const Event& event, const RenderWindow& win) {
+    if (deleteModal.isOpen) {
+        int res = deleteModal.handleEvent(event, win);
+        if (res == 2) {
+            performDeleteVoucher(deleteModal.targetId);
+        }
+        return;
+    }
+
     // 1. ƯU TIÊN XỬ LÝ POPUP THÊM / SỬA VOUCHER (MODAL BLOCKING)
     if (showAddPopup) {
         float popW = 500.f;
@@ -663,13 +648,7 @@ void VoucherPanel::handleEvent(const Event& event, const RenderWindow& win) {
             FloatRect btnGuide({position.x + width - 138.f, position.y + 40.f}, {90.f, 36.f});
 
             if (btnExp.contains(mousePos)) {
-                if (exportToExcel()) {
-                    notificationMessage = "Đã xuất báo cáo: data/voucher_report.csv (Mở tự động bằng Excel)!";
-                } else {
-                    notificationMessage = "Không thể xuất file báo cáo voucher!";
-                }
-                notificationClock.restart();
-                notificationVisible = true;
+                exportToExcel();
                 return;
             }
             if (btnGuide.contains(mousePos)) {
@@ -729,16 +708,14 @@ void VoucherPanel::handleEvent(const Event& event, const RenderWindow& win) {
 
             if (btnDel.contains(mousePos)) {
                 if (selectedVoucherIndex >= 0 && selectedVoucherIndex < (int)filteredVouchers.size()) {
-                    string selCode = filteredVouchers[selectedVoucherIndex].code;
-                    for (auto it = allVouchers.begin(); it != allVouchers.end(); ++it) {
-                        if (it->code == selCode) {
-                            allVouchers.erase(it);
-                            break;
-                        }
-                    }
-                    saveVouchersToFile();
-                    applyVoucherFilter();
-                    notificationMessage = "Đã xóa voucher thành công!";
+                    const auto& v = filteredVouchers[selectedVoucherIndex];
+                    deleteModal.open(
+                        L"X\u00c1C NH\u1eacN X\u00d3A VOUCHER",
+                        L"B\u1ea1n c\u00f3 ch\u1eafc ch\u1eafn mu\u1ed1n x\u00f3a voucher \"" + s2ws(v.code) + L"\" kh\u00f4ng?\nThao t\u00e1c n\u00e0y kh\u00f4ng th\u1ec3 ho\u00e0n t\u00e1c.",
+                        v.code
+                    );
+                } else {
+                    notificationMessage = "Vui lòng chọn voucher cần xóa!";
                     notificationClock.restart();
                     notificationVisible = true;
                 }
@@ -938,6 +915,7 @@ void VoucherPanel::handleEvent(const Event& event, const RenderWindow& win) {
 }
 
 void VoucherPanel::update(Vector2f mousePos, bool) {
+    deleteModal.update(mousePos);
     hoveredVoucherRow = -1;
     hoveredEditBtnRow = -1;
     hoveredRecipientRow = -1;
@@ -1775,4 +1753,6 @@ void VoucherPanel::render(RenderWindow& win) {
             win.draw(notText);
         }
     }
+
+    deleteModal.render(win, font, boldFont);
 }

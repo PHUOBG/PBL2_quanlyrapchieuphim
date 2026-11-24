@@ -29,13 +29,17 @@ target_include_directories(cinecore_core PUBLIC
     ${CMAKE_SOURCE_DIR}/include
     ${CMAKE_SOURCE_DIR}/include/core
     ${CMAKE_SOURCE_DIR}/include/data-structures
+    ${CMAKE_SOURCE_DIR}/include/data_structures
     ${CMAKE_SOURCE_DIR}/include/models
     ${CMAKE_SOURCE_DIR}/include/repositories
     ${CMAKE_SOURCE_DIR}/include/services
+    ${CMAKE_SOURCE_DIR}/include/services/exporters
+    ${CMAKE_SOURCE_DIR}/include/exporters
     ${CMAKE_SOURCE_DIR}/include/utils
     ${CMAKE_SOURCE_DIR}/include/UI
     ${CMAKE_SOURCE_DIR}/include/UI/components
     ${CMAKE_SOURCE_DIR}/include/UI/screens
+    ${CMAKE_SOURCE_DIR}/include/ui
 )
 
 target_link_libraries(cinecore_core PUBLIC SFML::Graphics SFML::Window SFML::Network SFML::System)

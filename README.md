@@ -87,21 +87,36 @@ Dự án tuân thủ nghiêm ngặt các tiêu chuẩn đồ án:
 
 ## 4. Hướng dẫn khởi chạy
 
-### Cách 1: Chạy file Batch nhanh
-Nhấp đúp chuột vào file **`chay_pbl2.bat`** tại thư mục gốc của dự án `PBL2phuong`.
+### Cách 1: Build bản mới nhất và chạy ngay bằng PowerShell (Khuyên dùng)
+Lệnh dưới đây sẽ tự động đóng `app.exe` cũ (nếu đang mở), biên dịch lại mã nguồn mới nhất và khởi chạy ứng dụng:
 
-### Cách 2: Biên dịch và chạy bằng lệnh
-```bash
-# Di chuyển vào thư mục dự án
-cd "d:/fuong prj/PBL2main/PBL2phuong"
+```powershell
+# Chạy từ thư mục gốc dự án (PBL2phuong)
+Stop-Process -Name app -Force -ErrorAction SilentlyContinue; cmake --build build --config Release --target app; .\build\app.exe
+```
 
-# Biên dịch với CMake & Ninja
-cmake --build build
+*(Nếu terminal đang đứng sẵn bên trong thư mục `build\`, chạy: `Stop-Process -Name app -Force -ErrorAction SilentlyContinue; cmake --build . --config Release --target app; .\app.exe`)*
+
+### Cách 2: Cấu hình CMake từ đầu (Khi mới clone repo)
+```powershell
+# Cấu hình CMake với Ninja và SFML 3
+cmake -B build -G Ninja
+
+# Biên dịch toàn bộ dự án
+cmake --build build --config Release
 
 # Chạy ứng dụng
-cd build
-app.exe
+.\build\app.exe
 ```
+
+### Cách 3: Chạy bộ kiểm thử tự động (Automated Tests)
+```powershell
+cmake --build build --config Release --target core_tests
+ctest --test-dir build --output-on-failure
+```
+
+### Cách 4: Chạy file Batch nhanh
+Nếu đã biên dịch sẵn `build/app.exe`, có thể nhấp đúp chuột vào file **`chay_pbl2.bat`** tại thư mục gốc để mở nhanh ứng dụng.
 
 ### Tài khoản Admin mặc định có sẵn:
 - **Email:** `admin@cinexine.vn` (hoặc `admin@cinema.com`)

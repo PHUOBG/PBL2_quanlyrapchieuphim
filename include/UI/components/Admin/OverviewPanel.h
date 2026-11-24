@@ -7,6 +7,7 @@
 #include <memory>
 #include "data-structures/DLL.h"
 #include "repositories/booking/TicketRepository.h"
+#include "exporters/OverviewReportExporter.h"
 
 struct MonthlyRevenuePoint {
     int month;
@@ -20,23 +21,26 @@ struct MovieTicketCount {
     long long revenue;
 };
 
+#ifndef MOVIE_STAT_ITEM_DEFINED
+#define MOVIE_STAT_ITEM_DEFINED
 struct MovieStatItem {
     std::string title;
     std::wstring displayTitle;
     std::wstring shortTitle;
-    int tickets;
-    long long revenue;
+    int tickets = 0;
+    long long revenue = 0;
 };
 
 struct MonthStatItem {
     std::string month;
     std::wstring displayMonth;
-    long long revenue;
+    long long revenue = 0;
     std::wstring changeBadge;
     sf::Color badgeBg;
     sf::Color badgeText;
     bool isRecord = false;
 };
+#endif
 
 class OverviewPanel {
 private:

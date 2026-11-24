@@ -270,7 +270,30 @@ void UserPanel::refreshData() {
     toastMessage = L"Đã làm mới danh sách khách hàng & hạng thẻ!";
 }
 
+void UserPanel::performDeleteCustomer(const string& delEmail) {
+    toastActive = true;
+    toastTimer = 3.f;
+    // Tickets keep their own copy of customer name/email, so revenue history is unaffected.
+    if (repository->deleteUser(delEmail)) {
+        allCustomers.erase(remove_if(allCustomers.begin(), allCustomers.end(),
+            [&](const CustomerItem& it) { return it.email == delEmail; }), allCustomers.end());
+        applyFilter();
+        calculateCustomerStats();
+        toastMessage = L"Đã xóa tài khoản hội viên (lịch sử vé được giữ nguyên)!";
+    } else {
+        toastMessage = L"Không thể xóa tài khoản (lỗi ghi dữ liệu)!";
+    }
+}
+
 void UserPanel::handleEvent(const Event& event, const RenderWindow& window) {
+    if (deleteModal.isOpen) {
+        int res = deleteModal.handleEvent(event, window);
+        if (res == 2) {
+            performDeleteCustomer(deleteModal.targetId);
+        }
+        return;
+    }
+
     // 1. ƯU TIÊN XỬ LÝ DIALOG (VIEW / EDIT / DELETE_CONFIRM / ADD_NEW)
     if (activeDialog != DialogType::NONE) {
         float dW = 480.f;
@@ -473,37 +496,17 @@ void UserPanel::handleEvent(const Event& event, const RenderWindow& window) {
             // 1. Header Buttons (khớp drawHeader: cardY = position.y + 14.f, btnY = position.y + 37.f)
             FloatRect expRect({position.x + width - 308.f, position.y + 37.f}, {105.f, 38.f});
             if (expRect.contains(mPos)) {
-                string outPath = FileUtils::resolveDataPath("data/khach_hang_report.csv");
-                ofstream out(outPath, ios::binary);
-                if (!out.is_open()) {
-                    outPath = "khach_hang_report.csv";
-                    out.open(outPath, ios::binary);
-                }
-                if (out.is_open()) {
-                    const unsigned char bom[] = {0xEF, 0xBB, 0xBF};
-                    out.write(reinterpret_cast<const char*>(bom), sizeof(bom));
-                    out << "DANH SÁCH KHÁCH HÀNG & HỘI VIÊN RẠP CINECORE\n\n";
-                    out << "STT,Mã khách hàng,Họ và tên,Email,Số điện thoại,Hạng thẻ,Ngày đăng ký,Số vé đã mua,Tổng chi tiêu (VNĐ)\n";
-                    for (size_t i = 0; i < allCustomers.size(); ++i) {
-                        string tName = (allCustomers[i].tier == CustomerTier::GOLD) ? "Hạng Vàng" :
-                                       (allCustomers[i].tier == CustomerTier::SILVER ? "Hạng Bạc" : "Tiêu chuẩn");
-                        out << (i + 1) << "," << allCustomers[i].uid << ",\"" << allCustomers[i].fullName << "\","
-                            << allCustomers[i].email << ",\"" << allCustomers[i].phone << "\",\""
-                            << tName << "\"," << allCustomers[i].registeredDate << ","
-                            << allCustomers[i].ticketsBought << "," << allCustomers[i].totalSpent << "\n";
-                    }
-                    out.close();
-
-#ifdef _WIN32
-                    ShellExecuteA(NULL, "open", outPath.c_str(), NULL, NULL, SW_SHOWNORMAL);
-#else
-                    system(("start \"\" \"" + outPath + "\"").c_str());
-#endif
-                }
-
+                CustomerReportExporter exporter(allCustomers);
+                ExportResult res = exporter.exportToCsv("exports/khach_hang_report.csv");
                 toastActive = true;
                 toastTimer = 3.f;
-                toastMessage = L"Đã xuất dữ liệu và mở file danh sách khách hàng trong Excel!";
+                if (!res.success) {
+                    toastMessage = L"Lỗi: Không thể xuất danh sách khách hàng!";
+                } else if (res.fileOpened) {
+                    toastMessage = L"Đã xuất dữ liệu và mở file danh sách khách hàng trong Excel!";
+                } else {
+                    toastMessage = L"Đã xuất danh sách khách hàng ra file CSV thành công!";
+                }
                 return;
             }
 
@@ -552,8 +555,12 @@ void UserPanel::handleEvent(const Event& event, const RenderWindow& window) {
             FloatRect delRect({actX + 135.f, actY}, {115.f, 34.f});
             if (delRect.contains(mPos)) {
                 if (selectedIndex >= 0 && selectedIndex < (int)filteredCustomers.size()) {
-                    activeDialog = DialogType::DELETE_CONFIRM;
-                    dialogUserIndex = selectedIndex;
+                    const auto* c = filteredCustomers[selectedIndex];
+                    deleteModal.open(
+                        L"X\u00c1C NH\u1eacN X\u00d3A KH\u00c1CH H\u00c0NG",
+                        L"B\u1ea1n c\u00f3 ch\u1eafc ch\u1eafn mu\u1ed1n x\u00f3a kh\u00e1ch h\u00e0ng \"" + c->displayFullName + L"\" kh\u00f4ng?\nThao t\u00e1c n\u00e0y kh\u00f4ng th\u1ec3 ho\u00e0n t\u00e1c.",
+                        c->email
+                    );
                 } else {
                     toastActive = true;
                     toastTimer = 2.5f;
@@ -634,8 +641,12 @@ void UserPanel::handleEvent(const Event& event, const RenderWindow& window) {
                         return;
                     }
                     if (FloatRect({col_act + 92.f, ry + 12.f}, {40.f, 28.f}).contains(mPos)) {
-                        activeDialog = DialogType::DELETE_CONFIRM;
-                        dialogUserIndex = i;
+                        const auto* c = filteredCustomers[i];
+                        deleteModal.open(
+                            L"X\u00c1C NH\u1eacN X\u00d3A KH\u00c1CH H\u00c0NG",
+                            L"B\u1ea1n c\u00f3 ch\u1eafc ch\u1eafn mu\u1ed1n x\u00f3a kh\u00e1ch h\u00e0ng \"" + c->displayFullName + L"\" kh\u00f4ng?\nThao t\u00e1c n\u00e0y kh\u00f4ng th\u1ec3 ho\u00e0n t\u00e1c.",
+                            c->email
+                        );
                         return;
                     }
                     return;
@@ -688,8 +699,10 @@ void UserPanel::handleEvent(const Event& event, const RenderWindow& window) {
 }
 
 void UserPanel::update(const Vector2f& mousePos, bool /*mouseDown*/) {
+    deleteModal.update(mousePos);
     // Check row hover
     hoveredRow = -1;
+    if (deleteModal.isOpen) return;
     float tTop = position.y + 274.f + 44.f;
     int startIdx = page * rowsPerPage;
     int endIdx = min((int)filteredCustomers.size(), startIdx + rowsPerPage);
@@ -736,6 +749,7 @@ void UserPanel::render(RenderTarget& target) const {
     if (activeDialog != DialogType::NONE) {
         drawDialog(target);
     }
+    deleteModal.render(target, font, boldFont);
 
     // 8. Toast Notification
     if (toastActive) {

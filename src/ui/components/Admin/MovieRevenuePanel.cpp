@@ -451,78 +451,27 @@ void MovieRevenuePanel::calculateStats() {
 }
 
 void MovieRevenuePanel::openExportedFile(const string& path) const {
-#ifdef _WIN32
-    ShellExecuteA(NULL, "open", path.c_str(), NULL, NULL, SW_SHOWNORMAL);
-#else
-    system(("start \"\" \"" + path + "\"").c_str());
-#endif
+    CsvExporter::openExportedFile(path);
 }
 
 bool MovieRevenuePanel::exportRevenueReportToCsv() {
-    string outPath = FileUtils::resolveDataPath("data/doanh_thu_report.csv");
-    ofstream out(outPath, ios::binary);
-    if (!out.is_open()) {
-        outPath = "doanh_thu_report.csv";
-        out.open(outPath, ios::binary);
-        if (!out.is_open()) return false;
+    RevenueReportExporter exporter(moviesList, monthsList, combosList,
+                                  totalRevenue, movieRevenue, comboRevenue,
+                                  totalTickets, totalCombos);
+    ExportResult res = exporter.exportToCsv("exports/doanh_thu_report.csv");
+    if (!res.success) {
+        toastMessage = L"Lỗi: Không thể tạo file báo cáo CSV!";
+    } else if (res.fileOpened) {
+        toastMessage = L"Đã xuất báo cáo và mở trong Excel / CSV thành công!";
+    } else {
+        toastMessage = L"Đã xuất báo cáo ra file CSV thành công!";
     }
-
-    // UTF-8 BOM để Excel mở trực tiếp tiếng Việt không lỗi font
-    const unsigned char bom[] = {0xEF, 0xBB, 0xBF};
-    out.write(reinterpret_cast<const char*>(bom), sizeof(bom));
-
-    time_t now = time(nullptr);
-    tm ltm{};
-#if defined(_WIN32)
-    localtime_s(&ltm, &now);
-#else
-    localtime_r(&now, &ltm);
-#endif
-    char dateBuf[32];
-    strftime(dateBuf, sizeof(dateBuf), "%d/%m/%Y %H:%M", &ltm);
-    double moviePct = totalRevenue > 0 ? (static_cast<double>(movieRevenue) * 100.0 / static_cast<double>(totalRevenue)) : 0.0;
-    double comboPct = totalRevenue > 0 ? (static_cast<double>(comboRevenue) * 100.0 / static_cast<double>(totalRevenue)) : 0.0;
-
-    out << "BÁO CÁO DOANH THU & QUYẾT TOÁN TÀI CHÍNH RẠP CINECORE\n";
-    out << "Thời gian kết xuất," << dateBuf << "\n\n";
-
-    out << "CHỈ SỐ TỔNG QUAN,GIÁ TRỊ\n";
-    out << "Tổng doanh thu toàn rạp," << totalRevenue << " VNĐ\n";
-    out << fixed << setprecision(1);
-    out << "Doanh thu vé phim," << movieRevenue << " VNĐ (Chiếm " << moviePct << "%)\n";
-    out << "Doanh thu combo F&B," << comboRevenue << " VNĐ (Chiếm " << comboPct << "%)\n";
-    out << "Tổng số vé đã xuất," << totalTickets << " vé\n";
-    out << "Tổng sản phẩm combo," << totalCombos << " combo\n\n";
-
-    out << "DOANH THU CHI TIẾT THEO PHIM\n";
-    out << "Hạng,Mã phim,Tên phim,Thể loại,Suất chiếu,Số vé bán,Doanh thu (VNĐ),Tỷ trọng\n";
-    for (size_t i = 0; i < moviesList.size(); ++i) {
-        out << (i + 1) << "," << moviesList[i].id << ",\"" << UITheme::wstrToUtf8(moviesList[i].title) << "\",\""
-            << UITheme::wstrToUtf8(moviesList[i].genre) << "\"," << moviesList[i].showtimes << ","
-            << moviesList[i].tickets << "," << moviesList[i].revenue << "," << moviesList[i].share << "%\n";
+    toastActive = true;
+    toastTimer = 3.f;
+    if (res.success) {
+        reportModalOpen = true;
     }
-
-    out << "\nTĂNG TRƯỞNG THEO THÁNG\n";
-    out << "Tháng,Doanh thu vé (VNĐ),Doanh thu combo (VNĐ),Tổng doanh thu (VNĐ),Biến động\n";
-    for (const auto& m : monthsList) {
-        out << m.month << "," << m.ticketRev << "," << m.comboRev << "," << m.totalRev << ",\""
-            << UITheme::wstrToUtf8(m.growth) << "\"\n";
-    }
-
-    out << "\nTOP COMBO F&B BÁN CHẠY\n";
-    out << "Mã combo,Tên combo,Đơn giá (VNĐ),Số lượng,Doanh thu (VNĐ),Tỷ trọng\n";
-    for (const auto& c : combosList) {
-        out << c.code << ",\"" << UITheme::wstrToUtf8(c.name) << "\"," << c.unitPrice << ","
-            << c.quantity << "," << c.revenue << "," << c.share << "%\n";
-    }
-    out.flush();
-    const bool writeOk = out.good();
-    out.close();
-    if (!writeOk) return false;
-
-    openExportedFile(outPath);
-    reportModalOpen = true;
-    return true;
+    return res.success;
 }
 
 void MovieRevenuePanel::refresh() {
@@ -611,7 +560,10 @@ void MovieRevenuePanel::handleEvent(const Event& event, const RenderWindow& /*wi
                 // Nút "Mở bằng Excel / CSV"
                 FloatRect btnExcel({mx + mw - 340.f, my + mh - 48.f}, {210.f, 36.f});
                 if (btnExcel.contains(mPos)) {
-                    openExportedFile(FileUtils::resolveDataPath("data/doanh_thu_report.csv"));
+                    bool opened = CsvExporter::openExportedFile(CsvExporter::resolveExportPath("exports/doanh_thu_report.csv"));
+                    toastActive = true;
+                    toastTimer = 2.5f;
+                    toastMessage = opened ? L"Đã mở file báo cáo bằng Excel!" : L"Lỗi: Không thể mở file bằng Excel!";
                     return;
                 }
 
@@ -737,11 +689,7 @@ void MovieRevenuePanel::handleEvent(const Event& event, const RenderWindow& /*wi
             bool clickBottomExport = (activeTab == RevenueTab::TOTAL_REVENUE) &&
                 FloatRect({position.x + 20.f + (width - 40.f) * 0.85f, position.y + height - 80.f}, {160.f, 45.f}).contains(mPos);
             if (exportRect.contains(mPos) || clickBottomExport) {
-                bool ok = exportRevenueReportToCsv();
-                toastActive = true;
-                toastTimer = 3.f;
-                toastMessage = ok ? L"Đã xuất báo cáo và mở trong Excel / CSV thành công!"
-                                  : L"Lỗi: Không thể tạo file báo cáo CSV!";
+                exportRevenueReportToCsv();
                 return;
             }
 

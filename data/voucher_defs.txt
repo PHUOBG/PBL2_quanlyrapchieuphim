@@ -1,4 +1,12 @@
 code|type|value|min_bill|description
-WELCOME|2|20|0|Voucher chào mừng thành viên mới
 METIZ|1|30000|50000|Giảm 30.000đ cho đơn hàng từ 50.000đ
 NGUYENVU|2|50|100000|Voucher khuyến mãi
+CINEMA2024|1|45000|120000|Chiến dịch Mùa hè bom tấn
+POPCORNFREE|1|35000|150000|Tặng kèm bắp ngọt khi mua 2 vé
+STUDENT50|2|30|50000|Ưu đãi học sinh sinh viên thứ 4
+SUMMER2026|2|15|0|Ưu đãi vé xem phim hè
+VIPMEMBER|1|50000|150000|Đặc quyền hội viên vàng
+COMBO10K|1|10000|60000|Giảm trực tiếp combo bắp nước
+FREEDRINK|1|30000|100000|Tặng 1 ly CocaCola cỡ lớn
+WEEKEND20|2|20|120000|Cuối tuần thả ga không lo về giá
+BDAYGIFT|2|100|0|Quà tặng sinh nhật thành viên

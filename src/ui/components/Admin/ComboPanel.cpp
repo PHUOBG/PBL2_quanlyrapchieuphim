@@ -129,47 +129,18 @@ int ComboPanel::computeMaxVisibleRows() const {
 }
 
 bool ComboPanel::exportCombosToCsv() {
-    namespace fs = std::filesystem;
-    fs::path comboPath = FileUtils::resolveDataPath("data/combo.txt");
-    fs::path exportPath = comboPath.has_parent_path()
-        ? (comboPath.parent_path() / "combos_export.csv")
-        : fs::path("combos_export.csv");
-    string outPath = exportPath.string();
-
-    ofstream out(outPath, ios::binary | ios::trunc);
-    if (!out.is_open()) {
-        outPath = "combos_export.csv";
-        out.open(outPath, ios::binary | ios::trunc);
-        if (!out.is_open()) return false;
+    ComboReportExporter exporter(filteredCombos);
+    ExportResult res = exporter.exportToCsv("exports/combos_export.csv");
+    if (!res.success) {
+        notificationMessage = "Lỗi: Không thể xuất file CSV!";
+    } else if (res.fileOpened) {
+        notificationMessage = "Đã xuất bảng giá F&B và mở trong Excel thành công!";
+    } else {
+        notificationMessage = "Đã xuất bảng giá F&B ra file CSV thành công!";
     }
-    const unsigned char bom[] = {0xEF, 0xBB, 0xBF};
-    out.write(reinterpret_cast<const char*>(bom), sizeof(bom));
-    out << "Mã Combo,Tên Combo,Phân Loại,Mô Tả,Giá Bán (VNĐ),Trạng Thái\n";
-    for (const auto& c : filteredCombos) {
-        auto csvEsc = [](string s) {
-            string r = "\"";
-            for (char ch : s) {
-                if (ch == '"') r += "\"\"";
-                else if (ch != '\r' && ch != '\n') r += ch;
-            }
-            return r + "\"";
-        };
-        out << csvEsc(c.id) << ","
-            << csvEsc(ws2s(c.name)) << ","
-            << csvEsc(ws2s(c.category)) << ","
-            << csvEsc(ws2s(c.subtitle)) << ","
-            << c.price << ","
-            << (c.isAvailable ? "Đang bán" : "Ngừng bán") << "\n";
-    }
-    out.flush();
-    bool ok = out.good();
-    out.close();
-    if (!ok) return false;
-
-#ifdef _WIN32
-    ShellExecuteA(NULL, "open", fs::absolute(outPath).string().c_str(), NULL, NULL, SW_SHOWNORMAL);
-#endif
-    return true;
+    notificationClock.restart();
+    notificationVisible = true;
+    return res.success;
 }
 
 void ComboPanel::initDefaultCombos() {
@@ -287,7 +258,34 @@ void ComboPanel::drawRoundedCard(RenderWindow& win, Vector2f pos, Vector2f sz, f
     RoundedRectRenderer::draw(win, pos, sz, r, fill, outline, outCol);
 }
 
+void ComboPanel::performDeleteCombo(const string& selId) {
+    vector<ComboItem> backup = allCombos;
+    for (auto it = allCombos.begin(); it != allCombos.end(); ++it) {
+        if (it->id == selId) {
+            allCombos.erase(it);
+            break;
+        }
+    }
+    if (!saveCombosToFile()) {
+        allCombos = std::move(backup);
+        notificationMessage = "Lỗi: Không thể xóa combo!";
+    } else {
+        applyFilter();
+        notificationMessage = "Đã xóa combo thành công!";
+    }
+    notificationClock.restart();
+    notificationVisible = true;
+}
+
 void ComboPanel::handleEvent(const Event& event, const RenderWindow& win) {
+    if (deleteModal.isOpen) {
+        int res = deleteModal.handleEvent(event, win);
+        if (res == 2) {
+            performDeleteCombo(deleteModal.targetId);
+        }
+        return;
+    }
+
     // 1. ƯU TIÊN XỬ LÝ POPUP THÊM / SỬA COMBO (MODAL BLOCKING)
     if (showPopup) {
         float popW = 500.f;
@@ -444,11 +442,7 @@ void ComboPanel::handleEvent(const Event& event, const RenderWindow& win) {
             }
 
             if (btnExp.contains(mousePos)) {
-                bool ok = exportCombosToCsv();
-                notificationMessage = ok ? "Đã xuất bảng giá F&B ra file CSV thành công!"
-                                         : "Lỗi: Không thể xuất file CSV!";
-                notificationClock.restart();
-                notificationVisible = true;
+                exportCombosToCsv();
                 return;
             }
 
@@ -498,23 +492,12 @@ void ComboPanel::handleEvent(const Event& event, const RenderWindow& win) {
 
             if (btnDel.contains(mousePos)) {
                 if (selectedRow >= 0 && selectedRow < (int)filteredCombos.size()) {
-                    string selId = filteredCombos[selectedRow].id;
-                    vector<ComboItem> backup = allCombos;
-                    for (auto it = allCombos.begin(); it != allCombos.end(); ++it) {
-                        if (it->id == selId) {
-                            allCombos.erase(it);
-                            break;
-                        }
-                    }
-                    if (!saveCombosToFile()) {
-                        allCombos = std::move(backup);
-                        notificationMessage = "Lỗi: Không thể xóa combo!";
-                    } else {
-                        applyFilter();
-                        notificationMessage = "Đã xóa combo thành công!";
-                    }
-                    notificationClock.restart();
-                    notificationVisible = true;
+                    const auto& item = filteredCombos[selectedRow];
+                    deleteModal.open(
+                        L"X\u00c1C NH\u1eacN X\u00d3A COMBO",
+                        L"B\u1ea1n c\u00f3 ch\u1eafc ch\u1eafn mu\u1ed1n x\u00f3a combo \"" + item.name + L"\" kh\u00f4ng?\nThao t\u00e1c n\u00e0y kh\u00f4ng th\u1ec3 ho\u00e0n t\u00e1c.",
+                        item.id
+                    );
                 } else {
                     notificationMessage = "Vui lòng chọn combo cần xóa!";
                     notificationClock.restart();
@@ -618,23 +601,12 @@ void ComboPanel::handleEvent(const Event& event, const RenderWindow& win) {
                     // Click action delete
                     FloatRect btnRowDel({actX + 40.f, rY + 24.f}, {36.f, 28.f});
                     if (btnRowDel.contains(mousePos)) {
-                        string selId = filteredCombos[selectedRow].id;
-                        vector<ComboItem> backup = allCombos;
-                        for (auto it = allCombos.begin(); it != allCombos.end(); ++it) {
-                            if (it->id == selId) {
-                                allCombos.erase(it);
-                                break;
-                            }
-                        }
-                        if (!saveCombosToFile()) {
-                            allCombos = std::move(backup);
-                            notificationMessage = "Lỗi: Không thể xóa combo!";
-                        } else {
-                            applyFilter();
-                            notificationMessage = "Đã xóa combo thành công!";
-                        }
-                        notificationClock.restart();
-                        notificationVisible = true;
+                        const auto& item = filteredCombos[selectedRow];
+                        deleteModal.open(
+                            L"X\u00c1C NH\u1eacN X\u00d3A COMBO",
+                            L"B\u1ea1n c\u00f3 ch\u1eafc ch\u1eafn mu\u1ed1n x\u00f3a combo \"" + item.name + L"\" kh\u00f4ng?\nThao t\u00e1c n\u00e0y kh\u00f4ng th\u1ec3 ho\u00e0n t\u00e1c.",
+                            item.id
+                        );
                         return;
                     }
                     return;
@@ -736,8 +708,9 @@ void ComboPanel::handleEvent(const Event& event, const RenderWindow& win) {
 }
 
 void ComboPanel::update(Vector2f mousePos, bool) {
+    deleteModal.update(mousePos);
     hoveredRow = -1;
-    if (!showPopup) {
+    if (!showPopup && !deleteModal.isOpen) {
         float tableY = position.y + 318.f;
         float rowH = 76.f;
         int count = min((int)filteredCombos.size() - scrollOffset, maxVisibleRows);
@@ -1282,4 +1255,6 @@ void ComboPanel::render(RenderWindow& win) {
             win.draw(notText);
         }
     }
+
+    deleteModal.render(win, font, boldFont);
 }

@@ -4,10 +4,14 @@
 #include <vector>
 #include <map>
 #include <string>
+#include "exporters/ComboReportExporter.h"
+#include "UI/components/Admin/DeleteConfirmModal.h"
 
 using namespace sf;
 using namespace std;
 
+#ifndef COMBO_ITEM_DEFINED
+#define COMBO_ITEM_DEFINED
 struct ComboItem {
     string id;              // "CB01"
     wstring name;           // L"CocaCola"
@@ -18,6 +22,7 @@ struct ComboItem {
     bool isAvailable = true;
     bool isChecked = false;
 };
+#endif
 
 class ComboPanel {
 private:
@@ -73,6 +78,9 @@ private:
     wstring popupCat;
     string popupPrice;
     int popupActiveField = 0;
+
+    DeleteConfirmModal deleteModal;
+    void performDeleteCombo(const string& id);
 
     void initDefaultCombos();
     void loadCombosFromFile();

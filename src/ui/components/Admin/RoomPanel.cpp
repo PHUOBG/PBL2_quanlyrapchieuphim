@@ -358,7 +358,29 @@ void RoomPanel::drawSeat(RenderWindow& win, float x, float y, float w, float h, 
     win.draw(numText);
 }
 
+void RoomPanel::performDeleteRoom() {
+    if (rooms.size() > 1 && selectedRoomIndex >= 0 && selectedRoomIndex < (int)rooms.size()) {
+        rooms.erase(rooms.begin() + selectedRoomIndex);
+        if (selectedRoomIndex >= (int)rooms.size()) selectedRoomIndex = (int)rooms.size() - 1;
+        inputRoomName = rooms[selectedRoomIndex].name;
+        inputRows = to_string(rooms[selectedRoomIndex].rows);
+        inputCols = to_string(rooms[selectedRoomIndex].cols);
+        saveRoomsToFile();
+        notificationMessage = "Đã xóa phòng chiếu thành công!";
+        notificationClock.restart();
+        notificationVisible = true;
+    }
+}
+
 void RoomPanel::handleEvent(const Event& event, const RenderWindow& win) {
+    if (deleteModal.isOpen) {
+        int res = deleteModal.handleEvent(event, win);
+        if (res == 2) {
+            performDeleteRoom();
+        }
+        return;
+    }
+
     if (const auto* mouseBtn = event.getIf<Event::MouseButtonPressed>()) {
         if (mouseBtn->button == Mouse::Button::Left) {
             Vector2f mousePos = win.mapPixelToCoords(Mouse::getPosition(win));
@@ -406,14 +428,15 @@ void RoomPanel::handleEvent(const Event& event, const RenderWindow& win) {
             }
 
             if (btnDelete.contains(mousePos)) {
-                if (rooms.size() > 1) {
-                    rooms.erase(rooms.begin() + selectedRoomIndex);
-                    if (selectedRoomIndex >= (int)rooms.size()) selectedRoomIndex = (int)rooms.size() - 1;
-                    inputRoomName = rooms[selectedRoomIndex].name;
-                    inputRows = to_string(rooms[selectedRoomIndex].rows);
-                    inputCols = to_string(rooms[selectedRoomIndex].cols);
-                    saveRoomsToFile();
-                    notificationMessage = "Đã xóa phòng chiếu thành công!";
+                if (rooms.size() > 1 && selectedRoomIndex >= 0 && selectedRoomIndex < (int)rooms.size()) {
+                    deleteModal.open(
+                        L"X\u00c1C NH\u1eacN X\u00d3A PH\u00d2NG CHI\u1ebeU",
+                        L"B\u1ea1n c\u00f3 ch\u1eafc ch\u1eafn mu\u1ed1n x\u00f3a \"" + rooms[selectedRoomIndex].name + L"\" kh\u00f4ng?\nThao t\u00e1c n\u00e0y kh\u00f4ng th\u1ec3 ho\u00e0n t\u00e1c.",
+                        "",
+                        selectedRoomIndex
+                    );
+                } else {
+                    notificationMessage = "Không thể xóa phòng chiếu cuối cùng của rạp!";
                     notificationClock.restart();
                     notificationVisible = true;
                 }
@@ -703,8 +726,10 @@ void RoomPanel::handleEvent(const Event& event, const RenderWindow& win) {
 }
 
 void RoomPanel::update(Vector2f mousePos, bool) {
+    deleteModal.update(mousePos);
     hoveredSeatRow = -1;
     hoveredSeatCol = -1;
+    if (deleteModal.isOpen) return;
 
     if (selectedRoomIndex >= 0 && selectedRoomIndex < (int)rooms.size()) {
         const auto& r = rooms[selectedRoomIndex];
@@ -1259,4 +1284,6 @@ void RoomPanel::render(RenderWindow& win) {
             win.draw(notText);
         }
     }
+
+    deleteModal.render(win, font, boldFont);
 }
