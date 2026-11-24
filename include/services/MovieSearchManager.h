@@ -4,7 +4,7 @@
 #include <map>
 #include <SFML/Graphics.hpp>
 #include "data-structures/DLL.h"
-#include "../include/data-structures/Trie.h"
+#include "data-structures/Trie.h"
 
 using namespace std;
 using namespace sf;

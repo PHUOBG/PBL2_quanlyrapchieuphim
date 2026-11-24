@@ -1,4 +1,4 @@
-#include "../../include/data-structures/Trie.h"
+#include "data-structures/Trie.h"
 #include <algorithm>
 #include <locale>
 #include <codecvt>

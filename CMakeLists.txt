@@ -12,6 +12,7 @@ find_package(SFML 3 REQUIRED COMPONENTS Graphics Window Network System CONFIG)
 
 # Tự động tìm tất cả file .cpp trong thư mục src/
 file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS src/*.cpp)
+list(FILTER SRC_FILES EXCLUDE REGEX ".*tempCodeRunnerFile.*")
 
 # Tạo executable
 # Core library (everything except main.cpp) so the app and the automated tests share the same code
@@ -20,15 +21,19 @@ list(FILTER CORE_SRC_FILES EXCLUDE REGEX ".*/src/main\\.cpp$")
 add_library(cinecore_core STATIC ${CORE_SRC_FILES})
 
 add_executable(app src/main.cpp)
-set_target_properties(app PROPERTIES WIN32_EXECUTABLE TRUE)
+if(WIN32)
+    set_target_properties(app PROPERTIES WIN32_EXECUTABLE TRUE)
+endif()
 
 target_include_directories(cinecore_core PUBLIC
     ${CMAKE_SOURCE_DIR}/include
     ${CMAKE_SOURCE_DIR}/include/core
     ${CMAKE_SOURCE_DIR}/include/data-structures
     ${CMAKE_SOURCE_DIR}/include/models
+    ${CMAKE_SOURCE_DIR}/include/repositories
     ${CMAKE_SOURCE_DIR}/include/services
     ${CMAKE_SOURCE_DIR}/include/utils
+    ${CMAKE_SOURCE_DIR}/include/UI
     ${CMAKE_SOURCE_DIR}/include/UI/components
     ${CMAKE_SOURCE_DIR}/include/UI/screens
 )
