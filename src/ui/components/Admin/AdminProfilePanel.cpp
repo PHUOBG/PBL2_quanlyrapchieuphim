@@ -547,20 +547,20 @@ void AdminProfilePanel::drawPersonalInfoCard(RenderTarget& target) const {
     drawInputBox(cardX + 24.f + inW + 18.f, cardY + 230.f, L"Cơ sở trực thuộc", false, location, activeField == 5, false);
 
     // Audit Log Notice Box
-    Vector2f notPos(cardX + 24.f, cardY + 310.f);
-    RoundedRectRenderer::draw(target, notPos, {cardW - 48.f, 58.f}, 8.f, Color(248, 250, 252), 1.f, Color(226, 232, 240));
+    Vector2f notPos(cardX + 24.f, cardY + 308.f);
+    RoundedRectRenderer::draw(target, notPos, {cardW - 48.f, 62.f}, 8.f, Color(248, 250, 252), 1.f, Color(226, 232, 240));
     CircleShape infoBg(8.5f, 16);
     infoBg.setFillColor(Color(8, 125, 181));
-    infoBg.setPosition({notPos.x + 14.f, notPos.y + 20.f});
+    infoBg.setPosition({notPos.x + 14.f, notPos.y + 22.f});
     target.draw(infoBg);
     Text notIc(boldFont, L"i", 14);
     notIc.setFillColor(Color::White);
-    notIc.setPosition({notPos.x + 20.8f, notPos.y + 21.f});
+    notIc.setPosition({notPos.x + 20.8f, notPos.y + 23.f});
     target.draw(notIc);
 
-    Text notTxt(font, L"Mọi thay đổi thông tin cá nhân sẽ được lưu vào Nhật ký kiểm toán hệ thống (Audit Log)\ntheo tiêu chuẩn ISO 27001.", 14.5f);
+    Text notTxt(font, L"Mọi thay đổi thông tin cá nhân sẽ được lưu vào Nhật ký kiểm toán hệ thống (Audit Log)\ntheo tiêu chuẩn ISO 27001.", 16.f);
     notTxt.setFillColor(Color(71, 85, 105));
-    notTxt.setPosition({notPos.x + 40.f, notPos.y + 10.f});
+    notTxt.setPosition({notPos.x + 40.f, notPos.y + 11.f});
     target.draw(notTxt);
 
     // Save Button: LƯU THÔNG TIN
@@ -684,13 +684,13 @@ void AdminProfilePanel::drawPasswordCard(RenderTarget& target) const {
 
     // Password Rules Checklist (2x2 grid)
     float ruleY = cardY + 346.f;
-    Text rTitle(boldFont, L"Quy định mật khẩu CineCore:", 15.f);
+    Text rTitle(boldFont, L"Quy định mật khẩu CineCore:", 16.5f);
     rTitle.setFillColor(Color(71, 85, 105));
     rTitle.setPosition({cardX + 24.f, ruleY});
     target.draw(rTitle);
 
     auto drawRuleItem = [&](float x, float y, const wstring& rTxt, bool checked) {
-        CircleShape dot(3.5f);
+        CircleShape dot(3.8f);
         dot.setPosition({x + 2.f, y + 6.f});
         if (checked) {
             dot.setFillColor(Color(21, 128, 61));
@@ -701,16 +701,16 @@ void AdminProfilePanel::drawPasswordCard(RenderTarget& target) const {
         }
         target.draw(dot);
 
-        Text t(font, rTxt, 14.5f);
+        Text t(font, rTxt, 16.f);
         t.setFillColor(Color(100, 116, 139));
         t.setPosition({x + 16.f, y});
         target.draw(t);
     };
 
-    drawRuleItem(cardX + 24.f, ruleY + 26.f, L"Tối thiểu 8 ký tự", true);
-    drawRuleItem(cardX + 24.f + passW / 2.f, ruleY + 26.f, L"Ký tự chữ hoa & số", true);
-    drawRuleItem(cardX + 24.f, ruleY + 50.f, L"Ít nhất 1 ký tự đặc biệt", true);
-    drawRuleItem(cardX + 24.f + passW / 2.f, ruleY + 50.f, L"Khác 3 mật khẩu cũ", false);
+    drawRuleItem(cardX + 24.f, ruleY + 28.f, L"Tối thiểu 8 ký tự", true);
+    drawRuleItem(cardX + 24.f + passW / 2.f, ruleY + 28.f, L"Ký tự chữ hoa & số", true);
+    drawRuleItem(cardX + 24.f, ruleY + 52.f, L"Ít nhất 1 ký tự đặc biệt", true);
+    drawRuleItem(cardX + 24.f + passW / 2.f, ruleY + 52.f, L"Khác 3 mật khẩu cũ", false);
 
     // Change Password Button: ĐỔI MẬT KHẨU
     Vector2f chgPos(cardX + 24.f, cardY + 434.f);
@@ -748,7 +748,7 @@ void AdminProfilePanel::drawTwoFactorCard(RenderTarget& target) const {
     title.setPosition({cardX + 64.f, cardY + 13.f});
     target.draw(title);
 
-    Text sub(font, L"Bảo vệ tài khoản qua mã OTP ứng dụng điện thoại", 14.5f);
+    Text sub(font, L"Bảo vệ tài khoản qua mã OTP ứng dụng điện thoại", 16.f);
     sub.setFillColor(Color(100, 116, 139));
     sub.setPosition({cardX + 64.f, cardY + 36.f});
     target.draw(sub);

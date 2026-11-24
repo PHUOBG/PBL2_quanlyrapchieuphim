@@ -618,7 +618,7 @@ void UserPanel::handleEvent(const Event& event, const RenderWindow& window) {
                     selectedIndex = i;
                     filteredCustomers[i]->selected = !filteredCustomers[i]->selected;
 
-                    float col_act = position.x + 20.f + (width - 40.f) - 150.f;
+                    float col_act = position.x + 20.f + (width - 40.f) - 146.f;
                     if (FloatRect({col_act, ry + 12.f}, {40.f, 28.f}).contains(mPos)) {
                         activeDialog = DialogType::VIEW;
                         dialogUserIndex = i;
@@ -983,28 +983,45 @@ void UserPanel::drawCustomerTable(RenderTarget& target) const {
     const float tableW = width - 40.f;
     const float headerH = 44.f;
 
-    // Dark Navy Header Bar
-    RoundedRectRenderer::draw(target, {tableX, tableY}, {tableW, headerH}, 6.f, Color(23, 32, 51));
+    // Ocean Blue Header Bar (synchronized with system design)
+    RoundedRectRenderer::draw(target, {tableX, tableY}, {tableW, headerH}, 6.f, Color(8, 125, 181));
 
-    // Column positions (evenly distributed across tableW)
-    float col_stt    = tableX + 46.f;
-    float col_name   = tableX + 94.f;
-    float col_email  = tableX + tableW * 0.27f;
-    float col_phone  = tableX + tableW * 0.45f;
-    float col_tier   = tableX + tableW * 0.57f;
-    float col_date   = tableX + tableW * 0.69f;
-    float col_bought = tableX + tableW * 0.80f;
-    float col_action = tableX + tableW - 150.f;
+    // Column divider positions
+    float div0 = tableX + 80.f;                          // STT | HỌ VÀ TÊN
+    float div1 = tableX + std::floor(tableW * 0.27f);     // HỌ VÀ TÊN | EMAIL
+    float div2 = tableX + std::floor(tableW * 0.45f);     // EMAIL | SỐ ĐIỆN THOẠI
+    float div3 = tableX + std::floor(tableW * 0.57f);     // SĐT | HẠNG THẺ
+    float div4 = tableX + std::floor(tableW * 0.69f);     // HẠNG THẺ | NGÀY ĐĂNG KÝ
+    float div5 = tableX + std::floor(tableW * 0.80f);     // NGÀY ĐĂNG KÝ | ĐÃ MUA
+    float div6 = tableX + tableW - 156.f;                 // ĐÃ MUA | THAO TÁC
+
+    // Header column dividers
+    for (float dx : {div0, div1, div2, div3, div4, div5, div6}) {
+        RectangleShape hDiv(Vector2f(1.f, headerH));
+        hDiv.setPosition({dx, tableY});
+        hDiv.setFillColor(Color(255, 255, 255, 65));
+        target.draw(hDiv);
+    }
+
+    // Column content starting positions
+    float col_stt    = tableX + 44.f;
+    float col_name   = div0 + 14.f;
+    float col_email  = div1 + 14.f;
+    float col_phone  = div2 + 14.f;
+    float col_tier   = div3 + 14.f;
+    float col_date   = div4 + 14.f;
+    float col_bought = div5 + 14.f;
+    float col_action = div6 + 10.f;
 
     float thY = std::round(tableY + 11.f);
-    Text th_stt(boldFont); th_stt.setString(L"STT"); th_stt.setCharacterSize(17); th_stt.setFillColor(Color::White); th_stt.setPosition({col_stt, thY}); target.draw(th_stt);
-    Text th_name(boldFont); th_name.setString(L"HỌ VÀ TÊN KHÁCH HÀNG"); th_name.setCharacterSize(17); th_name.setFillColor(Color::White); th_name.setPosition({col_name, thY}); target.draw(th_name);
-    Text th_email(boldFont); th_email.setString(L"EMAIL TÀI KHOẢN"); th_email.setCharacterSize(17); th_email.setFillColor(Color::White); th_email.setPosition({col_email, thY}); target.draw(th_email);
-    Text th_phone(boldFont); th_phone.setString(L"SỐ ĐIỆN THOẠI"); th_phone.setCharacterSize(17); th_phone.setFillColor(Color::White); th_phone.setPosition({col_phone, thY}); target.draw(th_phone);
-    Text th_tier(boldFont); th_tier.setString(L"HẠNG THẺ"); th_tier.setCharacterSize(17); th_tier.setFillColor(Color::White); th_tier.setPosition({col_tier, thY}); target.draw(th_tier);
-    Text th_date(boldFont); th_date.setString(L"NGÀY ĐĂNG KÝ"); th_date.setCharacterSize(17); th_date.setFillColor(Color::White); th_date.setPosition({col_date, thY}); target.draw(th_date);
-    Text th_bought(boldFont); th_bought.setString(L"ĐÃ MUA"); th_bought.setCharacterSize(17); th_bought.setFillColor(Color::White); th_bought.setPosition({col_bought, thY}); target.draw(th_bought);
-    Text th_action(boldFont); th_action.setString(L"THAO TÁC"); th_action.setCharacterSize(17); th_action.setFillColor(Color::White); th_action.setPosition({col_action + 22.f, thY}); target.draw(th_action);
+    Text th_stt(boldFont); th_stt.setString(L"STT"); th_stt.setCharacterSize(16); th_stt.setFillColor(Color::White); th_stt.setPosition({col_stt, thY}); target.draw(th_stt);
+    Text th_name(boldFont); th_name.setString(L"HỌ VÀ TÊN KHÁCH HÀNG"); th_name.setCharacterSize(16); th_name.setFillColor(Color::White); th_name.setPosition({col_name, thY}); target.draw(th_name);
+    Text th_email(boldFont); th_email.setString(L"EMAIL TÀI KHOẢN"); th_email.setCharacterSize(16); th_email.setFillColor(Color::White); th_email.setPosition({col_email, thY}); target.draw(th_email);
+    Text th_phone(boldFont); th_phone.setString(L"SỐ ĐIỆN THOẠI"); th_phone.setCharacterSize(16); th_phone.setFillColor(Color::White); th_phone.setPosition({col_phone, thY}); target.draw(th_phone);
+    Text th_tier(boldFont); th_tier.setString(L"HẠNG THẺ"); th_tier.setCharacterSize(16); th_tier.setFillColor(Color::White); th_tier.setPosition({col_tier, thY}); target.draw(th_tier);
+    Text th_date(boldFont); th_date.setString(L"NGÀY ĐĂNG KÝ"); th_date.setCharacterSize(16); th_date.setFillColor(Color::White); th_date.setPosition({col_date, thY}); target.draw(th_date);
+    Text th_bought(boldFont); th_bought.setString(L"ĐÃ MUA"); th_bought.setCharacterSize(16); th_bought.setFillColor(Color::White); th_bought.setPosition({col_bought, thY}); target.draw(th_bought);
+    Text th_action(boldFont); th_action.setString(L"THAO TÁC"); th_action.setCharacterSize(16); th_action.setFillColor(Color::White); th_action.setPosition({col_action + 22.f, thY}); target.draw(th_action);
 
     // Customer Rows
     float rTop = tableY + headerH;
@@ -1023,6 +1040,14 @@ void UserPanel::drawCustomerTable(RenderTarget& target) const {
         Color rBg = isSel ? Color(239, 246, 255) : (isHov ? Color(248, 250, 252) : Color::White);
 
         RoundedRectRenderer::draw(target, {tableX, ry}, {tableW, rH - 2.f}, 4.f, rBg, 1.f, isSel ? Color(186, 230, 253) : Color(241, 245, 249));
+
+        // Row column dividers
+        for (float dx : {div0, div1, div2, div3, div4, div5, div6}) {
+            RectangleShape rDiv(Vector2f(1.f, rH - 2.f));
+            rDiv.setPosition({dx, ry});
+            rDiv.setFillColor(Color(241, 245, 249));
+            target.draw(rDiv);
+        }
 
         // Checkbox
         Vector2f rcPos(tableX + 16.f, ry + 16.f);
