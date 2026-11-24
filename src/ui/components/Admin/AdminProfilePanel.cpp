@@ -571,7 +571,7 @@ void AdminProfilePanel::drawPersonalInfoCard(RenderTarget& target) const {
     });
     target.draw(notIc);
 
-    Text notTxt(font, L"Mọi thay đổi thông tin cá nhân sẽ được lưu vào Nhật ký kiểm toán hệ thống (Audit Log)\ntheo tiêu chuẩn ISO 27001.", 16.f);
+    Text notTxt(font, L"Mọi thay đổi thông tin cá nhân sẽ được lưu vào Nhật ký kiểm toán hệ thống\ntheo tiêu chuẩn ISO 27001.", 16.f);
     notTxt.setFillColor(Color(71, 85, 105));
     notTxt.setPosition({notPos.x + 40.f, notPos.y + 11.f});
     target.draw(notTxt);
@@ -723,7 +723,7 @@ void AdminProfilePanel::drawPasswordCard(RenderTarget& target) const {
     drawRuleItem(cardX + 24.f, ruleY + 28.f, L"Tối thiểu 8 ký tự", true);
     drawRuleItem(cardX + 24.f + passW / 2.f, ruleY + 28.f, L"Ký tự chữ hoa & số", true);
     drawRuleItem(cardX + 24.f, ruleY + 52.f, L"Ít nhất 1 ký tự đặc biệt", true);
-    drawRuleItem(cardX + 24.f + passW / 2.f, ruleY + 52.f, L"Khác 3 mật khẩu cũ", false);
+    drawRuleItem(cardX + 24.f + passW / 2.f, ruleY + 52.f, L"Khác 3 mật khẩu cũ", true);
 
     // Change Password Button: ĐỔI MẬT KHẨU
     Vector2f chgPos(cardX + 24.f, cardY + 434.f);
