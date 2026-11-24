@@ -1352,7 +1352,7 @@ void MovieRevenuePanel::drawTab1TicketsByMovie(RenderTarget& target) const {
         }
 
         auto drawRevHdr = [&](const wstring& lbl, float xStart, float xEnd) {
-            Text h(boldFont, lbl, 13);
+            Text h(boldFont, lbl, 14.5f);
             h.setFillColor(Color::White);
             FloatRect hb = h.getLocalBounds();
             h.setPosition({
@@ -1395,13 +1395,13 @@ void MovieRevenuePanel::drawTab1TicketsByMovie(RenderTarget& target) const {
                       : (i == 2) ? Color(217, 119, 6)
                                  : Color(238, 244, 254);
             Color rFg = (i < 3) ? Color::White : Color(80, 102, 128);
-            float rRadius = 10.f;
+            float rRadius = 11.f;
             CircleShape c(rRadius);
             c.setPosition({std::round(tblX + (div0 - tblX) / 2.f - rRadius), std::round(centerY - rRadius)});
             c.setFillColor(rBg);
             target.draw(c);
 
-            Text rTxt(boldFont, to_string(i + 1), 13);
+            Text rTxt(boldFont, to_string(i + 1), 14.5f);
             rTxt.setFillColor(rFg);
             FloatRect rb = rTxt.getLocalBounds();
             rTxt.setPosition({
@@ -1411,17 +1411,17 @@ void MovieRevenuePanel::drawTab1TicketsByMovie(RenderTarget& target) const {
             target.draw(rTxt);
 
             // Tên phim + nhãn HOT
-            Text tTxt(boldFont, moviesList[i].title, 13);
+            Text tTxt(boldFont, moviesList[i].title, 14.5f);
             tTxt.setFillColor(Color(23, 32, 51));
             FloatRect ttb = tTxt.getLocalBounds();
             tTxt.setPosition({div0 + 14.f, std::round(centerY - ttb.size.y / 2.f - ttb.position.y)});
             target.draw(tTxt);
 
             if (moviesList[i].isHot) {
-                Vector2f hotSize(42.f, 20.f);
+                Vector2f hotSize(44.f, 22.f);
                 Vector2f hotPos(div0 + 14.f + ttb.size.x + 10.f, std::round(centerY - hotSize.y / 2.f));
                 RoundedRectRenderer::draw(target, hotPos, hotSize, 4.f, Color(254, 226, 226));
-                Text hotTxt(boldFont, L"HOT", 12);
+                Text hotTxt(boldFont, L"HOT", 13.f);
                 hotTxt.setFillColor(Color(225, 29, 72));
                 FloatRect hb = hotTxt.getLocalBounds();
                 hotTxt.setPosition({
@@ -1432,7 +1432,7 @@ void MovieRevenuePanel::drawTab1TicketsByMovie(RenderTarget& target) const {
             }
 
             // Thể loại (căn giữa)
-            Text gTxt(font, moviesList[i].genre, 13);
+            Text gTxt(font, moviesList[i].genre, 14.5f);
             gTxt.setFillColor(Color(100, 116, 139));
             FloatRect gtb = gTxt.getLocalBounds();
             gTxt.setPosition({
@@ -1442,7 +1442,7 @@ void MovieRevenuePanel::drawTab1TicketsByMovie(RenderTarget& target) const {
             target.draw(gTxt);
 
             // Suất chiếu (căn giữa)
-            Text sTxt(boldFont, to_string(moviesList[i].showtimes), 13);
+            Text sTxt(boldFont, to_string(moviesList[i].showtimes), 14.5f);
             sTxt.setFillColor(Color(51, 65, 85));
             FloatRect stb = sTxt.getLocalBounds();
             sTxt.setPosition({
@@ -1452,7 +1452,7 @@ void MovieRevenuePanel::drawTab1TicketsByMovie(RenderTarget& target) const {
             target.draw(sTxt);
 
             // Số vé bán (căn giữa, xanh dương giống Tổng quan)
-            Text tickTxt(boldFont, to_wstring(moviesList[i].tickets) + L" vé", 13);
+            Text tickTxt(boldFont, to_wstring(moviesList[i].tickets) + L" vé", 14.5f);
             tickTxt.setFillColor(Color(8, 125, 181));
             FloatRect tkb = tickTxt.getLocalBounds();
             tickTxt.setPosition({
@@ -1462,7 +1462,7 @@ void MovieRevenuePanel::drawTab1TicketsByMovie(RenderTarget& target) const {
             target.draw(tickTxt);
 
             // Doanh thu phim (căn giữa, đỏ crimson giống Tổng quan)
-            Text revTxt(boldFont, s2ws(toCurrency(moviesList[i].revenue)), 14);
+            Text revTxt(boldFont, s2ws(toCurrency(moviesList[i].revenue)), 15.5f);
             revTxt.setFillColor(Color(225, 29, 72));
             FloatRect rvb = revTxt.getLocalBounds();
             revTxt.setPosition({
@@ -1476,7 +1476,7 @@ void MovieRevenuePanel::drawTab1TicketsByMovie(RenderTarget& target) const {
             float barH = 6.f;
             stringstream ss;
             ss << fixed << setprecision(1) << moviesList[i].share << "%";
-            Text shTxt(boldFont, ss.str(), 13);
+            Text shTxt(boldFont, ss.str(), 14.5f);
             shTxt.setFillColor(Color(71, 85, 105));
             FloatRect shb = shTxt.getLocalBounds();
 
@@ -1506,13 +1506,13 @@ void MovieRevenuePanel::drawTab1TicketsByMovie(RenderTarget& target) const {
 
         float fCenterY = footY + footerH / 2.f;
 
-        Text fTitle(boldFont, L"TỔNG CỘNG TOÀN BỘ", 13);
+        Text fTitle(boldFont, L"TỔNG CỘNG TOÀN BỘ", 14.5f);
         fTitle.setFillColor(Color(71, 85, 105));
         FloatRect ftb = fTitle.getLocalBounds();
         fTitle.setPosition({tblX + 16.f, std::round(fCenterY - ftb.size.y / 2.f - ftb.position.y)});
         target.draw(fTitle);
 
-        Text fShow(boldFont, to_wstring(sumShowtimes) + L" suất", 13);
+        Text fShow(boldFont, to_wstring(sumShowtimes) + L" suất", 14.5f);
         fShow.setFillColor(Color(23, 32, 51));
         FloatRect fsb = fShow.getLocalBounds();
         fShow.setPosition({
@@ -1521,7 +1521,7 @@ void MovieRevenuePanel::drawTab1TicketsByMovie(RenderTarget& target) const {
         });
         target.draw(fShow);
 
-        Text fTick(boldFont, to_wstring(totalTickets) + L" vé", 14);
+        Text fTick(boldFont, to_wstring(totalTickets) + L" vé", 15.5f);
         fTick.setFillColor(Color(8, 125, 181));
         FloatRect ftkb = fTick.getLocalBounds();
         fTick.setPosition({
@@ -1530,7 +1530,7 @@ void MovieRevenuePanel::drawTab1TicketsByMovie(RenderTarget& target) const {
         });
         target.draw(fTick);
 
-        Text fRev(boldFont, s2ws(toCurrency(movieRevenue)), 14);
+        Text fRev(boldFont, s2ws(toCurrency(movieRevenue)), 15.5f);
         fRev.setFillColor(Color(225, 29, 72));
         FloatRect frvb = fRev.getLocalBounds();
         fRev.setPosition({
@@ -1539,7 +1539,7 @@ void MovieRevenuePanel::drawTab1TicketsByMovie(RenderTarget& target) const {
         });
         target.draw(fRev);
 
-        Text fShare(boldFont, L"100.0%", 13);
+        Text fShare(boldFont, L"100.0%", 14.5f);
         fShare.setFillColor(Color(23, 32, 51));
         FloatRect fshb = fShare.getLocalBounds();
         fShare.setPosition({

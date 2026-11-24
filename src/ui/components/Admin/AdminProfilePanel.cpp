@@ -448,14 +448,23 @@ void AdminProfilePanel::drawHeaderBanner(RenderTarget& target) const {
     Vector2f delPos(cardX + cardW - 254.f, cardY + 40.f);
     Color delBg = deleteHovered ? Color(185, 28, 28) : Color(220, 38, 38);
     RoundedRectRenderer::draw(target, delPos, {230.f, 42.f}, 8.f, delBg);
-    // Vector trash icon
-    RectangleShape trHandle({4.f, 1.5f}); trHandle.setFillColor(Color::White); trHandle.setPosition({delPos.x + 16.f, delPos.y + 14.5f}); target.draw(trHandle);
-    RectangleShape trLid({10.f, 1.5f}); trLid.setFillColor(Color::White); trLid.setPosition({delPos.x + 13.f, delPos.y + 16.5f}); target.draw(trLid);
-    RoundedRectRenderer::draw(target, {delPos.x + 14.f, delPos.y + 19.f}, {8.f, 9.f}, 1.5f, Color::Transparent, 1.4f, Color::White);
+
     Text delTxt(boldFont, L"XÓA VĨNH VIỄN TÀI KHOẢN", 14.5f);
     delTxt.setFillColor(Color::White);
     FloatRect db = delTxt.getLocalBounds();
-    delTxt.setPosition({delPos.x + 32.f, delPos.y + (42.f - db.size.y) / 2.f - db.position.y});
+
+    const float iconW = 10.f;
+    const float gap = 8.f;
+    float contentW = iconW + gap + db.size.x;
+    float startX = std::round(delPos.x + (230.f - contentW) / 2.f);
+    float centerY = delPos.y + 21.f;
+
+    // Vector trash icon
+    RectangleShape trHandle({4.f, 1.5f}); trHandle.setFillColor(Color::White); trHandle.setPosition({startX + 3.f, std::round(centerY - 6.5f)}); target.draw(trHandle);
+    RectangleShape trLid({10.f, 1.5f}); trLid.setFillColor(Color::White); trLid.setPosition({startX, std::round(centerY - 4.5f)}); target.draw(trLid);
+    RoundedRectRenderer::draw(target, {startX + 1.f, std::round(centerY - 2.f)}, {8.f, 9.f}, 1.5f, Color::Transparent, 1.4f, Color::White);
+
+    delTxt.setPosition({startX + iconW + gap - db.position.x, std::round(centerY - db.size.y / 2.f - db.position.y)});
     target.draw(delTxt);
 }
 
@@ -481,7 +490,7 @@ void AdminProfilePanel::drawPersonalInfoCard(RenderTarget& target) const {
     target.draw(title);
 
     // Subtitle
-    Text sub(font, L"Cập nhật hồ sơ và các thông tin liên lạc hành chính", 14.5f);
+    Text sub(font, L"Cập nhật hồ sơ và các thông tin liên lạc hành chính", 16.f);
     sub.setFillColor(Color(100, 116, 139));
     sub.setPosition({cardX + 68.f, cardY + 38.f});
     target.draw(sub);
@@ -555,7 +564,11 @@ void AdminProfilePanel::drawPersonalInfoCard(RenderTarget& target) const {
     target.draw(infoBg);
     Text notIc(boldFont, L"i", 14);
     notIc.setFillColor(Color::White);
-    notIc.setPosition({notPos.x + 20.8f, notPos.y + 23.f});
+    FloatRect icb = notIc.getLocalBounds();
+    notIc.setPosition({
+        std::round(notPos.x + 14.f + 8.5f - icb.size.x / 2.f - icb.position.x),
+        std::round(notPos.y + 22.f + 8.5f - icb.size.y / 2.f - icb.position.y)
+    });
     target.draw(notIc);
 
     Text notTxt(font, L"Mọi thay đổi thông tin cá nhân sẽ được lưu vào Nhật ký kiểm toán hệ thống (Audit Log)\ntheo tiêu chuẩn ISO 27001.", 16.f);
@@ -596,7 +609,7 @@ void AdminProfilePanel::drawPasswordCard(RenderTarget& target) const {
     target.draw(title);
 
     // Subtitle
-    Text sub(font, L"Nên đổi mật khẩu định kỳ 90 ngày để đảm bảo an toàn", 14.5f);
+    Text sub(font, L"Nên đổi mật khẩu định kỳ 90 ngày để đảm bảo an toàn", 16.f);
     sub.setFillColor(Color(100, 116, 139));
     sub.setPosition({cardX + 68.f, cardY + 38.f});
     target.draw(sub);

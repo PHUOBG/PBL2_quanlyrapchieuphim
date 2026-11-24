@@ -274,7 +274,7 @@ void UserPanel::handleEvent(const Event& event, const RenderWindow& window) {
     // 1. ƯU TIÊN XỬ LÝ DIALOG (VIEW / EDIT / DELETE_CONFIRM / ADD_NEW)
     if (activeDialog != DialogType::NONE) {
         float dW = 480.f;
-        float dH = 340.f;
+        float dH = 350.f;
         if (activeDialog == DialogType::VIEW) {
             dW = 520.f;
             dH = 370.f;
@@ -364,7 +364,7 @@ void UserPanel::handleEvent(const Event& event, const RenderWindow& window) {
                 if (activeDialog == DialogType::ADD_NEW || activeDialog == DialogType::EDIT) {
                     float inY = dPos.y + 65.f;
                     for (int f = 0; f < 3; ++f) {
-                        FloatRect boxR({dPos.x + 24.f, inY + 18.f + f * 60.f}, {dW - 48.f, 34.f});
+                        FloatRect boxR({dPos.x + 24.f, inY + 22.f + f * 64.f}, {dW - 48.f, 36.f});
                         if (boxR.contains(mPos)) {
                             activeInputField = f;
                             return;
@@ -618,7 +618,7 @@ void UserPanel::handleEvent(const Event& event, const RenderWindow& window) {
                     selectedIndex = i;
                     filteredCustomers[i]->selected = !filteredCustomers[i]->selected;
 
-                    float col_act = position.x + 20.f + (width - 40.f) - 146.f;
+                    float col_act = position.x + 20.f + (width - 40.f) - 144.f;
                     if (FloatRect({col_act, ry + 12.f}, {40.f, 28.f}).contains(mPos)) {
                         activeDialog = DialogType::VIEW;
                         dialogUserIndex = i;
@@ -1006,22 +1006,28 @@ void UserPanel::drawCustomerTable(RenderTarget& target) const {
     // Column content starting positions
     float col_stt    = tableX + 44.f;
     float col_name   = div0 + 14.f;
-    float col_email  = div1 + 14.f;
-    float col_phone  = div2 + 14.f;
-    float col_tier   = div3 + 14.f;
-    float col_date   = div4 + 14.f;
-    float col_bought = div5 + 14.f;
-    float col_action = div6 + 10.f;
+    float col_action = div6 + 12.f;
 
     float thY = std::round(tableY + 11.f);
     Text th_stt(boldFont); th_stt.setString(L"STT"); th_stt.setCharacterSize(16); th_stt.setFillColor(Color::White); th_stt.setPosition({col_stt, thY}); target.draw(th_stt);
     Text th_name(boldFont); th_name.setString(L"HỌ VÀ TÊN KHÁCH HÀNG"); th_name.setCharacterSize(16); th_name.setFillColor(Color::White); th_name.setPosition({col_name, thY}); target.draw(th_name);
-    Text th_email(boldFont); th_email.setString(L"EMAIL TÀI KHOẢN"); th_email.setCharacterSize(16); th_email.setFillColor(Color::White); th_email.setPosition({col_email, thY}); target.draw(th_email);
-    Text th_phone(boldFont); th_phone.setString(L"SỐ ĐIỆN THOẠI"); th_phone.setCharacterSize(16); th_phone.setFillColor(Color::White); th_phone.setPosition({col_phone, thY}); target.draw(th_phone);
-    Text th_tier(boldFont); th_tier.setString(L"HẠNG THẺ"); th_tier.setCharacterSize(16); th_tier.setFillColor(Color::White); th_tier.setPosition({col_tier, thY}); target.draw(th_tier);
-    Text th_date(boldFont); th_date.setString(L"NGÀY ĐĂNG KÝ"); th_date.setCharacterSize(16); th_date.setFillColor(Color::White); th_date.setPosition({col_date, thY}); target.draw(th_date);
-    Text th_bought(boldFont); th_bought.setString(L"ĐÃ MUA"); th_bought.setCharacterSize(16); th_bought.setFillColor(Color::White); th_bought.setPosition({col_bought, thY}); target.draw(th_bought);
-    Text th_action(boldFont); th_action.setString(L"THAO TÁC"); th_action.setCharacterSize(16); th_action.setFillColor(Color::White); th_action.setPosition({col_action + 22.f, thY}); target.draw(th_action);
+
+    auto drawColHdr = [&](float xStart, float xEnd, const wstring& str) {
+        Text th(boldFont, str, 16);
+        th.setFillColor(Color::White);
+        FloatRect thb = th.getLocalBounds();
+        th.setPosition({
+            std::round(xStart + (xEnd - xStart - thb.size.x) / 2.f - thb.position.x),
+            thY
+        });
+        target.draw(th);
+    };
+    drawColHdr(div1, div2, L"EMAIL TÀI KHOẢN");
+    drawColHdr(div2, div3, L"SỐ ĐIỆN THOẠI");
+    drawColHdr(div3, div4, L"HẠNG THẺ");
+    drawColHdr(div4, div5, L"NGÀY ĐĂNG KÝ");
+    drawColHdr(div5, div6, L"ĐÃ MUA");
+    drawColHdr(div6, tableX + tableW, L"THAO TÁC");
 
     // Customer Rows
     float rTop = tableY + headerH;
@@ -1069,15 +1075,22 @@ void UserPanel::drawCustomerTable(RenderTarget& target) const {
         Text nameTxt(boldFont); nameTxt.setString(c->displayFullName); nameTxt.setCharacterSize(17); nameTxt.setFillColor(Color(23, 32, 51)); nameTxt.setPosition({col_name + 40.f, std::round(ry + 5.f)}); target.draw(nameTxt);
         Text uidTxt(font); uidTxt.setString(s2ws("UID: " + c->uid)); uidTxt.setCharacterSize(17); uidTxt.setFillColor(Color(148, 163, 184)); uidTxt.setPosition({col_name + 40.f, std::round(ry + 26.f)}); target.draw(uidTxt);
 
-        // Email
-        Text emailTxt(font); emailTxt.setString(s2ws(c->email)); emailTxt.setCharacterSize(16); emailTxt.setFillColor(Color(51, 65, 85)); emailTxt.setPosition({col_email, std::round(ry + 14.f)}); target.draw(emailTxt);
+        // Email (căn giữa)
+        Text emailTxt(font); emailTxt.setString(s2ws(c->email)); emailTxt.setCharacterSize(16); emailTxt.setFillColor(Color(51, 65, 85));
+        FloatRect emb = emailTxt.getLocalBounds();
+        emailTxt.setPosition({std::round(div1 + (div2 - div1 - emb.size.x) / 2.f - emb.position.x), std::round(ry + 14.f)});
+        target.draw(emailTxt);
 
-        // Phone
-        Text phoneTxt(font); phoneTxt.setString(s2ws(c->phone)); phoneTxt.setCharacterSize(16); phoneTxt.setFillColor(Color(51, 65, 85)); phoneTxt.setPosition({col_phone, std::round(ry + 14.f)}); target.draw(phoneTxt);
+        // Phone (căn giữa)
+        Text phoneTxt(font); phoneTxt.setString(s2ws(c->phone)); phoneTxt.setCharacterSize(16); phoneTxt.setFillColor(Color(51, 65, 85));
+        FloatRect phb = phoneTxt.getLocalBounds();
+        phoneTxt.setPosition({std::round(div2 + (div3 - div2 - phb.size.x) / 2.f - phb.position.x), std::round(ry + 14.f)});
+        target.draw(phoneTxt);
 
-        // Tier Pill
-        Vector2f tierPos(col_tier, ry + 11.f);
+        // Tier Pill (căn giữa)
         auto drawRowTierPill = [&](float pillW, const wstring& lbl, Color bg, Color bor, Color fg) {
+            float tierX = std::round(div3 + (div4 - div3 - pillW) / 2.f);
+            Vector2f tierPos(tierX, ry + 11.f);
             RoundedRectRenderer::draw(target, tierPos, {pillW, 28.f}, 14.f, bg, 1.f, bor);
             Text tTxt(boldFont); tTxt.setString(lbl); tTxt.setCharacterSize(15); tTxt.setFillColor(fg);
             FloatRect tb = tTxt.getLocalBounds();
@@ -1092,11 +1105,17 @@ void UserPanel::drawCustomerTable(RenderTarget& target) const {
             drawRowTierPill(104.f, L"Tiêu chuẩn", Color(224, 242, 254), Color(186, 230, 253), Color(8, 125, 181));
         }
 
-        // Registration Date
-        Text dtTxt(font); dtTxt.setString(s2ws(c->registeredDate)); dtTxt.setCharacterSize(17); dtTxt.setFillColor(Color(100, 116, 139)); dtTxt.setPosition({col_date, std::round(ry + 14.f)}); target.draw(dtTxt);
+        // Registration Date (căn giữa)
+        Text dtTxt(font); dtTxt.setString(s2ws(c->registeredDate)); dtTxt.setCharacterSize(17); dtTxt.setFillColor(Color(100, 116, 139));
+        FloatRect dtb = dtTxt.getLocalBounds();
+        dtTxt.setPosition({std::round(div4 + (div5 - div4 - dtb.size.x) / 2.f - dtb.position.x), std::round(ry + 14.f)});
+        target.draw(dtTxt);
 
-        // Tickets Bought
-        Text tkTxt(boldFont); tkTxt.setString(to_wstring(c->ticketsBought) + L" vé"); tkTxt.setCharacterSize(16); tkTxt.setFillColor(Color(8, 125, 181)); tkTxt.setPosition({col_bought + 10.f, std::round(ry + 14.f)}); target.draw(tkTxt);
+        // Tickets Bought (căn giữa)
+        Text tkTxt(boldFont); tkTxt.setString(to_wstring(c->ticketsBought) + L" vé"); tkTxt.setCharacterSize(16); tkTxt.setFillColor(Color(8, 125, 181));
+        FloatRect tkb = tkTxt.getLocalBounds();
+        tkTxt.setPosition({std::round(div5 + (div6 - div5 - tkb.size.x) / 2.f - tkb.position.x), std::round(ry + 14.f)});
+        target.draw(tkTxt);
 
         // Action buttons: Xem, Sửa, Xóa (cỡ chữ tăng 20%, thoáng đãng không dính nhau)
         RoundedRectRenderer::draw(target, {col_action, ry + 12.f}, {40.f, 28.f}, 4.f, Color(241, 245, 249), 1.f, Color(203, 213, 225));
@@ -1194,7 +1213,7 @@ void UserPanel::drawDialog(RenderTarget& target) const {
     target.draw(dim);
 
     float dW = 480.f;
-    float dH = 340.f;
+    float dH = 350.f;
     if (activeDialog == DialogType::VIEW) {
         dW = 520.f;
         dH = 370.f;
@@ -1211,22 +1230,22 @@ void UserPanel::drawDialog(RenderTarget& target) const {
 
         Text dTitle(boldFont);
         dTitle.setString(L"Thông tin chi tiết hội viên");
-        dTitle.setCharacterSize(18);
+        dTitle.setCharacterSize(20);
         dTitle.setFillColor(Color(23, 32, 51));
         dTitle.setPosition({dPos.x + 24.f, dPos.y + 20.f});
         target.draw(dTitle);
 
         Text dSub(font);
         dSub.setString(L"Hồ sơ thành viên CineCore Rewards ID: " + s2ws(c->uid));
-        dSub.setCharacterSize(16);
+        dSub.setCharacterSize(17.5f);
         dSub.setFillColor(Color(100, 116, 139));
-        dSub.setPosition({dPos.x + 24.f, dPos.y + 46.f});
+        dSub.setPosition({dPos.x + 24.f, dPos.y + 48.f});
         target.draw(dSub);
 
-        float lineY = dPos.y + 80.f;
+        float lineY = dPos.y + 82.f;
         auto drawField = [&](const wstring& l, const wstring& v, Color vCol) {
-            Text fl(font); fl.setString(l); fl.setCharacterSize(16); fl.setFillColor(Color(100, 116, 139)); fl.setPosition({dPos.x + 24.f, lineY}); target.draw(fl);
-            Text fv(boldFont); fv.setString(v); fv.setCharacterSize(16.f); fv.setFillColor(vCol); fv.setPosition({dPos.x + 200.f, lineY}); target.draw(fv);
+            Text fl(font); fl.setString(l); fl.setCharacterSize(17.5f); fl.setFillColor(Color(100, 116, 139)); fl.setPosition({dPos.x + 24.f, lineY}); target.draw(fl);
+            Text fv(boldFont); fv.setString(v); fv.setCharacterSize(17.5f); fv.setFillColor(vCol); fv.setPosition({dPos.x + 210.f, lineY}); target.draw(fv);
             lineY += 34.f;
         };
 
@@ -1240,7 +1259,7 @@ void UserPanel::drawDialog(RenderTarget& target) const {
 
         Vector2f btnP(dPos.x + dW - 130.f, dPos.y + dH - 50.f);
         RoundedRectRenderer::draw(target, btnP, {105.f, 36.f}, 6.f, Color(8, 125, 181));
-        Text btnT(boldFont); btnT.setString(L"Đóng"); btnT.setCharacterSize(16); btnT.setFillColor(Color::White);
+        Text btnT(boldFont); btnT.setString(L"Đóng"); btnT.setCharacterSize(17.5f); btnT.setFillColor(Color::White);
         FloatRect btb = btnT.getLocalBounds();
         btnT.setPosition({std::round(btnP.x + (105.f - btb.size.x) / 2.f - btb.position.x), std::round(btnP.y + (36.f - btb.size.y) / 2.f - btb.position.y)});
         target.draw(btnT);
@@ -1275,9 +1294,15 @@ void UserPanel::drawDialog(RenderTarget& target) const {
         dT.setPosition({std::round(delP.x + (95.f - db.size.x) / 2.f - db.position.x), std::round(delP.y + (36.f - db.size.y) / 2.f - db.position.y)});
         target.draw(dT);
     } else if (activeDialog == DialogType::ADD_NEW || activeDialog == DialogType::EDIT) {
+        bool isEdit = (activeDialog == DialogType::EDIT);
+        float titleSize = isEdit ? 17.f : 15.5f;
+        float labelSize = isEdit ? 17.f : 15.5f;
+        float inputSize = isEdit ? 17.f : 15.5f;
+        float btnSize   = isEdit ? 17.f : 15.5f;
+
         Text dTitle(boldFont);
-        dTitle.setString(activeDialog == DialogType::EDIT ? L"Chỉnh sửa hồ sơ hội viên" : L"Thêm hội viên CineCore Rewards mới");
-        dTitle.setCharacterSize(14);
+        dTitle.setString(isEdit ? L"Chỉnh sửa hồ sơ hội viên" : L"Thêm hội viên CineCore Rewards mới");
+        dTitle.setCharacterSize(titleSize);
         dTitle.setFillColor(Color(23, 32, 51));
         dTitle.setPosition({dPos.x + 24.f, dPos.y + 20.f});
         target.draw(dTitle);
@@ -1286,9 +1311,9 @@ void UserPanel::drawDialog(RenderTarget& target) const {
         int fIdx = 0;
         auto drawInput = [&](const wstring& lbl, const string& val, const wstring& placeholder) {
             bool isAct = (activeInputField == fIdx);
-            Text fl(boldFont); fl.setString(lbl); fl.setCharacterSize(14); fl.setFillColor(Color(71, 85, 105)); fl.setPosition({dPos.x + 24.f, inY}); target.draw(fl);
-            Vector2f boxP(dPos.x + 24.f, inY + 18.f);
-            RoundedRectRenderer::draw(target, boxP, {dW - 48.f, 34.f}, 4.f,
+            Text fl(boldFont); fl.setString(lbl); fl.setCharacterSize(labelSize); fl.setFillColor(Color(71, 85, 105)); fl.setPosition({dPos.x + 24.f, inY}); target.draw(fl);
+            Vector2f boxP(dPos.x + 24.f, inY + 22.f);
+            RoundedRectRenderer::draw(target, boxP, {dW - 48.f, 36.f}, 4.f,
                                       isAct ? Color::White : Color(248, 250, 252),
                                       isAct ? 1.8f : 1.f,
                                       isAct ? Color(8, 125, 181) : Color(203, 213, 225));
@@ -1297,11 +1322,12 @@ void UserPanel::drawDialog(RenderTarget& target) const {
                 : (s2ws(val) + (isAct ? L"|" : L""));
             Text fv(font);
             fv.setString(disp);
-            fv.setCharacterSize(14);
+            fv.setCharacterSize(inputSize);
             fv.setFillColor(val.empty() && !isAct ? Color(148, 163, 184) : Color(23, 32, 51));
-            fv.setPosition({boxP.x + 10.f, boxP.y + 7.f});
+            FloatRect fvb = fv.getLocalBounds();
+            fv.setPosition({boxP.x + 10.f, std::round(boxP.y + (36.f - fvb.size.y) / 2.f - fvb.position.y)});
             target.draw(fv);
-            inY += 60.f;
+            inY += 64.f;
             fIdx++;
         };
 
@@ -1311,15 +1337,19 @@ void UserPanel::drawDialog(RenderTarget& target) const {
 
         Vector2f cancelP(dPos.x + dW - 230.f, dPos.y + dH - 50.f);
         RoundedRectRenderer::draw(target, cancelP, {95.f, 36.f}, 6.f, Color::White, 1.f, Color(203, 213, 225));
-        Text cT(boldFont); cT.setString(L"Hủy bỏ"); cT.setCharacterSize(14); cT.setFillColor(Color(71, 85, 105)); cT.setPosition({cancelP.x + 24.f, cancelP.y + 8.f}); target.draw(cT);
+        Text cT(boldFont); cT.setString(L"Hủy bỏ"); cT.setCharacterSize(btnSize); cT.setFillColor(Color(71, 85, 105));
+        FloatRect cb = cT.getLocalBounds();
+        cT.setPosition({std::round(cancelP.x + (95.f - cb.size.x) / 2.f - cb.position.x), std::round(cancelP.y + (36.f - cb.size.y) / 2.f - cb.position.y)});
+        target.draw(cT);
 
         Vector2f okP(dPos.x + dW - 120.f, dPos.y + dH - 50.f);
         RoundedRectRenderer::draw(target, okP, {95.f, 36.f}, 6.f, Color(8, 125, 181));
         Text okT(boldFont);
-        okT.setString(activeDialog == DialogType::EDIT ? L"Lưu lại" : L"Thêm mới");
-        okT.setCharacterSize(14);
+        okT.setString(isEdit ? L"Lưu lại" : L"Thêm mới");
+        okT.setCharacterSize(btnSize);
         okT.setFillColor(Color::White);
-        okT.setPosition({okP.x + (activeDialog == DialogType::EDIT ? 22.f : 18.f), okP.y + 8.f});
+        FloatRect ob = okT.getLocalBounds();
+        okT.setPosition({std::round(okP.x + (95.f - ob.size.x) / 2.f - ob.position.x), std::round(okP.y + (36.f - ob.size.y) / 2.f - ob.position.y)});
         target.draw(okT);
     }
 }
