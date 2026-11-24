@@ -536,7 +536,7 @@ void MovieRevenuePanel::refresh() {
 void MovieRevenuePanel::handleEvent(const Event& event, const RenderWindow& /*window*/) {
     // 0. Xử lý click Modal Báo cáo Doanh thu nếu đang mở
     if (reportModalOpen) {
-        float mw = 760.f, mh = 530.f;
+        float mw = 760.f, mh = 476.f;
         float mx = position.x + (width - mw) / 2.f;
         float my = position.y + (height - mh) / 2.f;
 
@@ -609,14 +609,14 @@ void MovieRevenuePanel::handleEvent(const Event& event, const RenderWindow& /*wi
                 }
 
                 // Nút "Mở bằng Excel / CSV"
-                FloatRect btnExcel({mx + mw - 340.f, my + mh - 50.f}, {210.f, 36.f});
+                FloatRect btnExcel({mx + mw - 340.f, my + mh - 48.f}, {210.f, 36.f});
                 if (btnExcel.contains(mPos)) {
                     openExportedFile(FileUtils::resolveDataPath("data/doanh_thu_report.csv"));
                     return;
                 }
 
                 // Nút "Đóng"
-                FloatRect btnClose({mx + mw - 115.f, my + mh - 50.f}, {100.f, 36.f});
+                FloatRect btnClose({mx + mw - 115.f, my + mh - 48.f}, {100.f, 36.f});
                 if (btnClose.contains(mPos)) {
                     reportModalOpen = false;
                     return;
@@ -832,11 +832,11 @@ void MovieRevenuePanel::update(const Vector2f& mousePos, bool /*mouseDown*/) {
     }
 
     if (reportModalOpen) {
-        float mw = 760.f, mh = 530.f;
+        float mw = 760.f, mh = 476.f;
         float mx = position.x + (width - mw) / 2.f;
         float my = position.y + (height - mh) / 2.f;
-        modalOpenExcelHovered = FloatRect({mx + mw - 340.f, my + mh - 50.f}, {210.f, 36.f}).contains(mousePos);
-        modalCloseHovered = FloatRect({mx + mw - 115.f, my + mh - 50.f}, {100.f, 36.f}).contains(mousePos);
+        modalOpenExcelHovered = FloatRect({mx + mw - 340.f, my + mh - 48.f}, {210.f, 36.f}).contains(mousePos);
+        modalCloseHovered = FloatRect({mx + mw - 115.f, my + mh - 48.f}, {100.f, 36.f}).contains(mousePos);
     }
 
     if (detailMonthIndex >= 0 && detailMonthIndex < (int)monthsList.size()) {
@@ -2715,48 +2715,32 @@ void MovieRevenuePanel::drawReportModal(RenderTarget& target) const {
     dimBg.setFillColor(Color(15, 23, 42, 175));
     target.draw(dimBg);
 
-    // 2. Khung Modal (Rộng 760px, Cao 530px)
+    // 2. Khung Modal (Rộng 760px, Cao 476px)
     float mw = 760.f;
-    float mh = 530.f;
+    float mh = 476.f;
     Vector2f mPos(position.x + (width - mw) / 2.f, position.y + (height - mh) / 2.f);
 
     RoundedRectRenderer::draw(target, mPos, {mw, mh}, 12.f, Color::White, 1.2f, Color(203, 213, 225));
 
-    // Header Modal
+    // Header Modal (tăng 10% lên 16px)
     Text mTitle(boldFont);
     mTitle.setString(L"BÁO CÁO TÀI CHÍNH & DOANH THU CHI TIẾT");
-    mTitle.setCharacterSize(14);
+    mTitle.setCharacterSize(16);
     mTitle.setFillColor(Color(23, 32, 51));
-    mTitle.setPosition({mPos.x + 24.f, mPos.y + 20.f});
+    mTitle.setPosition({mPos.x + 24.f, mPos.y + 18.f});
     target.draw(mTitle);
 
-    float titleW = mTitle.getGlobalBounds().size.x;
-    Vector2f badgePos(mPos.x + 24.f + titleW + 12.f, mPos.y + 20.f);
-    RoundedRectRenderer::draw(target, badgePos, {130.f, 22.f}, 11.f, Color(220, 252, 231), 1.f, Color(167, 243, 208));
-    Text badgeTxt(boldFont);
-    badgeTxt.setString(L"• ĐÃ XUẤT CSV");
-    badgeTxt.setCharacterSize(14);
-    badgeTxt.setFillColor(Color(21, 128, 61));
-    badgeTxt.setPosition({badgePos.x + 12.f, badgePos.y + 3.f});
-    target.draw(badgeTxt);
-
     // Nút đóng (X)
-    UITheme::drawCloseIcon(target, {mPos.x + mw - 26.f, mPos.y + 26.f}, 12.f, Color(100, 116, 139), 2.f);
-
-    // Subtitle
-    Text mSub(font, L"Niên độ Q3 & Q4/2025  •  Rạp CineCore Đà Nẵng  •  Đã kiểm toán định dạng UTF-8 Excel", 14);
-    mSub.setFillColor(Color(100, 116, 139));
-    mSub.setPosition({mPos.x + 24.f, mPos.y + 44.f});
-    target.draw(mSub);
+    UITheme::drawCloseIcon(target, {mPos.x + mw - 26.f, mPos.y + 24.f}, 12.f, Color(100, 116, 139), 2.f);
 
     // Đường kẻ phân cách
     RectangleShape sep1(Vector2f(mw - 48.f, 1.f));
-    sep1.setPosition({mPos.x + 24.f, mPos.y + 68.f});
+    sep1.setPosition({mPos.x + 24.f, mPos.y + 48.f});
     sep1.setFillColor(Color(226, 232, 240));
     target.draw(sep1);
 
     // 3. 3 Thẻ thống kê tổng quan bên trong Modal
-    float kpiY = mPos.y + 80.f;
+    float kpiY = mPos.y + 60.f;
     float kpiW = (mw - 48.f - 20.f) / 3.f; // ~230px
     float kpiH = 68.f;
 
@@ -2784,7 +2768,7 @@ void MovieRevenuePanel::drawReportModal(RenderTarget& target) const {
     drawMiniKpi(2, L"DOANH THU COMBO F&B", s2ws(toCurrency(comboRevenue)), to_wstring(totalCombos) + L" Combo & Nước (40.9%)", Color(217, 119, 6));
 
     // 4. Bảng dữ liệu Top 5 Doanh thu Phim
-    float tblY = mPos.y + 162.f;
+    float tblY = mPos.y + 142.f;
     Text tblHead(boldFont, L"BẢNG ĐỐI CHIẾU DOANH THU & SỐ LƯỢNG VÉ THEO PHIM (TOP 5)", 14);
     tblHead.setFillColor(Color(23, 32, 51));
     tblHead.setPosition({mPos.x + 24.f, tblY});
@@ -2850,18 +2834,12 @@ void MovieRevenuePanel::drawReportModal(RenderTarget& target) const {
 
     // Đường kẻ phân cách trước nút điều khiển
     RectangleShape sep2(Vector2f(mw - 48.f, 1.f));
-    sep2.setPosition({mPos.x + 24.f, mPos.y + mh - 66.f});
+    sep2.setPosition({mPos.x + 24.f, mPos.y + mh - 60.f});
     sep2.setFillColor(Color(226, 232, 240));
     target.draw(sep2);
 
-    // File path info
-    Text pathTxt(font, L"Vị trí lưu file: data/doanh_thu_report.csv (Mở tự động bằng Excel)", 14);
-    pathTxt.setFillColor(Color(100, 116, 139));
-    pathTxt.setPosition({mPos.x + 24.f, mPos.y + mh - 42.f});
-    target.draw(pathTxt);
-
     // Nút "Mở bằng Excel / CSV"
-    Vector2f btnExPos(mPos.x + mw - 340.f, mPos.y + mh - 50.f);
+    Vector2f btnExPos(mPos.x + mw - 340.f, mPos.y + mh - 48.f);
     Color exBg = modalOpenExcelHovered ? Color(18, 59, 93) : Color(8, 125, 181);
     RoundedRectRenderer::draw(target, btnExPos, {210.f, 36.f}, 6.f, exBg);
     Text btnExTxt(boldFont, L"Mở bằng Excel / CSV", 14);
@@ -2871,7 +2849,7 @@ void MovieRevenuePanel::drawReportModal(RenderTarget& target) const {
     target.draw(btnExTxt);
 
     // Nút "Đóng"
-    Vector2f btnClPos(mPos.x + mw - 115.f, mPos.y + mh - 50.f);
+    Vector2f btnClPos(mPos.x + mw - 115.f, mPos.y + mh - 48.f);
     Color clBg = modalCloseHovered ? Color(226, 232, 240) : Color(241, 245, 249);
     RoundedRectRenderer::draw(target, btnClPos, {100.f, 36.f}, 6.f, clBg, 1.f, Color(203, 213, 225));
     Text btnClTxt(boldFont, L"Đóng", 14);
