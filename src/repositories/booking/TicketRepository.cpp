@@ -18,7 +18,7 @@ using std::string;
 using std::stringstream;
 
 namespace {
-const char* TICKET_HEADER = "ticket_id|showtime_id|title|date|time|room_name|booked|combo_ids|price|email|fullName|booked_date|booked_time";
+const char* TICKET_HEADER = "ticket_id|showtime_id|title|date|time|room_name|booked|combo_ids|price|email|fullName|booked_date|booked_time|ticket_subtotal|combo_subtotal|discount_amount|final_total";
 
 static std::unordered_map<std::string, std::string> loadComboIdToName() {
     std::unordered_map<std::string, std::string> out;
@@ -154,6 +154,19 @@ bool TicketRepository::parseLine(const string& rawLine, Ticket& ticket) {
         ticket.fullName = columns[10];
         ticket.bookedDate = columns[11];
         ticket.bookedTime = columns[12];
+        if (columns.getSize() >= 17) {
+            ticket.ticketSubtotal = std::stoi(columns[13]);
+            ticket.comboSubtotal = std::stoi(columns[14]);
+            ticket.discountAmount = std::stoi(columns[15]);
+            ticket.finalTotal = std::stoi(columns[16]);
+            ticket.hasPriceBreakdown = true;
+        } else {
+            ticket.ticketSubtotal = ticket.price;
+            ticket.comboSubtotal = 0;
+            ticket.discountAmount = 0;
+            ticket.finalTotal = ticket.price;
+            ticket.hasPriceBreakdown = false;
+        }
     } catch (...) {
         return false;
     }
@@ -195,9 +208,14 @@ bool TicketRepository::writeTickets(const DLL<Ticket>& tickets) const {
     out += '\n';
     for (int i = 0; i < tickets.getSize(); ++i) {
         const Ticket& t = tickets[i];
+        int fTot = t.hasPriceBreakdown ? t.finalTotal : t.price;
+        int tSub = t.hasPriceBreakdown ? t.ticketSubtotal : t.price;
+        int cSub = t.hasPriceBreakdown ? t.comboSubtotal : 0;
+        int disc = t.hasPriceBreakdown ? t.discountAmount : 0;
         out += t.ticketId + '|' + t.showtimeId + '|' + t.title + '|' + t.date + '|' + t.time + '|' + t.roomName + '|' +
                t.booked + '|' + t.comboName + '|' + std::to_string(t.price) + '|' + t.email + '|' + t.fullName + '|' +
-               t.bookedDate + '|' + t.bookedTime + '\n';
+               t.bookedDate + '|' + t.bookedTime + '|' + std::to_string(tSub) + '|' + std::to_string(cSub) + '|' +
+               std::to_string(disc) + '|' + std::to_string(fTot) + '\n';
     }
     return FileUtils::writeAtomic(filename, out);
 }
@@ -303,7 +321,11 @@ Ticket TicketRepository::createTicket(
     const string& comboName,
     int price,
     const string& email,
-    const string& fullName
+    const string& fullName,
+    int ticketSubtotal,
+    int comboSubtotal,
+    int discountAmount,
+    int finalTotal
 ) {
     auto clean = [](string s) {
         for (char& ch : s) if (ch == '|' || ch == '\n' || ch == '\r') ch = ' ';
@@ -323,6 +345,11 @@ Ticket TicketRepository::createTicket(
     ticket.fullName = clean(fullName);
     ticket.bookedDate = getCurrentDate();
     ticket.bookedTime = getCurrentTime();
+    ticket.comboSubtotal = (comboSubtotal >= 0) ? comboSubtotal : 0;
+    ticket.discountAmount = (discountAmount >= 0) ? discountAmount : 0;
+    ticket.finalTotal = (finalTotal >= 0) ? finalTotal : price;
+    ticket.ticketSubtotal = (ticketSubtotal >= 0) ? ticketSubtotal : std::max(0, ticket.finalTotal + ticket.discountAmount - ticket.comboSubtotal);
+    ticket.hasPriceBreakdown = true;
     if (!saveTicket(ticket)) return Ticket{};
     return ticket;
 }
@@ -337,8 +364,13 @@ bool TicketRepository::saveTicket(const Ticket& ticket) {
     if (file.tellp() == 0) {
         const char bom[] = {(char)0xEF, (char)0xBB, (char)0xBF};
         file.write(bom, 3);
-        file << "ticket_id|showtime_id|title|date|time|room_name|booked|combo_ids|price|email|fullName|booked_date|booked_time\n";
+        file << TICKET_HEADER << "\n";
     }
+
+    int fTot = ticket.hasPriceBreakdown ? ticket.finalTotal : ticket.price;
+    int tSub = ticket.hasPriceBreakdown ? ticket.ticketSubtotal : ticket.price;
+    int cSub = ticket.hasPriceBreakdown ? ticket.comboSubtotal : 0;
+    int disc = ticket.hasPriceBreakdown ? ticket.discountAmount : 0;
 
     file << ticket.ticketId << "|"
          << ticket.showtimeId << "|"
@@ -352,7 +384,11 @@ bool TicketRepository::saveTicket(const Ticket& ticket) {
          << ticket.email << "|"
          << ticket.fullName << "|"
          << ticket.bookedDate << "|"
-         << ticket.bookedTime << "\n";
+         << ticket.bookedTime << "|"
+         << tSub << "|"
+         << cSub << "|"
+         << disc << "|"
+         << fTot << "\n";
 
     file.flush();
     const bool ok = file.good();

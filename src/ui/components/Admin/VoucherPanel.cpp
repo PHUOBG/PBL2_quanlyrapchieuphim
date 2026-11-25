@@ -76,12 +76,12 @@ void VoucherPanel::initDefaultData() {
     };
 
     currentRecipients = {
-        {"nguyen.van.an@gmail.com", L"Nguy\u1ec5n V\u0103n An", "12/05/2024", 1, true},
-        {"lethibinh.cinema@yahoo.com", L"L\u00ea Th\u1ecb B\u00ecnh", "14/05/2024", 1, false},
-        {"tranminhcuong99@gmail.com", L"Tr\u1ea7n Minh C\u01b0\u1eddng", "15/05/2024", 2, false},
-        {"pham.hoang.dung@outlook.com", L"Ph\u1ea1m Ho\u00e0ng D\u0169ng", "16/05/2024", 1, true},
-        {"hoangthuylinh@gmail.com", L"Ho\u00e0ng Th\u00f9y Linh", "17/05/2024", 1, true},
-        {"vuminhtuan.dn@gmail.com", L"V\u0169 Minh Tu\u1ea5n", "18/05/2024", 1, false}
+        {"binhanhk7@gmail.com", L"Nguy\u1ec5n B\u00ecnh Anh", "18/11/2026", 1, true},
+        {"ndgiabao1611@gmail.com", L"Ng\u00f4 \u0110\u0103ng Gia B\u1ea3o", "19/11/2026", 1, false},
+        {"thanhbinhhp3120@gmail.com", L"H\u1ed3 Th\u1ecb Thanh B\u00ecnh", "20/11/2026", 2, false},
+        {"daocuong674@gmail.com", L"\u0110\u00e0o H\u1eefu C\u01b0\u1eddng", "22/11/2026", 1, true},
+        {"minhdanhdn@gmail.com", L"L\u00ea Minh Danh", "24/11/2026", 1, true},
+        {"pvd210707@gmail.com", L"Ph\u1ea1m V\u0103n \u0110\u1ea1t", "25/11/2026", 1, false}
     };
 }
 
@@ -483,7 +483,16 @@ void VoucherPanel::handleEvent(const Event& event, const RenderWindow& win) {
             RecipientItem nr;
             nr.email = popupRecipientEmail;
             nr.fullName = popupRecipientName.empty() ? L"Khách Hàng Mới" : popupRecipientName;
-            nr.receivedDate = "10/11/2026";
+            time_t now = time(nullptr);
+            tm ltm{};
+#if defined(_WIN32)
+            localtime_s(&ltm, &now);
+#else
+            localtime_r(&now, &ltm);
+#endif
+            char dateBuf[16];
+            strftime(dateBuf, sizeof(dateBuf), "%d/%m/%Y", &ltm);
+            nr.receivedDate = dateBuf;
             int q = 1;
             try {
                 if (!popupRecipientQty.empty()) q = max(1, stoi(popupRecipientQty));
@@ -1458,29 +1467,29 @@ void VoucherPanel::render(RenderWindow& win) {
 
         // Email & ngày nhận
         float emailMaxW = (L.rDiv1 - L.rTblX) - 20.f;
-        wstring emailStr = ellipsizeText(boldFont, s2ws(itm.email), 14, emailMaxW);
-        Text emTxt(boldFont, emailStr, 14);
+        wstring emailStr = ellipsizeText(boldFont, s2ws(itm.email), 16, emailMaxW);
+        Text emTxt(boldFont, emailStr, 16);
         emTxt.setFillColor(isSel ? Color(185, 28, 28) : Color(23, 32, 51));
-        emTxt.setPosition({L.rTblX + 10.f, std::round(curY + 10.f)});
+        emTxt.setPosition({L.rTblX + 10.f, std::round(curY + 9.f)});
         win.draw(emTxt);
 
-        wstring recDtStr = ellipsizeText(font, L"\u0110\u00e3 nh\u1eadn: " + s2ws(itm.receivedDate), 13, emailMaxW);
-        Text recDt(font, recDtStr, 13);
+        wstring recDtStr = ellipsizeText(font, L"\u0110\u00e3 nh\u1eadn: " + s2ws(itm.receivedDate), 14, emailMaxW);
+        Text recDt(font, recDtStr, 14);
         recDt.setFillColor(Color(100, 116, 139));
-        recDt.setPosition({L.rTblX + 10.f, std::round(curY + 32.f)});
+        recDt.setPosition({L.rTblX + 10.f, std::round(curY + 33.f)});
         win.draw(recDt);
 
         // Họ tên
         float nameMaxW = (L.rDiv2 - L.rDiv1) - 20.f;
-        wstring nameStr = ellipsizeText(font, itm.fullName, 14, nameMaxW);
-        Text nmTxt(font, nameStr, 14);
+        wstring nameStr = ellipsizeText(font, itm.fullName, 16, nameMaxW);
+        Text nmTxt(font, nameStr, 16);
         nmTxt.setFillColor(isSel ? Color(185, 28, 28) : Color(51, 65, 85));
         FloatRect nmb = nmTxt.getLocalBounds();
         nmTxt.setPosition({L.rDiv1 + 10.f, std::round(curY + (rRowH - nmb.size.y) / 2.f - nmb.position.y)});
         win.draw(nmTxt);
 
         // Số lượng (căn giữa trong [rDiv2, rDiv3])
-        Text qTxt(boldFont, to_wstring(itm.quantity), 14);
+        Text qTxt(boldFont, to_wstring(itm.quantity), 16);
         qTxt.setFillColor(isSel ? Color(185, 28, 28) : Color(23, 32, 51));
         FloatRect qb = qTxt.getLocalBounds();
         qTxt.setPosition({std::round(L.rDiv2 + ((L.rDiv3 - L.rDiv2) - qb.size.x) / 2.f - qb.position.x), std::round(curY + (rRowH - qb.size.y) / 2.f - qb.position.y)});

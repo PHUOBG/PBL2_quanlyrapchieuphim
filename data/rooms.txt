@@ -2,3 +2,4 @@ room_id|room_name|seat_rows|seat_cols|total_seats
 PHONG_002|Phòng Chiếu 2|9|9|81
 PHONG_003|Phòng Chiếu 3|9|9|81
 PHONG_004|Phòng Chiếu 4|9|9|81
+PHONG_004|Phòng 4|6|6|36

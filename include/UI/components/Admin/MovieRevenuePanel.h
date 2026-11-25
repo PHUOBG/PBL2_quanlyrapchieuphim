@@ -6,6 +6,7 @@
 #include <vector>
 #include <unordered_map>
 #include "data-structures/DLL.h"
+#include "data-structures/BTree.h"
 #include "repositories/booking/TicketRepository.h"
 #include "exporters/RevenueReportExporter.h"
 
@@ -71,6 +72,7 @@ private:
     std::unordered_map<std::string, int> showtimePrices;
     std::unordered_map<std::string, int> comboPrices;
     DLL<Ticket> ticketsCache;
+    BTree<std::string, std::vector<Ticket>> ticketDateIndex;
 
     // Tong quan KPI
     long long totalRevenue = 0;

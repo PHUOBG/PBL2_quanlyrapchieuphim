@@ -185,8 +185,21 @@ void MovieRevenuePanel::loadComboPrices() {
     }
 }
 
+static string normalizeTicketDateKey(const string& primary, const string& fallback) {
+    auto parseIso = [](const string& s) -> string {
+        if (s.size() >= 10 && s[4] == '-' && s[7] == '-') return s.substr(0, 10);
+        if (s.size() >= 10 && s[2] == '/' && s[5] == '/') {
+            return s.substr(6, 4) + "-" + s.substr(3, 2) + "-" + s.substr(0, 2);
+        }
+        return "";
+    };
+    string k = parseIso(primary);
+    return k.empty() ? parseIso(fallback) : k;
+}
+
 void MovieRevenuePanel::loadTickets() {
     ticketsCache.clear();
+    ticketDateIndex.clear();
     ifstream f(ticketsFilePath, ios::binary);
     if (!f.is_open()) return;
 
@@ -227,7 +240,30 @@ void MovieRevenuePanel::loadTickets() {
             t.fullName = parts[10];
             t.bookedDate = parts[11];
             t.bookedTime = parts[12];
+            if (parts.size() >= 17) {
+                try {
+                    t.ticketSubtotal = stoi(parts[13]);
+                    t.comboSubtotal = stoi(parts[14]);
+                    t.discountAmount = stoi(parts[15]);
+                    t.finalTotal = stoi(parts[16]);
+                    t.hasPriceBreakdown = true;
+                } catch (...) {
+                    t.hasPriceBreakdown = false;
+                }
+            } else {
+                t.ticketSubtotal = t.price;
+                t.finalTotal = t.price;
+            }
             ticketsCache.push_back(t);
+
+            string dateKey = normalizeTicketDateKey(t.bookedDate, t.date);
+            if (!dateKey.empty()) {
+                if (auto* bucket = ticketDateIndex.search(dateKey)) {
+                    bucket->push_back(t);
+                } else {
+                    ticketDateIndex.insert(dateKey, vector<Ticket>{t});
+                }
+            }
         }
     }
 }
@@ -310,36 +346,48 @@ void MovieRevenuePanel::calculateStats() {
     unordered_map<string, MonthAgg> monthAgg;
     unordered_map<string, ComboAgg> comboAgg;
 
-    for (Node<Ticket>* node = ticketsCache.getHead(); node; node = node->next) {
-        const Ticket& t = node->data;
-        string ym = extractYm(t.bookedDate);
-        if (ym.empty()) ym = extractYm(t.date);
+    // 1. Tổng hợp doanh thu các tháng từ toàn bộ chỉ mục B-Tree
+    DLL<vector<Ticket>> allBuckets = ticketDateIndex.getAllValues();
+    for (Node<vector<Ticket>>* bNode = allBuckets.getHead(); bNode; bNode = bNode->next) {
+        for (const Ticket& t : bNode->data) {
+            string ym = extractYm(t.bookedDate);
+            if (ym.empty()) ym = extractYm(t.date);
 
-        long long ticketTotal = static_cast<long long>(t.price);
-        long long cPart = computeComboRevenue(t.comboName);
-        if (cPart > ticketTotal) cPart = ticketTotal;
-        long long mPart = ticketTotal - cPart;
+            long long ticketTotal = t.hasPriceBreakdown ? static_cast<long long>(t.finalTotal) : static_cast<long long>(t.price);
+            long long cPart = t.hasPriceBreakdown ? static_cast<long long>(t.comboSubtotal) : computeComboRevenue(t.comboName);
+            if (cPart > ticketTotal) cPart = ticketTotal;
+            long long mPart = ticketTotal - cPart;
 
-        if (!ym.empty()) {
-            auto& ma = monthAgg[ym];
-            ma.ticketRev += mPart;
-            ma.comboRev += cPart;
-            ma.totalRev += ticketTotal;
+            if (!ym.empty()) {
+                auto& ma = monthAgg[ym];
+                ma.ticketRev += mPart;
+                ma.comboRev += cPart;
+                ma.totalRev += ticketTotal;
+            }
         }
+    }
 
-        if (!activeYm.empty() && ym != activeYm) {
-            continue;
-        }
+    // 2. Truy vấn khoảng ngày bằng BTree::rangeQuery() -> DLL -> Thống kê kỳ đang chọn
+    const string rangeStart = activeYm.empty() ? "0000-00-00" : (activeYm + "-01");
+    const string rangeEnd   = activeYm.empty() ? "9999-99-99" : (activeYm + "-31");
+    DLL<vector<Ticket>> rangedBuckets = ticketDateIndex.rangeQuery(rangeStart, rangeEnd);
 
-        int seats = max(1, countSeats(t.booked));
-        totalRevenue += ticketTotal;
-        movieRevenue += mPart;
-        comboRevenue += cPart;
-        totalTickets += seats;
+    for (Node<vector<Ticket>>* bNode = rangedBuckets.getHead(); bNode; bNode = bNode->next) {
+        for (const Ticket& t : bNode->data) {
+            long long ticketTotal = t.hasPriceBreakdown ? static_cast<long long>(t.finalTotal) : static_cast<long long>(t.price);
+            long long cPart = t.hasPriceBreakdown ? static_cast<long long>(t.comboSubtotal) : computeComboRevenue(t.comboName);
+            if (cPart > ticketTotal) cPart = ticketTotal;
+            long long mPart = ticketTotal - cPart;
 
-        auto& mv = movieAgg[t.title];
-        mv.tickets += seats;
-        mv.revenue += ticketTotal;
+            int seats = max(1, countSeats(t.booked));
+            totalRevenue += ticketTotal;
+            movieRevenue += mPart;
+            comboRevenue += cPart;
+            totalTickets += seats;
+
+            auto& mv = movieAgg[t.title];
+            mv.tickets += seats;
+            mv.revenue += mPart;
 
         if (!t.comboName.empty() && t.comboName != "Không có" && t.comboName != "None") {
             stringstream css(t.comboName);
@@ -371,6 +419,7 @@ void MovieRevenuePanel::calculateStats() {
                 totalCombos += qty;
             }
         }
+        }
     }
 
     moviesList.clear();
@@ -384,7 +433,7 @@ void MovieRevenuePanel::calculateStats() {
         item.showtimes = showtimesPerMovieId.count(item.id) ? showtimesPerMovieId[item.id] : 0;
         item.tickets = kv.second.tickets;
         item.revenue = kv.second.revenue;
-        item.share = totalRevenue > 0 ? static_cast<float>(kv.second.revenue) * 100.f / static_cast<float>(totalRevenue) : 0.f;
+        item.share = movieRevenue > 0 ? static_cast<float>(kv.second.revenue) * 100.f / static_cast<float>(movieRevenue) : 0.f;
         moviesList.push_back(item);
     }
     sort(moviesList.begin(), moviesList.end(), [](const MovieRevItem& a, const MovieRevItem& b) {
@@ -909,7 +958,7 @@ void MovieRevenuePanel::drawHeader(RenderTarget& target) const {
     } else if (activeTab == RevenueTab::REVENUE_BY_MOVIE) {
         badgeStr = L"Cập nhật lúc 22:45 hôm nay";
     } else if (activeTab == RevenueTab::REVENUE_BY_COMBO) {
-        badgeStr = L"Kỳ Q3-Q4/2025";
+        badgeStr = L"Kỳ Q3-Q4/2026";
     }
 
     UITheme::drawSectionHeaderCard(target, position.x + 20.f, position.y + 14.f, width - 40.f,
@@ -964,13 +1013,13 @@ void MovieRevenuePanel::drawKpiCards(RenderTarget& target) const {
     const float availableW = width - margin * 2.f;
     const float cardW = (availableW - gap * 2.f) / 3.f; // ~460px
 
-    // 1. Tổng doanh thu (01/09/2025 - 24/12/2025)
+    // 1. Tổng doanh thu (01/09/2026 - 25/11/2026)
     {
         Vector2f cPos(position.x + margin, cardY);
         RoundedRectRenderer::draw(target, cPos, {cardW, cardH}, 8.f, Color::White, 1.f, Color(226, 232, 240));
 
         Text lbl(boldFont);
-        lbl.setString(L"Tổng doanh thu toàn rạp (01/09/2025 - 24/12/2025)");
+        lbl.setString(L"Tổng doanh thu toàn rạp (01/09/2026 - 25/11/2026)");
         lbl.setCharacterSize(16);
         lbl.setFillColor(Color(100, 116, 139));
         lbl.setPosition({cPos.x + 16.f, std::round(cPos.y + 10.f)});
@@ -1000,7 +1049,7 @@ void MovieRevenuePanel::drawKpiCards(RenderTarget& target) const {
         target.draw(fRight);
     }
 
-    // 2. Doanh thu phim (01/09/2025 - 24/12/2025)
+    // 2. Doanh thu phim (01/09/2026 - 25/11/2026)
     {
         Vector2f cPos(position.x + margin + (cardW + gap), cardY);
         bool isMovieTab = (activeTab == RevenueTab::REVENUE_BY_MOVIE);
@@ -1009,7 +1058,7 @@ void MovieRevenuePanel::drawKpiCards(RenderTarget& target) const {
         RoundedRectRenderer::draw(target, cPos, {cardW, cardH}, 8.f, Color::White, borderW, borderCol);
 
         Text lbl(boldFont);
-        lbl.setString(L"Doanh thu phim (01/09/2025 - 24/12/2025)");
+        lbl.setString(L"Doanh thu phim (01/09/2026 - 25/11/2026)");
         lbl.setCharacterSize(16);
         lbl.setFillColor(Color(100, 116, 139));
         lbl.setPosition({cPos.x + 16.f, std::round(cPos.y + 10.f)});
@@ -1037,7 +1086,7 @@ void MovieRevenuePanel::drawKpiCards(RenderTarget& target) const {
         target.draw(fRight);
     }
 
-    // 3. Doanh thu combo (01/09/2025 - 24/12/2025)
+    // 3. Doanh thu combo (01/09/2026 - 25/11/2026)
     {
         Vector2f cPos(position.x + margin + 2 * (cardW + gap), cardY);
         bool isComboTab = (activeTab == RevenueTab::REVENUE_BY_COMBO);
@@ -1047,7 +1096,7 @@ void MovieRevenuePanel::drawKpiCards(RenderTarget& target) const {
         RoundedRectRenderer::draw(target, cPos, {cardW, cardH}, 8.f, bgCol, borderW, borderCol);
 
         Text lbl(boldFont);
-        lbl.setString(L"Doanh thu combo F&B (01/09/2025 - 24/12/2025)");
+        lbl.setString(L"Doanh thu combo F&B (01/09/2026 - 25/11/2026)");
         lbl.setCharacterSize(16);
         lbl.setFillColor(Color(100, 116, 139));
         lbl.setPosition({cPos.x + 16.f, std::round(cPos.y + 10.f)});
@@ -1257,7 +1306,7 @@ void MovieRevenuePanel::drawTab1TicketsByMovie(RenderTarget& target) const {
         sDot.setFillColor(Color(21, 128, 61));
         target.draw(sDot);
 
-        Text sTitle(boldFont, L"Số vé bán ra theo phim (01/09/2025 – 24/12/2025)", 17);
+        Text sTitle(boldFont, L"Số vé bán ra theo phim (01/09/2026 – 25/11/2026)", 17);
         sTitle.setFillColor(Color(23, 32, 51));
         sTitle.setPosition({cPos.x + 34.f, std::round(cPos.y + 13.f)});
         target.draw(sTitle);

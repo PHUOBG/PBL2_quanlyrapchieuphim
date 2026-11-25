@@ -60,7 +60,7 @@ private:
     // Filters and search
     std::string searchText;
     int tierFilterIndex = 0; // 0: Tất cả, 1: Hạng Vàng, 2: Hạng Bạc, 3: Tiêu chuẩn
-    int timeFilterIndex = 0; // 0: Cả năm 2025, 1: Tháng 12/2025, 2: Tháng 11/2025, 3: Tháng 10/2025, 4: Tháng 09/2025
+    int timeFilterIndex = 0; // 0: Tất cả, 1..4: 4 tháng gần nhất (động theo thời gian thực)
     bool searchActive = false;
 
     // Table state

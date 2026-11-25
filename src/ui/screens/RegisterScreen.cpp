@@ -2,6 +2,7 @@
 #include "UI/components/Admin/RoundedRectRenderer.h"
 #include "UI/components/Admin/FontManager.h"
 #include "utils/FileUtils.h"
+#include "utils/Validator.h"
 #ifdef _WIN32
 #include <windows.h>
 #endif
@@ -67,7 +68,7 @@ void RegisterScreen::computeLayout(float W, float H) {
     float chkY = r4Y + 60.f;
     checkRect = FloatRect({leftX - 2.f, chkY - 2.f}, {innerW, 26.f});
 
-    float btnY = showRules ? (chkY + 178.f) : (chkY + 46.f);
+    float btnY = showRules ? (chkY + 196.f) : (chkY + 54.f);
     float backW = 200.f;
     float regW = innerW - backW - 14.f;
     backRect = FloatRect({leftX, btnY}, {backW, 46.f});
@@ -88,15 +89,27 @@ bool RegisterScreen::validateInputs() {
             return false;
         }
     }
+    string birthDate = wstring_to_utf8(inputs[1]);
+    if (!Validator::isValidDate(birthDate)) {
+        statusColor = Color(220, 38, 38);
+        statusMessage = L"Ngày sinh không hợp lệ (DD/MM/YYYY, không vượt quá hiện tại).";
+        return false;
+    }
     string email = wstring_to_utf8(inputs[2]);
     if (auth.emailExists(email)) {
         statusColor = Color(220, 38, 38);
         statusMessage = L"Email doanh nghiệp này đã được sử dụng.";
         return false;
     }
-    if (inputs[4].size() < 8) {
+    string password = wstring_to_utf8(inputs[4]);
+    if (password.size() < 8) {
         statusColor = Color(220, 38, 38);
         statusMessage = L"Mật khẩu phải có tối thiểu 8 ký tự.";
+        return false;
+    }
+    if (!Validator::isStrongPassword(password)) {
+        statusColor = Color(220, 38, 38);
+        statusMessage = L"Mật khẩu chưa đủ mạnh (cần có chữ hoa, chữ thường và chữ số).";
         return false;
     }
     if (inputs[4] != inputs[5]) {
@@ -156,6 +169,14 @@ void RegisterScreen::handleEvent(const Event& event, AppState& state) {
                 inputs[activeField].pop_back();
                 showCursor = true;
                 cursorClock.restart();
+                if (activeField == 4 || activeField == 5) {
+                    if (!inputs[5].empty() && inputs[4] != inputs[5]) {
+                        statusColor = Color(220, 38, 38);
+                        statusMessage = L"Mật khẩu xác nhận không khớp.";
+                    } else if (statusMessage == L"Mật khẩu xác nhận không khớp.") {
+                        statusMessage.clear();
+                    }
+                }
             }
         } else if (code == Keyboard::Key::Enter) {
             submitRegistration();
@@ -168,6 +189,14 @@ void RegisterScreen::handleEvent(const Event& event, AppState& state) {
             inputs[activeField].push_back((wchar_t)unicode);
             showCursor = true;
             cursorClock.restart();
+            if (activeField == 4 || activeField == 5) {
+                if (!inputs[5].empty() && inputs[4] != inputs[5]) {
+                    statusColor = Color(220, 38, 38);
+                    statusMessage = L"Mật khẩu xác nhận không khớp.";
+                } else if (statusMessage == L"Mật khẩu xác nhận không khớp.") {
+                    statusMessage.clear();
+                }
+            }
         }
     }
 }
@@ -632,7 +661,7 @@ void RegisterScreen::drawVectorLock(RenderTarget& target, Vector2f pos, Color co
 
 void RegisterScreen::drawVectorShield(RenderTarget& target, Vector2f pos, Color color) const {
     RoundedRectRenderer::draw(target, {pos.x + 1.5f, pos.y + 1.f}, {12.f, 12.f}, 4.f, Color::Transparent, 1.4f, color);
-    drawVectorCheck(target, {pos.x + 3.5f, pos.y + 4.f}, color);
+    drawVectorCheck(target, {pos.x + 2.75f, pos.y + 2.75f}, color);
 }
 
 void RegisterScreen::drawVectorEye(RenderTarget& target, Vector2f pos, bool open, bool hovered) const {

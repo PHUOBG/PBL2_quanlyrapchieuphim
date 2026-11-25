@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <memory>
 #include "data-structures/DLL.h"
+#include "data-structures/BTree.h"
 #include "repositories/booking/TicketRepository.h"
 #include "exporters/OverviewReportExporter.h"
 
@@ -61,6 +62,7 @@ private:
     std::unordered_map<std::string, int> comboPrices;
     std::unordered_map<std::string, long long> registrationTimes;
     DLL<Ticket> ticketsCache;
+    BTree<std::string, std::vector<Ticket>> ticketDateIndex;
     bool dataLoaded = false;
 
     // Chi so KPI

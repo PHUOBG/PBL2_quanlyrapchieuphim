@@ -57,7 +57,6 @@ private:
     void drawHeaderBanner(sf::RenderTarget& target) const;
     void drawPersonalInfoCard(sf::RenderTarget& target) const;
     void drawPasswordCard(sf::RenderTarget& target) const;
-    void drawTwoFactorCard(sf::RenderTarget& target) const;
     void drawDeleteModal(sf::RenderTarget& target) const;
     void drawToast(sf::RenderTarget& target) const;
     void drawBottomBar(sf::RenderTarget& target) const;

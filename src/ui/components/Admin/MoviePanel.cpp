@@ -151,15 +151,68 @@ void MoviePanel::setPosition(Vector2f pos) {
     width = 1728.f - pos.x;
 }
 
+void MoviePanel::rebuildMovieSearchTrie() {
+    titleTrie = make_unique<Trie>();
+    normalizedTitleToIndices.clear();
+
+    for (size_t i = 0; i < allMovies.size(); ++i) {
+        if (allMovies[i].size() < 2) continue;
+        string normTitle = UITheme::normalizeViUtf8(allMovies[i][1]);
+        if (normTitle.empty()) continue;
+
+        auto indexKey = [&](const string& key) {
+            if (key.empty()) return;
+            titleTrie->insert(key);
+            auto& idxList = normalizedTitleToIndices[key];
+            if (find(idxList.begin(), idxList.end(), static_cast<int>(i)) == idxList.end()) {
+                idxList.push_back(static_cast<int>(i));
+            }
+        };
+
+        // Lập chỉ mục tiền tố cho cả tên phim đầy đủ và từng hậu tố bắt đầu từ đầu từ
+        indexKey(normTitle);
+        for (size_t pos = 0; pos < normTitle.size(); ++pos) {
+            if (normTitle[pos] == ' ' && pos + 1 < normTitle.size() && normTitle[pos + 1] != ' ') {
+                indexKey(normTitle.substr(pos + 1));
+            }
+        }
+    }
+}
+
 void MoviePanel::refreshData() {
     if (!repository) return;
     repository->loadFromFile();
     allMovies = repository->getAllData();
+    rebuildMovieSearchTrie();
     applyFilter();
 }
 
 void MoviePanel::applyFilter() {
     filteredIndices.clear();
+
+    unordered_set<int> trieMatchedIndices;
+    bool useTrieFilter = false;
+    if (!searchQuery.empty() && titleTrie) {
+        string normQuery = UITheme::normalizeViUtf8(ws2s(searchQuery));
+        size_t first = normQuery.find_first_not_of(" \t\r\n");
+        if (first != string::npos) {
+            size_t last = normQuery.find_last_not_of(" \t\r\n");
+            normQuery = normQuery.substr(first, last - first + 1);
+            useTrieFilter = true;
+
+            StringArray suggestions = titleTrie->getSuggestions(normQuery, 200);
+            for (int k = 0; k < suggestions.size; ++k) {
+                const char* sug = suggestions.get(k);
+                if (!sug) continue;
+                auto it = normalizedTitleToIndices.find(sug);
+                if (it != normalizedTitleToIndices.end()) {
+                    for (int idx : it->second) {
+                        trieMatchedIndices.insert(idx);
+                    }
+                }
+            }
+        }
+    }
 
     for (size_t i = 0; i < allMovies.size(); ++i) {
         const auto& row = allMovies[i];
@@ -174,10 +227,9 @@ void MoviePanel::applyFilter() {
         string status = (row.size() >= 14) ? row[13] : "Đang chiếu";
         if (status.empty()) status = "Đang chiếu";
 
-        // 1. Tìm kiếm đa trường hỗ trợ tiếng Việt có dấu & không dấu (ID, Tên phim, Đạo diễn, Quốc gia, Thể loại, Diễn viên)
-        if (!searchQuery.empty()) {
-            bool match = UITheme::matchesViQuery(s2ws(title), searchQuery);
-            if (!match) continue;
+        // 1. Tìm kiếm tiền tố bằng Trie (hỗ trợ tiếng Việt có dấu & không dấu)
+        if (useTrieFilter && trieMatchedIndices.count(static_cast<int>(i)) == 0) {
+            continue;
         }
 
         // 2. Lọc thể loại (hỗ trợ so khớp chuẩn hóa tiếng Việt)

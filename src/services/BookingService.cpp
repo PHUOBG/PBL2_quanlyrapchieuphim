@@ -76,9 +76,14 @@ Ticket BookingService::createTicket(const BookingInfo& info) {
     string combosStr = formatCombosForStorage(info.selectedCombos);
     string canonicalSeats;  // always derived from the reserved seats so deletion releases exactly them
     for (int i = 0; i < seatsDLL.getSize(); ++i) canonicalSeats += (i ? ", " : "") + seatsDLL[i];
+    int comboSub = max(0, info.comboTotalPrice);
+    int discountAmt = max(0, info.voucherDiscount);
+    int finalTot = max(0, info.totalPrice);
+    int ticketSub = max(0, finalTot + discountAmt - comboSub);
     Ticket created = ticketRepository.createTicket(
         info.showtimeId, info.movieName, info.date, info.time, info.roomName,
-        canonicalSeats, combosStr, info.totalPrice, info.customerEmail, info.customerName);
+        canonicalSeats, combosStr, info.totalPrice, info.customerEmail, info.customerName,
+        ticketSub, comboSub, discountAmt, finalTot);
 
     if (created.ticketId.empty()) {
         seatRepository.removeBookedSeats(info.showtimeId, targetRoom, seatsDLL);

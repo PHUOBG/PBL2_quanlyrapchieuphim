@@ -239,8 +239,21 @@ void OverviewPanel::loadComboPrices() {
     }
 }
 
+static string normalizeOverviewDateKey(const string& primary, const string& fallback) {
+    auto parseIso = [](const string& s) -> string {
+        if (s.size() >= 10 && s[4] == '-' && s[7] == '-') return s.substr(0, 10);
+        if (s.size() >= 10 && s[2] == '/' && s[5] == '/') {
+            return s.substr(6, 4) + "-" + s.substr(3, 2) + "-" + s.substr(0, 2);
+        }
+        return "";
+    };
+    string k = parseIso(primary);
+    return k.empty() ? parseIso(fallback) : k;
+}
+
 void OverviewPanel::loadTickets() {
     ticketsCache.clear();
+    ticketDateIndex.clear();
     ifstream f(ticketsFilePath, ios::binary);
     if (!f.is_open()) return;
 
@@ -281,7 +294,30 @@ void OverviewPanel::loadTickets() {
             t.fullName = parts[10];
             t.bookedDate = parts[11];
             t.bookedTime = parts[12];
+            if (parts.size() >= 17) {
+                try {
+                    t.ticketSubtotal = stoi(parts[13]);
+                    t.comboSubtotal = stoi(parts[14]);
+                    t.discountAmount = stoi(parts[15]);
+                    t.finalTotal = stoi(parts[16]);
+                    t.hasPriceBreakdown = true;
+                } catch (...) {
+                    t.hasPriceBreakdown = false;
+                }
+            } else {
+                t.ticketSubtotal = t.price;
+                t.finalTotal = t.price;
+            }
             ticketsCache.push_back(t);
+
+            string dateKey = normalizeOverviewDateKey(t.bookedDate, t.date);
+            if (!dateKey.empty()) {
+                if (auto* bucket = ticketDateIndex.search(dateKey)) {
+                    bucket->push_back(t);
+                } else {
+                    ticketDateIndex.insert(dateKey, vector<Ticket>{t});
+                }
+            }
         }
     }
 }
@@ -327,82 +363,77 @@ void OverviewPanel::calculateStats() {
     int stdSeats = 0;
     int vipSeats = 0;
 
-    Node<Ticket>* node = ticketsCache.getHead();
-    while (node) {
-        const Ticket& t = node->data;
-
-        // 1. Lọc theo phòng chiếu
+    auto matchesTicketFilter = [&](const Ticket& t) -> bool {
         if (!activeRoomKey.empty() && trim(t.roomName) != activeRoomKey) {
-            node = node->next;
-            continue;
+            return false;
         }
-
-        // 2. Lọc theo từ khóa tìm kiếm (tên phim, mã vé, combo, tên khách hàng)
         if (!searchQuery.empty()) {
             bool match = UITheme::matchesViQuery(s2ws(t.title), searchQuery) ||
                          UITheme::matchesViQuery(s2ws(t.ticketId), searchQuery) ||
                          UITheme::matchesViQuery(s2ws(t.comboName), searchQuery) ||
                          UITheme::matchesViQuery(s2ws(t.roomName), searchQuery) ||
                          UITheme::matchesViQuery(s2ws(t.fullName), searchQuery);
-            if (!match) {
-                node = node->next;
-                continue;
+            if (!match) return false;
+        }
+        return true;
+    };
+
+    auto extractYm = [](const string& d) -> string {
+        if (d.size() >= 7 && d[4] == '-') return d.substr(0, 7);
+        if (d.size() >= 10 && d[2] == '/' && d[5] == '/') return d.substr(6, 4) + "-" + d.substr(3, 2);
+        return "";
+    };
+
+    // 1. Tổng hợp doanh thu các tháng từ toàn bộ chỉ mục B-Tree
+    DLL<vector<Ticket>> allBuckets = ticketDateIndex.getAllValues();
+    for (Node<vector<Ticket>>* bNode = allBuckets.getHead(); bNode; bNode = bNode->next) {
+        for (const Ticket& t : bNode->data) {
+            if (!matchesTicketFilter(t)) continue;
+            string ym = extractYm(t.bookedDate);
+            if (ym.empty()) ym = extractYm(t.date);
+            if (!ym.empty()) {
+                string mmYyyy = ym.substr(5, 2) + "/" + ym.substr(0, 4);
+                monthRevMap[mmYyyy] += static_cast<long long>(t.price);
             }
         }
+    }
 
-        // Extract YYYY-MM from t.date (YYYY-MM-DD or DD/MM/YYYY) or t.bookedDate (DD/MM/YYYY)
-        auto extractYm = [](const string& d) -> string {
-            if (d.size() >= 7 && d[4] == '-') return d.substr(0, 7);
-            if (d.size() >= 10 && d[2] == '/' && d[5] == '/') return d.substr(6, 4) + "-" + d.substr(3, 2);
-            return "";
-        };
-        string ym = extractYm(t.bookedDate);
-        if (ym.empty()) ym = extractYm(t.date);
+    // 2. Truy vấn khoảng ngày bằng BTree::rangeQuery() -> DLL -> Thống kê kỳ đang chọn
+    const string rangeStart = activeDateKey.empty() ? "0000-00-00" : (activeDateKey + "-01");
+    const string rangeEnd   = activeDateKey.empty() ? "9999-99-99" : (activeDateKey + "-31");
+    DLL<vector<Ticket>> rangedBuckets = ticketDateIndex.rangeQuery(rangeStart, rangeEnd);
 
-        long long ticketTotal = static_cast<long long>(t.price);
-        if (!ym.empty()) {
-            string mmYyyy = ym.substr(5, 2) + "/" + ym.substr(0, 4);
-            monthRevMap[mmYyyy] += ticketTotal;
-        }
+    for (Node<vector<Ticket>>* bNode = rangedBuckets.getHead(); bNode; bNode = bNode->next) {
+        for (const Ticket& t : bNode->data) {
+            if (!matchesTicketFilter(t)) continue;
 
-        // 3. Lọc theo kỳ thời gian (tháng)
-        if (!activeDateKey.empty()) {
-            string slashMonth = "/" + activeDateKey.substr(5, 2) + "/" + activeDateKey.substr(0, 4);
-            bool dateMatch = (t.date.rfind(activeDateKey, 0) == 0) ||
-                             (t.bookedDate.find(slashMonth) != string::npos);
-            if (!dateMatch) {
-                node = node->next;
-                continue;
+            long long ticketTotal = t.hasPriceBreakdown ? static_cast<long long>(t.finalTotal) : static_cast<long long>(t.price);
+            int seats = max(1, countSeats(t.booked));
+            long long cPart = t.hasPriceBreakdown ? static_cast<long long>(t.comboSubtotal) : computeComboRevenue(t.comboName);
+            if (cPart > ticketTotal) cPart = ticketTotal;
+            long long mPart = ticketTotal - cPart;
+
+            // Phân loại ghế Standard (A-C) và VIP (D-I)
+            if (!t.booked.empty() && (t.booked[0] >= 'D' && t.booked[0] <= 'I')) {
+                vipSeats += seats;
+            } else {
+                stdSeats += seats;
+            }
+
+            movieTickets[t.title] += seats;
+            movieRevenue[t.title] += mPart;
+
+            totalRev += ticketTotal;
+            movieRev += mPart;
+            comboRev += cPart;
+            ticketsCount += seats;
+
+            string dayKey = !t.bookedDate.empty() ? t.bookedDate : t.date;
+            if (!dayKey.empty()) revByDay[dayKey] += ticketTotal;
+            if (t.bookedDate == todaySlash || t.date == todayIso) {
+                todayRev += ticketTotal;
             }
         }
-
-        int seats = max(1, countSeats(t.booked));
-        long long cPart = computeComboRevenue(t.comboName);
-        if (cPart > ticketTotal) cPart = ticketTotal;
-        long long mPart = ticketTotal - cPart;
-
-        // Phân loại ghế Standard (A-C) và VIP (D-I)
-        if (!t.booked.empty() && (t.booked[0] >= 'D' && t.booked[0] <= 'I')) {
-            vipSeats += seats;
-        } else {
-            stdSeats += seats;
-        }
-
-        movieTickets[t.title] += seats;
-        movieRevenue[t.title] += ticketTotal;
-
-        totalRev += ticketTotal;
-        movieRev += mPart;
-        comboRev += cPart;
-        ticketsCount += seats;
-
-        string dayKey = !t.bookedDate.empty() ? t.bookedDate : t.date;
-        if (!dayKey.empty()) revByDay[dayKey] += ticketTotal;
-        if (t.bookedDate == todaySlash || t.date == todayIso) {
-            todayRev += ticketTotal;
-        }
-
-        node = node->next;
     }
 
     // Xây dựng danh sách Top Movies (100% từ dữ liệu vé thực tế, không fallback giả lập)
@@ -861,9 +892,22 @@ void OverviewPanel::drawKpiCards(RenderTarget& target) const {
         }
     };
 
+    time_t now = time(nullptr);
+    tm ltm{};
+#if defined(_WIN32)
+    localtime_s(&ltm, &now);
+#else
+    localtime_r(&now, &ltm);
+#endif
+    char todayBuf[16], monthBuf[16];
+    strftime(todayBuf, sizeof(todayBuf), "%d/%m/%Y", &ltm);
+    strftime(monthBuf, sizeof(monthBuf), "%m/%Y", &ltm);
+    const wstring todayLabel = L"Hôm nay (" + s2ws(todayBuf) + L")";
+    const wstring monthLabel = L"Tháng " + s2ws(monthBuf);
+
     // 1. Doanh thu trong ngày
     drawStandardCard(0, L"Doanh thu trong ngày", s2ws(toCurrency(dailyRevenue)), L"",
-                     L"Hôm nay (27/10/2026)", L"\u2191 +12.5%", Color(21, 128, 61), L"so với hôm qua");
+                     todayLabel, L"\u2191 +12.5%", Color(21, 128, 61), L"so với hôm qua");
 
     // 2. Khách hàng mới
     {
@@ -883,7 +927,7 @@ void OverviewPanel::drawKpiCards(RenderTarget& target) const {
         unit.setPosition({std::round(val.getPosition().x + val.getGlobalBounds().size.x + 6.f), std::round(cardPos.y + 39.f)});
         target.draw(unit);
 
-        Text sub(font, L"Tháng 10/2026", 13);
+        Text sub(font, monthLabel, 13);
         sub.setFillColor(Color(148, 163, 184));
         sub.setPosition({cardPos.x + 14.f, std::round(cardPos.y + 70.f)});
         target.draw(sub);
@@ -922,7 +966,7 @@ void OverviewPanel::drawKpiCards(RenderTarget& target) const {
         unit.setPosition({std::round(val.getPosition().x + val.getGlobalBounds().size.x + 6.f), std::round(cardPos.y + 39.f)});
         target.draw(unit);
 
-        Text sub(font, L"Tháng 10/2026", 13);
+        Text sub(font, monthLabel, 13);
         sub.setFillColor(Color(148, 163, 184));
         sub.setPosition({cardPos.x + 14.f, std::round(cardPos.y + 70.f)});
         target.draw(sub);

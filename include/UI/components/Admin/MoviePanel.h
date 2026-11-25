@@ -3,9 +3,11 @@
 #include <SFML/Graphics.hpp>
 #include "repositories/admin/AdminMovieRepository.h"
 #include "UI/components/Admin/RoundedRectRenderer.h"
+#include "data-structures/Trie.h"
 #include <string>
 #include <vector>
 #include <map>
+#include <unordered_map>
 #include <memory>
 
 using namespace sf;
@@ -32,6 +34,8 @@ private:
     unique_ptr<AdminMovieRepository> repository;
     vector<vector<string>> allMovies;
     vector<int> filteredIndices;
+    unique_ptr<Trie> titleTrie;
+    unordered_map<string, vector<int>> normalizedTitleToIndices;
 
     // Search and filter states
     wstring searchQuery;
@@ -95,6 +99,7 @@ private:
     bool notificationVisible = false;
 
     void refreshData();
+    void rebuildMovieSearchTrie();
     void applyFilter();
     void showToast(const wstring& msg, Color col = Color(16, 185, 129));
 

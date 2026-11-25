@@ -21,6 +21,11 @@ struct Ticket {
     string fullName;
     string bookedDate;
     string bookedTime;
+    int ticketSubtotal = 0;
+    int comboSubtotal = 0;
+    int discountAmount = 0;
+    int finalTotal = 0;
+    bool hasPriceBreakdown = false;
 };
 
 class TicketRepository {
@@ -52,7 +57,11 @@ public:
         const string& comboName,
         int price,
         const string& email,
-        const string& fullName
+        const string& fullName,
+        int ticketSubtotal = -1,
+        int comboSubtotal = -1,
+        int discountAmount = 0,
+        int finalTotal = -1
     );
 
     bool saveTicket(const Ticket& ticket);

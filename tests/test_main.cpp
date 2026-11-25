@@ -97,7 +97,7 @@ static BookingInfo makeInfo(const string& showtime, const string& room, std::vec
     return b;
 }
 
-int main() {
+int main() {   // tạo hộp chứa dữ liệu ảo vào đây
     const fs::path sandbox = fs::temp_directory_path() / "cinecore_test_sandbox";
     fs::remove_all(sandbox);
     fs::create_directories(sandbox);

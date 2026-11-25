@@ -344,10 +344,7 @@ void AdminProfilePanel::render(RenderTarget& target) const {
     drawPersonalInfoCard(target);
     drawPasswordCard(target);
 
-    // 4. Two-Factor Authentication Card
-    drawTwoFactorCard(target);
-
-    // 5. Bottom Engine Status Bar
+    // 4. Bottom Engine Status Bar
     drawBottomBar(target);
 
     // 6. Delete Confirmation Modal
@@ -673,6 +670,44 @@ void AdminProfilePanel::drawPasswordCard(RenderTarget& target) const {
     // 2. Mật khẩu mới (Field 7)
     drawPassInput(cardY + 150.f, L"Mật khẩu mới", newPass, L"Nhập mật khẩu mới", activeField == 7, showNewPass);
 
+    // Evaluate new password strength & rules
+    bool hasMinLen = newPass.size() >= 8;
+    bool hasUpper = false, hasLower = false, hasDigit = false, hasSpecial = false;
+    for (unsigned char c : newPass) {
+        if (std::isupper(c)) hasUpper = true;
+        else if (std::islower(c)) hasLower = true;
+        else if (std::isdigit(c)) hasDigit = true;
+        else hasSpecial = true;
+    }
+    bool hasUpperAndDigit = hasUpper && hasDigit;
+    bool diffFromOld = !newPass.empty() && newPass != oldPass;
+
+    int strengthLevel = 0;
+    if (!newPass.empty()) {
+        if (hasMinLen) strengthLevel++;
+        if (hasUpper && hasLower) strengthLevel++;
+        if (hasDigit) strengthLevel++;
+        if (hasSpecial) strengthLevel++;
+        if (!hasMinLen) strengthLevel = 1;
+        else if (strengthLevel == 0) strengthLevel = 1;
+    }
+
+    wstring strengthText = L"Chưa nhập";
+    Color strengthColor(148, 163, 184);
+    if (strengthLevel == 1) {
+        strengthText = L"Yếu";
+        strengthColor = Color(220, 38, 38);
+    } else if (strengthLevel == 2) {
+        strengthText = L"Trung bình";
+        strengthColor = Color(245, 158, 11);
+    } else if (strengthLevel == 3) {
+        strengthText = L"Mạnh";
+        strengthColor = Color(8, 125, 181);
+    } else if (strengthLevel >= 4) {
+        strengthText = L"Rất mạnh";
+        strengthColor = Color(21, 128, 61);
+    }
+
     // Password Strength Meter
     float meterY = cardY + 226.f;
     Text sLbl(font, L"Độ mạnh mật khẩu:", 15.f);
@@ -680,8 +715,8 @@ void AdminProfilePanel::drawPasswordCard(RenderTarget& target) const {
     sLbl.setPosition({cardX + 24.f, meterY});
     target.draw(sLbl);
 
-    Text sVal(boldFont, L"Rất mạnh", 15.f);
-    sVal.setFillColor(Color(21, 128, 61));
+    Text sVal(boldFont, strengthText, 15.f);
+    sVal.setFillColor(strengthColor);
     sVal.setPosition({cardX + cardW - 24.f - sVal.getGlobalBounds().size.x, meterY});
     target.draw(sVal);
 
@@ -689,7 +724,8 @@ void AdminProfilePanel::drawPasswordCard(RenderTarget& target) const {
     float segW = (passW - 3 * barGap) / 4.f;
     for (int i = 0; i < 4; ++i) {
         Vector2f segPos(cardX + 24.f + i * (segW + barGap), meterY + 22.f);
-        RoundedRectRenderer::draw(target, segPos, {segW, 8.f}, 4.f, Color(21, 128, 61));
+        Color segCol = (i < strengthLevel) ? strengthColor : Color(226, 232, 240);
+        RoundedRectRenderer::draw(target, segPos, {segW, 8.f}, 4.f, segCol);
     }
 
     // 3. Xác thực mật khẩu (Field 8)
@@ -720,10 +756,10 @@ void AdminProfilePanel::drawPasswordCard(RenderTarget& target) const {
         target.draw(t);
     };
 
-    drawRuleItem(cardX + 24.f, ruleY + 28.f, L"Tối thiểu 8 ký tự", true);
-    drawRuleItem(cardX + 24.f + passW / 2.f, ruleY + 28.f, L"Ký tự chữ hoa & số", true);
-    drawRuleItem(cardX + 24.f, ruleY + 52.f, L"Ít nhất 1 ký tự đặc biệt", true);
-    drawRuleItem(cardX + 24.f + passW / 2.f, ruleY + 52.f, L"Khác 3 mật khẩu cũ", true);
+    drawRuleItem(cardX + 24.f, ruleY + 28.f, L"Tối thiểu 8 ký tự", hasMinLen);
+    drawRuleItem(cardX + 24.f + passW / 2.f, ruleY + 28.f, L"Ký tự chữ hoa & số", hasUpperAndDigit);
+    drawRuleItem(cardX + 24.f, ruleY + 52.f, L"Ít nhất 1 ký tự đặc biệt", hasSpecial);
+    drawRuleItem(cardX + 24.f + passW / 2.f, ruleY + 52.f, L"Khác 3 mật khẩu cũ", diffFromOld);
 
     // Change Password Button: ĐỔI MẬT KHẨU
     Vector2f chgPos(cardX + 24.f, cardY + 434.f);
@@ -734,49 +770,6 @@ void AdminProfilePanel::drawPasswordCard(RenderTarget& target) const {
     FloatRect cb = chgTxt.getLocalBounds();
     chgTxt.setPosition({std::round(chgPos.x + (185.f - cb.size.x) / 2.f - cb.position.x), std::round(chgPos.y + (44.f - cb.size.y) / 2.f - cb.position.y)});
     target.draw(chgTxt);
-}
-
-void AdminProfilePanel::drawTwoFactorCard(RenderTarget& target) const {
-    const float colGap = 18.f;
-    const float cardW = (width - 40.f - colGap) / 2.f;
-    const float cardX = position.x + 20.f + cardW + colGap;
-    const float cardY = position.y + 668.f;
-    const float cardH = 68.f;
-
-    // White Card Background
-    RoundedRectRenderer::draw(target, {cardX, cardY}, {cardW, cardH}, 10.f, Color::White, 1.f, Color(226, 232, 240));
-
-    // Shield Icon (vector)
-    Vector2f icPos(cardX + 18.f, cardY + 17.f);
-    CircleShape ic(17.f);
-    ic.setPosition(icPos);
-    ic.setFillColor(Color(220, 252, 231));
-    target.draw(ic);
-    UITheme::drawShieldIcon(target, {icPos.x + 17.f, icPos.y + 17.f}, 8.f, Color(21, 128, 61));
-    UITheme::drawCheckmark(target, {icPos.x + 17.f, icPos.y + 17.f}, 0.58f, Color::White, 2.f);
-
-    // Title & Subtitle
-    Text title(boldFont, L"Xác thực 2 yếu tố (2FA Google Authenticator)", 16.f);
-    title.setFillColor(Color(23, 32, 51));
-    title.setPosition({cardX + 64.f, cardY + 13.f});
-    target.draw(title);
-
-    Text sub(font, L"Bảo vệ tài khoản qua mã OTP ứng dụng điện thoại", 16.f);
-    sub.setFillColor(Color(100, 116, 139));
-    sub.setPosition({cardX + 64.f, cardY + 36.f});
-    target.draw(sub);
-
-    // Badge: ● ĐÃ BẬT
-    Vector2f bPos(cardX + cardW - 120.f, cardY + 20.f);
-    RoundedRectRenderer::draw(target, bPos, {100.f, 28.f}, 14.f, Color(220, 252, 231), 1.f, Color(167, 243, 208));
-    CircleShape bDot(3.5f);
-    bDot.setFillColor(Color(21, 128, 61));
-    bDot.setPosition({bPos.x + 12.f, bPos.y + 10.5f});
-    target.draw(bDot);
-    Text bTxt(boldFont, L"ĐÃ BẬT", 14.5f);
-    bTxt.setFillColor(Color(21, 128, 61));
-    bTxt.setPosition({bPos.x + 24.f, bPos.y + 4.f});
-    target.draw(bTxt);
 }
 
 void AdminProfilePanel::drawDeleteModal(RenderTarget& target) const {
